@@ -6,8 +6,8 @@ let LVWin;
 let invisibleWin;
 
 // Way to quickly switch between monitors
-// 0 -> work monitor, 1 -> home monitor
-const thisMonitor = 1;
+// 0 -> work monitor, 1 -> home monitor, 2 -> no monitor
+const thisMonitor = 2;
 const monitor = [
 	[
 		[-1850, -200],
@@ -17,6 +17,10 @@ const monitor = [
 		[1480, -300],
 		[2950, -300],
 	],
+	[
+		[0, 0],
+		[20, 20],
+	]
 ];
 
 function createMainWindow() {

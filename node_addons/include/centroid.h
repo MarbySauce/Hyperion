@@ -32,7 +32,7 @@ public:
 	Centroid(int Width, int Height);
 	float getddx(CImg<float> &Window, int X, int Y);
 	float getddy(CImg<float> &Window, int X, int Y);
-	void centroid(std::vector<unsigned char>& Buffer, unsigned char* pMem, int pPitch);
+	void centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPitch);
 	int getRegion(int X, int Y);
 	void reduceRegionVector();
 	void calculateCentroids();
@@ -62,7 +62,7 @@ float Centroid::getddy(CImg<float> &Window, int X, int Y)
 	return 0.5 * (Ip1 - Im1);
 }
 
-void Centroid::centroid(std::vector<unsigned char>& Buffer, unsigned char* pMem, int pPitch)
+void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPitch)
 {
 	// Start calculation stopwatch
 	Timer compute;

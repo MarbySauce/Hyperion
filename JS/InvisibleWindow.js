@@ -77,9 +77,10 @@ function messageLoop() {
 ipc.on("StartCentroiding", function (event, arg) {
 	// Enable messages
 	setTimeout(() => {
-		camera.enableMessages();
-		checkMessageBool = true;
-		messageLoop();
+		if(camera.enableMessages()) {
+			checkMessageBool = true;
+			messageLoop();
+		}
 	}, 5000 /* ms */);
 });
 

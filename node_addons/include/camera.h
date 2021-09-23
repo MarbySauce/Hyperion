@@ -7,7 +7,7 @@
 // Global variables
 bool windowGenerated = false;
 bool cameraConnected = false;
-unsigned char* pMem;
+char* pMem;
 int memID;
 std::vector<unsigned char> buffer(768*768*4);
 Centroid Img(0, 0);

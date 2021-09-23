@@ -1,3 +1,7 @@
+#ifndef UNICODE
+#define UNICODE
+#endif
+
 #include "camera.h"
 #include <windows.h>
 #include <uEye.h>
@@ -30,6 +34,7 @@ Napi::Boolean CreateWinAPIWindow(const Napi::CallbackInfo& info) {
 
 	WNDCLASS wc = { };
 
+	wc.lpfnWndProc = DefWindowProc;
 	wc.hInstance = hInstance;
 	wc.lpszClassName = CLASS_NAME;
 
@@ -85,7 +90,7 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	AreaOfInterest.s32Y = 0; // Top offset
 	AreaOfInterest.s32Width = 768; // Image width
 	AreaOfInterest.s32Height = 768; // Image height
-	nRet = is_AOI(hCam, IS_AOI_SET_IMAGE_AOI, (void*)&AreaOfInterest, sizeof(AreaOfInterest));
+	nRet = is_AOI(hCam, IS_AOI_IMAGE_SET_AOI, (void*)&AreaOfInterest, sizeof(AreaOfInterest));
 	if (nRet != IS_SUCCESS) {
 		std::cout << "Setting AoI failed with error: " << nRet << std::endl;
 		return Napi::Boolean::New(env, false);
@@ -154,7 +159,8 @@ Napi::Boolean EnableMessages(Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	// Check to make sure WinAPI window was created
-	if (!windowGenerated) {
+	// and that the camera was connected
+	if (!windowGenerated || !cameraConnected) {
 		return Napi::Boolean::New(env, false);
 	}
 
