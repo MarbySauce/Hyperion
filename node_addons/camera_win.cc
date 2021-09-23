@@ -8,7 +8,7 @@
 
 // Windows specific global variables
 HWND hWnd;
-HIDS hCam;
+HIDS hCam = 0;
 
 // End of global variables
 
@@ -26,6 +26,11 @@ HIDS hCam;
 // Returns whether window was created
 Napi::Boolean CreateWinAPIWindow(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
+
+	Img.Image.assign(768,768);
+	Img.RegionImage.assign(768, 768);
+	Img.RegionVector.assign(500, 1);
+	Img.COMs.assign(500, 4);
 
 	HINSTANCE hInstance; // Necessary(?) bullshit
 
@@ -76,6 +81,9 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info) {
 Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
+	// Initialize image array for centroiding
+	Img.Image.assign(768, 768);
+
 	// Check to make sure camera was initialized first
 	if (!cameraConnected) {
 		std::cout << "Camera was not initialized!" << std::endl;
@@ -103,9 +111,6 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 		std::cout << "Allocating memory failed with error: " << nRet << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
-
-	// Initialize image array for centroiding
-	Img.Image.assign(768, 768);
 
 	// Tell camera where to put image data
 	nRet = is_SetImageMem(hCam, pMem, memID);
@@ -178,18 +183,25 @@ Napi::Boolean EnableMessages(Napi::CallbackInfo& info) {
 void CheckMessages(const Napi::CallbackInfo& info) {
 	MSG msg = { }; // To store message info
 	// Check if there is a message in queue, return if not
+	std::cout << "Checking messages..." << std::endl;
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+		std::cout << "There's a message" << std::endl;
 		// Check if the message is from the camera
 		if (msg.message == IS_UEYE_MESSAGE) {
+			std::cout << "It's a ueye message" << std::endl;
 			// Check if the message is a frame event
 			if (msg.wParam == IS_FRAME) {
+				std::cout << "is frame!" << std::endl;
 				// Get image pitch
 				int pPitch;
 				is_GetImageMemPitch(hCam, &pPitch);
+				std::cout << "Pitch: " << pPitch << std::endl;
 				// Centroid
 				Img.centroid(buffer, pMem, pPitch);
+				std::cout << "Centroided!" << std::endl;
 				// Return calculated centers
 				sendCentroids();
+				std::cout << "Centroids returned!" << std::endl;
 			}
 		}
 	}
@@ -197,18 +209,39 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 
 // Close the camera
 void Close(const Napi::CallbackInfo& info) {
-	int nRet;
+	/*int nRet;
 
 	// Disable messages
 	nRet = is_EnableMessage(hCam, IS_FRAME, NULL);
+	std::cout << "\nDisable messages: " << nRet << std::endl;
 
 	// Stop image capture
 	nRet = is_StopLiveVideo(hCam, IS_WAIT);
+	std::cout << "Stop video: " << nRet << std::endl;
 
 	// Close camera
-	nRet = is_ExitCamera(hCam);
+	//nRet = is_ExitCamera(hCam);
+	//std::cout << "Exit camera: " << nRet << std::endl;
 
-	cameraConnected = false;
+	cameraConnected = false;*/
+
+	std::cout << "Starting" << std::endl;
+	Img.RegionImage.assign(768, 768);
+	Img.RegionImage.fill(0);
+	std::cout << "Test 1 made" << std::endl;
+	Img.RegionVector.assign(1500, 1);
+	Img.RegionVector.fill(0);
+	std::cout << "Test 2 made" << std::endl;
+	Img.COMs.assign(1500, 4);
+	Img.COMs.fill(0);
+	std::cout << "Test 3 made" << std::endl;
+	CImg<float> CCLCenters(1500, 2);
+	CCLCenters.fill(0);
+	std::cout << "Test 4 made" << std::endl;
+	CImg<float> HybridCenters(1500, 2);
+	HybridCenters.fill(0);
+	std::cout << "Test 5 made" << std::endl;
+	std::cout << "Width: " << Img.Image.width() << " Height: " << Img.Image.height() << std::endl;
 }
 
 // Set up emitter to communicate with JavaScript

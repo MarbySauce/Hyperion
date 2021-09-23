@@ -29,6 +29,7 @@ function Startup() {
 
 	// Initialize buffer
 	buffer = camera.initBuffer();
+	console.log(buffer);
 
 	// Set up emitter messages
 	emitter.on("new-image", (centroidResults) => {
@@ -51,13 +52,17 @@ function Startup() {
 	camera.initEmitter(emitter.emit.bind(emitter));
 
 	// Create WinAPI Window (to receive camera trigger messages)
-	camera.createWinAPIWindow();
+	let nRet = camera.createWinAPIWindow();
+	console.log("Create window:",nRet);
 
 	// Connect to the camera
-	camera.connect();
+	nRet = camera.connect();
+	console.log("Connect to camera:", nRet);
 
 	// Adjust camera settings
-	camera.applySettings();
+	nRet = camera.applySettings();
+	console.log("Apply settings:", nRet);
+
 }
 
 function messageLoop() {
@@ -78,6 +83,7 @@ ipc.on("StartCentroiding", function (event, arg) {
 	// Enable messages
 	setTimeout(() => {
 		if(camera.enableMessages()) {
+			console.log("Messages enabled");
 			checkMessageBool = true;
 			messageLoop();
 		}
