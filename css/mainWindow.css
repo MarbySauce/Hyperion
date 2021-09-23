@@ -49,7 +49,8 @@ body {
 }
 
 label {
-	color: whitesmoke;
+	/*color: whitesmoke;*/
+	color: white;
 }
 
 #TabBar {
@@ -147,7 +148,8 @@ label {
 }
 
 .white-text {
-	color: whitesmoke;
+	/*color: whitesmoke;*/
+	color: white;
 }
 
 .serif {
@@ -197,7 +199,8 @@ label {
 	border-radius: 100%;
 	border: none;
 	background: hsla(225, 20%, 10%, 0.6);
-	color: whitesmoke;
+	/*color: whitesmoke;*/
+	color: white;
 }
 .I0NButton:hover {
 	background: hsla(225, 20%, 25%, 1);
@@ -259,7 +262,8 @@ Left Side
 	font-size: 3.7vw;
 	font-family: "Libre Baskerville";
 	text-transform: uppercase;
-	color: gainsboro;
+	/*color: gainsboro;*/
+	color: white;
 	letter-spacing: 0.1em;
 	text-shadow: black 0 0 5px;
 }
@@ -469,7 +473,8 @@ Left Side
 	padding-top: 7px;
 	height: 100%;
 	border-bottom: 1px dotted rgb(62, 71, 95);
-	color: whitesmoke;
+	/*color: whitesmoke;*/
+	color: white;
 }
 
 /* 
@@ -772,7 +777,8 @@ End right side
 .SettingsTitle {
 	height: 50px;
 	padding-left: 50px;
-	color: whitesmoke;
+	/*color: whitesmoke;*/
+	color: white;
 	border-bottom: 1px solid white;
 }
 
@@ -783,7 +789,8 @@ End right side
 .SettingsSectionTitle {
 	height: 40px;
 	padding-left: 20px;
-	color: whitesmoke;
+	/*color: whitesmoke;*/
+	color: white;
 	border-bottom: 1px dotted white;
 }
 
@@ -818,4 +825,9 @@ input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
 	-webkit-appearance: none;
 	margin: 0;
+}
+
+/* Get rid of scroll bars */
+*::-webkit-scrollbar {
+	display: none;
 }

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, nativeTheme } = require("electron");
 const path = require("path");
 
 let mainWin;
@@ -87,6 +87,9 @@ function createInvisibleWindow() {
 }
 
 app.whenReady().then(function () {
+	// Set dark mode
+	nativeTheme.themeSource = 'dark';
+
 	invisibleWin = createInvisibleWindow();
 	LVWin = createLVWindow();
 	mainWin = createMainWindow();
@@ -98,6 +101,9 @@ app.whenReady().then(function () {
 			mainWin = createMainWindow();
 		}
 	});
+
+	// Get rid of Live View menu bar
+	LVWin.removeMenu();
 
 	// Close LV window when main window is closed
 	// !! Update comments
