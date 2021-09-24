@@ -23,8 +23,8 @@ const monitor = [
 		[20, 20],
 	],
 	[
-		[50, 50],
-		[-2800, 0],
+		[50, 0],
+		[-2900, 0],
 	]
 ];
 
@@ -55,7 +55,7 @@ function createMainWindow() {
 function createLVWindow() {
 	win = new BrowserWindow({
 		width: 1200,
-		height: 1000,
+		height: 820,
 		//x: 2950,
 		//y: -300,
 		//x: -900,
@@ -143,21 +143,22 @@ ipcMain.on("UpdateSaveDirectory", function (event, arg) {
 		.then(function (result) {
 			if (!result.canceled) {
 				// File explorer was not canceled
-				let returnPath = result.filePaths[0];
+				let actualReturnPath = result.filePaths[0];
+				let returnPath;
 
 				// Check if Home directory is included in path
 				// If so, remove (to clean up aesthetically)
 				// Do the same for the app's parent directory
 				let homePath = app.getPath("home");
 				let appPath = app.getAppPath();
-				if (returnPath.includes(appPath)) {
-					returnPath = "." + returnPath.substr(appPath.length);
-				} else if (returnPath.includes(homePath)) {
-					returnPath = "~" + returnPath.substr(homePath.length);
+				if (actualReturnPath.includes(appPath)) {
+					returnPath = "." + actualReturnPath.substr(appPath.length);
+				} else if (actualReturnPath.includes(homePath)) {
+					returnPath = "~" + actualReturnPath.substr(homePath.length);
 				}
 
 				// Send message back with directory path
-				event.reply("NewSaveDirectory", returnPath);
+				event.reply("NewSaveDirectory", [actualReturnPath, returnPath]);
 			}
 		})
 		.catch(function (err) {

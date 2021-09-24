@@ -204,7 +204,7 @@ function Startup() {
 	//todaysDate = getFormattedDate();
 
 	// Update CurrentFile and CurrentDirectory displays
-	saveDirectory.value = settings.saveDirectory.currentScan;
+	saveDirectory.value = settings.saveDirectory.currentScanShort;
 
 	// Find today's previous files JSON file and read
 	//tartupReadRecentFiles();
@@ -855,11 +855,12 @@ function UpdateScanCountDisplays() {
 }
 
 // Receive message about changing Current File Save Directory
-ipc.on("NewSaveDirectory", function (event, returnedDirectory) {
+ipc.on("NewSaveDirectory", function (event, returnedDirectories) {
 	const saveDirectory = document.getElementById("SaveDirectory");
 
-	settings.saveDirectory.currentScan = returnedDirectory.toString();
-	saveDirectory.value = settings.saveDirectory.currentScan;
+	settings.saveDirectory.currentScan = returnedDirectories[0].toString();
+	settings.saveDirectory.currentScanShort = returnedDirectories[1].toString();
+	saveDirectory.value = settings.saveDirectory.currentScanShort;
 });
 
 ipc.on("closing-main-window", () => {

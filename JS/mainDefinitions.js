@@ -238,6 +238,7 @@ const settings = {
 	},
 	saveDirectory: {
 		currentScan: "./Images",
+		currentScanShort: "./Images",
 		previousScans: "./PreviousScans",
 	},
 	save: function () {
