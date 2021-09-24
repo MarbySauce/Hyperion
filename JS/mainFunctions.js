@@ -801,8 +801,9 @@ ipc.on("LVImageUpdate", function (event, obj) {
 	// Take single shot image if requested
 	if (singleShot.toSave) {
 		// Create a copy of the buffer
-		singleShot.savedBuffer = [...obj.imageBuffer]; 
-		singleShot.saveSingleShot();
+		singleShot.savedBuffer = [...obj.imageBuffer];
+		singleShot.savedCentroids = [...obj.calcCenters];
+		singleShot.save();
 		singleShot.toSave = false;
 	}
 });

@@ -722,8 +722,10 @@ const previousScans = {
 const singleShot = {
 	toSave: false,
 	savedBuffer: [],
+	savedCentroids: [],
 	fileName: "singleShot.txt",
-	convertToString: function () {
+	centroidsFileName: "ssCentroids.txt",
+	convertImageToString: function () {
 		// Convert the buffer to a printable string
 		// where each element in a row is separated with a space
 		// and each row is separated with a new line
@@ -731,23 +733,44 @@ const singleShot = {
 		let arrayToWrite = Array.from(Array(accumulatedImage.originalHeight), () => new Array(accumulatedImage.originalWidth).fill(0));
 		for (let Y = 0; Y < accumulatedImage.originalHeight; Y++) {
 			for (let X = 0; X < accumulatedImage.originalWidth; X++) {
-				let alphaIndex = 4*(accumulatedImage.originalWidth*Y + X) + 3;
+				let alphaIndex = 4 * (accumulatedImage.originalWidth * Y + X) + 3;
 				// Image buffer is inverted, so we need to take the difference
 				arrayToWrite[Y][X] = 255 - this.savedBuffer[alphaIndex];
 			}
 		}
 		return arrayToWrite.map((row) => row.join(" ")).join("\n");
 	},
-	saveSingleShot: function () {
+	convertCentroidsToString: function () {
+		// Convert calcCenters array to a printable string
+		// With centers printed as two columns: X Y
+		// Separated by "CCL Centroids" and "Hybrid Centroids" as headers
+		let printString = "";
+		const headers = ["CCL Centroids", "Hybrid Centroids"];
+		for (let i = 0; i < 2; i++) {
+			printString += headers[i] + "\n";
+			printString += this.savedCentroids[i].map((row) => row.join(" ")).join("\n") + "\n";
+		}
+		return printString;
+	},
+	save: function () {
 		// Save the image
-		let saveLocation = settings.saveDirectory.currentScan + "/" + this.fileName;
-		let imageString = singleShot.convertToString();
-		fs.writeFile(saveLocation, imageString, (err) => {
+		let imageSaveLocation = settings.saveDirectory.currentScan + "/" + this.fileName;
+		let centroidSaveLocation = settings.saveDirectory.currentScan + "/" + this.centroidsFileName;
+		let imageString = singleShot.convertImageToString();
+		let centroidString = singleShot.convertCentroidsToString();
+		fs.writeFile(imageSaveLocation, imageString, (err) => {
 			if (err) {
 				console.log(err);
 			} else {
-				console.log("Saved!");
+				console.log("Saved image!");
+			}
+		});
+		fs.writeFile(centroidSaveLocation, centroidString, (err) => {
+			if (err) {
+				console.log(err);
+			} else {
+				console.log("Saved centroids!");
 			}
 		});
 	},
-}
+};
