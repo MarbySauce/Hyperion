@@ -280,7 +280,6 @@ const scanInfo = {
 	},
 	saveImage: function () {
 		// Save the image
-		// !!! Need to redo this so that the "~" doesn't fuck it up
 		let saveLocation = settings.saveDirectory.currentScan + "/" + this.fileName;
 		// Temporary file to store to in case app crashes while writing,
 		// previous autosaved file will not be ruined
@@ -719,3 +718,36 @@ const previousScans = {
 		});
 	},
 };
+
+const singleShot = {
+	toSave: false,
+	savedBuffer: [],
+	fileName: "singleShot.txt",
+	convertToString: function () {
+		// Convert the buffer to a printable string
+		// where each element in a row is separated with a space
+		// and each row is separated with a new line
+		// and RGB values are ignored
+		let arrayToWrite = Array.from(Array(accumulatedImage.originalHeight), () => new Array(accumulatedImage.originalWidth).fill(0));
+		for (let Y = 0; Y < accumulatedImage.originalHeight; Y++) {
+			for (let X = 0; X < accumulatedImage.originalWidth; X++) {
+				let alphaIndex = 4*(accumulatedImage.originalWidth*Y + X) + 3;
+				// Image buffer is inverted, so we need to take the difference
+				arrayToWrite[Y][X] = 255 - this.savedBuffer[alphaIndex];
+			}
+		}
+		return arrayToWrite.map((row) => row.join(" ")).join("\n");
+	},
+	saveSingleShot: function () {
+		// Save the image
+		let saveLocation = settings.saveDirectory.currentScan + "/" + this.fileName;
+		let imageString = singleShot.convertToString();
+		fs.writeFile(saveLocation, imageString, (err) => {
+			if (err) {
+				console.log(err);
+			} else {
+				console.log("Saved!");
+			}
+		});
+	},
+}

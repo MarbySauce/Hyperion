@@ -65,7 +65,8 @@ document.getElementById("Pause").onclick = function () {
 };
 document.getElementById("SingleShot").onclick = function () {
 	// Single shot button
-	console.log("Executed SS");
+	//console.log("Executed SS");
+	singleShot.toSave = true;
 };
 
 // Save Controls
@@ -795,6 +796,14 @@ ipc.on("LVImageUpdate", function (event, obj) {
 	if (eChartData.running) {
 		eChartData.updateData(obj.calcCenters);
 		eChartData.updateChart(eChart);
+	}
+
+	// Take single shot image if requested
+	if (singleShot.toSave) {
+		// Create a copy of the buffer
+		singleShot.savedBuffer = [...obj.imageBuffer]; 
+		singleShot.saveSingleShot();
+		singleShot.toSave = false;
 	}
 });
 
