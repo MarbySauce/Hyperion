@@ -6,8 +6,9 @@ let LVWin;
 let invisibleWin;
 
 // Way to quickly switch between monitors
-// 0 -> work monitor, 1 -> home monitor, 2 -> no monitor
-const thisMonitor = 0;
+// 0 -> work monitor, 1 -> home monitor, 
+// 2 -> no monitor, 3 -> Lab comp
+const thisMonitor = 3;
 const monitor = [
 	[
 		[-1850, -300],
@@ -20,6 +21,10 @@ const monitor = [
 	[
 		[0, 0],
 		[20, 20],
+	],
+	[
+		[50, 50],
+		[-2800, 0],
 	]
 ];
 
@@ -57,7 +62,6 @@ function createLVWindow() {
 		//y: 50,
 		x: monitor[thisMonitor][1][0],
 		y: monitor[thisMonitor][1][1],
-		show: false,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,

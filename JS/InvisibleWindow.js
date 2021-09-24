@@ -71,6 +71,7 @@ function messageLoop() {
 			// Re-execute this function at the end of event loop cycle
 			messageLoop();
 		}, 0);
+		//checkMessageBool = false;
 		camera.checkMessages();
 	}
 }
@@ -87,6 +88,8 @@ ipc.on("StartCentroiding", function (event, arg) {
 			checkMessageBool = true;
 			messageLoop();
 		}
+		//let nRet = camera.enableMessages();
+		//console.log("Enable messages:",nRet);
 	}, 5000 /* ms */);
 });
 

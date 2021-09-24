@@ -279,6 +279,7 @@ const scanInfo = {
 	},
 	saveImage: function () {
 		// Save the image
+		// !!! Need to redo this so that the "~" doesn't fuck it up
 		let saveLocation = settings.saveDirectory.currentScan + "/" + this.fileName;
 		// Temporary file to store to in case app crashes while writing,
 		// previous autosaved file will not be ruined

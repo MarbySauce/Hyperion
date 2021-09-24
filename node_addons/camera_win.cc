@@ -92,6 +92,20 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 
 	int nRet; // Return values from uEye functions
 
+	// Set color mode
+	nRet = is_SetColorMode(hCam, IS_CM_MONO8);
+	if (nRet != IS_SUCCESS) {
+		std::cout << "Setting color mode failed with error: " << nRet << std::endl;
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Set display mode
+	nRet = is_SetDisplayMode(hCam, IS_SET_DM_DIB);
+	if (nRet != IS_SUCCESS) {
+		std::cout << "Setting display mode failed with error: " << nRet << std::endl;
+		return Napi::Boolean::New(env, false);
+	}
+
 	// Set area of interest
 	IS_RECT AreaOfInterest; // Object to contain AoI info
 	AreaOfInterest.s32X = 100; // Left offset
@@ -183,25 +197,18 @@ Napi::Boolean EnableMessages(Napi::CallbackInfo& info) {
 void CheckMessages(const Napi::CallbackInfo& info) {
 	MSG msg = { }; // To store message info
 	// Check if there is a message in queue, return if not
-	std::cout << "Checking messages..." << std::endl;
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-		std::cout << "There's a message" << std::endl;
 		// Check if the message is from the camera
 		if (msg.message == IS_UEYE_MESSAGE) {
-			std::cout << "It's a ueye message" << std::endl;
 			// Check if the message is a frame event
 			if (msg.wParam == IS_FRAME) {
-				std::cout << "is frame!" << std::endl;
 				// Get image pitch
 				int pPitch;
 				is_GetImageMemPitch(hCam, &pPitch);
-				std::cout << "Pitch: " << pPitch << std::endl;
 				// Centroid
 				Img.centroid(buffer, pMem, pPitch);
-				std::cout << "Centroided!" << std::endl;
 				// Return calculated centers
 				sendCentroids();
-				std::cout << "Centroids returned!" << std::endl;
 			}
 		}
 	}
@@ -209,7 +216,7 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 
 // Close the camera
 void Close(const Napi::CallbackInfo& info) {
-	/*int nRet;
+	int nRet;
 
 	// Disable messages
 	nRet = is_EnableMessage(hCam, IS_FRAME, NULL);
@@ -223,25 +230,8 @@ void Close(const Napi::CallbackInfo& info) {
 	//nRet = is_ExitCamera(hCam);
 	//std::cout << "Exit camera: " << nRet << std::endl;
 
-	cameraConnected = false;*/
+	cameraConnected = false;
 
-	std::cout << "Starting" << std::endl;
-	Img.RegionImage.assign(768, 768);
-	Img.RegionImage.fill(0);
-	std::cout << "Test 1 made" << std::endl;
-	Img.RegionVector.assign(1500, 1);
-	Img.RegionVector.fill(0);
-	std::cout << "Test 2 made" << std::endl;
-	Img.COMs.assign(1500, 4);
-	Img.COMs.fill(0);
-	std::cout << "Test 3 made" << std::endl;
-	CImg<float> CCLCenters(1500, 2);
-	CCLCenters.fill(0);
-	std::cout << "Test 4 made" << std::endl;
-	CImg<float> HybridCenters(1500, 2);
-	HybridCenters.fill(0);
-	std::cout << "Test 5 made" << std::endl;
-	std::cout << "Width: " << Img.Image.width() << " Height: " << Img.Image.height() << std::endl;
 }
 
 // Set up emitter to communicate with JavaScript

@@ -25,10 +25,14 @@
 						]
 					},
 					"include_dirs": [
-						"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\um",
-						"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\ucrt",
-						"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\shared",
-						"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30037\\include",
+						#"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\um",
+						#"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\ucrt",
+						#"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\shared",
+						#"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30037\\include",
+						"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.17763.0\\um",
+						"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.17763.0\\ucrt",
+						"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.17763.0\\shared",
+						"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Tools\\MSVC\\14.16.27023\\include",
 						"C:\\Program Files\\IDS\\uEye\\Develop\\include"
 					],
                     "msvs_settings": {

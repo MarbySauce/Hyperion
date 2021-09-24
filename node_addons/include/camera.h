@@ -20,7 +20,7 @@ Napi::FunctionReference eventEmitter;
 // Send message to JavaScript with calculated centers and computation time
 void sendCentroids() {
 	Napi::Env env = eventEmitter.Env(); // Napi local environment
-	/*
+	
 	// Package centers and compute time into an array
 	// 0 -> CCL centers, 1 -> hybrid centers, 2 -> computation time
 	Napi::Array centroidResults = Napi::Array::New(env, 3);
@@ -50,7 +50,7 @@ void sendCentroids() {
 	}
 
 	// Now add the computation time
-	centroidResults.Set(2, Img.computationTime); */
+	centroidResults.Set(2, Img.computationTime); 
 
 	Napi::Array dumb = Napi::Array::New(env, 3);
 	dumb.Set(Napi::Number::New(env, 0), Napi::Number::New(env, 20));
@@ -61,7 +61,7 @@ void sendCentroids() {
 	eventEmitter.Call(
 		{
 			Napi::String::New(env, "new-image"),
-			dumb
+			centroidResults
 		}
 	);
 }

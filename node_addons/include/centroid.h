@@ -16,7 +16,7 @@ public:
 	int maxPix = 120;			 // Upper region bound to use CoM method
 
 	bool ReduceRegionVector = true;		// Whether to reduce RegionVector to only point to parent region
-	bool UseHybridMethod = false;		// Whether to use hybrid method
+	bool UseHybridMethod = true;		// Whether to use hybrid method
 
 	CImg<unsigned int> Image;		 // Image to centroid
 	CImg<unsigned int> RegionImage;	 // Image of pixel regions
@@ -64,8 +64,6 @@ float Centroid::getddy(CImg<float> &Window, int X, int Y)
 
 void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPitch)
 {
-	std::cout << "Entering centroid()" << std::endl;
-
 	// Start calculation stopwatch
 	Timer compute;
 
@@ -73,25 +71,16 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 	int Width = Image.width();
 	int Height = Image.height();
 
-	std::cout << "Size acquired" << std::endl;
-
 	// Create the necessary centroiding arrays
-	COMs.assign(250, 4);
-
-	std::cout << "Coms assigned" << std::endl;
-
+	//COMs.assign(250, 4);
 	COMs.fill(0); // Center of Mass parameters
 
-	std::cout << "COMS made" << std::endl;
 
-	RegionImage.assign(Width, Height);
+	//RegionImage.assign(Width, Height);
 	RegionImage.fill(0);		 // Image of each pixel's region number
 
-	std::cout << "Region image made" << std::endl;
-	RegionVector.assign(250, 1); // Vector that contains each region's parent region
+	//RegionVector.assign(250, 1); // Vector that contains each region's parent region
 								 // The parent region is the lowest indexed of the equivalent regions
-	
-	std::cout << "Arrays assigned" << std::endl;
 
 	// Properly fill RegionVector
 	for (int i = 0; i < RegionVector.width(); i++)
@@ -101,8 +90,6 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 
 	// Reset regions counter
 	regions = 1;
-
-	std::cout << "\nGoing through image now..." << std::endl;
 
 	// Go through each pixel and add it to a region if sufficient intensity
 	int regionNo;
@@ -129,18 +116,12 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 		}
 	}
 
-	std::cout << "Went through image!" << std::endl;
-
 	if (ReduceRegionVector)
 	{
 		reduceRegionVector();
 	}
 
-	std::cout << "Region vector reduced" << std::endl;
-
 	calculateCentroids();
-
-	std::cout << "Centroids found!" << std::endl;
 
 	// Stop computation stopwatch
 	computationTime = compute.end();
@@ -253,15 +234,11 @@ void Centroid::calculateCentroids()
 	// Centroids[0] is the centroids calculated using the Connected Component Labeling method
 	// Centroids[1] is the centroids calculated using the hybrid method
 	//Centroids.assign(2);
+	CImg<float> CCLCenters(500, 2);
+	CImg<float> HybridCenters(500, 2);
+	CCLCenters.fill(0);
+	HybridCenters.fill(0);
 
-	std::cout << "Starting to calc" << std::endl;
-
-	CImg<float> CCLCenters(50, 2);
-	CImg<float> HybridCenters(50, 2);
-	//CCLCenters.fill(0);
-	//HybridCenters.fill(0);
-
-	std::cout << "Regions: " << regions << std::endl;
 
 	// Reset electron counts
 	CCLCount = 0;
@@ -270,7 +247,6 @@ void Centroid::calculateCentroids()
 	// Find Center of Mass of parent regions
 	for (unsigned int i = regions; i > 0; i--)
 	{ // Go through RegionVector in reverse
-		std::cout << "Region no: " << i << std::endl;
 		unsigned int regionNo = RegionVector(i);
 		if (regionNo != i)
 		{ // Not a parent region
@@ -405,9 +381,9 @@ void Centroid::calculateCentroids()
 void Centroid::updateBuffer(std::vector<unsigned char>& Buffer, int X, int Y, int imageWidth, unsigned int pixValue)
 {
 	int dataIndex = 4 * (imageWidth * Y + X); // dataIndex + (0,1,2,3) == (R,G,B,A)
-	if (255 - pixValue >= 0)
+	if (255 - 5*pixValue >= 0)
 	{
-		Buffer[dataIndex + 3] = 255 - pixValue;
+		Buffer[dataIndex + 3] = 255 - 5*pixValue;
 	}
 	else
 	{
