@@ -2,7 +2,7 @@
 
 // Mac specific global variables
 Timer triggerDelay; // Used for simulating 20Hz rep rate
-unsigned char simulatedImage[768*768]; // Stand-in for image memory
+char simulatedImage[768*768]; // Stand-in for image memory
 
 // Constants
 float const pi = 3.14159265358979;
@@ -25,7 +25,7 @@ float Gauss(int i, float center, float width)
 	return sqrt(255) * exp(-pow(i - center, 2) / width);
 }
 
-void simulateImage(unsigned char simImage[], unsigned int randSeed) {
+void simulateImage(char simImage[], unsigned int randSeed) {
 	srand(randSeed); // Setting up random number generator
 
 	// Simulated values
@@ -93,6 +93,11 @@ void simulateImage(unsigned char simImage[], unsigned int randSeed) {
 // Returns true
 Napi::Boolean CreateWinAPIWindow(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
+
+	Img.Image.assign(768,768);
+	Img.RegionImage.assign(768, 768);
+	Img.RegionVector.assign(500, 1);
+	Img.COMs.assign(500, 4);
 
 	windowGenerated = true;
 
