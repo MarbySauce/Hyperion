@@ -67,8 +67,8 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 		{
 			for (int X = centerX - 8; X < centerX + 9; X++)
 			{
-				unsigned int intensity = round(Gauss(Y, centerY, widthY) * Gauss(X, centerX, widthX) * percentIntensity);
-				unsigned int currentIntensity = simImage[768*Y + X];
+				int intensity = round(Gauss(Y, centerY, widthY) * Gauss(X, centerX, widthX) * percentIntensity);
+				int currentIntensity = (unsigned char)simImage[768*Y + X];
 				currentIntensity += intensity;
 				if (currentIntensity > 255)
 				{

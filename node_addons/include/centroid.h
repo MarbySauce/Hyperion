@@ -36,7 +36,7 @@ public:
 	int getRegion(int X, int Y);
 	void reduceRegionVector();
 	void calculateCentroids();
-	void updateBuffer(std::vector<unsigned char>& Buffer, int X, int Y, int imageWidth, unsigned int pixValue);
+	void updateBuffer(std::vector<unsigned char>& Buffer, int X, int Y, int imageWidth, unsigned char pixValue);
 };
 
 // Initialize class
@@ -98,7 +98,7 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 		for (int X = 1; X < Width - 1; X++)
 		{
 			//unsigned int pixValue = Image(X, Y);
-			unsigned int pixValue = *(reinterpret_cast<unsigned char*>(pMem + X + Y*pPitch));
+			unsigned char pixValue = *(reinterpret_cast<char*>(pMem + X + Y*pPitch));
 			Image(X, Y) = pixValue;
 
 			updateBuffer(Buffer, X, Y, Width, pixValue);
@@ -378,12 +378,12 @@ void Centroid::calculateCentroids()
 }
 
 // Update the image buffer data
-void Centroid::updateBuffer(std::vector<unsigned char>& Buffer, int X, int Y, int imageWidth, unsigned int pixValue)
+void Centroid::updateBuffer(std::vector<unsigned char>& Buffer, int X, int Y, int imageWidth, unsigned char pixValue)
 {
 	int dataIndex = 4 * (imageWidth * Y + X); // dataIndex + (0,1,2,3) == (R,G,B,A)
-	if (255 - 5*pixValue >= 0)
+	if (255 - 1*pixValue >= 0)
 	{
-		Buffer[dataIndex + 3] = 255 - 5*pixValue;
+		Buffer[dataIndex + 3] = 255 - 1*pixValue;
 	}
 	else
 	{
