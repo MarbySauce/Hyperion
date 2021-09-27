@@ -520,6 +520,7 @@ const averageCount = {
 	prevCCLCounts: [],
 	prevHybridCounts: [],
 	prevTotalCounts: [],
+	prevCalcTimes: [],
 	updateCounter: 0, // Used to keep track of how many frames have
 	// been processed since the last time avg display was updated
 	updateFrequency: 10, // Number of frames before updating display
@@ -527,10 +528,12 @@ const averageCount = {
 		let ccl = calculatedCenters[0].length;
 		let hybrid = calculatedCenters[1].length;
 		let total = ccl + hybrid;
+		let calcTime = calculatedCenters[2];
 		// Add to respective arrays
 		this.prevCCLCounts.push(ccl);
 		this.prevHybridCounts.push(hybrid);
 		this.prevTotalCounts.push(total);
+		this.prevCalcTimes.push(calcTime);
 		// Make sure arrays are only 10 frames long
 		// by removing earliest frame
 		while (this.prevCCLCounts.length > 10) {
@@ -541,6 +544,9 @@ const averageCount = {
 		}
 		while (this.prevTotalCounts.length > 10) {
 			this.prevTotalCounts.shift();
+		}
+		while (this.prevCalcTimes.length > 10) {
+			this.prevCalcTimes.shift();
 		}
 	},
 	getAverage: function (arr) {
@@ -558,6 +564,9 @@ const averageCount = {
 	},
 	getTotalAverage: function () {
 		return this.getAverage(this.prevTotalCounts).toFixed(2);
+	},
+	getCalcTimeAverage: function () {
+		return this.getAverage(this.prevTotalCounts).toFixed(1);
 	},
 };
 

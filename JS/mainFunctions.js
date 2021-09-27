@@ -841,12 +841,14 @@ function UpdateAverageCountDisplays() {
 	const cclAverage = document.getElementById("eChartCCLAvg");
 	const hybridAverage = document.getElementById("eChartHybridAvg");
 	const eChartTotalAverage = document.getElementById("eChartTotalAvg");
+	const calcTime = document.getElementById("eChartCalcTime");
 
 	if (averageCount.updateCounter === averageCount.updateFrequency) {
 		totalAverage.value = averageCount.getTotalAverage();
 		cclAverage.value = averageCount.getCCLAverage();
 		hybridAverage.value = averageCount.getHybridAverage();
 		eChartTotalAverage.value = averageCount.getTotalAverage();
+		calcTime.value = averageCount.getCalcTimeAverage() + " ms";
 
 		averageCount.updateCounter = 0;
 	} else {
