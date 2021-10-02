@@ -163,6 +163,14 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 		return Napi::Boolean::New(env, false);
 	}
 
+	// Set hardware gain
+	int gain = 75;
+	nRet = is_SetHardwareGain(hCam, gain, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER);
+	if (nRet != IS_SUCCESS) {
+		std::cout << "Setting gain failed with error: " << nRet << std::endl;
+		return Napi::Boolean::New(env, false);
+	}
+
 	// Start image capture
 	nRet = is_CaptureVideo(hCam, IS_WAIT);
 	if (nRet != IS_SUCCESS) {
