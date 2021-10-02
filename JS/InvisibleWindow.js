@@ -76,6 +76,12 @@ function messageLoop() {
 	}
 }
 
+// End the message loop and close the camera
+function closeCamera() {
+	checkMessageBool = false;
+	camera.close();
+}
+
 //
 /*			Messengers				*/
 //
