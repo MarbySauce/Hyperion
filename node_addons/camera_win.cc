@@ -29,8 +29,8 @@ Napi::Boolean CreateWinAPIWindow(const Napi::CallbackInfo& info) {
 
 	Img.Image.assign(768,768);
 	Img.RegionImage.assign(768, 768);
-	Img.RegionVector.assign(500, 1);
-	Img.COMs.assign(500, 4);
+	Img.RegionVector.assign(1500, 1);
+	Img.COMs.assign(1500, 4);
 
 	HINSTANCE hInstance; // Necessary(?) bullshit
 
