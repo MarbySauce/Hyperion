@@ -274,7 +274,7 @@ void Centroid::calculateCentroids()
 				int centerY = round((1.0 * yCOM) / (1.0 * norm));
 
 				// Create small window around spot to derive
-				int smallWindowSize = 20; // size of each side of the small window
+				int smallWindowSize = 40; // size of each side of the small window
 				CImg<float> smallWindow(smallWindowSize, smallWindowSize);
 				smallWindow.fill(0);
 				for (int Y = centerY - smallWindowSize / 2; Y < centerY + smallWindowSize / 2; Y++)
@@ -290,7 +290,7 @@ void Centroid::calculateCentroids()
 
 				// Apply Gaussian blur to smallWindow to account for spots that saturate the camera
 				// Essentially rounds-out the flat tops of these spots
-				smallWindow.blur(1.0);
+				//smallWindow.blur(1.0);
 
 				CImg<float> tempHybridCenters(500, 2);
 				tempHybridCenters.fill(0); // Need to keep track of all zero-crossings
@@ -303,7 +303,7 @@ void Centroid::calculateCentroids()
 					for (int X = 2; X < smallWindowSize - 2; X++)
 					{
 						unsigned int pixRegion = RegionImage(X + (centerX - smallWindowSize / 2), Y + (centerY - smallWindowSize / 2));
-						if (RegionVector(pixRegion) == pixRegion)
+						if (RegionVector(pixRegion) == i)
 						{ // We only need to look at pixels in the parent region
 							// Get d(intenity)/dx and d(intensity)/dy of pixel and its neighbors
 							float Xm1 = getddx(smallWindow, X - 1, Y);
