@@ -783,3 +783,68 @@ const singleShot = {
 		});
 	},
 };
+
+// Gonna hijack the electron counter graph to display
+// Need to change centroid.h and camera.h to return regionStats (see below)
+const spotBrightness = {
+	xImageCenter: 466, // Taken from MEVELER output of
+	yImageCenter: 514, // 100421i01_1024.i0N (taken with Hyperion)
+	rArray: [],
+	intensityArray: [],
+	countArray: [],
+	avgIntArray: [],
+	init: function () {
+		// Initialize arrays
+		for (let i = 0; i < 250; i++) {
+			this.rArray.push(i);
+			this.intensityArray.push(0);
+			this.countArray.push(0);
+			this.avgIntArray.push(0);
+		}
+	},
+	process: function (regionStats) {
+		const regionStatsLength = regionStats.length;
+		for (let i = 0; i < regionStatsLength; i++) {
+			// Extract data
+			let xCenter = regionStats[i][0];
+			let yCenter = regionStats[i][1];
+			let avgInt = regionStats[i][2];
+			// Calculate R
+			let R = Math.sqrt(Math.pow(xCenter - 384, 2) + Math.pow(yCenter - 384, 2));
+			let rIndex = Math.round(R);
+			// Add 1 to countArray
+			this.countArray[rIndex]++;
+			// Add intensity to intensityArray
+			this.intensityArray[rIndex] += avgInt;
+			// Update average intensity array
+			this.avgIntArray[rIndex] = this.intensityArray[rIndex] / this.countArray[rIndex];
+		}
+	},
+	updateChart: function (echart) {
+		echart.options.scales.y.max = 100;
+		// Update the eChart
+		echart.data.labels = this.rArray;
+		echart.data.datasets[0].data = this.avgIntArray;
+		echart.data.datasets[1].data = this.countArray;
+		echart.update("none");
+	},
+	reset: function () {
+		// Reset arrays
+		this.rArray = [];
+		this.intensityArray = [];
+		this.countArray = [];
+		this.avgIntArray = [];
+		this.init();
+	},
+	save: function () {
+		// Save intensityArray to file
+		let arrayToWrite = this.avgIntArray.join(" ");
+		fs.writeFile("./Images/AverageIntensityR.txt", arrayToWrite, (err) => {
+			if (err) {
+				console.log(err);
+			} else {
+				console.log("Saved!");
+			}
+		});
+	},
+};

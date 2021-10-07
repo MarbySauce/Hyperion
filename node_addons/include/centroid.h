@@ -234,15 +234,13 @@ void Centroid::calculateCentroids()
 	// Centroids[0] is the centroids calculated using the Connected Component Labeling method
 	// Centroids[1] is the centroids calculated using the hybrid method
 	//Centroids.assign(2);
-	CImg<float> CCLCenters(500, 2);
-	CImg<float> HybridCenters(500, 2);
-	CCLCenters.fill(0);
-	HybridCenters.fill(0);
+	//CImg<float> CCLCenters(500, 2);
+	//CImg<float> HybridCenters(500, 2);
+	//CCLCenters.fill(0);
+	//HybridCenters.fill(0);
+	CImg<float> AverageIntensity(1500, 3);
+	AverageIntensity.fill(0);
 
-
-	// Reset electron counts
-	CCLCount = 0;
-	HybridCount = 0;
 
 	// Find Center of Mass of parent regions
 	for (unsigned int i = regions; i > 0; i--)
@@ -262,119 +260,17 @@ void Centroid::calculateCentroids()
 			int norm = COMs(i, 2);
 			int pixCount = COMs(i, 3);
 
-			if ((pixCount > 3) && (pixCount <= maxPix))
-			{ // Calculate CoM for spots of non-overlapping electrons
-				CCLCenters(CCLCount, 0) = (1.0 * xCOM) / (1.0 * norm);
-				CCLCenters(CCLCount, 1) = (1.0 * yCOM) / (1.0 * norm);
-				CCLCount++;
-			}
-			else if (UseHybridMethod && pixCount > maxPix)
-			{ // Calculate local maxima of spots of overlapping electrons
-				int centerX = round((1.0 * xCOM) / (1.0 * norm));
-				int centerY = round((1.0 * yCOM) / (1.0 * norm));
-
-				// Create small window around spot to derive
-				int smallWindowSize = 40; // size of each side of the small window
-				CImg<float> smallWindow(smallWindowSize, smallWindowSize);
-				smallWindow.fill(0);
-				for (int Y = centerY - smallWindowSize / 2; Y < centerY + smallWindowSize / 2; Y++)
-				{
-					for (int X = centerX - smallWindowSize / 2; X < centerX + smallWindowSize / 2; X++)
-					{
-						if (Image(X, Y) >= threshold)
-						{
-							smallWindow(X - (centerX - smallWindowSize / 2), Y - (centerY - smallWindowSize / 2)) = Image(X, Y);
-						}
-					}
-				}
-
-				// Apply Gaussian blur to smallWindow to account for spots that saturate the camera
-				// Essentially rounds-out the flat tops of these spots
-				//smallWindow.blur(1.0);
-
-				CImg<float> tempHybridCenters(500, 2);
-				tempHybridCenters.fill(0); // Need to keep track of all zero-crossings
-										   // If they are too close to each other, need to only keep one
-				int tempHybridCount = 0;
-
-				// Find zero-crossings
-				for (int Y = 2; Y < smallWindowSize - 2; Y++)
-				{
-					for (int X = 2; X < smallWindowSize - 2; X++)
-					{
-						unsigned int pixRegion = RegionImage(X + (centerX - smallWindowSize / 2), Y + (centerY - smallWindowSize / 2));
-						if (RegionVector(pixRegion) == i)
-						{ // We only need to look at pixels in the parent region
-							// Get d(intenity)/dx and d(intensity)/dy of pixel and its neighbors
-							float Xm1 = getddx(smallWindow, X - 1, Y);
-							float X0 = getddx(smallWindow, X, Y);
-							float Xp1 = getddx(smallWindow, X + 1, Y);
-							float Ym1 = getddy(smallWindow, X, Y - 1);
-							float Y0 = getddy(smallWindow, X, Y);
-							float Yp1 = getddy(smallWindow, X, Y + 1);
-							// Check if derivatives cross 0 between (X,Y)0 and (X,Y)p1
-							if (Ym1 >= 0 && Y0 >= 0 && Yp1 < 0)
-							{
-								if (Xm1 > -0 && X0 >= 0 && Xp1 < 0)
-								{
-									// Calculate first-order approximation of zero-crossing
-									// NOTE: look into using third-order approximation
-									float rootX = (centerX - smallWindowSize / 2) + X + X0 / (X0 - Xp1);
-									float rootY = (centerY - smallWindowSize / 2) + Y + Y0 / (Y0 - Yp1);
-									tempHybridCenters(tempHybridCount, 0) = rootX;
-									tempHybridCenters(tempHybridCount, 1) = rootY;
-									tempHybridCount++;
-								}
-							}
-						}
-					}
-				}
-
-				// Get rid of double-counted spots (i.e. nearby calculated centroids) and add to HybridCenters
-				for (int k = 0; k <= tempHybridCount; k++)
-				{
-					float Xk = tempHybridCenters(k, 0);
-					float Yk = tempHybridCenters(k, 1);
-					if (Xk == 0)
-					{ // Don't need to worry about these
-						continue;
-					}
-					for (int l = k + 1; l <= tempHybridCount; l++)
-					{
-						float Xl = tempHybridCenters(l, 0);
-						float Yl = tempHybridCenters(l, 1);
-						if (Xl == 0)
-						{ // Don't need to worry about these
-							continue;
-						}
-						if (Xl - 1.5 < Xk && Xk < Xl + 1.5)
-						{
-							if (Yl - 1.5 < Yk && Yk < Yl + 1.5)
-							{
-								float pixL = Image(Xl, Yl);
-								float pixK = Image(Xk, Yk); // Intensities of each pixel
-								// Calculate weighted average of both centers
-								float rootX = (pixL * Xl + pixK * Xk) / (pixL + pixK);
-								float rootY = (pixL * Yl + pixK * Yk) / (pixL + pixK);
-								// Update centerL and destroy centerK
-								tempHybridCenters(k, 0) = rootX;
-								tempHybridCenters(k, 1) = rootY;
-								tempHybridCenters(l, 0) = 0;
-								tempHybridCenters(l, 1) = 0;
-							}
-						}
-					}
-					// Add centers to HybridCenters
-					HybridCenters(HybridCount, 0) = tempHybridCenters(k, 0);
-					HybridCenters(HybridCount, 1) = tempHybridCenters(k, 1);
-					HybridCount++;
-				}
-			}
+			float xCenter = xCOM / ( (float)norm );
+			float yCenter = yCOM / ( (float)norm );
+			float avgInt = norm / ( (float)pixCount );
+			AverageIntensity(i, 0) = xCenter;
+			AverageIntensity(i, 1) = yCenter;
+			AverageIntensity(i, 2) = avgInt;
 		}
 	}
 
-	Centroids[0] = CCLCenters;
-	Centroids[1] = HybridCenters;
+	Centroids[0] = AverageIntensity;
+
 }
 
 // Update the image buffer data

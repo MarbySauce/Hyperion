@@ -30,7 +30,8 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 
 	// Simulated values
 	int NumberOfSpots = (rand() % 10) + 15;
-	std::vector<float> Radii = {30, 50, 90, 120, 170};
+	//std::vector<float> Radii = {30, 50, 90, 120, 170};
+	std::vector<float> Radii = {10, 30, 50, 90, 120};
 
 	// First clear the image (i.e. fill with 0's)
 	// 		(Unnecessary if adding noise)
@@ -61,6 +62,12 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 		float widthX = (rand() % 50 + 100) / 10.0; // Randomly chooses widths btw 10.0 and 15.0 pixels (closer to real spot sizes)
 		float widthY = (rand() % 50 + 100) / 10.0;
 		float percentIntensity = (rand() % 60 + 50) / 100.0; // Choosing intensity btw 50% and 110%
+
+		// Make center spots dimmer
+		float radialDistance = sqrt(pow(centerX - imageCenterX, 2) + pow(centerY - imageCenterY, 2));
+		if (radialDistance < 60) {
+			percentIntensity /= 2;
+		}
 
 		// Add the spot to the image
 		for (int Y = centerY - 8; Y < centerY + 9; Y++)

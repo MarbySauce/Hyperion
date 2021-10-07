@@ -6,7 +6,7 @@ let LVWin;
 let invisibleWin;
 
 // Way to quickly switch between monitors
-// 0 -> work monitor, 1 -> home monitor, 
+// 0 -> work monitor, 1 -> home monitor,
 // 2 -> no monitor, 3 -> Lab comp
 const thisMonitor = 3;
 const monitor = [
@@ -25,7 +25,7 @@ const monitor = [
 	[
 		[50, 0],
 		[-2900, 0],
-	]
+	],
 ];
 
 function createMainWindow() {
@@ -93,7 +93,7 @@ function createInvisibleWindow() {
 
 app.whenReady().then(function () {
 	// Set dark mode
-	nativeTheme.themeSource = 'dark';
+	nativeTheme.themeSource = "dark";
 
 	invisibleWin = createInvisibleWindow();
 	LVWin = createLVWindow();
@@ -195,6 +195,26 @@ ipcMain.on("LVImageUpdate", function (event, arg) {
 	// Send data to live view window if it's open
 	try {
 		LVWin.webContents.send("LVImageUpdate", arg);
+	} catch {
+		doNothing = true;
+	}
+});
+
+// Relay centroid data to visible windows
+ipcMain.on("AverageIntensity", function (event, arg) {
+	// arg is an object containing image and calculated centers
+	let doNothing;
+
+	// Send data to main window if it's open
+	try {
+		mainWin.webContents.send("AverageIntensity", arg);
+	} catch {
+		doNothing = true;
+	}
+
+	// Send data to live view window if it's open
+	try {
+		LVWin.webContents.send("AverageIntensity", arg);
 	} catch {
 		doNothing = true;
 	}

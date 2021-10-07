@@ -215,6 +215,9 @@ function Startup() {
 	mainDisplayContext.fillstyle = "black";
 	mainDisplayContext.fillRect(0, 0, accumulatedImage.width, accumulatedImage.height);
 
+	// Initialize spotBrightness
+	spotBrightness.init();
+
 	// Start centroiding
 	ipc.send("StartCentroiding", null);
 }
@@ -806,6 +809,11 @@ ipc.on("LVImageUpdate", function (event, obj) {
 		singleShot.save();
 		singleShot.toSave = false;
 	}
+});
+
+ipc.on("AverageIntensity", function (event, obj) {
+	spotBrightness.process(obj.averageIntensities);
+	spotBrightness.updateChart(eChart);
 });
 
 // Update the accumulated image display

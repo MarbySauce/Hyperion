@@ -59,6 +59,15 @@ ipc.on("LVImageUpdate", function (event, obj) {
 	}
 });
 
+ipc.on("AverageIntensity", function (event, obj) {
+	const LiveViewContext = document.getElementById("LiveVideoView").getContext("2d");
+	const LVData = LiveViewContext.getImageData(0, 0, 768, 768);
+
+	// Put image on display
+	LVData.data.set(obj.imageBuffer);
+	LiveViewContext.putImageData(LVData, 0, 0);
+});
+
 // Receive message about the scan
 ipc.on("ScanUpdate", function (event, update) {
 	// The update will either be

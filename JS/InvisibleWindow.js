@@ -36,6 +36,7 @@ function Startup() {
 		if (!centroidResults) {
 			return;
 		}
+		/*
 		const centroids = centroidResults.slice(0, 2);
 		const computationTime = centroidResults[2];
 		const CentroidData = {
@@ -46,6 +47,12 @@ function Startup() {
 
 		// Send data to other renderer windows
 		ipc.send("LVImageUpdate", CentroidData);
+		*/
+		const CentroidData = {
+			imageBuffer: buffer,
+			averageIntensities: centroidResults,
+		};
+		ipc.send("AverageIntensity", CentroidData);
 	});
 
 	// Initialize emitter
@@ -53,7 +60,7 @@ function Startup() {
 
 	// Create WinAPI Window (to receive camera trigger messages)
 	let nRet = camera.createWinAPIWindow();
-	console.log("Create window:",nRet);
+	console.log("Create window:", nRet);
 
 	// Connect to the camera
 	nRet = camera.connect();
@@ -62,7 +69,6 @@ function Startup() {
 	// Adjust camera settings
 	nRet = camera.applySettings();
 	console.log("Apply settings:", nRet);
-
 }
 
 function messageLoop() {
@@ -89,7 +95,7 @@ function closeCamera() {
 ipc.on("StartCentroiding", function (event, arg) {
 	// Enable messages
 	setTimeout(() => {
-		if(camera.enableMessages()) {
+		if (camera.enableMessages()) {
 			console.log("Messages enabled");
 			checkMessageBool = true;
 			messageLoop();
