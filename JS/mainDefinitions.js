@@ -787,8 +787,8 @@ const singleShot = {
 // Gonna hijack the electron counter graph to display
 // Need to change centroid.h and camera.h to return regionStats (see below)
 const spotBrightness = {
-	xImageCenter: 466, // Taken from MEVELER output of
-	yImageCenter: 514, // 100421i01_1024.i0N (taken with Hyperion)
+	xImageCenter: 466 * 3/4, // Taken from MEVELER output of
+	yImageCenter: 514 * 3/4, // 100421i01_1024.i0N (taken with Hyperion)
 	rArray: [],
 	intensityArray: [],
 	countArray: [],
@@ -803,8 +803,14 @@ const spotBrightness = {
 		}
 	},
 	process: function (regionStats) {
+		if (!regionStats) {
+			return;
+		}
 		const regionStatsLength = regionStats.length;
 		for (let i = 0; i < regionStatsLength; i++) {
+			if (!regionStats[i]) {
+				return;
+			}
 			// Extract data
 			let xCenter = regionStats[i][0];
 			let yCenter = regionStats[i][1];
