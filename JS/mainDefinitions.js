@@ -16,11 +16,11 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 	data: {
 		datasets: [
 			{
-				label: "Isolated Spots",
+				label: "Average Intensity",
 				borderColor: "red",
 			},
 			{
-				label: "Overlapping Spots",
+				label: "Electron Count",
 				borderColor: "blue",
 			},
 		],
@@ -31,14 +31,14 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 				beginAtZero: true,
 				suggestedMax: 10, // Defines starting max value of chart
 				title: {
-					text: "Electron Count",
+					text: "Average Intensity",
 					color: "black",
 					display: true,
 				},
 			},
 			x: {
 				title: {
-					text: "Frame Number",
+					text: "Radius (px)",
 					color: "black",
 					display: true,
 				},
