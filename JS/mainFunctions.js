@@ -812,8 +812,12 @@ ipc.on("LVImageUpdate", function (event, obj) {
 });
 
 ipc.on("AverageIntensity", function (event, obj) {
+	const eChartTotal = document.getElementById("eChartTotalAvg");
+
 	spotBrightness.process(obj.averageIntensities);
 	spotBrightness.updateChart(eChart);
+
+	eChartTotal.value = spotBrightness.getTotalCount();
 });
 
 // Update the accumulated image display

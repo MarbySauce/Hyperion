@@ -787,8 +787,9 @@ const singleShot = {
 // Gonna hijack the electron counter graph to display
 // Need to change centroid.h and camera.h to return regionStats (see below)
 const spotBrightness = {
-	xImageCenter: 466 * 3/4, // Taken from MEVELER output of
-	yImageCenter: 514 * 3/4, // 100421i01_1024.i0N (taken with Hyperion)
+	xImageCenter: (466 * 3) / 4, // Taken from MEVELER output of
+	yImageCenter: (514 * 3) / 4, // 100421i01_1024.i0N (taken with Hyperion)
+	totalCount: 0,
 	rArray: [],
 	intensityArray: [],
 	countArray: [],
@@ -824,6 +825,8 @@ const spotBrightness = {
 			this.intensityArray[rIndex] += avgInt;
 			// Update average intensity array
 			this.avgIntArray[rIndex] = this.intensityArray[rIndex] / this.countArray[rIndex];
+			// Increment total count
+			this.totalCount++;
 		}
 	},
 	updateChart: function (echart) {
@@ -834,7 +837,21 @@ const spotBrightness = {
 		echart.data.datasets[1].data = this.countArray;
 		echart.update("none");
 	},
+	getTotalCount: function () {
+		// Returns total electron count in scientific notation
+		// unless total count is below 10,000
+		let countString;
+		if (this.totalCount >= 10000) {
+			countString = this.totalCount.toExponential(3).toString();
+			// Get rid of '+' in exponent
+			countString = countString.substr(0, countString.length - 2) + countString.slice(-1);
+		} else {
+			countString = this.totalCount.toString();
+		}
+		return countString;
+	},
 	reset: function () {
+		this.totalCount = 0;
 		// Reset arrays
 		this.rArray = [];
 		this.intensityArray = [];
