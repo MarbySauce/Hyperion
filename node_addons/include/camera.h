@@ -28,10 +28,11 @@ void sendCentroids() {
 	int regionCounter = 0;
 	for (int i = 0; i < 1500; i++) {
 		if (Img.Centroids(0, i, 0) > 0) {
-			Napi::Array tempArray = Napi::Array::New(env, 3);
+			Napi::Array tempArray = Napi::Array::New(env, 4);
 			tempArray.Set(Napi::Number::New(env, 0), Napi::Number::New(env, Img.Centroids(0, i, 0)));
 			tempArray.Set(Napi::Number::New(env, 1), Napi::Number::New(env, Img.Centroids(0, i, 1)));
 			tempArray.Set(Napi::Number::New(env, 2), Napi::Number::New(env, Img.Centroids(0, i, 2)));
+			tempArray.Set(Napi::Number::New(env, 3), Napi::Number::New(env, Img.COMs(i, 3)));
 			centroidResults.Set(Napi::Number::New(env, regionCounter), tempArray);
 			regionCounter++;
 		}

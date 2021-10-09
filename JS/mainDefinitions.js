@@ -23,6 +23,10 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 				label: "Electron Count",
 				borderColor: "blue",
 			},
+			{
+				label: "Average Spot Size",
+				borderColor: "green",
+			}
 		],
 	},
 	options: {
@@ -785,7 +789,6 @@ const singleShot = {
 };
 
 // Gonna hijack the electron counter graph to display
-// Need to change centroid.h and camera.h to return regionStats (see below)
 const spotBrightness = {
 	xImageCenter: (466 * 3) / 4, // Taken from MEVELER output of
 	yImageCenter: (514 * 3) / 4, // 100421i01_1024.i0N (taken with Hyperion)
@@ -794,13 +797,17 @@ const spotBrightness = {
 	intensityArray: [],
 	countArray: [],
 	avgIntArray: [],
+	spotSize: [],
+	avgSpotSize: [],
 	init: function () {
 		// Initialize arrays
-		for (let i = 0; i < 250; i++) {
+		for (let i = 0; i < 400; i++) {
 			this.rArray.push(i);
 			this.intensityArray.push(0);
 			this.countArray.push(0);
 			this.avgIntArray.push(0);
+			this.spotSize.push(0);
+			this.avgSpotSize.push(0);
 		}
 	},
 	process: function (regionStats) {
@@ -816,8 +823,9 @@ const spotBrightness = {
 			let xCenter = regionStats[i][0];
 			let yCenter = regionStats[i][1];
 			let avgInt = regionStats[i][2];
+			let regSize = regionStats[i][3];
 			// Calculate R
-			let R = Math.sqrt(Math.pow(xCenter - 384, 2) + Math.pow(yCenter - 384, 2));
+			let R = Math.sqrt(Math.pow(xCenter - this.xImageCenter, 2) + Math.pow(yCenter - this.yImageCenter, 2));
 			let rIndex = Math.round(R);
 			// Add 1 to countArray
 			this.countArray[rIndex]++;
@@ -825,6 +833,10 @@ const spotBrightness = {
 			this.intensityArray[rIndex] += avgInt;
 			// Update average intensity array
 			this.avgIntArray[rIndex] = this.intensityArray[rIndex] / this.countArray[rIndex];
+			// Add spot size to array
+			this.spotSize[rIndex] += regSize;
+			// Update average
+			this.avgSpotSize[rIndex] = this.spotSize[rIndex] / this.countArray[rIndex];
 			// Increment total count
 			this.totalCount++;
 		}
@@ -835,6 +847,7 @@ const spotBrightness = {
 		echart.data.labels = this.rArray;
 		echart.data.datasets[0].data = this.avgIntArray;
 		echart.data.datasets[1].data = this.countArray;
+		echart.data.datasets[2].data = this.avgSpotSize;
 		echart.update("none");
 	},
 	getTotalCount: function () {
@@ -857,12 +870,30 @@ const spotBrightness = {
 		this.intensityArray = [];
 		this.countArray = [];
 		this.avgIntArray = [];
+		this.spotSize = [];
+		this.avgSpotSize = [];
 		this.init();
 	},
 	save: function () {
 		// Save intensityArray to file
 		let arrayToWrite = this.avgIntArray.join(" ");
 		fs.writeFile("./Images/AverageIntensityR.txt", arrayToWrite, (err) => {
+			if (err) {
+				console.log(err);
+			} else {
+				console.log("Saved!");
+			}
+		});
+		arrayToWrite = this.countArray.join(" ");
+		fs.writeFile("./Images/AIR_Ecount.txt", arrayToWrite, (err) => {
+			if (err) {
+				console.log(err);
+			} else {
+				console.log("Saved!");
+			}
+		});
+		arrayToWrite = this.avgSpotSize.join(" ");
+		fs.writeFile("./Images/AIR_spotSize.txt", arrayToWrite, (err) => {
 			if (err) {
 				console.log(err);
 			} else {
