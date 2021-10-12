@@ -29,13 +29,18 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 	srand(randSeed); // Setting up random number generator
 
 	// Simulated values
-	int NumberOfSpots = (rand() % 10) + 15;
+	int NumberOfSpots = (rand() % 20) + 35;
 	//std::vector<float> Radii = {30, 50, 90, 120, 170};
-	std::vector<float> Radii = {10, 30, 50, 90, 120};
+	std::vector<int> Radii = {30 + (rand() % 50 - 18), 70 + (rand() % 40 - 20), 90 + (rand() % 40 - 20), 100 + (rand() % 20 - 10),
+		110 + (rand() % 10 - 7), 110 + (rand() % 10 - 7), 110 + (rand() % 10 - 7), 
+		260 + (rand() % 40 - 20), 280 + (rand() % 40 - 20), 300 + (rand() % 10 - 7), 300 + (rand() % 10 - 7)};
 
 	// First clear the image (i.e. fill with 0's)
 	// 		(Unnecessary if adding noise)
 	//std::fill(std::begin(simImage), std::end(simImage), 0);
+
+	CImg<float> ActualCenters;
+	ActualCenters.assign(100, 2);
 
 	// Get center of image
 	int imageCenterX = 768 / 2;
@@ -51,28 +56,73 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 	int spotNumber = 0;
 	while (spotNumber < NumberOfSpots)
 	{
-		float radius = Radii[rand() % Radii.size()];
+		int radIndex = rand() % Radii.size();
+		bool useWide = false;
+		if (radIndex == 4 || radIndex == 5 || radIndex == 6 || radIndex == 9 || radIndex == 10) {
+			useWide = true;
+		}
+		float radius = Radii[radIndex];
+
+		///////////////////////////////
+		//
+		//
+		// Try "shutting off the mcp" by not letting a spot land where there was one in the last image
+		//
+		//
+		//////////////////////////////// 
+
+
+		if (rand() % 60 == 0) {
+			radius = 360 + (rand() % 20) - (rand() % 20);
+		}
+		if (rand() % 30 == 0) {
+			radius = 340 + (rand() % 20) - (rand() % 20);
+		}
+
+		radius += ( 2 * (rand() % 500000) - 500000 ) / 1000000.0;
 		
 		// Using the physics def. of spherical coords
-		float phi = 2 * pi * ((rand() % 1000) / 1000.0);		 // (0,2pi)
-		float costheta = 2.0 * ((rand() % 1000) / 1000.0) - 1.0; // (-1,1)
+		float phi = 2 * pi * ((rand() % 100000) / 100000.0);		 // (0,2pi)
+		float costheta = 2.0 * ((rand() % 100000) / 100000.0) - 1.0; // (-1,1)
 		float theta = acos(costheta);
 		float centerX = imageCenterX + radius * sin(theta) * cos(phi); // Converting to Cartesian coords
 		float centerY = imageCenterY + radius * cos(theta);
-		float widthX = (rand() % 50 + 100) / 10.0; // Randomly chooses widths btw 10.0 and 15.0 pixels (closer to real spot sizes)
-		float widthY = (rand() % 50 + 100) / 10.0;
-		float percentIntensity = (rand() % 60 + 50) / 100.0; // Choosing intensity btw 50% and 110%
+		float widthX = (rand() % 500 + 1000) / 100.0; // Randomly chooses widths btw 10.0 and 15.0 pixels (closer to real spot sizes)
+		float widthY = (rand() % 500 + 1000) / 100.0;
+		float percentIntensity = (rand() % 30 + 30) / 100.0; // Choosing intensity btw 50% and 110%
 
-		// Make center spots dimmer
-		float radialDistance = sqrt(pow(centerX - imageCenterX, 2) + pow(centerY - imageCenterY, 2));
-		if (radialDistance < 60) {
-			percentIntensity /= 2;
+		if (useWide) {
+			widthX *= 1.5;
+			widthY *= 1.5;
 		}
 
+		// Make electrons repel each other if close
+		for (int i = 0; i < 100; i++) {
+			if (ActualCenters(i, 0) > 0) {
+				float oldRadius = sqrt(pow(ActualCenters(i, 0), 2) + pow(ActualCenters(i, 1), 2));
+				float newRadius = sqrt(pow(centerX, 2) + pow(centerY, 2));
+				if (oldRadius - 1.5 < newRadius && newRadius < oldRadius + 1.5) {
+					theta = atan((ActualCenters(i, 1) - centerY) / (ActualCenters(i, 0) - centerX));
+					float radiusDelta = (rand() % 6000) / 1000.0;
+
+					//std::cout << "X = " << centerX << " + " << radiusDelta * cos(theta) << "; Y = " << centerY << " + " << radiusDelta * sin(theta) << std::endl;
+					centerX += radiusDelta * cos(theta);
+					centerY += radiusDelta * sin(theta);
+				}
+			}
+		}
+
+
 		// Add the spot to the image
-		for (int Y = centerY - 8; Y < centerY + 9; Y++)
+		if (centerY - 8 < 0) {
+			centerY = 8;
+		}
+		if (centerX - 8 < 0) {
+			centerX = 8;
+		}
+		for (int Y = centerY - 8; Y < centerY + 9 || Y < 768; Y++)
 		{
-			for (int X = centerX - 8; X < centerX + 9; X++)
+			for (int X = centerX - 8; X < centerX + 9 || X < 768; X++)
 			{
 				int intensity = round(Gauss(Y, centerY, widthY) * Gauss(X, centerX, widthX) * percentIntensity);
 				int currentIntensity = (unsigned char)simImage[768*Y + X];
@@ -84,7 +134,8 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 				simImage[768*Y + X] = currentIntensity;
 			}
 		}
-
+		ActualCenters(spotNumber, 0) = centerX;
+		ActualCenters(spotNumber, 1) = centerY;
 		spotNumber++;
 		
 	}

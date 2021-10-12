@@ -26,7 +26,7 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 			{
 				label: "Average Spot Size",
 				borderColor: "green",
-			}
+			},
 		],
 	},
 	options: {
@@ -790,8 +790,10 @@ const singleShot = {
 
 // Gonna hijack the electron counter graph to display
 const spotBrightness = {
-	xImageCenter: (466 * 3) / 4, // Taken from MEVELER output of
-	yImageCenter: (514 * 3) / 4, // 100421i01_1024.i0N (taken with Hyperion)
+	//xImageCenter: (466 * 3) / 4, // Taken from MEVELER output of
+	//yImageCenter: (514 * 3) / 4, // 100421i01_1024.i0N (taken with Hyperion)
+	xImageCenter: 394,
+	yImageCenter: 374,
 	totalCount: 0,
 	rArray: [],
 	intensityArray: [],
