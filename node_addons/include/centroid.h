@@ -383,7 +383,7 @@ void Centroid::updateBuffer(std::vector<unsigned char>& Buffer, int X, int Y, in
 	int dataIndex = 4 * (imageWidth * Y + X); // dataIndex + (0,1,2,3) == (R,G,B,A)
 	if (255 - 1*pixValue >= 0)
 	{
-		Buffer[dataIndex + 3] = 255 - 1*pixValue;
+		Buffer[dataIndex + 3] = 255 - 5*pixValue;
 	}
 	else
 	{
