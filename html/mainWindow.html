@@ -26,12 +26,12 @@
 				</button>
 				<button class="ScanButton square-button white-text" id="SingleShot">Single Shot</button>
 			</div>
-			<div class="grid background-lighter-blue" id="SaveControls">
+			<div class="grid background-lighter-blue normal-mode" id="SaveControls">
 				<!-- First row: Titles -->
 				<h4 class="white-text" id="CurrentFileName"><u>Current File Name</u></h4>
 				<h4 class="white-text" id="Increment"><u>Increment</u></h4>
 				<!-- Second row: File Naming -->
-				<input class="white-text" id="CurrentFile" />
+				<input class="white-text normal-mode" id="CurrentFile" />
 				<div id="FileTakenAlert">
 					<img src="../ImageSrc/Alert.png" />
 					<span class="HoverText">File already exists</span>
@@ -68,13 +68,13 @@
 				</header>
 				<div id="RecentScansSection"></div>
 			</div>
-			<div class="grid background-lighter-blue" id="ImageDisplay">
+			<div class="grid background-lighter-blue normal-mode" id="ImageDisplay">
 				<h3 class="white-text">Accumulated View</h3>
 				<canvas class="Display" id="Display" width="1024" height="1024"></canvas>
 				<label for="DisplaySlider1">Contrast</label>
 				<input class="DisplaySlider" id="DisplaySlider1" type="range" min="0" max="1" step="0.05" value="0.5" />
 			</div>
-			<div class="grid background-lighter-blue" id="Counters">
+			<div class="grid background-lighter-blue normal-mode" id="Counters">
 				<label class="white-text" id="TotalFramesLabel" for="TotalFrames">Total Frames:</label>
 				<input class="input-read" id="TotalFrames" type="number" value="0" readonly />
 				<label class="white-text" id="TotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>

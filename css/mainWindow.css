@@ -9,23 +9,7 @@ margin and padding syntax:
 grid-template-areas defines where 
 	in grid to place items using keywords
 */
-/*
-body {
-	border: 1px solid blue;
-	background: white !important;
-}
 
-section {
-	border: 1px solid green;
-}
-
-div {
-	border: 1px solid red;
-	border-radius: 0 !important;
-}
-*/
-
-/* Actual stuff */
 * {
 	box-sizing: border-box;
 	margin: 0;
@@ -304,7 +288,7 @@ Left Side
 }
 
 /* Save Controls */
-#SaveControls {
+#SaveControls.normal-mode {
 	padding: 5px 20px 10px 20px;
 	grid-area: SaveControls;
 	display: grid;
