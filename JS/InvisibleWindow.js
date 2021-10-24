@@ -53,7 +53,7 @@ function Startup() {
 
 	// Create WinAPI Window (to receive camera trigger messages)
 	let nRet = camera.createWinAPIWindow();
-	console.log("Create window:",nRet);
+	console.log("Create window:", nRet);
 
 	// Connect to the camera
 	nRet = camera.connect();
@@ -62,7 +62,6 @@ function Startup() {
 	// Adjust camera settings
 	nRet = camera.applySettings();
 	console.log("Apply settings:", nRet);
-
 }
 
 function messageLoop() {
@@ -80,6 +79,7 @@ function messageLoop() {
 function closeCamera() {
 	checkMessageBool = false;
 	camera.close();
+	console.log("Camera Closed!");
 }
 
 //
@@ -89,7 +89,7 @@ function closeCamera() {
 ipc.on("StartCentroiding", function (event, arg) {
 	// Enable messages
 	setTimeout(() => {
-		if(camera.enableMessages()) {
+		if (camera.enableMessages()) {
 			console.log("Messages enabled");
 			checkMessageBool = true;
 			messageLoop();
@@ -106,4 +106,8 @@ ipc.on("StopCentroiding", function (event, arg) {
 // Turn on / off hybrid method
 ipc.on("HybridMethod", function (event, message) {
 	//centroid.useHybrid(message);
+});
+
+ipc.on("CloseCamera", function (event, message) {
+	closeCamera();
 });

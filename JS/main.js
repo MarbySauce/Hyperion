@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain, nativeTheme } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, nativeTheme, Menu } = require("electron");
 const path = require("path");
 
 let mainWin;
@@ -6,7 +6,7 @@ let LVWin;
 let invisibleWin;
 
 // Way to quickly switch between monitors
-// 0 -> work monitor, 1 -> home monitor, 
+// 0 -> work monitor, 1 -> home monitor,
 // 2 -> no monitor, 3 -> Lab comp
 const thisMonitor = 3;
 const monitor = [
@@ -25,7 +25,7 @@ const monitor = [
 	[
 		[50, 0],
 		[-2900, 0],
-	]
+	],
 ];
 
 function createMainWindow() {
@@ -45,6 +45,21 @@ function createMainWindow() {
 			contextIsolation: false,
 		},
 	});
+
+	var menu = Menu.buildFromTemplate([
+		{
+			label: "Menu",
+			submenu: [
+				{
+					label: "Close Camera",
+					click() {
+						SendCloseCameraMsg();
+					},
+				},
+			],
+		},
+	]);
+	Menu.setApplicationMenu(menu);
 
 	win.loadFile("HTML/mainWindow.html");
 	//win.webContents.openDevTools();
@@ -93,7 +108,7 @@ function createInvisibleWindow() {
 
 app.whenReady().then(function () {
 	// Set dark mode
-	nativeTheme.themeSource = 'dark';
+	nativeTheme.themeSource = "dark";
 
 	invisibleWin = createInvisibleWindow();
 	LVWin = createLVWindow();
@@ -205,3 +220,8 @@ ipcMain.on("HybridMethod", function (event, message) {
 	// Send message to invisible window
 	invisibleWin.webContents.send("HybridMethod", message);
 });
+
+// Close camera connection
+function SendCloseCameraMsg() {
+	invisibleWin.webContents.send("CloseCamera", null);
+}
