@@ -391,7 +391,7 @@ const scanInfo = {
 		// Returns total electron count in scientific notation
 		// unless total count is below 10,000
 		let countString;
-		if (this.totalCount >= 10000) {
+		if (this.totalCountIROn >= 10000) {
 			countString = this.totalCountIROn.toExponential(3).toString();
 			// Get rid of '+' in exponent
 			countString = countString.substr(0, countString.length - 2) + countString.slice(-1);
@@ -418,6 +418,7 @@ const accumulatedImage = {
 	irDifference: [],
 	differenceFrequency: 20, // Number of frames before the difference image is calculated
 	differenceCounter: 0, // Counter of number of frames since last diff image calculation
+	dumbCounter: 0,
 	update: function (calculatedCenters) {
 		let numberOfCenters;
 		let xCenter;
@@ -443,15 +444,14 @@ const accumulatedImage = {
 						// Add to IR images
 						if (this.isIROn) {
 							this.irOn[yCenter][xCenter]++;
-							this.isIROn = false; // Switch to IR Off next frame
 						} else {
 							this.irOff[yCenter][xCenter]++;
-							this.isIROn = true; // Switch to IR On next frame
 						}
 						break;
 				}
 			}
 		}
+		this.isIROn = !this.isIROn;
 	},
 	convertToString: function (image) {
 		// Convert the accumulated image to a printable string

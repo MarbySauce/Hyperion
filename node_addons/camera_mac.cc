@@ -3,6 +3,7 @@
 // Mac specific global variables
 Timer triggerDelay; // Used for simulating 20Hz rep rate
 char simulatedImage[768*768]; // Stand-in for image memory
+bool isIROn = false;
 
 // Constants
 float const pi = 3.14159265358979;
@@ -44,6 +45,13 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 	for (int i = 0; i < 768*768; i++) {
 		int noise = rand() % 5;
 		simImage[i] = noise;
+	}
+
+	if (isIROn) {
+		isIROn = false;
+		return;
+	} else {
+		isIROn = true;
 	}
 
 	// Add spots
