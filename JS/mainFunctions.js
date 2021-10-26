@@ -242,16 +242,14 @@ function SwitchTabs(Tab) {
 	// Content corresponding to each tab
 	const contentList = [
 		document.getElementById("NormalModeContent"),
-		document.getElementById("IRModeContent"),
+		document.getElementById("NormalModeContent"),
 		document.getElementById("EMonitorContent"),
 		document.getElementById("PostProcessContent"),
 		document.getElementById("SettingsContent"),
 	];
 
-	// Set all tabs to be deactivated
 	for (let i = 0; i < tabList.length; i++) {
 		tabList[i].classList.remove("pressed-tab");
-		contentList[i].style.display = "none";
 	}
 
 	// Activate selected tab
@@ -260,12 +258,55 @@ function SwitchTabs(Tab) {
 		// Tab is too large, or Tab is negative,
 		// do not activate any tabs
 		return;
+	} else if (Tab === 0 || Tab === 1) {
+		// IR Mode is not it's own tab anymore, so we have to be a bit more careful
+
+		// Set other tabs to be deactivated
+		for (let i = 2; i < tabList.length; i++) {
+			contentList[i].style.display = "none";
+		}
+		contentList[0].style.display = "grid";
+		if (Tab === 0) {
+			// Switch to normal mode
+			scanInfo.method = "normal";
+			tabList[Tab].classList.add("pressed-tab");
+			contentList[Tab].classList.remove("ir-mode");
+			contentList[Tab].classList.add("normal-mode");
+			RemoveIRLabels();
+		} else {
+			// Switch to IR mode
+			scanInfo.method = "ir";
+			tabList[Tab].classList.add("pressed-tab");
+			contentList[Tab].classList.remove("normal-mode");
+			contentList[Tab].classList.add("ir-mode");
+			AddIRLabels();
+		}
 	} else {
-		// Otherwise activate the selected tab
+		// Set all tabs to be deactivated
+		for (let i = 0; i < tabList.length; i++) {
+			contentList[i].style.display = "none";
+		}
+		// Activate the selected tab
 		tabList[Tab].classList.add("pressed-tab");
 		contentList[Tab].style.display = "grid";
 		return;
 	}
+}
+
+function RemoveIRLabels() {
+	const TotalFramesLabel = document.getElementById("TotalFramesLabel");
+	const TotalECountLabel = document.getElementById("TotalECountLabel");
+
+	TotalFramesLabel.innerHTML = "TotalFrames:";
+	TotalECountLabel.innerHTML = "Total e<sup>-</sup> Count:";
+}
+
+function AddIRLabels() {
+	const TotalFramesLabel = document.getElementById("TotalFramesLabel");
+	const TotalECountLabel = document.getElementById("TotalECountLabel");
+
+	TotalFramesLabel.innerHTML = "TotalFrames (IR Off):";
+	TotalECountLabel.innerHTML = "Total e<sup>-</sup> Count (IR Off):";
 }
 
 /*		Normal Mode		*/
@@ -778,7 +819,7 @@ ipc.on("LVImageUpdate", function (event, obj) {
 	//		calcCenters
 
 	// Update average number of electrons
-	averageCount.update(obj.calcCenters);
+	averageCount.update(obj);
 	UpdateAverageCountDisplays();
 
 	// Only update these if currently taking a scan that isn't paused
@@ -861,9 +902,13 @@ function UpdateAverageCountDisplays() {
 function UpdateScanCountDisplays() {
 	const totalFrames = document.getElementById("TotalFrames");
 	const totalElectrons = document.getElementById("TotalECount");
+	const totalFramesIROn = document.getElementById("TotalFramesIROn");
+	const totalElectronsIROn = document.getElementById("TotalECountIROn");
 
 	totalFrames.value = scanInfo.frameCount;
 	totalElectrons.value = scanInfo.getTotalCount();
+	totalFramesIROn.value = scanInfo.frameCountIROn;
+	totalElectronsIROn.value = scanInfo.getTotalCountIROn();
 }
 
 // Receive message about changing Current File Save Directory

@@ -193,6 +193,8 @@ const eChartData = {
 			this.yAxisUpDisabled = disableUp;
 			this.yAxisDownDisabled = disableDown;
 		}
+		// Send message to LV Window to update
+		ipc.send("UpdateAxes", [settings.eChart.xAxisMax, settings.eChart.yAxisMax]);
 	},
 	checkDisable: function () {
 		// Check whether buttons need to be disabled
@@ -263,9 +265,11 @@ const scanInfo = {
 	paused: false,
 	method: "normal", // Can be "normal" or "ir"
 	frameCount: 0,
+	frameCountIROn: 0,
 	cclCount: 0,
 	hybridCount: 0,
 	totalCount: 0,
+	totalCountIROn: 0,
 	fileName: "",
 	autoSaveTimer: 1000000, // in ms, time between auto saves
 	autoSave: false,
@@ -335,14 +339,29 @@ const scanInfo = {
 		// Add to counts
 		this.cclCount += ccl;
 		this.hybridCount += hybrid;
-		this.totalCount += total;
-		this.frameCount++;
+		switch (this.method) {
+			case "normal":
+				this.totalCount += total;
+				this.frameCount++;
+				break;
+			case "ir":
+				if (accumulatedImage.isIROn) {
+					this.totalCountIROn += total;
+					this.frameCountIROn++;
+				} else {
+					this.totalCount += total;
+					this.frameCount++;
+				}
+				break;
+		}
 	},
 	reset: function () {
 		this.frameCount = 0;
 		this.cclCount = 0;
 		this.hybridCount = 0;
 		this.totalCount = 0;
+		this.frameCountIROn = 0;
+		this.totalCountIROn = 0;
 	},
 	getFrames: function () {
 		// Returns frame count as "X k" (e.g. 11 k for 11,000 frames)
@@ -368,6 +387,19 @@ const scanInfo = {
 		}
 		return countString;
 	},
+	getTotalCountIROn: function () {
+		// Returns total electron count in scientific notation
+		// unless total count is below 10,000
+		let countString;
+		if (this.totalCount >= 10000) {
+			countString = this.totalCountIROn.toExponential(3).toString();
+			// Get rid of '+' in exponent
+			countString = countString.substr(0, countString.length - 2) + countString.slice(-1);
+		} else {
+			countString = this.totalCountIROn.toString();
+		}
+		return countString;
+	},
 	updateFileName: function (fileName) {
 		// Update the name of the file to save the accumulated image to
 		this.fileName = fileName;
@@ -382,6 +414,7 @@ const accumulatedImage = {
 	normal: [],
 	irOff: [],
 	irOn: [],
+	isIROn: false, // Decides which IR accumulated image to bin to
 	irDifference: [],
 	differenceFrequency: 20, // Number of frames before the difference image is calculated
 	differenceCounter: 0, // Counter of number of frames since last diff image calculation
@@ -405,10 +438,16 @@ const accumulatedImage = {
 						break;
 
 					case "ir":
+						// Consistently says that even frames have this.isIROn = false
+						// and that odd frames have this.isIROn = true
 						// Add to IR images
-						// !! Need to add system to decide which image to add to
-						this.irOff[yCenter][xCenter]++;
-						this.irOn[yCenter][xCenter]++;
+						if (this.isIROn) {
+							this.irOn[yCenter][xCenter]++;
+							this.isIROn = false; // Switch to IR Off next frame
+						} else {
+							this.irOff[yCenter][xCenter]++;
+							this.isIROn = true; // Switch to IR On next frame
+						}
 						break;
 				}
 			}
@@ -442,6 +481,8 @@ const accumulatedImage = {
 	getDifference: function () {
 		// Calculates the difference image for IR
 		// i.e. IR on image - IR off image
+		// Need to add a thing where positive values are red
+		// and negative values are blue when displayed
 		let pixelDifference;
 		if (this.differenceCounter === this.differenceFrequency) {
 			// Reset difference image
@@ -462,7 +503,7 @@ const accumulatedImage = {
 	},
 	reset: function (image) {
 		// Resets the selected accumulated image
-		// calling with no argument resets all four
+		// calling with no argument or with "all" resets all four
 		let imageCase = image || "all";
 		switch (imageCase) {
 			case "normal":
@@ -524,11 +565,11 @@ const averageCount = {
 	updateCounter: 0, // Used to keep track of how many frames have
 	// been processed since the last time avg display was updated
 	updateFrequency: 10, // Number of frames before updating display
-	update: function (calculatedCenters) {
-		let ccl = calculatedCenters[0].length;
-		let hybrid = calculatedCenters[1].length;
+	update: function (obj) {
+		let ccl = obj.calcCenters[0].length;
+		let hybrid = obj.calcCenters[1].length;
 		let total = ccl + hybrid;
-		let calcTime = calculatedCenters[2];
+		let calcTime = obj.computeTime;
 		// Add to respective arrays
 		this.prevCCLCounts.push(ccl);
 		this.prevHybridCounts.push(hybrid);
@@ -566,7 +607,7 @@ const averageCount = {
 		return this.getAverage(this.prevTotalCounts).toFixed(2);
 	},
 	getCalcTimeAverage: function () {
-		return this.getAverage(this.prevTotalCounts).toFixed(1);
+		return this.getAverage(this.prevCalcTimes).toFixed(1);
 	},
 };
 

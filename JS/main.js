@@ -8,7 +8,7 @@ let invisibleWin;
 // Way to quickly switch between monitors
 // 0 -> work monitor, 1 -> home monitor,
 // 2 -> no monitor, 3 -> Lab comp
-const thisMonitor = 3;
+const thisMonitor = 1;
 const monitor = [
 	[
 		[-1850, -300],
@@ -62,7 +62,7 @@ function createMainWindow() {
 	Menu.setApplicationMenu(menu);
 
 	win.loadFile("HTML/mainWindow.html");
-	//win.webContents.openDevTools();
+	win.webContents.openDevTools();
 
 	return win;
 }
@@ -219,6 +219,12 @@ ipcMain.on("LVImageUpdate", function (event, arg) {
 ipcMain.on("HybridMethod", function (event, message) {
 	// Send message to invisible window
 	invisibleWin.webContents.send("HybridMethod", message);
+});
+
+// Update eChart axes on Live Video window
+ipcMain.on("UpdateAxes", function (event, axisSizes) {
+	// Send message to LV window
+	LVWin.webContents.send("UpdateAxes", axisSizes);
 });
 
 // Close camera connection

@@ -315,7 +315,7 @@ void Centroid::calculateCentroids()
 							// Check if derivatives cross 0 between (X,Y)0 and (X,Y)p1
 							if (Ym1 >= 0 && Y0 >= 0 && Yp1 < 0)
 							{
-								if (Xm1 > -0 && X0 >= 0 && Xp1 < 0)
+								if (Xm1 >= 0 && X0 >= 0 && Xp1 < 0)
 								{
 									// Calculate first-order approximation of zero-crossing
 									// NOTE: look into using third-order approximation

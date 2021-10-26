@@ -13,7 +13,7 @@
 			<button class="tab" id="PostProcess">Post Processing</button>
 			<button class="tab" id="Settings">Settings</button>
 		</div>
-		<div id="NormalModeContent">
+		<div class="normal-mode" id="NormalModeContent">
 			<div class="grid background-lighter-blue" id="TitleSection">
 				<h1 class="white-text">Hyperion</h1>
 			</div>
@@ -74,11 +74,15 @@
 				<label for="DisplaySlider1">Contrast</label>
 				<input class="DisplaySlider" id="DisplaySlider1" type="range" min="0" max="1" step="0.05" value="0.5" />
 			</div>
-			<div class="grid background-lighter-blue normal-mode" id="Counters">
+			<div class="grid background-lighter-blue" id="Counters">
 				<label class="white-text" id="TotalFramesLabel" for="TotalFrames">Total Frames:</label>
 				<input class="input-read" id="TotalFrames" type="number" value="0" readonly />
 				<label class="white-text" id="TotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
 				<input class="input-read" id="TotalECount" type="text" value="0" readonly />
+				<label class="white-text" id="TotalFramesLabelIROn" for="TotalFramesIROn">Total Frames (IR On):</label>
+				<input class="input-read" id="TotalFramesIROn" type="number" value="0" readonly />
+				<label class="white-text" id="TotalECountLabelIROn" for="TotalECountIROn">Total e<sup>-</sup> Count (IR On):</label>
+				<input class="input-read" id="TotalECountIROn" type="text" value="0" readonly />
 				<label class="white-text" id="AvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
 				<input class="input-read" id="AvgECount" type="number" value="0" readonly />
 				<button class="square-button white-text" id="ResetCounters">Reset Counters</button>

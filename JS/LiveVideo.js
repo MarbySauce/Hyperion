@@ -101,6 +101,12 @@ ipc.on("ScanUpdate", function (event, update) {
 	}
 });
 
+// Receive message to update eChart axes
+ipc.on("UpdateAxes", function (event, axisSizes) {
+	eChartData.updateAxes(axisSizes);
+	eChartData.updateChart(eChart);
+});
+
 const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 	type: "line",
 	data: {
@@ -182,6 +188,13 @@ const eChartData = {
 		while (this.hybridData.length > this.xAxisMax) {
 			this.hybridData.shift();
 		}
+	},
+	updateAxes: function (axisSizes) {
+		if (axisSizes.length !== 2) {
+			return;
+		}
+		this.xAxisMax = axisSizes[0];
+		this.yAxisMax = axisSizes[1];
 	},
 	updateChart: function (echart) {
 		// Update chart vertical max value

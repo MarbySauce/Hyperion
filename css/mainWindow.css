@@ -508,7 +508,19 @@ Right Side
 }
 
 /* Electron & Frame Counters */
-#Counters {
+#Counters label {
+	font-size: 1.5vw;
+	text-align: right;
+	z-index: 2;
+}
+#Counters input {
+	font-size: 1.3vw;
+	text-align: center;
+	width: 50%;
+	z-index: 2;
+}
+/* Counters for Normal scanning mode */
+.normal-mode #Counters {
 	padding: 20px 50px;
 	grid-area: Counters;
 	display: grid;
@@ -522,29 +534,72 @@ Right Side
 		"blank ResetCounters";
 	align-items: center;
 }
-#Counters label {
-	font-size: 1.5vw;
-	text-align: right;
-	z-index: 2;
-}
-#Counters input {
-	font-size: 1.3vw;
-	text-align: center;
-	width: 50%;
-	z-index: 2;
-}
-#TotalFramesLabel {
+.normal-mode #TotalFramesLabel {
 	grid-area: TotalFramesLabel;
 }
-#TotalFrames {
+.normal-mode #TotalFrames {
 	grid-area: TotalFrames;
 }
-#TotalECountLabel {
+.normal-mode #TotalFramesLabelIROn {
+	display: none;
+}
+.normal-mode #TotalFramesIROn {
+	display: none;
+}
+.normal-mode #TotalECountLabel {
 	grid-area: TotalECountLabel;
 }
-#TotalECount {
+.normal-mode #TotalECount {
 	grid-area: TotalECount;
 }
+.normal-mode #TotalECountLabelIROn {
+	display: none;
+}
+.normal-mode #TotalECountIROn {
+	display: none;
+}
+/* Counters for IR On/Off Scanning */
+.ir-mode #Counters {
+	padding: 20px 50px;
+	grid-area: Counters;
+	display: grid;
+	grid-gap: 0 20px;
+	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 0.8fr;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"TotalFramesLabelIROff TotalFramesIROff"
+		"TotalECountLabelIROff TotalECountIROff"
+		"TotalFramesLabelIROn TotalFramesIROn"
+		"TotalECountLabelIROn TotalECountIROn"
+		"AvgECountLabel AvgECount"
+		"blank ResetCounters";
+	align-items: center;
+}
+.ir-mode #TotalFramesLabel {
+	grid-area: TotalFramesLabelIROff;
+}
+.ir-mode #TotalFrames {
+	grid-area: TotalFramesIROff;
+}
+.ir-mode #TotalFramesLabelIROn {
+	grid-area: TotalFramesLabelIROn;
+}
+.ir-mode #TotalFramesIROn {
+	grid-area: TotalFramesIROn;
+}
+.ir-mode #TotalECountLabel {
+	grid-area: TotalECountLabelIROff;
+}
+.ir-mode #TotalECount {
+	grid-area: TotalECountIROff;
+}
+.ir-mode #TotalECountLabelIROn {
+	grid-area: TotalECountLabelIROn;
+}
+.ir-mode #TotalECountIROn {
+	grid-area: TotalECountIROn;
+}
+/* Counters used in both modes */
 #AvgECountLabel {
 	grid-area: AvgECountLabel;
 }
