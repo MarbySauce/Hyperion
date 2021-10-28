@@ -108,6 +108,7 @@ label {
 #NormalModeContent {
 	grid-area: Content;
 	padding: 20px;
+	min-height: 790px;
 	/*display: grid;*/
 	display: none; /* Set to none so that it looks cleaner on startup */
 	grid-gap: 20px;
@@ -288,7 +289,7 @@ Left Side
 }
 
 /* Save Controls */
-#SaveControls.normal-mode {
+.normal-mode #SaveControls {
 	padding: 5px 20px 10px 20px;
 	grid-area: SaveControls;
 	display: grid;
@@ -302,6 +303,90 @@ Left Side
 		"SDLabel SaveDirectory SaveDirectory SaveDirectory SaveDirectory SaveDirectory b4 b4 ChangeSaveDirectory ChangeSaveDirectory";
 	/* bn here is just a blank space */
 	align-items: center;
+}
+.normal-mode #IRWavelengthMode {
+	display: none;
+}
+.normal-mode #CWLabelNIR {
+	display: none;
+}
+.normal-mode #CurrentWavelengthNIR {
+	display: none;
+}
+.normal-mode #NMLabelIR {
+	display: none;
+}
+.normal-mode #ConvertedWavelengthIR {
+	display: none;
+}
+.normal-mode #NMLabel2IR {
+	display: none;
+}
+.normal-mode #CurrentWavenumberIR {
+	display: none;
+}
+.normal-mode #WNLabelIR {
+	display: none;
+}
+.ir-mode #SaveControls {
+	padding: 5px 15px 5px 15px;
+	height: 225px;
+	grid-area: SaveControls;
+	display: grid;
+	grid-gap: 5px 2px;
+	grid-template-rows: 0.7fr 1fr 1.2fr 1.2fr 1.1fr;
+	grid-template-columns: 2fr 1fr 2fr repeat(7, 1fr);
+	grid-template-areas:
+		"CurrentFileName CurrentFileName CurrentFileName b0 b0 b0 b0 Increment Increment Increment"
+		"CurrentFile CurrentFile CurrentFile b1 b1 b1 b1 I0NCounterDown I0NCounter I0NCounterUp"
+		"CWDropdown CWLabel CurrentWavelength NMLabel ConvertedWavelength ConvertedWavelength NMLabel2 CurrentWavenumber CurrentWavenumber WNLabel"
+		"CWDropdownIR CWLabelIR CurrentWavelengthIR NMLabelIR ConvertedWavelengthIR ConvertedWavelengthIR NMLabel2IR CurrentWavenumberIR CurrentWavenumberIR WNLabelIR"
+		"SDLabel SaveDirectory SaveDirectory SaveDirectory SaveDirectory SaveDirectory b4 b4 ChangeSaveDirectory ChangeSaveDirectory";
+	/* bn here is just a blank space */
+	align-items: center;
+}
+.ir-mode #IRWavelengthMode {
+	grid-area: CWDropdownIR;
+	height: 50%;
+	padding-left: 3px;
+}
+#IRWavelengthMode:focus-visible {
+	outline: none;
+}
+.ir-mode #CWLabelNIR {
+	text-align: right;
+	padding-right: 5px;
+	grid-area: CWLabelIR;
+}
+.ir-mode #CurrentWavelengthNIR {
+	text-align: center;
+	width: 100%;
+	height: 60%;
+	grid-area: CurrentWavelengthIR;
+}
+.ir-mode #NMLabelIR {
+	padding-left: 3px;
+	grid-area: NMLabelIR;
+}
+.ir-mode #ConvertedWavelengthIR {
+	text-align: center;
+	width: 100%;
+	height: 60%;
+	grid-area: ConvertedWavelengthIR;
+}
+.ir-mode #NMLabel2IR {
+	padding-left: 3px;
+	grid-area: NMLabel2IR;
+}
+.ir-mode #CurrentWavenumberIR {
+	text-align: center;
+	width: 100%;
+	height: 60%;
+	grid-area: CurrentWavenumberIR;
+}
+.ir-mode #WNLabelIR {
+	padding-left: 3px;
+	grid-area: WNLabelIR;
 }
 #SaveControls h4 {
 	font-size: 1.5vw;
@@ -406,6 +491,9 @@ Left Side
 	height: 50%;
 	opacity: 0.7;
 	align-self: end;
+}
+.ir-mode #SDLabel {
+	height: 50%;
 }
 #SDLabel {
 	height: 40%;

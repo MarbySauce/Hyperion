@@ -92,6 +92,16 @@ document.getElementById("CurrentWavelength").oninput = function () {
 	GetLaserInput();
 	UpdateLaserWavelength();
 };
+document.getElementById("IRWavelengthMode").oninput = function () {
+	// IR laser setup dropdown menu
+	GetLaserInput();
+	UpdateLaserWavelength();
+};
+document.getElementById("CurrentWavelengthNIR").oninput = function () {
+	// OPO/A laser wavelength input section
+	GetLaserInput();
+	UpdateLaserWavelength();
+};
 document.getElementById("ChangeSaveDirectory").onclick = function () {
 	// Change Save Directory button
 	// Send message to main process to update directory
@@ -543,19 +553,29 @@ function GetLaserInput() {
 	let mode = wavelengthMode.selectedIndex; // Detachment laser setup mode
 	// 0 is Standard, 1 is Doubled, 2 is Raman Shifter, 3 is IR-DFG
 	let wavelength = parseFloat(currentWavelength.value); // Measured laser wavelength
+	const IRWavelengthMode = document.getElementById("IRWavelengthMode");
+	const currentWavelengthNIR = document.getElementById("CurrentWavelengthNIR");
+	let IRMode = IRWavelengthMode.selectedIndex; // IR laser setup mode
+	// 0 is nIR, 1 is iIR, 2 is mIR
+	let IRWavelength = parseFloat(currentWavelengthNIR.value); // Measured nIR wavelength
 
 	// Update laser information
 	laserInfo.updateMode(mode);
 	laserInfo.updateWavelength(wavelength);
+	laserInfo.updateIRMode(IRMode);
+	laserInfo.updateIRWavelength(IRWavelength);
 }
 
 // Update laser wavelength displays
 function UpdateLaserWavelength() {
 	const convertedWavelength = document.getElementById("ConvertedWavelength");
 	const convertedWavenumber = document.getElementById("CurrentWavenumber");
+	const convertedWavelengthIR = document.getElementById("ConvertedWavelengthIR");
+	const convertedWavenumberIR = document.getElementById("CurrentWavenumberIR");
 
 	// Convert laser energies based on detachment mode
 	laserInfo.convert();
+	laserInfo.convertIR();
 
 	// Need if/else in case input was never defined or standard setup is being used
 	if (laserInfo.convertedWavelength != null) {
@@ -567,6 +587,16 @@ function UpdateLaserWavelength() {
 		convertedWavenumber.value = laserInfo.convertedWavenumber.toFixed(3);
 	} else {
 		convertedWavenumber.value = "";
+	}
+	if (laserInfo.IRConvertedWavelength != null) {
+		convertedWavelengthIR.value = laserInfo.IRConvertedWavelength.toFixed(3);
+	} else {
+		convertedWavelengthIR.value = "";
+	}
+	if (laserInfo.IRConvertedWavenumber != null) {
+		convertedWavenumberIR.value = laserInfo.IRConvertedWavenumber.toFixed(3);
+	} else {
+		convertedWavenumberIR.value = "";
 	}
 }
 

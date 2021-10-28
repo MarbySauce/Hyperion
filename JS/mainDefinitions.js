@@ -439,8 +439,6 @@ const accumulatedImage = {
 						break;
 
 					case "ir":
-						// Consistently says that even frames have this.isIROn = false
-						// and that odd frames have this.isIROn = true
 						// Add to IR images
 						if (this.isIROn) {
 							this.irOn[yCenter][xCenter]++;
@@ -451,6 +449,7 @@ const accumulatedImage = {
 				}
 			}
 		}
+		// Bin to other IR image next frame
 		this.isIROn = !this.isIROn;
 	},
 	convertToString: function (image) {
@@ -483,6 +482,10 @@ const accumulatedImage = {
 		// i.e. IR on image - IR off image
 		// Need to add a thing where positive values are red
 		// and negative values are blue when displayed
+		//
+		// Should either change to or add in a feature where
+		// an imgData is taken as parameter so that the image
+		// can be displayed with this function (or just return a uint8 array)
 		let pixelDifference;
 		if (this.differenceCounter === this.differenceFrequency) {
 			// Reset difference image
@@ -616,6 +619,11 @@ const laserInfo = {
 	detachmentMode: 0, // 0 is Standard, 1 is Doubled, 2 is Raman Shifter, 3 is IR-DFG
 	convertedWavelength: null,
 	convertedWavenumber: null,
+	YAGFundamental: 1064.216, // Wavelength of Nd:YAG used for OPO/A
+	nIRWavelength: null,
+	IRMode: 0, // 0 is nIR, 1 is iIR, 2 is mIR
+	IRConvertedWavelength: null,
+	IRConvertedWavenumber: null,
 	updateWavelength: function (wavelength) {
 		// Update input wavelength
 		// wavelength should be a number in units of nm
@@ -688,6 +696,66 @@ const laserInfo = {
 		}
 		// Update converted wavelength
 		this.convertedWavelength = convertedWavelength;
+	},
+	updateIRWavelength: function (IRWavelength) {
+		// Update input nIR wavelength
+		// wavelength should be a number in units of nm
+		// OPO is limited to 710 nm - 880 nm
+		if (100 < IRWavelength && IRWavelength < 1000) {
+			this.nIRWavelength = IRWavelength;
+		} else {
+			this.nIRWavelength = null;
+		}
+	},
+	updateIRMode: function (IRMode) {
+		// Update IR mode based on user input
+		// 0 is near IR, 1 is intermediate IR, 2 is mid IR
+		if (0 <= IRMode && IRMode <= 2) {
+			this.IRMode = IRMode;
+		} else {
+			// If mode is out of bounds, default to nIR
+			this.IRMode = 0;
+		}
+	},
+	convertIR: function () {
+		// Convert wavelength based on IR mode
+		// As well as convert to wavenumbers
+		let convertedWavelength;
+
+		if (this.nIRWavelength == null || isNaN(this.nIRWavelength)) {
+			// No input wavelength
+			// Clear converted energies and return
+			this.IRConvertedWavelength = null;
+			this.IRConvertedWavenumber = null;
+			return;
+		}
+		// Convert wavelength based on mode
+		switch (this.IRMode) {
+			case 0:
+				// nIR mode, no need to convert wavelengths
+				convertedWavelength = null;
+				break;
+
+			case 1:
+				// iIR mode, calculate idler out of OPO
+				convertedWavelength = (this.nIRWavelength * this.YAGFundamental) / (2 * this.nIRWavelength - this.YAGFundamental);
+				break;
+
+			case 2:
+				// mIR mode, calculate idler out of OPA
+				convertedWavelength = (this.nIRWavelength * this.YAGFundamental) / (this.YAGFundamental - this.nIRWavelength);
+				break;
+		}
+		// Convert to wavenumbers
+		if (convertedWavelength == null) {
+			// Only need to convert the input wavelength
+			this.IRConvertedWavenumber = convertNMtoWN(this.nIRWavelength);
+		} else {
+			// Need to convert based on the new wavelength
+			this.IRConvertedWavenumber = convertNMtoWN(convertedWavelength);
+		}
+		// Update converted wavelength
+		this.IRConvertedWavelength = convertedWavelength;
 	},
 };
 

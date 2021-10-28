@@ -26,12 +26,12 @@
 				</button>
 				<button class="ScanButton square-button white-text" id="SingleShot">Single Shot</button>
 			</div>
-			<div class="grid background-lighter-blue normal-mode" id="SaveControls">
+			<div class="grid background-lighter-blue" id="SaveControls">
 				<!-- First row: Titles -->
 				<h4 class="white-text" id="CurrentFileName"><u>Current File Name</u></h4>
 				<h4 class="white-text" id="Increment"><u>Increment</u></h4>
 				<!-- Second row: File Naming -->
-				<input class="white-text normal-mode" id="CurrentFile" />
+				<input class="white-text" id="CurrentFile" />
 				<div id="FileTakenAlert">
 					<img src="../ImageSrc/Alert.png" />
 					<span class="HoverText">File already exists</span>
@@ -53,6 +53,18 @@
 				<label class="white-text" id="NMLabel2">nm</label>
 				<input class="input-read" id="CurrentWavenumber" type="number" placeholder="-" readonly />
 				<label class="white-text" id="WNLabel">cm<sup>-1</sup></label>
+				<select class="square-button white-text" name="IRWavelengthMode" id="IRWavelengthMode">
+					<option value="nIR">Near IR</option>
+					<option value="iIR">Inter. IR</option>
+					<option value="mIR">Mid IR</option>
+				</select>
+				<label class="white-text" for="CurrentWavelengthNIR" id="CWLabelNIR">h<em class="serif">ν</em>:</label>
+				<input class="input-change" id="CurrentWavelengthNIR" type="number" min="0" placeholder="Enter" />
+				<label class="white-text" id="NMLabelIR">nm</label>
+				<input class="input-change" id="ConvertedWavelengthIR" type="number" placeholder="-" readonly />
+				<label class="white-text" id="NMLabel2IR">nm</label>
+				<input class="input-read" id="CurrentWavenumberIR" type="number" placeholder="-" readonly />
+				<label class="white-text" id="WNLabelIR">cm<sup>-1</sup></label>
 				<!-- Fourth row: Save Directory -->
 				<label class="SaveRow4 white-text" for="SaveDirectory" id="SDLabel">Save to:</label>
 				<input class="SaveRow4 white-text" id="SaveDirectory" readonly />
