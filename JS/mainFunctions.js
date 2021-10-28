@@ -110,6 +110,10 @@ document.getElementById("ChangeSaveDirectory").onclick = function () {
 
 // Display
 
+// IR Image display selector
+document.getElementById("IRImageDisplay").oninput = function () {
+	SwitchAccumulatedImages();
+};
 // Control slider's display
 document.getElementById("DisplaySlider1").onmouseover = function () {
 	MainSliderMouseOverFn();
@@ -118,7 +122,7 @@ document.getElementById("DisplaySlider1").onmouseout = function () {
 	MainSliderMouseOutFn();
 };
 document.getElementById("DisplaySlider1").oninput = function () {
-	MainDisplaySliderFn(); // Update image contrast
+	UpdateAccumulatedImageDisplay(); // Update image contrast
 	MainSliderMouseOverFn();
 };
 
@@ -193,6 +197,12 @@ function Startup() {
 	const saveDirectory = document.getElementById("SaveDirectory");
 	const mainDisplay = document.getElementById("Display");
 	const mainDisplayContext = mainDisplay.getContext("2d");
+	const mainDisplayIROff = document.getElementById("DisplayIROff");
+	const mainDisplayContextIROff = mainDisplayIROff.getContext("2d");
+	const mainDisplayIROn = document.getElementById("DisplayIROn");
+	const mainDisplayContextIROn = mainDisplayIROn.getContext("2d");
+	const mainDisplayIRDiff = document.getElementById("DisplayIRDifference");
+	const mainDisplayContextIRDiff = mainDisplayIRDiff.getContext("2d");
 
 	SwitchTabs();
 
@@ -224,6 +234,12 @@ function Startup() {
 	// Fill display and get image data
 	mainDisplayContext.fillstyle = "black";
 	mainDisplayContext.fillRect(0, 0, accumulatedImage.width, accumulatedImage.height);
+	mainDisplayContextIROff.fillstyle = "black";
+	mainDisplayContextIROff.fillRect(0, 0, accumulatedImage.width, accumulatedImage.height);
+	mainDisplayContextIROn.fillstyle = "black";
+	mainDisplayContextIROn.fillRect(0, 0, accumulatedImage.width, accumulatedImage.height);
+	mainDisplayContextIRDiff.fillstyle = "black";
+	mainDisplayContextIRDiff.fillRect(0, 0, accumulatedImage.width, accumulatedImage.height);
 
 	// Start centroiding
 	ipc.send("StartCentroiding", null);
@@ -270,6 +286,7 @@ function SwitchTabs(Tab) {
 		return;
 	} else if (Tab === 0 || Tab === 1) {
 		// IR Mode is not it's own tab anymore, so we have to be a bit more careful
+		pageInfo.currentTab = Tab;
 
 		// Set other tabs to be deactivated
 		for (let i = 2; i < tabList.length; i++) {
@@ -277,21 +294,28 @@ function SwitchTabs(Tab) {
 		}
 		contentList[0].style.display = "grid";
 		if (Tab === 0) {
-			// Switch to normal mode
-			scanInfo.method = "normal";
+			if (!scanInfo.running) {
+				// Switch to normal mode if scan is not being taken
+				scanInfo.method = "normal";
+			}
 			tabList[Tab].classList.add("pressed-tab");
 			contentList[Tab].classList.remove("ir-mode");
 			contentList[Tab].classList.add("normal-mode");
 			RemoveIRLabels();
 		} else {
-			// Switch to IR mode
-			scanInfo.method = "ir";
+			if (!scanInfo.running) {
+				// Switch to IR mode
+				scanInfo.method = "ir";
+			}
 			tabList[Tab].classList.add("pressed-tab");
 			contentList[Tab].classList.remove("normal-mode");
 			contentList[Tab].classList.add("ir-mode");
 			AddIRLabels();
 		}
+
+		SwitchAccumulatedImages();
 	} else {
+		pageInfo.currentTab = Tab;
 		// Set all tabs to be deactivated
 		for (let i = 0; i < tabList.length; i++) {
 			contentList[i].style.display = "none";
@@ -304,19 +328,23 @@ function SwitchTabs(Tab) {
 }
 
 function RemoveIRLabels() {
-	const TotalFramesLabel = document.getElementById("TotalFramesLabel");
-	const TotalECountLabel = document.getElementById("TotalECountLabel");
+	const totalFramesLabel = document.getElementById("TotalFramesLabel");
+	const totalECountLabel = document.getElementById("TotalECountLabel");
+	const currentFile = document.getElementById("CurrentFile");
 
-	TotalFramesLabel.innerHTML = "TotalFrames:";
-	TotalECountLabel.innerHTML = "Total e<sup>-</sup> Count:";
+	totalFramesLabel.innerHTML = "TotalFrames:";
+	totalECountLabel.innerHTML = "Total e<sup>-</sup> Count:";
+	currentFile.value = scanInfo.fileName;
 }
 
 function AddIRLabels() {
-	const TotalFramesLabel = document.getElementById("TotalFramesLabel");
-	const TotalECountLabel = document.getElementById("TotalECountLabel");
+	const totalFramesLabel = document.getElementById("TotalFramesLabel");
+	const totalECountLabel = document.getElementById("TotalECountLabel");
+	const currentFile = document.getElementById("CurrentFile");
 
-	TotalFramesLabel.innerHTML = "TotalFrames (IR Off):";
-	TotalECountLabel.innerHTML = "Total e<sup>-</sup> Count (IR Off):";
+	totalFramesLabel.innerHTML = "TotalFrames (IR Off):";
+	totalECountLabel.innerHTML = "Total e<sup>-</sup> Count (IR Off):";
+	currentFile.value = scanInfo.fileName + ", " + scanInfo.fileNameIR;
 }
 
 /*		Normal Mode		*/
@@ -533,6 +561,9 @@ function I0NCounterDown() {
 	}
 	i0NCounter.value = currentCount;
 	currentFile.value = getCurrentFileName(currentCount);
+	if (pageInfo.currentTab === 1) {
+		currentFile.value += ", " + scanInfo.fileNameIR;
+	}
 }
 
 // Increase file counter increment by one
@@ -544,6 +575,9 @@ function I0NCounterUp() {
 	currentCount++;
 	i0NCounter.value = currentCount;
 	currentFile.value = getCurrentFileName(currentCount);
+	if (pageInfo.currentTab === 1) {
+		currentFile.value += ", " + scanInfo.fileNameIR;
+	}
 }
 
 // Convert photon energy based on detachment laser setup and user input
@@ -627,30 +661,30 @@ function convertWNtoNM(wavenumber) {
 	return Math.pow(10, 7) / wavenumber;
 }
 
-// Update Accumulated Image contrast
-function MainDisplaySliderFn() {
-	// Need to add functionality so that it works with IR stuff too
-	// Same for mouseover and mouseout
-	const mainDisplay = document.getElementById("Display");
-	// !!! Should probably change this ID to MainDisplay
-	const mainDisplayContext = mainDisplay.getContext("2d");
-	const mainDisplayData = mainDisplayContext.getImageData(0, 0, accumulatedImage.width, accumulatedImage.height);
-	const mainDisplaySlider = document.getElementById("DisplaySlider1");
-	let contrastValue = parseFloat(mainDisplaySlider.value);
-	let contrastIncrement = contrastValue * 300;
-	let pixValue;
-
-	for (let Y = 0; Y < accumulatedImage.height; Y++) {
-		for (let X = 0; X < accumulatedImage.width; X++) {
-			pixValue = 255 - accumulatedImage.normal[Y][X] * contrastIncrement;
-			if (pixValue > 0) {
-				mainDisplayData.data[4 * (accumulatedImage.width * Y + X) + 3] = pixValue;
-			} else {
-				mainDisplayData.data[4 * (accumulatedImage.width * Y + X) + 3] = 0;
-			}
+// Switch between each of the accumulated images to display
+function SwitchAccumulatedImages() {
+	const IRImageDisplay = document.getElementById("IRImageDisplay");
+	let imageToDisplay;
+	const displays = [
+		document.getElementById("Display"),
+		document.getElementById("DisplayIROff"),
+		document.getElementById("DisplayIROn"),
+		document.getElementById("DisplayIRDifference"),
+	];
+	if (scanInfo.method === "ir") {
+		imageToDisplay = IRImageDisplay.selectedIndex + 1;
+	} else {
+		imageToDisplay = 0;
+	}
+	for (let i = 0; i < 4; i++) {
+		if (i === imageToDisplay) {
+			displays[i].classList.remove("inactive-display");
+			displays[i].classList.add("active-display");
+		} else {
+			displays[i].classList.remove("active-display");
+			displays[i].classList.add("inactive-display");
 		}
 	}
-	mainDisplayContext.putImageData(mainDisplayData, 0, 0);
 }
 
 // Create hover color change for sliders
@@ -860,6 +894,10 @@ ipc.on("LVImageUpdate", function (event, obj) {
 
 		// Update Accumulated View
 		accumulatedImage.update(obj.calcCenters);
+		if (scanInfo.method === "ir") {
+			// Calculate the IR difference image
+			accumulatedImage.getDifference();
+		}
 		UpdateAccumulatedImageDisplay();
 	}
 
@@ -882,28 +920,90 @@ ipc.on("LVImageUpdate", function (event, obj) {
 // Update the accumulated image display
 function UpdateAccumulatedImageDisplay(resetBoolean) {
 	// If function is called with 'true' as argument, resets entire image
-	// Need to add functionality so that it works with IR stuff too
-	const display = document.getElementById("Display");
-	const displayContext = display.getContext("2d");
-	let displayData = displayContext.getImageData(0, 0, accumulatedImage.width, accumulatedImage.height);
-	const displaySlider = document.getElementById("DisplaySlider1");
-	let contrastValue = parseFloat(displaySlider.value);
+	const IRImageDisplay = document.getElementById("IRImageDisplay");
+	let mainDisplay;
+	let image; // Image to display
+	let calculateDifference = false;
+	if (scanInfo.method === "normal") {
+		mainDisplay = document.getElementById("Display");
+		image = accumulatedImage.normal;
+	} else if (scanInfo.method === "ir") {
+		switch (IRImageDisplay.selectedIndex) {
+			case 0:
+				// IR Off
+				mainDisplay = document.getElementById("DisplayIROff");
+				image = accumulatedImage.irOff;
+				break;
+			case 1:
+				// IR On
+				mainDisplay = document.getElementById("DisplayIROn");
+				image = accumulatedImage.irOn;
+				break;
+			case 2:
+				// Difference
+				mainDisplay = document.getElementById("DisplayIRDifference");
+				image = accumulatedImage.irDifference;
+				calculateDifference = true;
+				break;
+		}
+	}
+	const mainDisplayContext = mainDisplay.getContext("2d");
+	let mainDisplayData = mainDisplayContext.getImageData(0, 0, accumulatedImage.width, accumulatedImage.height);
+	const mainDisplaySlider = document.getElementById("DisplaySlider1");
+	let contrastValue = parseFloat(mainDisplaySlider.value);
 	let contrastIncrement = contrastValue * 300;
 	let pixValue;
 
+	if (calculateDifference) {
+		UpdateDifferenceImageDisplay(mainDisplayContext, mainDisplayData, contrastIncrement);
+		return;
+	}
+
 	for (let Y = 0; Y < accumulatedImage.height; Y++) {
 		for (let X = 0; X < accumulatedImage.width; X++) {
-			if (accumulatedImage.normal[Y][X] || resetBoolean) {
-				pixValue = 255 - accumulatedImage.normal[Y][X] * contrastIncrement;
-				if (pixValue > 0) {
-					displayData.data[4 * (accumulatedImage.width * Y + X) + 3] = pixValue;
-				} else {
-					displayData.data[4 * (accumulatedImage.width * Y + X) + 3] = 0;
-				}
+			pixValue = 255 - image[Y][X] * contrastIncrement;
+			if (pixValue > 0) {
+				mainDisplayData.data[4 * (accumulatedImage.width * Y + X) + 3] = pixValue;
+			} else {
+				mainDisplayData.data[4 * (accumulatedImage.width * Y + X) + 3] = 0;
 			}
 		}
 	}
-	displayContext.putImageData(displayData, 0, 0);
+	mainDisplayContext.putImageData(mainDisplayData, 0, 0);
+}
+
+// Update display if Difference image is shown
+function UpdateDifferenceImageDisplay(mainDisplayContext, mainDisplayData, contrastIncrement) {
+	let pixValue;
+	let augmentedPixValue;
+	for (let Y = 0; Y < accumulatedImage.height; Y++) {
+		for (let X = 0; X < accumulatedImage.width; X++) {
+			pixValue = accumulatedImage.irDifference[Y][X];
+			augmentedPixValue = Math.abs(pixValue) * contrastIncrement;
+			if (augmentedPixValue < 255) {
+				augmentedPixValue = augmentedPixValue;
+			} else {
+				augmentedPixValue = 255;
+			}
+			if (pixValue > 0) {
+				// Display blue for positive difference
+				mainDisplayData.data[4 * (accumulatedImage.width * Y + X)] = 0;
+				mainDisplayData.data[4 * (accumulatedImage.width * Y + X) + 2] = augmentedPixValue;
+				mainDisplayData.data[4 * (accumulatedImage.width * Y + X) + 3] = 255;
+			} else if (pixValue === 0) {
+				// Display black for 0 difference
+				mainDisplayData.data[4 * (accumulatedImage.width * Y + X)] = 0;
+				mainDisplayData.data[4 * (accumulatedImage.width * Y + X) + 2] = 0;
+				mainDisplayData.data[4 * (accumulatedImage.width * Y + X) + 3] = 255;
+			} else {
+				// Display red for negative difference
+				mainDisplayData.data[4 * (accumulatedImage.width * Y + X)] = augmentedPixValue;
+				mainDisplayData.data[4 * (accumulatedImage.width * Y + X) + 2] = 0;
+				mainDisplayData.data[4 * (accumulatedImage.width * Y + X) + 3] = 255;
+			}
+		}
+	}
+	mainDisplayContext.putImageData(mainDisplayData, 0, 0);
 }
 
 // Update the average counters on the e- monitor page
@@ -999,30 +1099,31 @@ function getCurrentFileName(ionCounter) {
 	// Slice here makes sure 0 is not included if ionCounter > 9
 	let increment = ("0" + ionCounter).slice(-2);
 	let fileString = `${todaysDate}i${increment}_1024.i0N`;
-	let checked = checkCurrentFile(settings.saveDirectory.currentScan, fileString);
+	let fileStringIR = `${todaysDate}i${increment}_IR_1024.i0N`;
 
 	// Update file name in scan information
 	scanInfo.fileName = fileString;
+	scanInfo.fileNameIR = fileStringIR;
 
-	// Make Alert system it's own function
-	fileTakenAlert = document.getElementById("FileTakenAlert");
-	if (checked) {
-		fileTakenAlert.classList.remove("noHover");
-		fileTakenAlert.style.visibility = "visible";
-	} else {
-		fileTakenAlert.classList.add("noHover");
-		fileTakenAlert.style.visibility = "hidden";
-	}
+	// Check if that image already exists
+	checkCurrentFile();
+
 	return fileString;
 }
 
 // Check if file in Current File exists
-function checkCurrentFile(current_dir, file_string) {
-	let currentFile = current_dir + "/" + file_string;
-	if (fs.existsSync(currentFile)) {
-		return true;
+function checkCurrentFile() {
+	const currentFile = document.getElementById("CurrentFile");
+	let fileName = settings.saveDirectory.currentScan + "/" + scanInfo.fileName;
+	let fileNameIR = settings.saveDirectory.currentScan + "/" + scanInfo.fileNameIR;
+	if (fs.existsSync(fileName) || fs.existsSync(fileNameIR)) {
+		currentFile.title = "File already exists!";
+		currentFile.style.color = "red";
+		currentFile.style.border = "1pt solid red";
 	} else {
-		return false;
+		currentFile.title = null;
+		currentFile.style.color = "white";
+		currentFile.style.border = "1px solid rgb(62, 71, 95)";
 	}
 }
 

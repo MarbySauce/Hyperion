@@ -32,10 +32,6 @@
 				<h4 class="white-text" id="Increment"><u>Increment</u></h4>
 				<!-- Second row: File Naming -->
 				<input class="white-text" id="CurrentFile" />
-				<div id="FileTakenAlert">
-					<img src="../ImageSrc/Alert.png" />
-					<span class="HoverText">File already exists</span>
-				</div>
 				<button class="I0NButton" id="I0NCounterDown">-</button>
 				<input class="input-change" type="number" value="1" id="I0NCounter" readonly />
 				<button class="I0NButton" id="I0NCounterUp">+</button>
@@ -80,9 +76,17 @@
 				</header>
 				<div id="RecentScansSection"></div>
 			</div>
-			<div class="grid background-lighter-blue normal-mode" id="ImageDisplay">
+			<div class="grid background-lighter-blue" id="ImageDisplay">
 				<h3 class="white-text">Accumulated View</h3>
-				<canvas class="Display" id="Display" width="1024" height="1024"></canvas>
+				<select class="square-button white-text" name="IRImageDisplay" id="IRImageDisplay">
+					<option value="IROff">IR Off</option>
+					<option value="IROn">IR On</option>
+					<option value="Difference">Difference</option>
+				</select>
+				<canvas class="active-display" id="Display" width="1024" height="1024"></canvas>
+				<canvas class="inactive-display" id="DisplayIROff" width="1024" height="1024"></canvas>
+				<canvas class="inactive-display" id="DisplayIROn" width="1024" height="1024"></canvas>
+				<canvas class="inactive-display" id="DisplayIRDifference" width="1024" height="1024"></canvas>
 				<label for="DisplaySlider1">Contrast</label>
 				<input class="DisplaySlider" id="DisplaySlider1" type="range" min="0" max="1" step="0.05" value="0.5" />
 			</div>

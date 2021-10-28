@@ -31,7 +31,8 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 
 	// Simulated values
 	int NumberOfSpots = (rand() % 10) + 15;
-	std::vector<float> Radii = {30, 50, 90, 120, 170};
+	//std::vector<float> Radii = {30, 50, 90, 120, 170};
+	std::vector<float> Radii = {50, 50, 90, 90, 90, 90, 170, 170, 170};
 
 	// First clear the image (i.e. fill with 0's)
 	// 		(Unnecessary if adding noise)
@@ -49,7 +50,7 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 
 	if (isIROn) {
 		isIROn = false;
-		return;
+		Radii = {50, 50, 90, 90, 90, 120, 120, 170};
 	} else {
 		isIROn = true;
 	}
@@ -166,7 +167,8 @@ Napi::Boolean EnableMessages(const Napi::CallbackInfo& info) {
 void CheckMessages(const Napi::CallbackInfo& info) {
 	// Check if it's been more than 50ms since the last trigger event
 	triggerDelay.end();
-	if (triggerDelay.time > 50 /* ms */) {
+	if (triggerDelay.time > 50 /* ms */ && triggerDelay.time < 60 /* ms */) {
+		// (Upper time limit to test if any frames are missed)
 		// Simulate image
 		unsigned int randint = 1000 * triggerDelay.time; // RNG seed
 		triggerDelay.start(); // Restart trigger timer
@@ -177,6 +179,11 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 		Img.centroid(buffer, pMem, pPitch);
 		// Return calculated centers
 		sendCentroids();
+	} else if (triggerDelay.time >= 55 /* ms */) {
+		// Act as if laser still fired (i.e. missed event)
+		//isIROn = !isIROn;
+		// Reset the timer
+		triggerDelay.start();
 	}
 }
 

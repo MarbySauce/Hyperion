@@ -271,8 +271,10 @@ const scanInfo = {
 	totalCount: 0,
 	totalCountIROn: 0,
 	fileName: "",
-	autoSaveTimer: 1000000, // in ms, time between auto saves
+	fileNameIR: "",
+	autoSaveTimer: 10000, // in ms, time between auto saves
 	autoSave: false,
+	hasBeenSaved: false,
 	startScan: function () {
 		this.running = true;
 		this.autoSave = true;
@@ -281,6 +283,7 @@ const scanInfo = {
 	stopScan: function () {
 		this.running = false;
 		this.autoSave = false;
+		this.hasBeenSaved = false;
 	},
 	saveImage: function () {
 		// Save the image
@@ -288,17 +291,13 @@ const scanInfo = {
 		// Temporary file to store to in case app crashes while writing,
 		// previous autosaved file will not be ruined
 		let tempSaveLocation = settings.saveDirectory.currentScan + "/temp.txt";
-		let imageString; // Sting-ified version of image to write to file
-		switch (this.method) {
-			case "normal":
-				imageString = accumulatedImage.convertToString("normal");
-				break;
-
-			case "ir":
-				// Need to add functionality to save irOn and irOff
-				// and option to save irDifference
-				break;
+		let imageString;
+		if (scanInfo.method === "ir") {
+			imageString = accumulatedImage.convertToString("irOff");
+		} else {
+			imageString = accumulatedImage.convertToString("normal");
 		}
+
 		// Write the image to a temp file first, then rename that file
 		// to appropriate file name
 		// Renaming takes ~0.5 ms, so very small chance of app crashing during
@@ -315,6 +314,27 @@ const scanInfo = {
 				});
 			}
 		});
+		if (scanInfo.method === "ir") {
+			// Save the IR method
+			let saveLocationIR = settings.saveDirectory.currentScan + "/" + this.fileNameIR;
+			// Temporary file to store to in case app crashes while writing,
+			// previous autosaved file will not be ruined
+			let tempSaveLocationIR = settings.saveDirectory.currentScan + "/tempIR.txt";
+			let imageStringIR = accumulatedImage.convertToString("irOn");
+			fs.writeFile(tempSaveLocationIR, imageStringIR, (err) => {
+				if (err) {
+					console.log(err);
+				} else {
+					fs.rename(tempSaveLocationIR, saveLocationIR, (err) => {
+						if (err) {
+							console.log(err);
+						} else {
+							console.log("IR Saved!");
+						}
+					});
+				}
+			});
+		}
 	},
 	autoSaveLoop: function () {
 		// Loop used to autosave images
@@ -328,6 +348,11 @@ const scanInfo = {
 					// Don't need to save if we're paused, but we should
 					// stay in this loop
 					this.saveImage();
+					if (this.hasBeenSaved) {
+						previousScans.removeLastScan();
+					}
+					this.hasBeenSaved = true;
+					SaveScanInformation();
 				}
 			}
 		}, this.autoSaveTimer);
@@ -399,10 +424,6 @@ const scanInfo = {
 			countString = this.totalCountIROn.toString();
 		}
 		return countString;
-	},
-	updateFileName: function (fileName) {
-		// Update the name of the file to save the accumulated image to
-		this.fileName = fileName;
 	},
 };
 
@@ -835,6 +856,11 @@ const previousScans = {
 			}
 		});
 	},
+	removeLastScan: function () {
+		// Remove the last scan from this list and from display
+		this.allScans.pop();
+		RemoveScanFromDisplay(this.allScans.length);
+	},
 };
 
 const singleShot = {
@@ -891,4 +917,8 @@ const singleShot = {
 			}
 		});
 	},
+};
+
+const pageInfo = {
+	currentTab: 0, // Keep track of which tab is active
 };

@@ -338,7 +338,7 @@ Left Side
 	grid-template-columns: 2fr 1fr 2fr repeat(7, 1fr);
 	grid-template-areas:
 		"CurrentFileName CurrentFileName CurrentFileName b0 b0 b0 b0 Increment Increment Increment"
-		"CurrentFile CurrentFile CurrentFile b1 b1 b1 b1 I0NCounterDown I0NCounter I0NCounterUp"
+		"CurrentFile CurrentFile CurrentFile CurrentFile CurrentFile CurrentFile b1 I0NCounterDown I0NCounter I0NCounterUp"
 		"CWDropdown CWLabel CurrentWavelength NMLabel ConvertedWavelength ConvertedWavelength NMLabel2 CurrentWavenumber CurrentWavenumber WNLabel"
 		"CWDropdownIR CWLabelIR CurrentWavelengthIR NMLabelIR ConvertedWavelengthIR ConvertedWavelengthIR NMLabel2IR CurrentWavenumberIR CurrentWavenumberIR WNLabelIR"
 		"SDLabel SaveDirectory SaveDirectory SaveDirectory SaveDirectory SaveDirectory b4 b4 ChangeSaveDirectory ChangeSaveDirectory";
@@ -414,21 +414,6 @@ Left Side
 	background: inherit;
 	border: 1px solid rgb(62, 71, 95);
 	grid-area: CurrentFile;
-}
-#FileTakenAlert {
-	padding-top: 3px;
-	grid-area: 2 / 4 / span 1 / span 4;
-	display: inline-block;
-	z-index: 5;
-	border: none;
-	align-self: center;
-}
-#FileTakenAlert img {
-	height: 2.2vh;
-	width: 1.8vw;
-}
-#FileTakenAlert:hover .HoverText {
-	visibility: visible;
 }
 #I0NCounterDown {
 	grid-area: I0NCounterDown;
@@ -558,31 +543,58 @@ Right Side
 */
 
 /* Image Display */
-#ImageDisplay {
-	padding: 3px 5px;
+.normal-mode #ImageDisplay {
+	padding: 5px 5px;
 	display: grid;
 	grid-gap: 10px;
 	grid-area: ImageDisplay;
 	grid-template-rows: 1fr 14fr 1fr;
-	grid-template-columns: 1fr 6fr;
 	grid-template-areas:
-		"Title Title"
+		"Title"
+		"Display"
+		"Slider";
+}
+.normal-mode #IRImageDisplay {
+	display: none;
+}
+.ir-mode #ImageDisplay {
+	padding: 5px 5px;
+	display: grid;
+	grid-gap: 10px;
+	grid-area: ImageDisplay;
+	grid-template-rows: 1fr 14fr 1fr;
+	grid-template-columns: 5.5fr 1.5fr;
+	grid-template-areas:
+		"Title IRImageDisplay"
 		"Display Display"
 		"Slider Slider";
 	/*"Label Slider";*/
 }
-#ImageDisplay h3 {
+.ir-mode #IRImageDisplay {
 	text-align: center;
-	grid-area: Title;
-	align-self: end;
+	grid-area: IRImageDisplay;
 }
-#ImageDisplay .Display {
+#IRImageDisplay:focus-visible {
+	outline: none;
+}
+.active-display {
 	height: 52vh;
 	aspect-ratio: 1 / 1;
 	background: white;
 	border-radius: 10px;
 	grid-area: Display;
 	justify-self: center;
+}
+.inactive-display {
+	display: none;
+}
+#ImageDisplay h3 {
+	text-align: center;
+	grid-area: Title;
+	align-self: end;
+}
+.ir-mode #ImageDisplay h3 {
+	padding-left: 30%;
 }
 #ImageDisplay label {
 	text-align: center;
