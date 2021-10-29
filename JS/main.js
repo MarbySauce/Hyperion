@@ -132,7 +132,8 @@ app.whenReady().then(function () {
 		mainWin.hide();
 		LVWin.hide();
 		mainWin.webContents.send("closing-main-window", null);*/
-		app.quit();
+		SendCloseCameraMsg();
+		//app.quit();
 	});
 });
 
@@ -231,3 +232,9 @@ ipcMain.on("UpdateAxes", function (event, axisSizes) {
 function SendCloseCameraMsg() {
 	invisibleWin.webContents.send("CloseCamera", null);
 }
+
+// Close the app after the camera is successfully closed
+// Need to change this so it doesn't close the app if you only want to close the camera
+ipcMain.on("CameraClosed", function (event, msg) {
+	app.quit();
+});

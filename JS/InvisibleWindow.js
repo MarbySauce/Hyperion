@@ -110,4 +110,5 @@ ipc.on("HybridMethod", function (event, message) {
 
 ipc.on("CloseCamera", function (event, message) {
 	closeCamera();
+	ipc.send("CameraClosed", null);
 });
