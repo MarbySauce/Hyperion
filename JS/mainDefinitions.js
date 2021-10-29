@@ -283,7 +283,6 @@ const scanInfo = {
 	stopScan: function () {
 		this.running = false;
 		this.autoSave = false;
-		this.hasBeenSaved = false;
 	},
 	saveImage: function () {
 		// Save the image
@@ -314,7 +313,7 @@ const scanInfo = {
 				});
 			}
 		});
-		if (scanInfo.method === "ir") {
+		if (this.method === "ir") {
 			// Save the IR method
 			let saveLocationIR = settings.saveDirectory.currentScan + "/" + this.fileNameIR;
 			// Temporary file to store to in case app crashes while writing,
@@ -335,6 +334,11 @@ const scanInfo = {
 				}
 			});
 		}
+		this.hasBeenSaved = true;
+		// Add this to previousScans
+		previousScans.addScan();
+		// Save previousScans to JSON file
+		previousScans.saveScans();
 	},
 	autoSaveLoop: function () {
 		// Loop used to autosave images
@@ -348,11 +352,6 @@ const scanInfo = {
 					// Don't need to save if we're paused, but we should
 					// stay in this loop
 					this.saveImage();
-					if (this.hasBeenSaved) {
-						previousScans.removeLastScan();
-					}
-					this.hasBeenSaved = true;
-					SaveScanInformation();
 				}
 			}
 		}, this.autoSaveTimer);
@@ -396,6 +395,17 @@ const scanInfo = {
 			frameString = Math.round(this.frameCount / 1000) + " k";
 		} else {
 			frameString = this.frameCount.toString();
+		}
+		return frameString;
+	},
+	getFramesIROn: function () {
+		// Returns frame count as "X k" (e.g. 11 k for 11,000 frames)
+		// unless frame count is below 1,000
+		let frameString;
+		if (this.frameCountIROn >= 1000) {
+			frameString = Math.round(this.frameCountIROn / 1000) + " k";
+		} else {
+			frameString = this.frameCountIROn.toString();
 		}
 		return frameString;
 	},
@@ -783,21 +793,49 @@ const laserInfo = {
 const previousScans = {
 	allScans: [],
 	recentScan: undefined,
+	displayedScans: 0, // Number of scans currently displayed
 	addScan: function () {
 		// Add a saved scan to the previous scans list
 		let repeatedFileNameIndex;
-		let scanInformation = {
-			fileName: scanInfo.fileName,
-			detachmentMode: laserInfo.detachmentMode,
-			inputWavelength: laserInfo.inputWavelength,
-			convertedWavelength: laserInfo.convertedWavelength,
-			convertedWavenumber: laserInfo.convertedWavenumber,
-			totalFrames: scanInfo.getFrames(),
-			totalCount: scanInfo.getTotalCount(),
-		};
+		let scanInformation;
+		if (scanInfo.method === "ir") {
+			scanInformation = {
+				fileName: scanInfo.fileName,
+				fileNameIR: scanInfo.fileNameIR,
+				detachmentMode: laserInfo.detachmentMode,
+				inputWavelength: laserInfo.inputWavelength,
+				convertedWavelength: laserInfo.convertedWavelength,
+				convertedWavenumber: laserInfo.convertedWavenumber,
+				IRMode: laserInfo.IRMode,
+				nIRWavelength: laserInfo.nIRWavelength,
+				IRConvertedWavelength: laserInfo.IRConvertedWavelength,
+				IRConvertedWavenumber: laserInfo.IRConvertedWavenumber,
+				totalFrames: scanInfo.getFrames(),
+				totalFramesIR: scanInfo.getFramesIROn(),
+				totalCount: scanInfo.getTotalCount(),
+				totalCountIR: scanInfo.getTotalCountIROn(),
+				displayIndex: this.displayedScans,
+			};
+			this.displayedScans += 2;
+		} else {
+			scanInformation = {
+				fileName: scanInfo.fileName,
+				detachmentMode: laserInfo.detachmentMode,
+				inputWavelength: laserInfo.inputWavelength,
+				convertedWavelength: laserInfo.convertedWavelength,
+				convertedWavenumber: laserInfo.convertedWavenumber,
+				totalFrames: scanInfo.getFrames(),
+				totalCount: scanInfo.getTotalCount(),
+				displayIndex: this.displayedScans,
+			};
+			this.displayedScans++;
+		}
 		// Check if that filename has been used before
 		// (i.e. that file was overwritten)
 		repeatedFileNameIndex = this.allScans.findIndex((scan) => scan.fileName === scanInfo.fileName);
+		// Add to all scans list first
+		this.allScans.push(scanInformation);
+		// Then remove earlier scan if there was a duplicate
 		// findIndex returns -1 if it found no duplicates
 		if (repeatedFileNameIndex !== -1) {
 			// An earlier scan was overwritten
@@ -805,12 +843,13 @@ const previousScans = {
 			// splice(i, n) removes the i'th element n times
 			this.allScans.splice(repeatedFileNameIndex, 1);
 			// Remove that scan from the recent scans display as well
-			RemoveScanFromDisplay(repeatedFileNameIndex);
+			//RemoveScanFromDisplay(repeatedFileNameIndex);
 		}
-		// Add to all scans list
-		this.allScans.push(scanInformation);
 		// Make this scan the most recent scan
 		this.recentScan = scanInformation;
+		// Remove all scans from display, sort previousScans, and re-add
+		RemoveAllScansFromDisplay();
+		AddAllScansToDisplay();
 	},
 	saveScans: function () {
 		// Save previous scans information to JSON file
@@ -849,6 +888,10 @@ const previousScans = {
 					laserInfo.updateMode(this.recentScan.detachmentMode);
 					laserInfo.updateWavelength(this.recentScan.inputWavelength);
 					laserInfo.convert();
+					// Do the same for IR
+					laserInfo.updateIRMode(this.recentScan.IRMode);
+					laserInfo.updateIRWavelength(this.recentScan.nIRWavelength);
+					laserInfo.convertIR();
 					// Update laser info display
 					UpdateLaserWavelengthInput();
 					UpdateLaserWavelength();
@@ -856,10 +899,19 @@ const previousScans = {
 			}
 		});
 	},
-	removeLastScan: function () {
-		// Remove the last scan from this list and from display
-		this.allScans.pop();
-		RemoveScanFromDisplay(this.allScans.length);
+	sort: function () {
+		// Sort this.allScans by fileName
+		this.allScans.sort(function (a, b) {
+			let fileNameA = a.fileName;
+			let fileNameB = b.fileName;
+			if (fileNameA > fileNameB) {
+				return 1;
+			} else if (fileNameA < fileNameB) {
+				return -1;
+			}
+			// else
+			return 0;
+		});
 	},
 };
 

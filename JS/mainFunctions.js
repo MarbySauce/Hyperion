@@ -391,8 +391,7 @@ function StartSaveScan() {
 		// Save the image
 		scanInfo.saveImage();
 
-		// Save the scan information
-		SaveScanInformation();
+		scanInfo.hasBeenSaved = false;
 
 		// Re-enable file name controls
 		currentFile.disabled = false;
@@ -477,27 +476,38 @@ function UpdateSSButtonStatus() {
 	}
 }
 
-// Save the scan information
-function SaveScanInformation() {
-	// Add this scan to previousScans
-	previousScans.addScan();
-
-	// Update Recent File Section
-	UpdateRecentFiles(previousScans.recentScan);
-
-	// Save today's previous scans to JSON file
-	previousScans.saveScans();
-}
-
 // Update Recent Files Section with recent scan
 function UpdateRecentFiles(saveFile) {
 	const recentScansSection = document.getElementById("RecentScansSection");
+	let keyList;
 	let currentMode = saveFile.detachmentMode;
+	let IRMode = saveFile.IRMode;
 	let tag; // tag, text, and textNode used for appending <p> elements
 	let text;
 	let textNode;
+	if (saveFile.fileNameIR) {
+		// Check if there was an IR file saved
+		keyList = [
+			"fileName",
+			"inputWavelength",
+			"convertedWavelength",
+			"convertedWavenumber",
+			"totalFrames",
+			"totalCount",
+			"fileNameIR",
+			"nIRWavelength",
+			"IRConvertedWavelength",
+			"IRConvertedWavenumber",
+			"totalFramesIR",
+			"totalCountIR",
+		];
+		previousScans.displayedScans += 2;
+	} else {
+		keyList = ["fileName", "inputWavelength", "convertedWavelength", "convertedWavenumber", "totalFrames", "totalCount"];
+		previousScans.displayedScans++;
+	}
 
-	for (let key in saveFile) {
+	for (let key of keyList) {
 		if (currentMode == 0) {
 			// If standard detachment setup, only write the inputed value
 			// (i.e. use input wavelength, skip converted wavelength)
@@ -512,9 +522,16 @@ function UpdateRecentFiles(saveFile) {
 			}
 		}
 
-		// Skip writing the mode
-		if (key == "detachmentMode") {
-			continue;
+		if (IRMode == 0) {
+			// Excited with nIR, only write input value
+			if (key == "IRConvertedWavelength") {
+				continue;
+			}
+		} else {
+			// Used iIR or mIR, only write converted value
+			if (key == "nIRWavelength") {
+				continue;
+			}
 		}
 
 		tag = document.createElement("p");
@@ -533,18 +550,22 @@ function UpdateRecentFiles(saveFile) {
 	}
 }
 
-// Remove a scan from the recent scans display
-function RemoveScanFromDisplay(scanIndex) {
-	// scanIndex should be the same index as in previousScans.allScans
+// Remove all scans from the recent scans display
+function RemoveAllScansFromDisplay() {
 	const recentScansSection = document.getElementById("RecentScansSection");
-	let childIndex; // index of children in recentScans section to remove
+	const displayLength = recentScansSection.children.length;
+	for (let i = 0; i < displayLength; i++) {
+		recentScansSection.removeChild(recentScansSection.children[0]);
+	}
+}
 
-	// Remove the scanIndex'th row from the display
-	// 5 elements per row, so remove elements (scanIndex * 5) to (scanIndex * 5 + 4)
-	// or remove the (scanIndex * 5)th element 5 times
-	for (let _ = 0; _ < 5; _++) {
-		childIndex = scanIndex * 5;
-		recentScansSection.removeChild(recentScansSection.children[childIndex]);
+// Add all scans in previousScans to display
+function AddAllScansToDisplay() {
+	const prevScansLength = previousScans.allScans.length;
+	// Sort previous scans first
+	previousScans.sort();
+	for (let i = 0; i < prevScansLength; i++) {
+		UpdateRecentFiles(previousScans.allScans[i]);
 	}
 }
 
@@ -638,11 +659,17 @@ function UpdateLaserWavelength() {
 function UpdateLaserWavelengthInput() {
 	const wavelengthMode = document.getElementById("WavelengthMode");
 	const currentWavelength = document.getElementById("CurrentWavelength");
+	const wavelengthModeIR = document.getElementById("IRWavelengthMode");
+	const currentWavelengthIR = document.getElementById("CurrentWavelengthNIR");
 
 	// Update displays
 	wavelengthMode.selectedIndex = laserInfo.detachmentMode;
+	wavelengthModeIR.selectedIndex = laserInfo.IRMode;
 	if (laserInfo.inputWavelength) {
 		currentWavelength.value = laserInfo.inputWavelength.toFixed(3);
+	}
+	if (laserInfo.nIRWavelength) {
+		currentWavelengthIR.value = laserInfo.nIRWavelength.toFixed(3);
 	}
 }
 
