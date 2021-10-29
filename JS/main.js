@@ -5,6 +5,8 @@ let mainWin;
 let LVWin;
 let invisibleWin;
 
+let LVWinOpen = false;
+
 // Way to quickly switch between monitors
 // 0 -> work monitor, 1 -> home monitor,
 // 2 -> no monitor, 3 -> Lab comp
@@ -51,6 +53,14 @@ function createMainWindow() {
 			label: "Menu",
 			submenu: [
 				{
+					label: "Open Live View",
+					click() {
+						if (!LVWinOpen) {
+							LVWin = createLVWindow();
+						}
+					},
+				},
+				{
 					label: "Close Camera",
 					click() {
 						SendCloseCameraMsg();
@@ -85,6 +95,12 @@ function createLVWindow() {
 
 	win.loadFile("HTML/LVWindow.html");
 	//win.webContents.openDevTools();
+
+	LVWinOpen = true;
+
+	win.on("close", function (event) {
+		LVWinOpen = false;
+	});
 
 	return win;
 }
@@ -126,12 +142,17 @@ app.whenReady().then(function () {
 	LVWin.removeMenu();
 
 	// Close LV window when main window is closed
-	// !! Update comments
 	mainWin.on("close", function (event) {
 		/*event.preventDefault();
-		mainWin.hide();
-		LVWin.hide();
-		mainWin.webContents.send("closing-main-window", null);*/
+	mainWin.hide();
+	LVWin.hide();
+	mainWin.webContents.send("closing-main-window", null);*/
+
+		//
+		// Could add in a timeout so that if a success is not received
+		// from the main window, the app still quits
+		//
+
 		SendCloseCameraMsg();
 		//app.quit();
 	});
