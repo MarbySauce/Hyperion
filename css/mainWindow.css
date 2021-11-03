@@ -887,6 +887,19 @@ End right side
 /*
 
 
+					Post Processing Content
+
+
+*/
+
+#PostProcessContent {
+	grid-area: Content;
+	display: none;
+}
+
+/*
+
+
 					Settings Content
 
 
