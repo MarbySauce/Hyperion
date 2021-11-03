@@ -108,7 +108,6 @@ label {
 #NormalModeContent {
 	grid-area: Content;
 	padding: 20px;
-	min-height: 790px;
 	/*display: grid;*/
 	display: none; /* Set to none so that it looks cleaner on startup */
 	grid-gap: 20px;
@@ -330,7 +329,6 @@ Left Side
 }
 .ir-mode #SaveControls {
 	padding: 5px 15px 5px 15px;
-	height: 225px;
 	grid-area: SaveControls;
 	display: grid;
 	grid-gap: 5px 2px;
