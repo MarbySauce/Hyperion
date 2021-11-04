@@ -332,7 +332,7 @@ function RemoveIRLabels() {
 	const totalECountLabel = document.getElementById("TotalECountLabel");
 	const currentFile = document.getElementById("CurrentFile");
 
-	totalFramesLabel.innerHTML = "TotalFrames:";
+	totalFramesLabel.innerHTML = "Total Frames:";
 	totalECountLabel.innerHTML = "Total e<sup>-</sup> Count:";
 	currentFile.value = scanInfo.fileName;
 }
@@ -342,7 +342,7 @@ function AddIRLabels() {
 	const totalECountLabel = document.getElementById("TotalECountLabel");
 	const currentFile = document.getElementById("CurrentFile");
 
-	totalFramesLabel.innerHTML = "TotalFrames (IR Off):";
+	totalFramesLabel.innerHTML = "Total Frames (IR Off):";
 	totalECountLabel.innerHTML = "Total e<sup>-</sup> Count (IR Off):";
 	currentFile.value = scanInfo.fileName + ", " + scanInfo.fileNameIR;
 }

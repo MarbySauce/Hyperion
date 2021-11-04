@@ -27,7 +27,7 @@ body {
 
 body {
 	display: grid;
-	grid-template-columns: 1fr 13fr;
+	grid-template-columns: 1fr 15fr;
 	grid-template-areas: "TabBar Content";
 	overflow-y: hidden;
 }
@@ -515,7 +515,7 @@ Left Side
 }
 #RecentScansSection {
 	overflow: scroll;
-	max-height: 260px;
+	max-height: 300px;
 	display: grid;
 	padding-top: 5px;
 	border: 2px solid rgb(62, 71, 95);
@@ -782,8 +782,8 @@ End right side
 }
 #eChart {
 	background: lightgray;
-	max-height: 500px;
-	max-width: 600px;
+	max-height: 650px;
+	max-width: 650px;
 	border-radius: 10px;
 	border: 1.5px solid black;
 	padding: 10px;
@@ -793,7 +793,7 @@ End right side
 }
 #eChartYAxisButtons {
 	grid-area: YButtons;
-	padding: 200px 10px;
+	padding: 260px 10px;
 	display: grid;
 	grid-template-rows: 1fr 1.4fr 1fr;
 	align-items: center;
@@ -801,7 +801,7 @@ End right side
 }
 #eChartXAxisButtons {
 	grid-area: XButtons;
-	padding: 10px 250px;
+	padding: 10px 260px;
 	display: grid;
 	grid-template-columns: 1fr 1.4fr 1fr;
 	align-items: center;

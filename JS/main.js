@@ -10,7 +10,7 @@ let LVWinOpen = false;
 // Way to quickly switch between monitors
 // 0 -> work monitor, 1 -> home monitor,
 // 2 -> no monitor, 3 -> Lab comp
-const thisMonitor = 1;
+const thisMonitor = 0;
 const monitor = [
 	[
 		[-1850, -300],
@@ -31,7 +31,7 @@ const monitor = [
 ];
 
 function createMainWindow() {
-	const win = new BrowserWindow({
+	let win = new BrowserWindow({
 		width: 1200,
 		height: 1000,
 		minWidth: 600,
@@ -48,7 +48,7 @@ function createMainWindow() {
 		},
 	});
 
-	var menu = Menu.buildFromTemplate([
+	let menu = Menu.buildFromTemplate([
 		{
 			label: "Menu",
 			submenu: [
@@ -126,17 +126,22 @@ app.whenReady().then(function () {
 	// Set dark mode
 	nativeTheme.themeSource = "dark";
 
+	mainWin = createMainWindow();
 	invisibleWin = createInvisibleWindow();
 	LVWin = createLVWindow();
-	mainWin = createMainWindow();
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) {
+			mainWin = createMainWindow();
 			invisibleWin = createInvisibleWindow();
 			LVWin = createLVWindow();
-			mainWin = createMainWindow();
 		}
 	});
+
+	// If one monitor is too small, Electron doesn't size windows well
+	// Fixed by rechanging the size after creation
+	mainWin.setSize(1300, 1000);
+	LVWin.setSize(1200, 820);
 
 	// Get rid of Live View menu bar
 	LVWin.removeMenu();
