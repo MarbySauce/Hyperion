@@ -272,7 +272,7 @@ const scanInfo = {
 	totalCountIROn: 0,
 	fileName: "",
 	fileNameIR: "",
-	autoSaveTimer: 10000, // in ms, time between auto saves
+	autoSaveTimer: 100000, // in ms, time between auto saves
 	autoSave: false,
 	hasBeenSaved: false,
 	startScan: function () {

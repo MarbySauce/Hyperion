@@ -96,7 +96,7 @@ ipc.on("StartCentroiding", function (event, arg) {
 		}
 		//let nRet = camera.enableMessages();
 		//console.log("Enable messages:",nRet);
-	}, 5000 /* ms */);
+	}, 1000 /* ms */);
 });
 
 ipc.on("StopCentroiding", function (event, arg) {
