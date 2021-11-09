@@ -450,6 +450,7 @@ const accumulatedImage = {
 	differenceFrequency: 20, // Number of frames before the difference image is calculated
 	differenceCounter: 0, // Counter of number of frames since last diff image calculation
 	dumbCounter: 0,
+	allCenters: [],
 	update: function (calculatedCenters) {
 		let numberOfCenters;
 		let xCenter;
@@ -459,6 +460,8 @@ const accumulatedImage = {
 			for (let center = 0; center < numberOfCenters; center++) {
 				xCenter = calculatedCenters[centroidMethod][center][0];
 				yCenter = calculatedCenters[centroidMethod][center][1];
+				// Add spots to allCenters
+				//this.allCenters.push([xCenter, yCenter]);
 				// Expand image to correct bin size and round
 				xCenter = Math.round((xCenter * this.width) / this.originalWidth);
 				yCenter = Math.round((yCenter * this.height) / this.originalHeight);
@@ -504,6 +507,10 @@ const accumulatedImage = {
 
 			case "irDifference":
 				arrayToWrite = this.irDifference;
+				break;
+
+			case "centers":
+				arrayToWrite = this.allCenters;
 				break;
 		}
 		return arrayToWrite.map((row) => row.join(" ")).join("\n");
@@ -565,6 +572,7 @@ const accumulatedImage = {
 				this.irOff = Array.from(Array(this.height), () => new Array(this.width).fill(0));
 				this.irOn = Array.from(Array(this.height), () => new Array(this.width).fill(0));
 				this.irDifference = Array.from(Array(this.height), () => new Array(this.width).fill(0));
+				this.allCenters = [];
 				break;
 		}
 
