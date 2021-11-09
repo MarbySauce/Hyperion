@@ -272,7 +272,7 @@ const scanInfo = {
 	totalCountIROn: 0,
 	fileName: "",
 	fileNameIR: "",
-	autoSaveTimer: 10000, // in ms, time between auto saves
+	autoSaveTimer: 100000, // in ms, time between auto saves
 	autoSave: false,
 	hasBeenSaved: false,
 	startScan: function () {
@@ -658,7 +658,7 @@ const laserInfo = {
 	detachmentMode: 0, // 0 is Standard, 1 is Doubled, 2 is Raman Shifter, 3 is IR-DFG
 	convertedWavelength: null,
 	convertedWavenumber: null,
-	YAGFundamental: 1064.216, // Wavelength of Nd:YAG used for OPO/A
+	YAGFundamental: 2*532.25, // Wavelength of Nd:YAG used for OPO/A
 	nIRWavelength: null,
 	IRMode: 0, // 0 is nIR, 1 is iIR, 2 is mIR
 	IRConvertedWavelength: null,

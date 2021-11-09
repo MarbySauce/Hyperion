@@ -10,7 +10,11 @@ let LVWinOpen = false;
 // Way to quickly switch between monitors
 // 0 -> work monitor, 1 -> home monitor,
 // 2 -> no monitor, 3 -> Lab comp
+<<<<<<< HEAD
+const thisMonitor = 3;
+=======
 const thisMonitor = 0;
+>>>>>>> bd7aa666c0070396b0b2eb8eea190dcc81935af3
 const monitor = [
 	[
 		[-1850, -300],
@@ -166,7 +170,7 @@ app.whenReady().then(function () {
 ipcMain.on("closing-main-window-received", (event, arg) => {
 	//console.log(arg);
 	mainWin.destroy();
-	app.quit();
+	//app.quit();
 });
 
 app.on("window-all-closed", function () {
@@ -262,5 +266,5 @@ function SendCloseCameraMsg() {
 // Close the app after the camera is successfully closed
 // Need to change this so it doesn't close the app if you only want to close the camera
 ipcMain.on("CameraClosed", function (event, msg) {
-	app.quit();
+	setTimeout(() => {app.quit()}, 2000 /* ms */);
 });

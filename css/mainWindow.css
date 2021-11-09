@@ -515,7 +515,7 @@ Left Side
 }
 #RecentScansSection {
 	overflow: scroll;
-	max-height: 300px;
+	max-height: 280px;
 	display: grid;
 	padding-top: 5px;
 	border: 2px solid rgb(62, 71, 95);
