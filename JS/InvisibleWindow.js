@@ -45,7 +45,7 @@ function Startup() {
 		};
 
 		// Send data to other renderer windows
-		ipc.send("LVImageUpdate", CentroidData);
+		ipc.send("new-camera-frame", CentroidData);
 	});
 
 	// Initialize emitter

@@ -391,6 +391,11 @@ function StartSaveScan() {
 		// Save the image
 		scanInfo.saveImage();
 
+		// Save all centers to file
+		//fs.writeFile("./Images/AllCenters.txt", accumulatedImage.convertToString("centers"), () => {
+		//	console.log("Centers Saved!");
+		//});
+
 		scanInfo.hasBeenSaved = false;
 
 		// Re-enable file name controls
@@ -904,7 +909,7 @@ function ApplySettings() {
 */
 
 // Receive message with centroid data
-ipc.on("LVImageUpdate", function (event, obj) {
+ipc.on("new-camera-frame", function (event, obj) {
 	// Will return with object containing:
 	//		imageBuffer
 	//		calcCenters

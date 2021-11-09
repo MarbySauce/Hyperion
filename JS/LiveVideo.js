@@ -32,7 +32,7 @@ function UpdateScanDisplays() {
 }
 
 // Receive message with centroid data
-ipc.on("LVImageUpdate", function (event, obj) {
+ipc.on("new-camera-frame", function (event, obj) {
 	// Will return with object containing:
 	//		imageBuffer
 	//		calcCenters

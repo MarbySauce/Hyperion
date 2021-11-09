@@ -223,20 +223,20 @@ ipcMain.on("ScanUpdate", function (event, update) {
 });
 
 // Relay centroid data to visible windows
-ipcMain.on("LVImageUpdate", function (event, arg) {
-	// arg is an object containing image and calculated centers
+ipcMain.on("new-camera-frame", function (event, info) {
+	// info is an object containing image and calculated centers
 	let doNothing;
 
 	// Send data to main window if it's open
 	try {
-		mainWin.webContents.send("LVImageUpdate", arg);
+		mainWin.webContents.send("new-camera-frame", info);
 	} catch {
 		doNothing = true;
 	}
 
 	// Send data to live view window if it's open
 	try {
-		LVWin.webContents.send("LVImageUpdate", arg);
+		LVWin.webContents.send("new-camera-frame", info);
 	} catch {
 		doNothing = true;
 	}
