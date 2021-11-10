@@ -931,6 +931,9 @@ ipc.on("new-camera-frame", function (event, obj) {
 			accumulatedImage.getDifference();
 		}
 		UpdateAccumulatedImageDisplay();
+	} else if (scanInfo.running) {
+		// Switch which IR image to bin to
+		accumulatedImage.isIROn = !accumulatedImage.isIROn;
 	}
 
 	// Update eChart if it's running
@@ -947,6 +950,8 @@ ipc.on("new-camera-frame", function (event, obj) {
 		singleShot.save();
 		singleShot.toSave = false;
 	}
+
+	doit();
 });
 
 // Update the accumulated image display
@@ -1162,19 +1167,40 @@ function checkCurrentFile() {
 // ----------------------------------------------- //
 
 function doit() {
-	console.time("Writing");
-	console.time("Executing");
-	fs.writeFile(settings.saveDirectory.currentScan + "/temp.txt", accumulatedImage.convertToString("normal"), () => {
-		console.log("Done");
-		console.timeEnd("Writing");
-		console.time("Executing Rename");
-		console.time("Rename");
-		fs.rename(settings.saveDirectory.currentScan + "/temp.txt", settings.saveDirectory.currentScan + "/image.txt", () => {
-			console.timeEnd("Rename");
-		});
-		console.timeEnd("Executing Rename");
-	});
-	console.timeEnd("Executing");
+	if (doit_bool) {
+		//const display = document.getElementById("Display");
+		const display = document.getElementsByClassName("active-display")[0];
+		const ctx = display.getContext("2d");
+		let centerX = 512;
+		let centerY = 512;
+		let radius = 40;
+		ctx.beginPath();
+		ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+		ctx.fillStyle = "red";
+		ctx.fill();
+	}
+}
+
+let doit_bool = false;
+function enableDoit() {
+	doit_bool = true;
+}
+function disableDoit() {
+	//const display = document.getElementById("Display");
+	//const display = document.getElementsByClassName("active-display")[0];
+	display_list = document.getElementsByClassName("accumulated-image");
+	for (let i = 0; i < display_list.length; i++) {
+		let display = display_list[i];
+		let ctx = display.getContext("2d");
+		let centerX = 512;
+		let centerY = 512;
+		let radius = 40;
+		ctx.beginPath();
+		ctx.arc(centerX, centerY, radius + 2, 0, 2 * Math.PI, false);
+		ctx.fillStyle = "black";
+		ctx.fill();
+	}
+	doit_bool = false;
 }
 
 // Keep the screen awake
