@@ -51,6 +51,7 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 	if (isIROn) {
 		isIROn = false;
 		Radii = {50, 50, 90, 90, 90, 120, 120, 170};
+		//return;
 	} else {
 		isIROn = true;
 	}
