@@ -10,7 +10,7 @@ let LVWinOpen = false;
 // Way to quickly switch between monitors
 // 0 -> work monitor, 1 -> home monitor,
 // 2 -> no monitor, 3 -> Lab comp
-const thisMonitor = 1;
+const thisMonitor = 3;
 const monitor = [
 	[
 		[-1850, -300],
@@ -26,7 +26,7 @@ const monitor = [
 	],
 	[
 		[50, 0],
-		[-2900, 0],
+		[-3400, 0],
 	],
 ];
 
@@ -140,7 +140,7 @@ app.whenReady().then(function () {
 
 	// If one monitor is too small, Electron doesn't size windows well
 	// Fixed by rechanging the size after creation
-	mainWin.setSize(1300, 1000);
+	mainWin.setSize(1200, 1000);
 	LVWin.setSize(1200, 820);
 
 	// Get rid of Live View menu bar
