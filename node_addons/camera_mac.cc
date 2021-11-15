@@ -164,15 +164,23 @@ Napi::Boolean EnableMessages(const Napi::CallbackInfo& info) {
 	return Napi::Boolean::New(env, true);
 }
 
+int repCount = 0;
+int simulationCount = 0;
+
 // Check for messages
 void CheckMessages(const Napi::CallbackInfo& info) {
 	// Check if it's been more than 50ms since the last trigger event
 	triggerDelay.end();
-	if (triggerDelay.time > 50 /* ms */ && triggerDelay.time < 60 /* ms */) {
+	repCount = floor(triggerDelay.time / 50);
+	//if (triggerDelay.time > 50 /* ms */ && triggerDelay.time < 60 /* ms */) {
+	while (simulationCount < repCount) {
+		if (repCount - simulationCount >= 3) {
+			simulationCount = repCount;
+		}
 		// (Upper time limit to test if any frames are missed)
 		// Simulate image
 		unsigned int randint = 1000 * triggerDelay.time; // RNG seed
-		triggerDelay.start(); // Restart trigger timer
+		//triggerDelay.start(); // Restart trigger timer
 		simulateImage(simulatedImage, randint);
 		// Get image pitch
 		int pPitch = 768;
@@ -180,12 +188,13 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 		Img.centroid(buffer, pMem, pPitch);
 		// Return calculated centers
 		sendCentroids();
-	} else if (triggerDelay.time >= 55 /* ms */) {
+		simulationCount++;
+	} //else if (triggerDelay.time >= 55 /* ms */) {
 		// Act as if laser still fired (i.e. missed event)
 		//isIROn = !isIROn;
 		// Reset the timer
-		triggerDelay.start();
-	}
+	//	triggerDelay.start();
+	//}
 }
 
 // Pretend to close the camera

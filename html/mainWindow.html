@@ -9,6 +9,7 @@
 		<div id="TabBar">
 			<button class="tab" id="NormalMode">Normal Mode</button>
 			<button class="tab" id="IRMode">IR Mode</button>
+			<button class="tab" id="DepletionMode">Depletion Mode</button>
 			<button class="tab" id="EMonitor">e<sup>-</sup> Monitor</button>
 			<button class="tab" id="PostProcess">Post Processing</button>
 			<button class="tab" id="Settings">Settings</button>
@@ -49,6 +50,7 @@
 				<label class="white-text" id="NMLabel2">nm</label>
 				<input class="input-read" id="CurrentWavenumber" type="number" placeholder="-" readonly />
 				<label class="white-text" id="WNLabel">cm<sup>-1</sup></label>
+				<!-- IR Mode Wavelength Input -->
 				<select class="square-button white-text" name="IRWavelengthMode" id="IRWavelengthMode">
 					<option value="nIR">Near IR</option>
 					<option value="iIR">Inter. IR</option>
@@ -76,6 +78,10 @@
 				</header>
 				<div id="RecentScansSection"></div>
 			</div>
+			<!-- Depletion Mode Intensity(R) Plot -->
+			<div class="background-lighter-blue" id="IntensityGraphDisplay">
+				<canvas id="IntensityGraph"></canvas>
+			</div>
 			<div class="grid background-lighter-blue" id="ImageDisplay">
 				<h3 class="white-text">Accumulated View</h3>
 				<select class="square-button white-text" name="IRImageDisplay" id="IRImageDisplay">
@@ -84,6 +90,7 @@
 					<option value="Difference">Difference</option>
 				</select>
 				<canvas class="active-display accumulated-image" id="Display" width="1024" height="1024"></canvas>
+				<!-- IR Mode Displays -->
 				<canvas class="inactive-display accumulated-image" id="DisplayIROff" width="1024" height="1024"></canvas>
 				<canvas class="inactive-display accumulated-image" id="DisplayIROn" width="1024" height="1024"></canvas>
 				<canvas class="inactive-display accumulated-image" id="DisplayIRDifference" width="1024" height="1024"></canvas>
@@ -95,13 +102,14 @@
 				<input class="input-read" id="TotalFrames" type="number" value="0" readonly />
 				<label class="white-text" id="TotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
 				<input class="input-read" id="TotalECount" type="text" value="0" readonly />
+				<label class="white-text" id="AvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
+				<input class="input-read" id="AvgECount" type="number" value="0" readonly />
+				<button class="square-button white-text" id="ResetCounters">Reset Counters</button>
+				<!-- IR Mode Counters -->
 				<label class="white-text" id="TotalFramesLabelIROn" for="TotalFramesIROn">Total Frames (IR On):</label>
 				<input class="input-read" id="TotalFramesIROn" type="number" value="0" readonly />
 				<label class="white-text" id="TotalECountLabelIROn" for="TotalECountIROn">Total e<sup>-</sup> Count (IR On):</label>
 				<input class="input-read" id="TotalECountIROn" type="text" value="0" readonly />
-				<label class="white-text" id="AvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
-				<input class="input-read" id="AvgECount" type="number" value="0" readonly />
-				<button class="square-button white-text" id="ResetCounters">Reset Counters</button>
 			</div>
 		</div>
 		<div id="EMonitorContent">

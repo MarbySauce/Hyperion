@@ -28,17 +28,21 @@ document.getElementById("IRMode").onclick = function () {
 	// IR mode tab
 	SwitchTabs(1);
 };
+document.getElementById("DepletionMode").onclick = function () {
+	// Depletion mode tab
+	SwitchTabs(2);
+};
 document.getElementById("EMonitor").onclick = function () {
 	// e- monitor tab
-	SwitchTabs(2);
+	SwitchTabs(3);
 };
 document.getElementById("PostProcess").onclick = function () {
 	// Post processing tab
-	SwitchTabs(3);
+	SwitchTabs(4);
 };
 document.getElementById("Settings").onclick = function () {
 	// Settings tab
-	SwitchTabs(4);
+	SwitchTabs(5);
 };
 
 /*		Normal Mode		*/
@@ -251,7 +255,8 @@ function Startup() {
 // and then activate the tab 'Tab'
 function SwitchTabs(Tab) {
 	// Tab name should be an integer corresponding to the index of tabList
-	// e.g. NormalMode = 0, IRMode = 1, EMonitor = 2, PostProcess = 3, Settings = 4
+	// e.g. NormalMode = 0, IRMode = 1, DetachmentMode = 2,
+	// 		EMonitor = 3, PostProcess = 4, Settings = 5
 	//
 	// If you only want to hide all tabs and show nothing,
 	// call the function with no parameters
@@ -260,6 +265,7 @@ function SwitchTabs(Tab) {
 	const tabList = [
 		document.getElementById("NormalMode"),
 		document.getElementById("IRMode"),
+		document.getElementById("DepletionMode"),
 		document.getElementById("EMonitor"),
 		document.getElementById("PostProcess"),
 		document.getElementById("Settings"),
@@ -269,54 +275,79 @@ function SwitchTabs(Tab) {
 	const contentList = [
 		document.getElementById("NormalModeContent"),
 		document.getElementById("NormalModeContent"),
+		document.getElementById("NormalModeContent"),
 		document.getElementById("EMonitorContent"),
 		document.getElementById("PostProcessContent"),
 		document.getElementById("SettingsContent"),
 	];
 
+	// Depress each tab
 	for (let i = 0; i < tabList.length; i++) {
 		tabList[i].classList.remove("pressed-tab");
 	}
 
-	// Activate selected tab
-	if (isNaN(Tab) || Tab >= tabList.length || Tab < 0) {
+	// Make sure the Tab argument passed is an integer
+	// and that the element tabList[Tab] exists
+	if (!tabList[Tab]) {
 		// If no arguments were passed, Tab is not a number,
 		// Tab is too large, or Tab is negative,
 		// do not activate any tabs
 		return;
-	} else if (Tab === 0 || Tab === 1) {
-		// IR Mode is not it's own tab anymore, so we have to be a bit more careful
-		pageInfo.currentTab = Tab;
+	}
 
-		// Set other tabs to be deactivated
-		for (let i = 2; i < tabList.length; i++) {
+	// Store the current tab info
+	pageInfo.currentTab = Tab;
+
+	// Activate Normal or IR tab
+	// IR and Depletion Mode are augmentations of Normal Mode
+	// So we have to be a bit more careful here
+	if (Tab >= 0 && Tab <= 2) {
+		// Hide other pages if shown
+		for (let i = 3; i < tabList.length; i++) {
 			contentList[i].style.display = "none";
 		}
+		// Display Normal Mode's content
 		contentList[0].style.display = "grid";
-		if (Tab === 0) {
-			if (!scanInfo.running) {
-				// Switch to normal mode if scan is not being taken
-				scanInfo.method = "normal";
-			}
-			tabList[Tab].classList.add("pressed-tab");
-			contentList[Tab].classList.remove("ir-mode");
-			contentList[Tab].classList.add("normal-mode");
-			RemoveIRLabels();
-		} else {
-			if (!scanInfo.running) {
-				// Switch to IR mode
-				scanInfo.method = "ir";
-			}
-			tabList[Tab].classList.add("pressed-tab");
-			contentList[Tab].classList.remove("normal-mode");
-			contentList[Tab].classList.add("ir-mode");
-			AddIRLabels();
+
+		switch (Tab) {
+			case 0:
+				if (!scanInfo.running) {
+					// Switch to normal mode method if scan is not being taken
+					scanInfo.method = "normal";
+				}
+				tabList[Tab].classList.add("pressed-tab");
+				contentList[Tab].classList.remove("ir-mode");
+				contentList[Tab].classList.remove("depletion-mode");
+				contentList[Tab].classList.add("normal-mode");
+				RemoveIRLabels();
+				break;
+			case 1:
+				if (!scanInfo.running) {
+					// Switch to IR mode method if scan is not being taken
+					scanInfo.method = "ir";
+				}
+				tabList[Tab].classList.add("pressed-tab");
+				contentList[Tab].classList.remove("normal-mode");
+				contentList[Tab].classList.remove("depletion-mode");
+				contentList[Tab].classList.add("ir-mode");
+				AddIRLabels();
+				break;
+			case 2:
+				if (!scanInfo.running) {
+					// Switch to depletion mode method if scan is not being taken
+					scanInfo.method = "depletion";
+				}
+				tabList[Tab].classList.add("pressed-tab");
+				contentList[Tab].classList.remove("normal-mode");
+				contentList[Tab].classList.add("ir-mode");
+				contentList[Tab].classList.add("depletion-mode");
+				AddIRLabels();
+				break;
 		}
 
 		SwitchAccumulatedImages();
 	} else {
-		pageInfo.currentTab = Tab;
-		// Set all tabs to be deactivated
+		// Hide all pages
 		for (let i = 0; i < tabList.length; i++) {
 			contentList[i].style.display = "none";
 		}
@@ -327,6 +358,7 @@ function SwitchTabs(Tab) {
 	}
 }
 
+// Remove the labels displayed for IR mode
 function RemoveIRLabels() {
 	const totalFramesLabel = document.getElementById("TotalFramesLabel");
 	const totalECountLabel = document.getElementById("TotalECountLabel");
@@ -337,6 +369,7 @@ function RemoveIRLabels() {
 	currentFile.value = scanInfo.fileName;
 }
 
+// Add the labels displayed for IR mode
 function AddIRLabels() {
 	const totalFramesLabel = document.getElementById("TotalFramesLabel");
 	const totalECountLabel = document.getElementById("TotalECountLabel");
@@ -917,6 +950,10 @@ ipc.on("new-camera-frame", function (event, obj) {
 	// Update average number of electrons
 	averageCount.update(obj);
 	UpdateAverageCountDisplays();
+
+	// NOTE:
+	// Might be better to change this so all logic is done in scanInfo / accumulatedImage
+	// Maybe even combine those classes? It's getting easy to get lost
 
 	// Only update these if currently taking a scan that isn't paused
 	if (scanInfo.running && !scanInfo.paused) {

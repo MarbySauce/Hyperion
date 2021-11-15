@@ -49,9 +49,9 @@ label {
 		"b0"
 		"NormalMode"
 		"IRMode"
+		"DepletionMode"
 		"EMonitor"
 		"PostProcessing"
-		"b1"
 		"b1"
 		"b1"
 		"b1"
@@ -83,6 +83,10 @@ label {
 
 #IRMode {
 	grid-area: IRMode;
+}
+
+#DepletionMode {
+	grid-area: DepletionMode;
 }
 
 #EMonitor {
@@ -530,6 +534,30 @@ Left Side
 	border-bottom: 1px dotted rgb(62, 71, 95);
 	/*color: whitesmoke;*/
 	color: white;
+}
+.depletion-mode #RecentScans {
+	display: none;
+}
+
+.normal-mode #IntensityGraphDisplay {
+	display: none;
+}
+.ir-mode #IntensityGraphDisplay {
+	display: none;
+}
+.ir-mode.depletion-mode #IntensityGraphDisplay {
+	display: grid;
+	grid-area: RecentScans;
+}
+#IntensityGraph {
+	background: lightgray;
+	max-height: 350px;
+	max-width: 550px;
+	border-radius: 10px;
+	border: 1.5px solid black;
+	padding: 10px;
+	align-self: center;
+	justify-self: center;
 }
 
 /* 

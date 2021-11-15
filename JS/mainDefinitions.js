@@ -48,6 +48,50 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 	},
 });
 
+const IntensityGraph = new Chart(document.getElementById("IntensityGraph").getContext("2d"), {
+	type: "line",
+	data: {
+		datasets: [
+			{
+				label: "IR Off",
+				borderColor: "black",
+				borderWidth: 1,
+				borderJoinStyle: "round",
+			},
+			{
+				label: "IR On",
+				borderColor: "red",
+				borderWidth: 1,
+				borderJoinStyle: "round",
+			},
+		],
+	},
+	options: {
+		scales: {
+			y: {
+				title: {
+					text: "Electron Count",
+					color: "black",
+					display: true,
+				},
+			},
+			x: {
+				title: {
+					text: "Radius (px)",
+					color: "black",
+					display: true,
+				},
+			},
+		},
+		elements: {
+			point: {
+				radius: 0,
+			},
+		},
+		aspectRatio: 1.2,
+	},
+});
+
 const eChartData = {
 	running: false,
 	xAxisUpDisabled: false,
@@ -263,7 +307,7 @@ const settings = {
 const scanInfo = {
 	running: false, // running does not change if scan is paused
 	paused: false,
-	method: "normal", // Can be "normal" or "ir"
+	method: "normal", // Can be "normal", "ir", or "depletion"
 	frameCount: 0,
 	frameCountIROn: 0,
 	cclCount: 0,
@@ -442,6 +486,9 @@ const accumulatedImage = {
 	originalHeight: 768,
 	width: 1024, // Size of accumulated image (px)
 	height: 1024,
+	imageCenterX: 512, // Center of accumulated image (px)
+	imageCenterY: 512, // These first three should prolly be saved in settings
+	depletionPlotLength: 250,
 	normal: [],
 	irOff: [],
 	irOn: [],
@@ -542,9 +589,36 @@ const accumulatedImage = {
 			this.differenceCounter++;
 		}
 	},
+	getIntensityPlot: function () {
+		const irOffIntensity = new Array(this.depletionPlotLength).fill(0);
+		const irOnIntensity = new Array(this.depletionPlotLength).fill(0);
+		const radius = Array.from({ length: this.depletionPlotLength }, (v, i) => i);
+		let r; // Calculated radius
+		for (let Y = 0; Y < this.height; Y++) {
+			for (let X = 0; X < this.width; X++) {
+				if (this.irOff[Y][X] > 0 || this.irOn[Y][X] > 0) {
+					r = Math.sqrt(Math.pow(Y - this.imageCenterY, 2) + Math.pow(X - this.imageCenterX, 2));
+					if (r < this.depletionPlotLength) {
+						irOffIntensity[Math.round(r)] += this.irOff[Y][X];
+						irOnIntensity[Math.round(r)] += this.irOn[Y][X];
+					}
+				}
+			}
+		}
+		IntensityGraph.data.labels = radius;
+		IntensityGraph.data.datasets[0].data = irOffIntensity;
+		IntensityGraph.data.datasets[1].data = irOnIntensity;
+		IntensityGraph.update("none");
+	},
 	reset: function (image) {
 		// Resets the selected accumulated image
 		// calling with no argument or with "all" resets all four
+
+		// NOTE:
+		// Should prolly change this from a switch statement to just doing this[image]
+		// if image is "normal" etc
+		// and just catching for resetting all images
+
 		let imageCase = image || "all";
 		switch (imageCase) {
 			case "normal":
