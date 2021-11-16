@@ -54,13 +54,19 @@ document.getElementById("StartSave").onclick = function () {
 };
 document.getElementById("Pause").onclick = function () {
 	// Pause scan button
+	const NormalModeContent = document.getElementById("NormalModeContent");
+
 	// Toggle pause status (e.g. if running, pause; if paused, resume)
 	scanInfo.paused = !scanInfo.paused;
 	// Send message to Live View that scan was paused/resumed
 	if (scanInfo.paused) {
 		ipc.send("ScanUpdate", "pause");
+		// Gray out display to make it clear that the scan is paused
+		NormalModeContent.classList.add("paused");
 	} else {
 		ipc.send("ScanUpdate", "resume");
+		// Go back to normal display
+		NormalModeContent.classList.remove("paused");
 	}
 	// Change Pause button text
 	UpdatePauseButtonText();

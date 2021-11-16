@@ -498,6 +498,17 @@ Left Side
 	grid-area: ChangeSaveDirectory;
 }
 
+#PauseScreenSaveControls {
+	display: none;
+}
+.paused #PauseScreenSaveControls {
+	display: block;
+	grid-area: SaveControls;
+	z-index: 1;
+	background: hsla(225, 20%, 55%, 0.6);
+	border-radius: 7px;
+}
+
 /* Recent Scans */
 #RecentScans {
 	padding: 0 25px 5px 25px;
@@ -633,17 +644,26 @@ Right Side
 	justify-self: center;
 }
 
+#PauseScreenDisplay {
+	display: none;
+}
+.paused #PauseScreenDisplay {
+	display: block;
+	grid-area: ImageDisplay;
+	z-index: 1;
+	background: hsla(225, 20%, 55%, 0.6);
+	border-radius: 7px;
+}
+
 /* Electron & Frame Counters */
 #Counters label {
 	font-size: 1.5vw;
 	text-align: right;
-	z-index: 2;
 }
 #Counters input {
 	font-size: 1.3vw;
 	text-align: center;
 	width: 50%;
-	z-index: 2;
 }
 /* Counters for Normal scanning mode */
 .normal-mode #Counters {
@@ -737,8 +757,17 @@ Right Side
 	height: 80%;
 	font-size: 1vw;
 	grid-area: ResetCounters;
-	/*justify-self: center;*/
-	z-index: 2;
+}
+
+#PauseScreenCounters {
+	display: none;
+}
+.paused #PauseScreenCounters {
+	display: block;
+	grid-area: Counters;
+	z-index: 1;
+	background: hsla(225, 20%, 55%, 0.6);
+	border-radius: 7px;
 }
 
 /* 
