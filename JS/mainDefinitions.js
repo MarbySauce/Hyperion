@@ -590,6 +590,9 @@ const accumulatedImage = {
 		}
 	},
 	getIntensityPlot: function () {
+		//
+		// Current issue: IR Images don't display on Depletion mode
+		//
 		const irOffIntensity = new Array(this.depletionPlotLength).fill(0);
 		const irOnIntensity = new Array(this.depletionPlotLength).fill(0);
 		const radius = Array.from({ length: this.depletionPlotLength }, (v, i) => i);
@@ -862,6 +865,9 @@ const laserInfo = {
 		// Convert to wavenumbers
 		if (convertedWavelength == null) {
 			// Only need to convert the input wavelength
+			//
+			// NOTE:
+			// convertNMtoWN should be removed as a function
 			this.IRConvertedWavenumber = convertNMtoWN(this.nIRWavelength);
 		} else {
 			// Need to convert based on the new wavelength
