@@ -486,9 +486,11 @@ const accumulatedImage = {
 	originalHeight: 768,
 	width: 1024, // Size of accumulated image (px)
 	height: 1024,
-	imageCenterX: 512, // Center of accumulated image (px)
-	imageCenterY: 512, // These first three should prolly be saved in settings
-	depletionPlotLength: 250,
+	imageCenterX: 516, // Center of accumulated image (px)
+	imageCenterY: 517, // These first three should prolly be saved in settings
+	depletionPlotLength: 200,
+	depletionLowerBound: 140,
+	depletionUpperBound: 180,
 	normal: [],
 	irOff: [],
 	irOn: [],
@@ -612,6 +614,25 @@ const accumulatedImage = {
 		IntensityGraph.data.datasets[0].data = irOffIntensity;
 		IntensityGraph.data.datasets[1].data = irOnIntensity;
 		IntensityGraph.update("none");
+		return [irOffIntensity, irOnIntensity];
+	},
+	getDepletion: function () {
+		// First calculate Intensity(R)
+		// Returns [irOff, irOn]
+		let irIntensities = this.getIntensityPlot();
+		// Calculate area under curve within set depletion bounds
+		let irOffSum = 0;
+		let irOnSum = 0;
+		for (let R = this.depletionLowerBound; R <= this.depletionUpperBound; R++) {
+			irOffSum += irIntensities[0][R];
+			irOnSum += irIntensities[1][R];
+		}
+		if (irOffSum > irOnSum) {
+			console.log("Percent Depletion:", (100 * (irOffSum - irOnSum)) / irOffSum, "%");
+		} else {
+			console.log("Percent Depletion:", (100 * (irOnSum - irOffSum)) / irOnSum, "%");
+		}
+		return [irOffSum, irOnSum];
 	},
 	reset: function (image) {
 		// Resets the selected accumulated image
