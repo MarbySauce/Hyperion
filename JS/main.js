@@ -83,6 +83,7 @@ function createMainWindow() {
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
+			backgroundThrottling: false,
 		},
 	});
 
@@ -124,6 +125,7 @@ function createLVWindow() {
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
+			backgroundThrottling: false,
 		},
 	});
 
@@ -147,6 +149,7 @@ function createInvisibleWindow() {
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
+			backgroundThrottling: false,
 		},
 	});
 
