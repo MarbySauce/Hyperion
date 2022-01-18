@@ -16,7 +16,8 @@
 
 // Startup
 window.onload = function () {
-	Startup();
+	//Startup();
+	// Moved startup until after settings file is read
 };
 
 // Tabs
@@ -1151,7 +1152,7 @@ ipc.on("closing-main-window", () => {
 ipc.on("settings-information", (event, settingsInformation) => {
 	//console.log(settingsInformation);
 	settings = settingsInformation;
-	ReadSettingsFromFileSync();
+	Startup();
 });
 
 /* When update e- counters on main page, also update on e- Monitor page
