@@ -896,7 +896,7 @@ function ReadSettingsFromFileSync() {
 
 	try {
 		// Check if the settings file exists
-		settings.read();
+		//settings.read();
 
 		// Update settings display
 		xAoI.value = settings.camera.xAoI;
@@ -1146,6 +1146,12 @@ ipc.on("closing-main-window", () => {
 		previousScans.saveScans();
 	}
 	ipc.send("closing-main-window-received", settings);
+});
+
+ipc.on("settings-information", (event, settingsInformation) => {
+	//console.log(settingsInformation);
+	settings = settingsInformation;
+	ReadSettingsFromFileSync();
 });
 
 /* When update e- counters on main page, also update on e- Monitor page

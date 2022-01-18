@@ -1,5 +1,6 @@
 const { app, BrowserWindow, dialog, ipcMain, nativeTheme, Menu } = require("electron");
 const path = require("path");
+const fs = require("fs");
 
 let mainWin;
 let LVWin;
@@ -7,28 +8,69 @@ let invisibleWin;
 
 let LVWinOpen = false;
 
-// Way to quickly switch between monitors
-// 0 -> work monitor, 1 -> home monitor,
-// 2 -> no monitor, 3 -> Lab comp
-const thisMonitor = 0;
-const monitor = [
-	[
-		[-1850, -300],
-		[-1100, 0],
-	],
-	[
-		[1480, -300],
-		[2950, -300],
-	],
-	[
-		[0, 0],
-		[20, 20],
-	],
-	[
-		[50, 0],
-		[-3400, 0],
-	],
-];
+const settings = {
+	information: {
+		camera: {
+			xAoI: 0,
+			yAoI: 0,
+			xOffset: 0,
+			yOffset: 0,
+			exposureTime: 0,
+			gain: 0,
+			gainBoost: false,
+			trigger: "Rising Edge",
+			triggerDelay: 0,
+		},
+		centroid: {
+			accumulation: "Centroid",
+			hybridMethod: true,
+			binSize: 100,
+		},
+		display: {
+			sliderValue: 0.5,
+		},
+		eChart: {
+			xAxisMax: 30,
+			yAxisMax: 20,
+		},
+		saveDirectory: {
+			currentScan: "./Images",
+			currentScanShort: "./Images",
+			previousScans: "./PreviousScans",
+		},
+		windows: {
+			mainWindow: {
+				x: 1480,
+				y: -300,
+				width: 1200,
+				height: 1000,
+			},
+			LVWindow: {
+				x: 2950,
+				y: -300,
+				width: 1200,
+				height: 820,
+			},
+		},
+	},
+	functions: {
+		save: function () {
+			let settingsJSON = JSON.stringify(settings);
+			fs.writeFile("./Settings/Settings.JSON", settingsJSON, () => {
+				console.log("Settings Saved!");
+			});
+		},
+		read: function () {
+			let data = fs.readFileSync("./Settings/Settings.JSON");
+			let savedSettings = JSON.parse(data);
+			for (let category in savedSettings) {
+				for (let key in savedSettings[category]) {
+					settings.information[category][key] = savedSettings[category][key];
+				}
+			}
+		},
+	},
+};
 
 function createMainWindow() {
 	let win = new BrowserWindow({
@@ -36,12 +78,8 @@ function createMainWindow() {
 		height: 1000,
 		minWidth: 600,
 		minHeight: 600,
-		//x: 1480,
-		//y: -300,
-		//x: -1850,
-		//y: -200,
-		x: monitor[thisMonitor][0][0],
-		y: monitor[thisMonitor][0][1],
+		x: settings.information.windows.mainWindow.x,
+		y: settings.information.windows.mainWindow.y,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
@@ -81,12 +119,8 @@ function createLVWindow() {
 	win = new BrowserWindow({
 		width: 1200,
 		height: 820,
-		//x: 2950,
-		//y: -300,
-		//x: -900,
-		//y: 50,
-		x: monitor[thisMonitor][1][0],
-		y: monitor[thisMonitor][1][1],
+		x: settings.information.windows.LVWindow.x,
+		y: settings.information.windows.LVWindow.y,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
@@ -140,11 +174,19 @@ app.whenReady().then(function () {
 
 	// If one monitor is too small, Electron doesn't size windows well
 	// Fixed by rechanging the size after creation
-	mainWin.setSize(1200, 1000);
-	LVWin.setSize(1200, 820);
+	mainWin.setSize(settings.information.windows.mainWindow.width, settings.information.windows.mainWindow.height);
+	LVWin.setSize(settings.information.windows.LVWindow.width, settings.information.windows.LVWindow.height);
 
 	// Get rid of Live View menu bar
 	LVWin.removeMenu();
+
+	// Read settings from file
+	settings.functions.read();
+
+	// Send settings information to windows
+	setTimeout(() => {
+		mainWin.webContents.send("settings-information", settings.information);
+	}, 2000);
 
 	// Close LV window when main window is closed
 	mainWin.on("close", function (event) {
@@ -173,7 +215,9 @@ app.on("window-all-closed", function () {
 	app.quit();
 });
 
-// Messengers
+//
+//		Messengers
+//
 ipcMain.on("UpdateSaveDirectory", function (event, arg) {
 	dialog
 		.showOpenDialog({
@@ -266,3 +310,13 @@ ipcMain.on("CameraClosed", function (event, msg) {
 		app.quit();
 	}, 2000 /* ms */);
 });
+
+// Send the settings information to the main and live view windows
+function SendSettings() {
+	let settings2 = {
+		a: "Hi",
+		b: "There",
+	};
+	mainWin.webContents.send("settings-information", settings2);
+	LVWin.webContents.send("settings-information", settings2);
+}
