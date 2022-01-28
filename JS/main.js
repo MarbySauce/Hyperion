@@ -10,7 +10,7 @@ let LVWinOpen = false;
 // Way to quickly switch between monitors
 // 0 -> work monitor, 1 -> home monitor,
 // 2 -> no monitor, 3 -> Lab comp
-const thisMonitor = 0;
+const thisMonitor = 3;
 const monitor = [
 	[
 		[-1850, -300],
@@ -128,23 +128,23 @@ app.whenReady().then(function () {
 
 	mainWin = createMainWindow();
 	invisibleWin = createInvisibleWindow();
-	LVWin = createLVWindow();
+	//LVWin = createLVWindow();
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) {
 			mainWin = createMainWindow();
 			invisibleWin = createInvisibleWindow();
-			LVWin = createLVWindow();
+			//LVWin = createLVWindow();
 		}
 	});
 
 	// If one monitor is too small, Electron doesn't size windows well
 	// Fixed by rechanging the size after creation
 	mainWin.setSize(1200, 1000);
-	LVWin.setSize(1200, 820);
+	//LVWin.setSize(1200, 820);
 
 	// Get rid of Live View menu bar
-	LVWin.removeMenu();
+	//LVWin.removeMenu();
 
 	// Close LV window when main window is closed
 	mainWin.on("close", function (event) {
@@ -218,9 +218,9 @@ ipcMain.on("StopCentroiding", function (event, arg) {
 	invisibleWin.webContents.send("StopCentroiding", null);
 });
 
-ipcMain.on("ScanUpdate", function (event, update) {
-	LVWin.webContents.send("ScanUpdate", update);
-});
+//ipcMain.on("ScanUpdate", function (event, update) {
+//	LVWin.webContents.send("ScanUpdate", update);
+//});
 
 // Relay centroid data to visible windows
 ipcMain.on("new-camera-frame", function (event, info) {
@@ -235,11 +235,11 @@ ipcMain.on("new-camera-frame", function (event, info) {
 	}
 
 	// Send data to live view window if it's open
-	try {
-		LVWin.webContents.send("new-camera-frame", info);
-	} catch {
-		doNothing = true;
-	}
+	//try {
+	//	LVWin.webContents.send("new-camera-frame", info);
+	//} catch {
+	//	doNothing = true;
+	//}
 });
 
 // Turn hybrid method on and off
@@ -249,10 +249,10 @@ ipcMain.on("HybridMethod", function (event, message) {
 });
 
 // Update eChart axes on Live Video window
-ipcMain.on("UpdateAxes", function (event, axisSizes) {
-	// Send message to LV window
-	LVWin.webContents.send("UpdateAxes", axisSizes);
-});
+//ipcMain.on("UpdateAxes", function (event, axisSizes) {
+//	// Send message to LV window
+//	LVWin.webContents.send("UpdateAxes", axisSizes);
+//});
 
 // Close camera connection
 function SendCloseCameraMsg() {

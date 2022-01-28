@@ -482,15 +482,15 @@ const scanInfo = {
 };
 
 const accumulatedImage = {
-	originalWidth: 768, // Size of captured image (px)
+	originalWidth: 1024, // Size of captured image (px)
 	originalHeight: 768,
 	width: 1024, // Size of accumulated image (px)
 	height: 1024,
 	imageCenterX: 516, // Center of accumulated image (px)
 	imageCenterY: 517, // These first three should prolly be saved in settings
 	depletionPlotLength: 200,
-	depletionLowerBound: 140,
-	depletionUpperBound: 180,
+	depletionLowerBound: 130,
+	depletionUpperBound: 155,
 	normal: [],
 	irOff: [],
 	irOn: [],

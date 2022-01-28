@@ -9,7 +9,7 @@ bool windowGenerated = false;
 bool cameraConnected = false;
 char* pMem;
 int memID;
-std::vector<unsigned char> buffer(768*768*4);
+std::vector<unsigned char> buffer(1024*768*4);
 Centroid Img(0, 0);
 Napi::FunctionReference eventEmitter;
 

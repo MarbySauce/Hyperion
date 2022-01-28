@@ -27,8 +27,8 @@ HIDS hCam = 0;
 Napi::Boolean CreateWinAPIWindow(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
-	Img.Image.assign(768,768);
-	Img.RegionImage.assign(768, 768);
+	Img.Image.assign(1024, 768);
+	Img.RegionImage.assign(1024, 768);
 	Img.RegionVector.assign(1500, 1);
 	Img.COMs.assign(1500, 4);
 
@@ -82,7 +82,7 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	// Initialize image array for centroiding
-	Img.Image.assign(768, 768);
+	Img.Image.assign(1024, 768);
 
 	// Check to make sure camera was initialized first
 	if (!cameraConnected) {
@@ -107,7 +107,7 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	}
 
 	// Set area of interest
-	IS_RECT AreaOfInterest; // Object to contain AoI info
+	/*IS_RECT AreaOfInterest; // Object to contain AoI info
 	AreaOfInterest.s32X = 100; // Left offset
 	AreaOfInterest.s32Y = 0; // Top offset
 	AreaOfInterest.s32Width = 768; // Image width
@@ -116,11 +116,11 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	if (nRet != IS_SUCCESS) {
 		std::cout << "Setting AoI failed with error: " << nRet << std::endl;
 		return Napi::Boolean::New(env, false);
-	}
+	}*/
 
 	// Allocate memory for images
 	// Fills pMem with image memory address
-	nRet = is_AllocImageMem(hCam, 768, 768, 8, &pMem, &memID);
+	nRet = is_AllocImageMem(hCam, 1024, 768, 8, &pMem, &memID);
 	if (nRet != IS_SUCCESS) {
 		std::cout << "Allocating memory failed with error: " << nRet << std::endl;
 		return Napi::Boolean::New(env, false);
@@ -254,7 +254,7 @@ void InitEmitter(const Napi::CallbackInfo& info) {
 Napi::Value InitBuffer(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 	// Make sure buffer has 255 for every alpha value
-	for (int i = 0; i < 768*768; i++) {
+	for (int i = 0; i < 1024*768; i++) {
 		buffer[4*i + 3] = 255;
 	}
 	// return buffer
