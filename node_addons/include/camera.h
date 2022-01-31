@@ -10,7 +10,7 @@ bool cameraConnected = false;
 char* pMem;
 int memID;
 std::vector<unsigned char> buffer(1024*768*4);
-Centroid Img(0, 0);
+Centroid Img(0, 0); // This is where the Img object is first initialized
 Napi::FunctionReference eventEmitter;
 
 // End global variables

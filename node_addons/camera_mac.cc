@@ -1,8 +1,11 @@
 #include "camera.h"
 
 // Mac specific global variables
+// Image settings - need to change later
+const int imgHeight = 768;
+const int imgWidth = 1024;
 Timer triggerDelay; // Used for simulating 20Hz rep rate
-char simulatedImage[768*768]; // Stand-in for image memory
+char simulatedImage[imgHeight*imgWidth]; // Stand-in for image memory
 bool isIROn = false;
 
 // Constants
@@ -39,11 +42,11 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 	//std::fill(std::begin(simImage), std::end(simImage), 0);
 
 	// Get center of image
-	int imageCenterX = 768 / 2;
-	int imageCenterY = 768 / 2;
+	int imageCenterX = imgWidth / 2;
+	int imageCenterY = imgHeight / 2;
 
 	// Add noise to the image
-	for (int i = 0; i < 768*768; i++) {
+	for (int i = 0; i < imgWidth * imgHeight; i++) {
 		int noise = rand() % 5;
 		simImage[i] = noise;
 	}
@@ -78,13 +81,13 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 			for (int X = centerX - 8; X < centerX + 9; X++)
 			{
 				int intensity = round(Gauss(Y, centerY, widthY) * Gauss(X, centerX, widthX) * percentIntensity);
-				int currentIntensity = (unsigned char)simImage[768*Y + X];
+				int currentIntensity = (unsigned char)simImage[imgWidth*Y + X];
 				currentIntensity += intensity;
 				if (currentIntensity > 255)
 				{
 					currentIntensity = 255; // Cuts off intensity at 255
 				}
-				simImage[768*Y + X] = currentIntensity;
+				simImage[imgWidth*Y + X] = currentIntensity;
 			}
 		}
 
@@ -104,8 +107,8 @@ void simulateImage(char simImage[], unsigned int randSeed) {
 Napi::Boolean CreateWinAPIWindow(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
-	Img.Image.assign(768,768);
-	Img.RegionImage.assign(768, 768);
+	Img.Image.assign(imgWidth, imgHeight);
+	Img.RegionImage.assign(imgWidth, imgHeight);
 	Img.RegionVector.assign(500, 1);
 	Img.COMs.assign(500, 4);
 
@@ -144,7 +147,7 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	pMem = &simulatedImage[0];
 
 	// Initialize image array for centroiding
-	Img.Image.assign(768, 768);
+	Img.Image.assign(imgWidth, imgHeight);
 
 	return Napi::Boolean::New(env, true);
 }
@@ -183,7 +186,7 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 		//triggerDelay.start(); // Restart trigger timer
 		simulateImage(simulatedImage, randint);
 		// Get image pitch
-		int pPitch = 768;
+		int pPitch = imgWidth;
 		// Centroid
 		Img.centroid(buffer, pMem, pPitch);
 		// Return calculated centers
@@ -214,7 +217,7 @@ void InitEmitter(const Napi::CallbackInfo& info) {
 Napi::Value InitBuffer(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 	// Make sure buffer has 255 for every alpha value
-	for (int i = 0; i < 768*768; i++) {
+	for (int i = 0; i < imgWidth * imgHeight; i++) {
 		buffer[4*i + 3] = 255;
 	}
 	// return buffer
