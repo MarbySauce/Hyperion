@@ -995,7 +995,7 @@ ipc.on("new-camera-frame", function (event, obj) {
 		singleShot.toSave = false;
 	}
 
-	doit();
+	doit(); // Add red circle to image if enabled
 });
 
 // Update the accumulated image display
