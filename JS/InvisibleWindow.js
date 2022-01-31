@@ -29,7 +29,6 @@ function Startup() {
 
 	// Initialize buffer
 	buffer = camera.initBuffer();
-	console.log(buffer);
 
 	// Set up emitter messages
 	emitter.on("new-image", (centroidResults) => {
