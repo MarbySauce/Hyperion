@@ -68,6 +68,17 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info) {
 	int nRet = is_InitCamera(&hCam, NULL);
 	if (nRet == IS_SUCCESS) {
 		cameraConnected = true;
+		// Get camera information
+		SENSORINFO pInfo;
+		int nRet2 = is_GetSensorInfo(hCam, &pInfo);
+		std::cout << "Camera info success: " << nRet2 << std::endl;
+		if (nRet2 == IS_SUCCESS) {
+			std::cout << "Camera sensor ID: " << pInfo.SensorID << std::endl;
+			std::cout << "Camera model: " << pInfo.strSensorName << std::endl;
+			std::cout << "Camera color mode: " << pInfo.nColorMode << std::endl;
+			std::cout << "Camera max width: " << pInfo.nMaxWidth << std::endl;
+			std::cout << "Camera max height: " << pInfo.nMaxHeight << std::endl;
+		}
 	} else {
 		cameraConnected = false;
 		std::cout << "Could not connect to camera. Error: " << nRet << std::endl;
