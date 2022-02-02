@@ -978,7 +978,7 @@ ipc.on("new-camera-frame", function (event, centroidResults) {
 		UpdateAccumulatedImageDisplay();
 	} else if (scanInfo.running) {
 		// Switch which IR image to bin to
-		accumulatedImage.isIROn = !accumulatedImage.isIROn;
+		//accumulatedImage.isIROn = !accumulatedImage.isIROn;
 	}
 
 	// Update eChart if it's running
