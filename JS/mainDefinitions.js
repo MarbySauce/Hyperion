@@ -484,6 +484,8 @@ const scanInfo = {
 const accumulatedImage = {
 	originalWidth: 1024, // Size of captured image (px)
 	originalHeight: 768,
+	AoIWidth: 768, // Size of centroided Area of Interest
+	AoIHeight: 768,
 	width: 1024, // Size of accumulated image (px)
 	height: 1024,
 	imageCenterX: 516, // Center of accumulated image (px)
@@ -515,8 +517,8 @@ const accumulatedImage = {
 				// Add spots to allCenters
 				//this.allCenters.push([xCenter, yCenter]);
 				// Expand image to correct bin size and round
-				xCenter = Math.round((xCenter * this.width) / this.originalWidth);
-				yCenter = Math.round((yCenter * this.height) / this.originalHeight);
+				xCenter = Math.round((xCenter * this.width) / this.AoIWidth);
+				yCenter = Math.round((yCenter * this.height) / this.AoIHeight);
 				// Use switch statement to decide which image to add spots to
 				switch (scanInfo.method) {
 					case "normal":
