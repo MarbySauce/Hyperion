@@ -378,37 +378,63 @@ Napi::Boolean EnableMessages(Napi::CallbackInfo& info) {
 void sendCentroids() {
 	Napi::Env env = eventEmitter.Env(); // Napi local environment
 	
-	// Package centers and compute time into an array
-	// NOTE: can this be done as an object instead?
-	// 0 -> CCL centers, 1 -> hybrid centers, 2 -> computation time
-	Napi::Array centroidResults = Napi::Array::New(env, 3);
+	// Package centroid information into an object to send to JS
+	Napi::Object centroidResults = Napi::Object::New(env);
+	// Contains:
+	// 		CCLCenters			-	Array
+	//		hybridCenters		-	Array
+	//		computationTime		-	Float
+	//		isLEDon				- 	Boolean
 
-	// First add the centroids
-	for (int centroidMethod = 0; centroidMethod < 2; centroidMethod++) {
-		// Create a temporary array to fill with each method's calculated centroids
-		Napi::Array centroidList = Napi::Array::New(env);
-		int centroidCounter = 0; // To keep track of how many center were found
-		for (int center = 0; center < img.Centroids[centroidMethod].width(); center++) {
-			// Make sure x value is not 0 (i.e. make sure it's a real centroid)
-			if (img.Centroids(centroidMethod, center, 0) > 0) {
-				Napi::Array spot = Napi::Array::New(env, 2); // centroid's coordinates
+	// First add the connected-component-labeling (CCL) centroids
+	Napi::Array centroidList = Napi::Array::New(env);
+	int centroidCounter = 0; // To keep track of how many center were found
+	for (int center = 0; center < img.Centroids[0].width(); center++) {
+		// Make sure x value is not 0 (i.e. make sure it's a real centroid)
+		if (img.Centroids(0, center, 0) > 0) {
+			Napi::Array spot = Napi::Array::New(env, 2); // centroid's coordinates
 
-				float xCenter = img.Centroids(centroidMethod, center, 0);
-				float yCenter = img.Centroids(centroidMethod, center, 1);
-				spot.Set(Napi::Number::New(env, 0), Napi::Number::New(env, xCenter));
-				spot.Set(Napi::Number::New(env, 1), Napi::Number::New(env, yCenter));
+			float xCenter = img.Centroids(0, center, 0);
+			float yCenter = img.Centroids(0, center, 1);
+			// Account for offsets
+			xCenter -= img.xLowerBound;
+			yCenter -= img.yLowerBound;
+			spot.Set(Napi::Number::New(env, 0), Napi::Number::New(env, xCenter));
+			spot.Set(Napi::Number::New(env, 1), Napi::Number::New(env, yCenter));
 
-				// Add spot to centroidList
-				centroidList.Set(centroidCounter, spot);
-				centroidCounter++;
-			}
+			// Add spot to centroidList
+			centroidList.Set(centroidCounter, spot);
+			centroidCounter++;
 		}
-		// Add the temporary centroidList to the array we're sending
-		centroidResults.Set(centroidMethod, centroidList);
 	}
+	centroidResults["CCLCenters"] = centroidList;
 
-	// Now add the computation time
-	centroidResults.Set(2, img.computationTime); 
+	// Next add the hybrid method centroids
+	centroidList = Napi::Array::New(env);
+	centroidCounter = 0; // To keep track of how many center were found
+	for (int center = 0; center < img.Centroids[1].width(); center++) {
+		// Make sure x value is not 0 (i.e. make sure it's a real centroid)
+		if (img.Centroids(1, center, 0) > 0) {
+			Napi::Array spot = Napi::Array::New(env, 2); // centroid's coordinates
+
+			float xCenter = img.Centroids(1, center, 0);
+			float yCenter = img.Centroids(1, center, 1);
+			// Account for offsets
+			xCenter -= img.xLowerBound;
+			yCenter -= img.yLowerBound;
+			spot.Set(Napi::Number::New(env, 0), Napi::Number::New(env, xCenter));
+			spot.Set(Napi::Number::New(env, 1), Napi::Number::New(env, yCenter));
+
+			// Add spot to centroidList
+			centroidList.Set(centroidCounter, spot);
+			centroidCounter++;
+		}
+	}
+	centroidResults["hybridCenters"] = centroidList;
+
+	// Add the other important values
+	centroidResults["computationTime"] = Napi::Number::New(env, img.computationTime);
+	centroidResults["isLEDon"] = Napi::Boolean::New(env, img.isLEDon);
 
 	// Send message to JavaScript with packaged results
 	eventEmitter.Call(

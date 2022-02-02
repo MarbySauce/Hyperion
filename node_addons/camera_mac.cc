@@ -49,8 +49,11 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 	//std::fill(std::begin(simImage), std::end(simImage), 0);
 
 	// Get center of image
-	int imageCenterX = camera.width / 2;
-	int imageCenterY = camera.height / 2;
+	//int imageCenterX = camera.width / 2;
+	//int imageCenterY = camera.height / 2;
+	int imageCenterX = img.xLowerBound + (img.xUpperBound - img.xLowerBound) / 2;
+	int imageCenterY = img.yLowerBound + (img.yUpperBound - img.yLowerBound) / 2;
+
 
 	// Add noise to the image
 	for (int i = 0; i < camera.imageLength;  i++) {
@@ -350,6 +353,9 @@ void sendCentroids() {
 
 			float xCenter = img.Centroids(0, center, 0);
 			float yCenter = img.Centroids(0, center, 1);
+			// Account for offsets
+			xCenter -= img.xLowerBound;
+			yCenter -= img.yLowerBound;
 			spot.Set(Napi::Number::New(env, 0), Napi::Number::New(env, xCenter));
 			spot.Set(Napi::Number::New(env, 1), Napi::Number::New(env, yCenter));
 
@@ -370,6 +376,9 @@ void sendCentroids() {
 
 			float xCenter = img.Centroids(1, center, 0);
 			float yCenter = img.Centroids(1, center, 1);
+			// Account for offsets
+			xCenter -= img.xLowerBound;
+			yCenter -= img.yLowerBound;
 			spot.Set(Napi::Number::New(env, 0), Napi::Number::New(env, xCenter));
 			spot.Set(Napi::Number::New(env, 1), Napi::Number::New(env, yCenter));
 
