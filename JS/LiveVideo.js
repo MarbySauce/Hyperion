@@ -32,29 +32,37 @@ function UpdateScanDisplays() {
 }
 
 // Receive message with centroid data
-ipc.on("new-camera-frame", function (event, obj) {
+ipc.on("new-camera-frame", function (event, centroidResults) {
 	// Will return with object containing:
-	//		imageBuffer
-	//		calcCenters
+	// 		CCLCenters			-	Array
+	//		hybridCenters		-	Array
+	//		computationTime		-	Float
+	//		isLEDon				- 	Boolean
+
+	// Temp variables for image and AoI size
+	let imageWidth = 1024;
+	let imageHeight = 768;
+	let xOffset = 100;
+	let yOffset = 0;
 
 	const LiveViewContext = document.getElementById("LiveVideoView").getContext("2d");
-	const LVData = LiveViewContext.getImageData(0, 0, 768, 768);
+	const LVData = LiveViewContext.getImageData(0, 0, imageWidth, imageHeight);
 
 	// Put image on display
-	LVData.data.set(obj.imageBuffer);
-	LiveViewContext.putImageData(LVData, 0, 0);
+	LVData.data.set(centroidResults.imageBuffer);
+	LiveViewContext.putImageData(LVData, -xOffset, -yOffset);
 
 	// Add counts to chart
-	eChartData.updateData(obj.calcCenters);
+	eChartData.updateData(centroidResults);
 	eChartData.updateChart(eChart);
 
 	// Update average counters
-	averageCount.update(obj.calcCenters);
+	averageCount.update(centroidResults);
 	UpdateAverageDisplays();
 
 	// Update scan display if a scan is running
 	if (scanInfo.running) {
-		scanInfo.update(obj.calcCenters);
+		scanInfo.update(centroidResults);
 		UpdateScanDisplays();
 	}
 });
@@ -169,10 +177,10 @@ const eChartData = {
 		this.hybridData = [];
 		this.frameCount = 0;
 	},
-	updateData: function (calculatedCenters) {
+	updateData: function (centroidResults) {
 		this.labels.push(this.frameCount);
-		this.cclData.push(calculatedCenters[0].length);
-		this.hybridData.push(calculatedCenters[0].length + calculatedCenters[1].length);
+		this.cclData.push(centroidResults.CCLCenters.length);
+		this.hybridData.push(centroidResults.CCLCenters.length + centroidResults.hybridCenters.length);
 		this.frameCount++;
 		this.cleaveData();
 	},
@@ -214,9 +222,9 @@ const averageCount = {
 	updateCounter: 0, // Used to keep track of how many frames have
 	// been processed since the last time avg display was updated
 	updateFrequency: 10, // Number of frames before updating display
-	update: function (calculatedCenters) {
-		let ccl = calculatedCenters[0].length;
-		let hybrid = calculatedCenters[1].length;
+	update: function (centroidResults) {
+		let ccl = centroidResults.CCLCenters.length;
+		let hybrid = centroidResults.hybridCenters.length;
 		let total = ccl + hybrid;
 		// Add to respective arrays
 		this.prevCCLCounts.push(ccl);
@@ -265,9 +273,9 @@ const scanInfo = {
 	stopScan: function () {
 		this.running = false;
 	},
-	update: function (calculatedCenters) {
-		let ccl = calculatedCenters[0].length;
-		let hybrid = calculatedCenters[1].length;
+	update: function (centroidResults) {
+		let ccl = centroidResults.CCLCenters.length;
+		let hybrid = centroidResults.hybridCenters.length;
 		let total = ccl + hybrid;
 		// Add to counts
 		this.cclCount += ccl;
