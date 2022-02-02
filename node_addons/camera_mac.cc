@@ -62,10 +62,20 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 		simImage[i] = (char)noise;
 	}
 
+	// Add in intensity to simulate IR LED
+	if (isIROn && useLED) {
+		for (int Y = img.LEDyLowerBound; Y < img.LEDyUpperBound; Y++) {
+			for (int X = img.LEDxLowerBound; X < img.LEDxUpperBound; X++) {
+				int intensity = rand() % 40 + 80;
+				simImage[camera.width * Y + X] = intensity;
+			}
+		}
+	}
+
 	if (isIROn) {
 		isIROn = false;
 		Radii = {50, 50, 90, 90, 90, 120, 120, 170};
-		//return;
+		return; // Don't add electrons to this frame
 	} else {
 		isIROn = true;
 	}
@@ -104,16 +114,6 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 
 		spotNumber++;
 		
-	}
-
-	// Add in intensity to simulate IR LED
-	if (isIROn && useLED) {
-		for (int Y = img.LEDyLowerBound; Y < img.LEDyUpperBound; Y++) {
-			for (int X = img.LEDxLowerBound; X < img.LEDxUpperBound; X++) {
-				int intensity = rand() % 40 + 80;
-				simImage[camera.width * Y + X] = intensity;
-			}
-		}
 	}
 }
 
