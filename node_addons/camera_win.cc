@@ -3,19 +3,25 @@
 #endif
 
 #include "camera.h"
+#include "centroid.h"
+#include <napi.h>
 #include <windows.h>
 #include <uEye.h>
+
+// Global variables
+Camera camera; // Contains important info about the camera
+Centroid img; // Variables and functions for centroiding image
+Napi::FunctionReference eventEmitter; // Used to quickly send image and centroids to JS side
 
 // Windows specific global variables
 HWND hWnd;
 HIDS hCam = 0;
-
 // End of global variables
 
 
 /* 
 	PascalCase functions are Napi functions that can be called from JavaScript
-		These functions are camelCase on JavaScript side (i.e. camera.close())
+		These functions are camelCase on JavaScript side (i.e. camera.getInfo() in InvisibleWindow.js)
 	camelCase functions are C++ functions that can only be called from C++
 */ 
 
@@ -26,11 +32,6 @@ HIDS hCam = 0;
 // Returns whether window was created
 Napi::Boolean CreateWinAPIWindow(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
-
-	Img.Image.assign(1024, 768);
-	Img.RegionImage.assign(1024, 768);
-	Img.RegionVector.assign(1500, 1);
-	Img.COMs.assign(1500, 4);
 
 	HINSTANCE hInstance; // Necessary(?) bullshit
 
@@ -51,12 +52,12 @@ Napi::Boolean CreateWinAPIWindow(const Napi::CallbackInfo& info) {
 		NULL, NULL, hInstance, NULL);
 	
 	if (hWnd == NULL) {
-		windowGenerated = false;
+		camera.windowGenerated = false;
 	} else {
-		windowGenerated = true;
+		camera.windowGenerated = true;
 	}
 
-	return Napi::Boolean::New(env, windowGenerated);
+	return Napi::Boolean::New(env, camera.windowGenerated);
 }
 
 // Connect to the camera
@@ -67,36 +68,196 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info) {
 	// Connect to the camera
 	int nRet = is_InitCamera(&hCam, NULL);
 	if (nRet == IS_SUCCESS) {
-		cameraConnected = true;
-		// Get camera information
-		SENSORINFO pInfo;
-		int nRet2 = is_GetSensorInfo(hCam, &pInfo);
-		std::cout << "Camera info success: " << nRet2 << std::endl;
-		if (nRet2 == IS_SUCCESS) {
-			std::cout << "Camera sensor ID: " << pInfo.SensorID << std::endl;
-			std::cout << "Camera model: " << pInfo.strSensorName << std::endl;
-			std::cout << "Camera color mode: " << pInfo.nColorMode << std::endl;
-			std::cout << "Camera max width: " << pInfo.nMaxWidth << std::endl;
-			std::cout << "Camera max height: " << pInfo.nMaxHeight << std::endl;
-		}
+		camera.connected = true;
 	} else {
-		cameraConnected = false;
+		camera.connected = false;
 		std::cout << "Could not connect to camera. Error: " << nRet << std::endl;
 	}
 
-	return Napi::Boolean::New(env, cameraConnected);
+	return Napi::Boolean::New(env, camera.connected);
+}
+
+// Get the camera info
+// Returns object with information
+Napi::Object GetInfo(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	Napi::Object information; // Object to be returned
+	// Fill out with blank information in case camera is not connected
+	information["infoReceived"] = Napi::Boolean::New(env, false);
+	information["model"] = Napi::String::New(env, "");
+	information["ID"] = Napi::Number::New(env, 0);
+	information["colorMode"] = Napi::Number::New(env, 0);
+	information["width"] = Napi::Number::New(env, 0);
+	information["height"] = Napi::Number::New(env, 0);
+
+	// Make sure camera was connected to first
+	if (camera.connected) {
+		// Get camera information
+		SENSORINFO pInfo;
+		int nRet = is_GetSensorInfo(hCam, &pInfo); 
+		// Make sure info was properly received
+		if (nRet == IS_SUCCESS) {
+			// Update camera information in C++ object
+			camera.infoReceived = true;
+			camera.model = pInfo.strSensorName;
+			camera.ID = pInfo.SensorID;
+			camera.colorMode = pInfo.nColorMode;
+			camera.width = pInfo.nMaxWidth;
+			camera.height = pInfo.nMaxHeight;
+			camera.imageLength = camera.width * camera.height;
+			// Update JS object
+			information["infoReceived"] = Napi::Boolean::New(env, true);
+			information["model"] = Napi::String::New(env, camera.model);
+			information["ID"] = Napi::Number::New(env, camera.ID);
+			information["colorMode"] = Napi::Number::New(env, camera.colorMode);
+			information["width"] = Napi::Number::New(env, camera.width);
+			information["height"] = Napi::Number::New(env, camera.height);
+		}
+	}
+
+	return information;
+}
+
+// Set the area of interest for centroiding
+// Arguments are (AoI-Width, AoI-Height, left-offset, top-offset)
+// If only two arguments passed, assumed to be (AoI-Width, AoI-Height)
+void SetAoI(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	int argLength = info.Length(); // Number of arguments passed
+
+	// Values to be used to calculate AoI parameters
+	int AoIWidth;
+	int AoIHeight;
+	int leftOffset;
+	int topOffset;
+
+	// Check that the arguments passed are correct
+	if (!(argLength == 2 || argLength == 4)) {
+		Napi::Error::New(env, "setAoI requires 2 or 4 arguments").
+			ThrowAsJavaScriptException();
+		return;
+	}
+
+	if (argLength == 2) {
+		// Check that the arguments are integers
+		if (!info[0].IsNumber() || !info[1].IsNumber()) {
+			Napi::Error::New(env, "setAoI arguments must be integers").
+				ThrowAsJavaScriptException();
+			return;
+		}
+		// Only 2 arguments passed, assume offsets to be 0
+		leftOffset = 0;
+		topOffset = 0;
+		// Get AoI values
+		AoIWidth = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
+		AoIHeight = reinterpret_cast<int>(info[1].ToNumber().Int32Value());
+	}
+
+	if (argLength == 4) {
+		// Check that the arguments are integers
+		if (!info[0].IsNumber() || !info[1].IsNumber() || !info[2].IsNumber() || !info[3].IsNumber()) {
+			Napi::Error::New(env, "setAoI arguments must be integers").
+				ThrowAsJavaScriptException();
+			return;
+		}
+		// Get AoI values
+		AoIWidth = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
+		AoIHeight = reinterpret_cast<int>(info[1].ToNumber().Int32Value());
+		// Get offset values
+		leftOffset = reinterpret_cast<int>(info[2].ToNumber().Int32Value());
+		topOffset = reinterpret_cast<int>(info[3].ToNumber().Int32Value());
+	}
+
+	// Make sure sizes + offsets don't exceed image size
+	if (leftOffset + AoIWidth > camera.width || topOffset + AoIHeight > camera.height) {
+		Napi::Error::New(env, "AoI exceeds image size").
+			ThrowAsJavaScriptException();
+		return;
+	}
+
+	// Calculate AoI parameters
+	img.xLowerBound = leftOffset;
+	img.xUpperBound = leftOffset + AoIWidth;
+	img.yLowerBound = topOffset;
+	img.yUpperBound = topOffset + AoIHeight;
+
+	return;
+}
+
+// Set the LED area to check if the IR LED is on
+// Arguments are (x-start, x-end, y-start, y-end)
+void SetLEDArea(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	int argLength = info.Length(); // Number of arguments passed
+
+	// Check that the arguments passed are correct
+	if (argLength != 4) {
+		Napi::Error::New(env, "setLEDArea requires 4 arguments").
+			ThrowAsJavaScriptException();
+		return;
+	}
+
+	// Check that the arguments are integers
+	if (!info[0].IsNumber() || !info[1].IsNumber() || !info[2].IsNumber() || !info[3].IsNumber()) {
+		Napi::Error::New(env, "setLEDArea arguments must be integers").
+			ThrowAsJavaScriptException();
+		return;
+	}
+	// Get area values
+	img.LEDxLowerBound = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
+	img.LEDxUpperBound = reinterpret_cast<int>(info[1].ToNumber().Int32Value());
+	img.LEDyLowerBound = reinterpret_cast<int>(info[2].ToNumber().Int32Value());
+	img.LEDyUpperBound = reinterpret_cast<int>(info[3].ToNumber().Int32Value());
+
+	return;
+}
+
+// Set the Noise area to check if the IR LED is on
+// Arguments are (x-start, x-end, y-start, y-end)
+void SetNoiseArea(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	int argLength = info.Length(); // Number of arguments passed
+
+	// Check that the arguments passed are correct
+	if (argLength != 4) {
+		Napi::Error::New(env, "setNoiseArea requires 4 arguments").
+			ThrowAsJavaScriptException();
+		return;
+	}
+
+	// Check that the arguments are integers
+	if (!info[0].IsNumber() || !info[1].IsNumber() || !info[2].IsNumber() || !info[3].IsNumber()) {
+		Napi::Error::New(env, "setNoiseArea arguments must be integers").
+			ThrowAsJavaScriptException();
+		return;
+	}
+	// Get area values
+	img.NoisexLowerBound = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
+	img.NoisexUpperBound = reinterpret_cast<int>(info[1].ToNumber().Int32Value());
+	img.NoiseyLowerBound = reinterpret_cast<int>(info[2].ToNumber().Int32Value());
+	img.NoiseyUpperBound = reinterpret_cast<int>(info[3].ToNumber().Int32Value());
+
+	return;
 }
 
 // Apply camera settings
 // Returns false unless all were successful
+// NOTE: Each of these should be separate functions, and ApplySettings should be a JS setting
 Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	// Initialize image array for centroiding
-	Img.Image.assign(1024, 768);
+	img.Image.assign(camera.width, camera.height);
+	img.RegionImage.assign(camera.width, camera.height);
+	img.RegionVector.assign(1500, 1);
+	img.COMs.assign(1500, 4);
 
 	// Check to make sure camera was initialized first
-	if (!cameraConnected) {
+	if (!camera.connected) {
 		std::cout << "Camera was not initialized!" << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
@@ -131,14 +292,14 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 
 	// Allocate memory for images
 	// Fills pMem with image memory address
-	nRet = is_AllocImageMem(hCam, 1024, 768, 8, &pMem, &memID);
+	nRet = is_AllocImageMem(hCam, 1024, 768, 8, &camera.pMem, &camera.memID);
 	if (nRet != IS_SUCCESS) {
 		std::cout << "Allocating memory failed with error: " << nRet << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
 
 	// Tell camera where to put image data
-	nRet = is_SetImageMem(hCam, pMem, memID);
+	nRet = is_SetImageMem(hCam, camera.pMem, camera.memID);
 	if (nRet != IS_SUCCESS) {
 		std::cout << "Setting active memory failed with error: " << nRet << std::endl;
 		return Napi::Boolean::New(env, false);
@@ -198,7 +359,7 @@ Napi::Boolean EnableMessages(Napi::CallbackInfo& info) {
 
 	// Check to make sure WinAPI window was created
 	// and that the camera was connected
-	if (!windowGenerated || !cameraConnected) {
+	if (!camera.windowGenerated || !camera.connected) {
 		return Napi::Boolean::New(env, false);
 	}
 
@@ -210,6 +371,52 @@ Napi::Boolean EnableMessages(Napi::CallbackInfo& info) {
 	}
 
 	return Napi::Boolean::New(env, true);
+}
+
+// Send message to JavaScript with calculated centers and computation time
+// Sent using emitter so JS side doesn't have to wait for results
+void sendCentroids() {
+	Napi::Env env = eventEmitter.Env(); // Napi local environment
+	
+	// Package centers and compute time into an array
+	// NOTE: can this be done as an object instead?
+	// 0 -> CCL centers, 1 -> hybrid centers, 2 -> computation time
+	Napi::Array centroidResults = Napi::Array::New(env, 3);
+
+	// First add the centroids
+	for (int centroidMethod = 0; centroidMethod < 2; centroidMethod++) {
+		// Create a temporary array to fill with each method's calculated centroids
+		Napi::Array centroidList = Napi::Array::New(env);
+		int centroidCounter = 0; // To keep track of how many center were found
+		for (int center = 0; center < img.Centroids[centroidMethod].width(); center++) {
+			// Make sure x value is not 0 (i.e. make sure it's a real centroid)
+			if (img.Centroids(centroidMethod, center, 0) > 0) {
+				Napi::Array spot = Napi::Array::New(env, 2); // centroid's coordinates
+
+				float xCenter = img.Centroids(centroidMethod, center, 0);
+				float yCenter = img.Centroids(centroidMethod, center, 1);
+				spot.Set(Napi::Number::New(env, 0), Napi::Number::New(env, xCenter));
+				spot.Set(Napi::Number::New(env, 1), Napi::Number::New(env, yCenter));
+
+				// Add spot to centroidList
+				centroidList.Set(centroidCounter, spot);
+				centroidCounter++;
+			}
+		}
+		// Add the temporary centroidList to the array we're sending
+		centroidResults.Set(centroidMethod, centroidList);
+	}
+
+	// Now add the computation time
+	centroidResults.Set(2, img.computationTime); 
+
+	// Send message to JavaScript with packaged results
+	eventEmitter.Call(
+		{
+			Napi::String::New(env, "new-image"),
+			centroidResults
+		}
+	);
 }
 
 // Check for messages
@@ -225,7 +432,7 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 				int pPitch;
 				is_GetImageMemPitch(hCam, &pPitch);
 				// Centroid
-				Img.centroid(buffer, pMem, pPitch);
+				img.centroid(camera.buffer, camera.pMem, pPitch);
 				// Return calculated centers
 				sendCentroids();
 			}
@@ -246,11 +453,10 @@ void Close(const Napi::CallbackInfo& info) {
 	std::cout << "Stop video: " << nRet << std::endl;
 
 	// Close camera
-	//nRet = is_ExitCamera(hCam);
-	//std::cout << "Exit camera: " << nRet << std::endl;
+	nRet = is_ExitCamera(hCam);
+	std::cout << "Exit camera: " << nRet << std::endl;
 
-	cameraConnected = false;
-
+	camera.connected = false;
 }
 
 // Set up emitter to communicate with JavaScript
@@ -264,19 +470,28 @@ void InitEmitter(const Napi::CallbackInfo& info) {
 // returns buffer
 Napi::Value InitBuffer(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
+
+	// Initialize buffer in camera object
+	camera.buffer.assign(4 * camera.imageLength, 0);
+
 	// Make sure buffer has 255 for every alpha value
-	for (int i = 0; i < 1024*768; i++) {
-		buffer[4*i + 3] = 255;
+	for (int i = 0; i < camera.imageLength; i++) {
+		camera.buffer[4*i + 3] = 255;
 	}
+
 	// return buffer
-	return Napi::Buffer<unsigned char>::New(env, buffer.data(), buffer.size());
+	return Napi::Buffer<unsigned char>::New(env, camera.buffer.data(), camera.buffer.size());
 }
 
-// Set up module to export to JavaScript
+// Set up module to export functions to JavaScript
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	// Fill exports object with addon functions
 	exports["createWinAPIWindow"] = Napi::Function::New(env, CreateWinAPIWindow);
 	exports["connect"] = Napi::Function::New(env, Connect);
+	exports["getInfo"] = Napi::Function::New(env, GetInfo);
+	exports["setAoI"] = Napi::Function::New(env, SetAoI);
+	exports["setLEDArea"] = Napi::Function::New(env, SetLEDArea);
+	exports["setNoiseArea"] = Napi::Function::New(env, SetNoiseArea);
 	exports["applySettings"] = Napi::Function::New(env, ApplySettings);
 	exports["enableMessages"] = Napi::Function::New(env, EnableMessages);
 	exports["checkMessages"] = Napi::Function::New(env, CheckMessages);

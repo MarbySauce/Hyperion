@@ -15,6 +15,29 @@ public:
 	int minPix = 3;				 // Lower region bound to calculate center for
 	int maxPix = 120;			 // Upper region bound to use CoM method
 
+	// Defines the area of interest to centroid
+	int xLowerBound = 0;	// Left side starting boundary
+	int xUpperBound = 0;	// Right side ending boundary
+	int yLowerBound = 0;	// Top starting boundary
+	int yUpperBound = 0;	// Bottom ending boundary
+
+	// Defines the area to check for the IR LED
+	// As well as the area of just background noise (for comparison)
+	int LEDxLowerBound = 0;		// Left side starting boundary
+	int LEDxUpperBound = 0;		// Right side ending boundary
+	int LEDyLowerBound = 0;		// Top starting boundary
+	int LEDyUpperBound = 0;		// Bottom ending boundary
+	int NoisexLowerBound = 0;	// Left side starting boundary
+	int NoisexUpperBound = 0;	// Right side ending boundary
+	int NoiseyLowerBound = 0;	// Top starting boundary
+	int NoiseyUpperBound = 0;	// Bottom ending boundary
+	
+	int LEDIntensity = 0;		// Total pixel intensity of LED area
+	float LEDCount = 0;			// Number of pixels in LED area
+	int NoiseIntensity = 0;		// Total pixel intensity of Noise area
+	float NoiseCount = 0;		// Number of pixels in Noise area
+	bool isLEDon = false; 		// Whether LED is on, indicating IR laser fired this image
+
 	bool ReduceRegionVector = true;		// Whether to reduce RegionVector to only point to parent region
 	bool UseHybridMethod = true;		// Whether to use hybrid method
 
@@ -29,6 +52,7 @@ public:
 
 
 	// Functions
+	Centroid();
 	Centroid(int Width, int Height);
 	float getddx(CImg<float> &Window, int X, int Y);
 	float getddy(CImg<float> &Window, int X, int Y);
@@ -40,6 +64,12 @@ public:
 };
 
 // Initialize class
+Centroid::Centroid()
+{
+	Centroids.assign(2);
+}
+
+// Initialize class with specified image size
 Centroid::Centroid(int Width, int Height)
 {
 	Image.assign(Width, Height);
@@ -72,15 +102,9 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 	int Height = Image.height();
 
 	// Create the necessary centroiding arrays
-	//COMs.assign(250, 4);
 	COMs.fill(0); // Center of Mass parameters
 
-
-	//RegionImage.assign(Width, Height);
 	RegionImage.fill(0);		 // Image of each pixel's region number
-
-	//RegionVector.assign(250, 1); // Vector that contains each region's parent region
-								 // The parent region is the lowest indexed of the equivalent regions
 
 	// Properly fill RegionVector
 	for (int i = 0; i < RegionVector.width(); i++)
@@ -90,6 +114,13 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 
 	// Reset regions counter
 	regions = 1;
+
+	// Reset LED and Noise Intensity sums
+	LEDIntensity = 0;
+	LEDCount = 0;
+	NoiseIntensity = 0;
+	NoiseCount = 0;
+	isLEDon = false;
 
 	// Go through each pixel and add it to a region if sufficient intensity
 	int regionNo;
@@ -103,15 +134,29 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 
 			updateBuffer(Buffer, X, Y, Width, pixValue);
 
-			if (pixValue >= threshold)
-			{
-				regionNo = getRegion(X, Y);
-				RegionImage(X, Y) = regionNo;
+			// Check if pixel is within Noise of LED areas
+			if ((LEDyLowerBound <= Y && Y < LEDyUpperBound) && (LEDxLowerBound <= X && X < LEDxUpperBound)) {
+				LEDIntensity += (int)pixValue;
+				LEDCount++;
+			}
+			else if ((NoiseyLowerBound <= Y && Y < NoiseyUpperBound) && (NoisexLowerBound <= X && X < NoisexUpperBound)) {
+				NoiseIntensity += (int)pixValue;
+				NoiseCount++;
+			}
 
-				COMs(regionNo, 0) += X * pixValue;
-				COMs(regionNo, 1) += Y * pixValue;
-				COMs(regionNo, 2) += pixValue;
-				COMs(regionNo, 3)++;
+			// Check if pixel is within centroiding AoI
+			if ((yLowerBound <= Y && Y < yUpperBound) && (xLowerBound <= X && X < xUpperBound)) {
+				// Make sure intensity is above noise threshold
+				if (pixValue >= threshold)
+				{
+					regionNo = getRegion(X, Y);
+					RegionImage(X, Y) = regionNo;
+
+					COMs(regionNo, 0) += X * pixValue;
+					COMs(regionNo, 1) += Y * pixValue;
+					COMs(regionNo, 2) += pixValue;
+					COMs(regionNo, 3)++;
+				}
 			}
 		}
 	}
@@ -122,6 +167,11 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 	}
 
 	calculateCentroids();
+
+	// Check if LED was on
+	if ((LEDIntensity / LEDCount) > 2 * (NoiseIntensity / NoiseCount)) {
+		isLEDon = true;
+	}
 
 	// Stop computation stopwatch
 	computationTime = compute.end();
