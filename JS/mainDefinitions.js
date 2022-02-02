@@ -413,7 +413,8 @@ const scanInfo = {
 				this.frameCount++;
 				break;
 			case "ir":
-				if (accumulatedImage.isIROn) {
+				//if (accumulatedImage.isIROn) {
+				if (centroidResults.isLEDon) {
 					this.totalCountIROn += total;
 					this.frameCountIROn++;
 				} else {
@@ -528,7 +529,8 @@ const accumulatedImage = {
 
 					case "ir":
 						// Add to IR images
-						if (this.isIROn) {
+						//if (this.isIROn) {
+						if (centroidResults.isLEDon) {
 							this.irOn[yCenter][xCenter]++;
 						} else {
 							this.irOff[yCenter][xCenter]++;
@@ -538,7 +540,7 @@ const accumulatedImage = {
 			}
 		}
 		// Bin to other IR image next frame
-		this.isIROn = !this.isIROn;
+		//this.isIROn = !this.isIROn;
 	},
 	convertToString: function (image) {
 		// Convert the accumulated image to a printable string
