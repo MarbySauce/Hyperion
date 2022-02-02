@@ -15,6 +15,7 @@ std::vector<char> simulatedImage; 		// Stand-in for image memory
 int repCount = 0; 						// Keep track of # of repetitions
 int simulationCount = 0;				// With above, used to check for skipped frames
 bool isIROn = false;					// Add in ability to make "IR On" images different
+bool useLED = true;						// Whether to add in intensity to simulate IR LED
 
 // Constants
 float const pi = 3.14159265358979;
@@ -97,12 +98,22 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 				{
 					currentIntensity = 255; // Cuts off intensity at 255
 				}
-				simImage[camera.width*Y + X] = currentIntensity;
+				simImage[camera.width * Y + X] = currentIntensity;
 			}
 		}
 
 		spotNumber++;
 		
+	}
+
+	// Add in intensity to simulate IR LED
+	if (isIROn && useLED) {
+		for (int Y = img.LEDyLowerBound; Y < img.LEDyUpperBound; Y++) {
+			for (int X = img.LEDxLowerBound; X < img.LEDxUpperBound; X++) {
+				int intensity = rand() % 40 + 80;
+				simImage[camera.width * Y + X] = intensity;
+			}
+		}
 	}
 }
 
