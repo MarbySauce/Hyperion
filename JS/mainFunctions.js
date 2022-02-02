@@ -948,13 +948,15 @@ function ApplySettings() {
 */
 
 // Receive message with centroid data
-ipc.on("new-camera-frame", function (event, obj) {
+ipc.on("new-camera-frame", function (event, centroidResults) {
 	// Will return with object containing:
 	//		imageBuffer
-	//		calcCenters
+	//		CCLCenters
+	//		hybridCenters
+	//		computationTime
 
 	// Update average number of electrons
-	averageCount.update(obj);
+	averageCount.update(centroidResults);
 	UpdateAverageCountDisplays();
 
 	// NOTE:
@@ -964,11 +966,11 @@ ipc.on("new-camera-frame", function (event, obj) {
 	// Only update these if currently taking a scan that isn't paused
 	if (scanInfo.running && !scanInfo.paused) {
 		// Update number of electrons
-		scanInfo.update(obj.calcCenters);
+		scanInfo.update(centroidResults);
 		UpdateScanCountDisplays();
 
 		// Update Accumulated View
-		accumulatedImage.update(obj.calcCenters);
+		accumulatedImage.update(centroidResults);
 		if (scanInfo.method === "ir") {
 			// Calculate the IR difference image
 			accumulatedImage.getDifference();
@@ -981,15 +983,15 @@ ipc.on("new-camera-frame", function (event, obj) {
 
 	// Update eChart if it's running
 	if (eChartData.running) {
-		eChartData.updateData(obj.calcCenters);
+		eChartData.updateData(centroidResults);
 		eChartData.updateChart(eChart);
 	}
 
 	// Take single shot image if requested
 	if (singleShot.toSave) {
 		// Create a copy of the buffer
-		singleShot.savedBuffer = [...obj.imageBuffer];
-		singleShot.savedCentroids = [...obj.calcCenters];
+		singleShot.savedBuffer = [...centroidResults.imageBuffer];
+		singleShot.savedCentroids = [...centroidResults];
 		singleShot.save();
 		singleShot.toSave = false;
 	}

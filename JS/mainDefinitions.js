@@ -114,10 +114,10 @@ const eChartData = {
 		this.hybridData = [];
 		this.frameCount = 0;
 	},
-	updateData: function (calculatedCenters) {
+	updateData: function (centroidResults) {
 		this.labels.push(this.frameCount);
-		this.cclData.push(calculatedCenters[0].length);
-		this.hybridData.push(calculatedCenters[0].length + calculatedCenters[1].length);
+		this.cclData.push(centroidResults.CCLCenters.length);
+		this.hybridData.push(centroidResults.CCLCenters.length + centroidResults.hybridCenters.length);
 		this.frameCount++;
 		this.cleaveData();
 	},
@@ -400,9 +400,9 @@ const scanInfo = {
 			}
 		}, this.autoSaveTimer);
 	},
-	update: function (calculatedCenters) {
-		let ccl = calculatedCenters[0].length;
-		let hybrid = calculatedCenters[1].length;
+	update: function (centroidResults) {
+		let ccl = centroidResults.CCLCenters.length;
+		let hybrid = centroidResults.hybridCenters.length;
 		let total = ccl + hybrid;
 		// Add to counts
 		this.cclCount += ccl;
@@ -500,7 +500,10 @@ const accumulatedImage = {
 	differenceCounter: 0, // Counter of number of frames since last diff image calculation
 	dumbCounter: 0,
 	allCenters: [],
-	update: function (calculatedCenters) {
+	update: function (centroidResults) {
+		// NOTE: Could add in stuff so that the "use hybrid" setting is used here
+		// 		rather than on C++ side
+		let calculatedCenters = [centroidResults.CCLCenters, centroidResults.hybridCenters];
 		let numberOfCenters;
 		let xCenter;
 		let yCenter;
@@ -705,11 +708,11 @@ const averageCount = {
 	updateCounter: 0, // Used to keep track of how many frames have
 	// been processed since the last time avg display was updated
 	updateFrequency: 10, // Number of frames before updating display
-	update: function (obj) {
-		let ccl = obj.calcCenters[0].length;
-		let hybrid = obj.calcCenters[1].length;
+	update: function (centroidResults) {
+		let ccl = centroidResults.CCLCenters.length;
+		let hybrid = centroidResults.hybridCenters.length;
 		let total = ccl + hybrid;
-		let calcTime = obj.computeTime;
+		let calcTime = centroidResults.computationTime;
 		// Add to respective arrays
 		this.prevCCLCounts.push(ccl);
 		this.prevHybridCounts.push(hybrid);
@@ -1061,6 +1064,7 @@ const singleShot = {
 		// Save the image
 		let imageSaveLocation = settings.saveDirectory.currentScan + "/" + this.fileName;
 		let centroidSaveLocation = settings.saveDirectory.currentScan + "/" + this.centroidsFileName;
+		console.log(this.savedBuffer);
 		let imageString = singleShot.convertImageToString();
 		let centroidString = singleShot.convertCentroidsToString();
 		fs.writeFile(imageSaveLocation, imageString, (err) => {
