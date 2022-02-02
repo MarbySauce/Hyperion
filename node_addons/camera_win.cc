@@ -83,7 +83,7 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info) {
 Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
-	Napi::Object information; // Object to be returned
+	Napi::Object information = Napi::Object::New(env); // Object to be returned
 	// Fill out with blank information in case camera is not connected
 	information["infoReceived"] = Napi::Boolean::New(env, false);
 	information["model"] = Napi::String::New(env, "");
@@ -91,7 +91,7 @@ Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 	information["colorMode"] = Napi::Number::New(env, 0);
 	information["width"] = Napi::Number::New(env, 0);
 	information["height"] = Napi::Number::New(env, 0);
-
+	
 	// Make sure camera was connected to first
 	if (camera.connected) {
 		// Get camera information
@@ -117,6 +117,7 @@ Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 			information["height"] = Napi::Number::New(env, camera.height);
 		}
 	}
+	
 
 	return information;
 }
