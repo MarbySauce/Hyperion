@@ -435,6 +435,8 @@ void sendCentroids() {
 	// Add the other important values
 	centroidResults["computationTime"] = Napi::Number::New(env, img.computationTime);
 	centroidResults["isLEDon"] = Napi::Boolean::New(env, img.isLEDon);
+	centroidResults["normLEDIntensity"] = Napi::Number::New(env, img.LEDIntensity / img.LEDCount);
+	centroidResults["normNoiseIntensity"] = Napi::Number::New(env, img.NoiseIntensity / img.NoiseCount);
 
 	// Send message to JavaScript with packaged results
 	eventEmitter.Call(
