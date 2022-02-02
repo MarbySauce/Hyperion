@@ -10,7 +10,7 @@ let LVWinOpen = false;
 // Way to quickly switch between monitors
 // 0 -> work monitor, 1 -> home monitor,
 // 2 -> no monitor, 3 -> Lab comp
-const thisMonitor = 1;
+const thisMonitor = 3;
 const monitor = [
 	[
 		[-1850, -300],
@@ -94,7 +94,7 @@ function createLVWindow() {
 	});
 
 	win.loadFile("HTML/LVWindow.html");
-	win.webContents.openDevTools();
+	//win.webContents.openDevTools();
 
 	LVWinOpen = true;
 

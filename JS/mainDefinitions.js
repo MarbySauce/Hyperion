@@ -116,7 +116,12 @@ const eChartData = {
 	},
 	updateData: function (centroidResults) {
 		this.labels.push(this.frameCount);
-		this.cclData.push(centroidResults.CCLCenters.length);
+		//this.cclData.push(centroidResults.CCLCenters.length);
+		if (centroidResults.isLEDon) {
+			this.cclData.push(30);
+		} else {
+			this.cclData.push(0);
+		}
 		this.hybridData.push(centroidResults.CCLCenters.length + centroidResults.hybridCenters.length);
 		this.frameCount++;
 		this.cleaveData();
@@ -414,6 +419,7 @@ const scanInfo = {
 				break;
 			case "ir":
 				//if (accumulatedImage.isIROn) {
+				console.log("is Led on?", centroidResults.isLEDon);
 				if (centroidResults.isLEDon) {
 					this.totalCountIROn += total;
 					this.frameCountIROn++;

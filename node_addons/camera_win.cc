@@ -4,6 +4,7 @@
 
 #include "camera.h"
 #include "centroid.h"
+#include <string>
 #include <napi.h>
 #include <windows.h>
 #include <uEye.h>
@@ -82,7 +83,7 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info) {
 Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
-	Napi::Object information; // Object to be returned
+	Napi::Object information = Napi::Object::New(env); // Object to be returned
 	// Fill out with blank information in case camera is not connected
 	information["infoReceived"] = Napi::Boolean::New(env, false);
 	information["model"] = Napi::String::New(env, "");
@@ -90,7 +91,7 @@ Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 	information["colorMode"] = Napi::Number::New(env, 0);
 	information["width"] = Napi::Number::New(env, 0);
 	information["height"] = Napi::Number::New(env, 0);
-
+	
 	// Make sure camera was connected to first
 	if (camera.connected) {
 		// Get camera information
@@ -100,7 +101,8 @@ Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 		if (nRet == IS_SUCCESS) {
 			// Update camera information in C++ object
 			camera.infoReceived = true;
-			camera.model = pInfo.strSensorName;
+			//camera.model = pInfo.strSensorName;
+			strcpy(camera.model, pInfo.strSensorName);
 			camera.ID = pInfo.SensorID;
 			camera.colorMode = pInfo.nColorMode;
 			camera.width = pInfo.nMaxWidth;
@@ -115,6 +117,7 @@ Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 			information["height"] = Napi::Number::New(env, camera.height);
 		}
 	}
+	
 
 	return information;
 }
@@ -151,8 +154,8 @@ void SetAoI(const Napi::CallbackInfo& info) {
 		leftOffset = 0;
 		topOffset = 0;
 		// Get AoI values
-		AoIWidth = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
-		AoIHeight = reinterpret_cast<int>(info[1].ToNumber().Int32Value());
+		AoIWidth = (int)info[0].ToNumber().Int32Value();
+		AoIHeight = (int)info[1].ToNumber().Int32Value();
 	}
 
 	if (argLength == 4) {
@@ -163,11 +166,11 @@ void SetAoI(const Napi::CallbackInfo& info) {
 			return;
 		}
 		// Get AoI values
-		AoIWidth = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
-		AoIHeight = reinterpret_cast<int>(info[1].ToNumber().Int32Value());
+		AoIWidth = (int)info[0].ToNumber().Int32Value();
+		AoIHeight = (int)info[1].ToNumber().Int32Value();
 		// Get offset values
-		leftOffset = reinterpret_cast<int>(info[2].ToNumber().Int32Value());
-		topOffset = reinterpret_cast<int>(info[3].ToNumber().Int32Value());
+		leftOffset = (int)info[2].ToNumber().Int32Value();
+		topOffset = (int)info[3].ToNumber().Int32Value();
 	}
 
 	// Make sure sizes + offsets don't exceed image size
@@ -207,10 +210,10 @@ void SetLEDArea(const Napi::CallbackInfo& info) {
 		return;
 	}
 	// Get area values
-	img.LEDxLowerBound = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
-	img.LEDxUpperBound = reinterpret_cast<int>(info[1].ToNumber().Int32Value());
-	img.LEDyLowerBound = reinterpret_cast<int>(info[2].ToNumber().Int32Value());
-	img.LEDyUpperBound = reinterpret_cast<int>(info[3].ToNumber().Int32Value());
+	img.LEDxLowerBound = (int)info[0].ToNumber().Int32Value();
+	img.LEDxUpperBound = (int)info[1].ToNumber().Int32Value();
+	img.LEDyLowerBound = (int)info[2].ToNumber().Int32Value();
+	img.LEDyUpperBound = (int)info[3].ToNumber().Int32Value();
 
 	return;
 }
@@ -236,10 +239,10 @@ void SetNoiseArea(const Napi::CallbackInfo& info) {
 		return;
 	}
 	// Get area values
-	img.NoisexLowerBound = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
-	img.NoisexUpperBound = reinterpret_cast<int>(info[1].ToNumber().Int32Value());
-	img.NoiseyLowerBound = reinterpret_cast<int>(info[2].ToNumber().Int32Value());
-	img.NoiseyUpperBound = reinterpret_cast<int>(info[3].ToNumber().Int32Value());
+	img.NoisexLowerBound = (int)info[0].ToNumber().Int32Value();
+	img.NoisexUpperBound = (int)info[1].ToNumber().Int32Value();
+	img.NoiseyLowerBound = (int)info[2].ToNumber().Int32Value();
+	img.NoiseyUpperBound = (int)info[3].ToNumber().Int32Value();
 
 	return;
 }

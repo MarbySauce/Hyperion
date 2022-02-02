@@ -42,7 +42,7 @@ ipc.on("new-camera-frame", function (event, centroidResults) {
 	// Temp variables for image and AoI size
 	let imageWidth = 1024;
 	let imageHeight = 768;
-	let xOffset = 100;
+	let xOffset = 0;
 	let yOffset = 0;
 
 	const LiveViewContext = document.getElementById("LiveVideoView").getContext("2d");

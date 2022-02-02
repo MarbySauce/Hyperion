@@ -89,14 +89,15 @@ function startup() {
 	// Initialize emitter
 	camera.initEmitter(emitter.emit.bind(emitter));
 
+	
 	// Connect to the camera
 	nRet = camera.connect();
 	console.log("Connect to camera:", nRet);
-
+	
 	// Get camera info
 	let camInfo = camera.getInfo();
 	console.log("Camera info: ", camInfo);
-
+	
 	// Adjust camera settings
 	nRet = camera.applySettings();
 	console.log("Apply settings:", nRet);
