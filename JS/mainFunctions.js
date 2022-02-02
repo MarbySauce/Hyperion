@@ -991,7 +991,7 @@ ipc.on("new-camera-frame", function (event, centroidResults) {
 	if (singleShot.toSave) {
 		// Create a copy of the buffer
 		singleShot.savedBuffer = [...centroidResults.imageBuffer];
-		singleShot.savedCentroids = [...centroidResults];
+		singleShot.savedCentroids = [centroidResults.CCLCenters, centroidResults.hybridCenters];
 		singleShot.save();
 		singleShot.toSave = false;
 	}
