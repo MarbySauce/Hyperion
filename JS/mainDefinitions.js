@@ -710,32 +710,29 @@ const averageCount = {
 	prevHybridCounts: [],
 	prevTotalCounts: [],
 	prevCalcTimes: [],
+	LEDIntensities: [],
 	updateCounter: 0, // Used to keep track of how many frames have
 	// been processed since the last time avg display was updated
 	updateFrequency: 10, // Number of frames before updating display
 	update: function (centroidResults) {
-		let ccl = centroidResults.CCLCenters.length;
-		let hybrid = centroidResults.hybridCenters.length;
-		let total = ccl + hybrid;
-		let calcTime = centroidResults.computationTime;
-		// Add to respective arrays
-		this.prevCCLCounts.push(ccl);
-		this.prevHybridCounts.push(hybrid);
-		this.prevTotalCounts.push(total);
-		this.prevCalcTimes.push(calcTime);
-		// Make sure arrays are only 10 frames long
-		// by removing earliest frame
-		while (this.prevCCLCounts.length > 10) {
-			this.prevCCLCounts.shift();
+		let results = [
+			centroidResults.CCLCenters.length,
+			centroidResults.hybridCenters.length,
+			centroidResults.CCLCenters.length + centroidResults.hybridCenters.length,
+			centroidResults.computationTime,
+			centroidResults.normLEDIntensity / centroidResults.normNoiseIntensity,
+		];
+		let arrays = [this.prevCCLCounts, this.prevHybridCounts, this.prevTotalCounts, this.prevCalcTimes, this.LEDIntensities];
+
+		for (let i = 0; i < results.length; i++) {
+			this.add(arrays[i], results[i]);
 		}
-		while (this.prevHybridCounts.length > 10) {
-			this.prevHybridCounts.shift();
-		}
-		while (this.prevTotalCounts.length > 10) {
-			this.prevTotalCounts.shift();
-		}
-		while (this.prevCalcTimes.length > 10) {
-			this.prevCalcTimes.shift();
+	},
+	add: function (arr, el) {
+		// Adds element el to array arr and keeps arr at 10 elements
+		arr.push(el);
+		while (arr.length > 10) {
+			arr.shift();
 		}
 	},
 	getAverage: function (arr) {
@@ -756,6 +753,12 @@ const averageCount = {
 	},
 	getCalcTimeAverage: function () {
 		return this.getAverage(this.prevCalcTimes).toFixed(1);
+	},
+	getLEDIntensityAverage: function () {
+		// If the LED is off, the LED / Noise area ratio statistically should be 1
+		// We don't care about that, so filter those out
+		let IROnIntensities = this.LEDIntensities.filter((el) => Math.round(el) !== 1);
+		return this.getAverage(IROnIntensities).toFixed(2);
 	},
 };
 
