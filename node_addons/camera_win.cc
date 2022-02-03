@@ -452,6 +452,7 @@ void sendCentroids() {
 
 // Check for messages
 void CheckMessages(const Napi::CallbackInfo& info) {
+	int nRet;
 	MSG msg = { }; // To store message info
 	// Check if there is a message in queue, return if not
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -459,11 +460,21 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 		if (msg.message == IS_UEYE_MESSAGE) {
 			// Check if the message is a frame event
 			if (msg.wParam == IS_FRAME) {
+				// Lock the image memory so it's not overwritten while centroiding
+				nRet = is_LockSeqBuf(hCam, IS_IGNORE_PARAMETER, camera.pMem);
+				if (nRet != IS_SUCCESS) {
+					std::cout << "Failed to lock image: " << nRet << std::endl;
+				}
 				// Get image pitch
 				int pPitch;
 				is_GetImageMemPitch(hCam, &pPitch);
 				// Centroid
 				img.centroid(camera.buffer, camera.pMem, pPitch);
+				// Unlock the image memory
+				nRet = is_UnlockSeqBuf(hCam, IS_IGNORE_PARAMETER, camera.pMem);
+				if (nRet != IS_SUCCESS) {
+					std::cout << "Failed to unlock image: " << nRet << std::endl;
+				}
 				// Return calculated centers
 				sendCentroids();
 			}
