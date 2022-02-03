@@ -116,12 +116,7 @@ const eChartData = {
 	},
 	updateData: function (centroidResults) {
 		this.labels.push(this.frameCount);
-		//this.cclData.push(centroidResults.CCLCenters.length);
-		if (centroidResults.isLEDon) {
-			this.cclData.push(30);
-		} else {
-			this.cclData.push(0);
-		}
+		this.cclData.push(centroidResults.CCLCenters.length);
 		this.hybridData.push(centroidResults.CCLCenters.length + centroidResults.hybridCenters.length);
 		this.frameCount++;
 		this.cleaveData();
@@ -419,7 +414,6 @@ const scanInfo = {
 				break;
 			case "ir":
 				//if (accumulatedImage.isIROn) {
-				console.log("is Led on?", centroidResults.isLEDon);
 				if (centroidResults.isLEDon) {
 					this.totalCountIROn += total;
 					this.frameCountIROn++;
@@ -516,6 +510,7 @@ const accumulatedImage = {
 		let numberOfCenters;
 		let xCenter;
 		let yCenter;
+
 		for (let centroidMethod = 0; centroidMethod < 2; centroidMethod++) {
 			numberOfCenters = calculatedCenters[centroidMethod].length;
 			for (let center = 0; center < numberOfCenters; center++) {
@@ -1074,7 +1069,6 @@ const singleShot = {
 		// Save the image
 		let imageSaveLocation = settings.saveDirectory.currentScan + "/" + this.fileName;
 		let centroidSaveLocation = settings.saveDirectory.currentScan + "/" + this.centroidsFileName;
-		console.log(this.savedBuffer);
 		let imageString = singleShot.convertImageToString();
 		let centroidString = singleShot.convertCentroidsToString();
 		fs.writeFile(imageSaveLocation, imageString, (err) => {

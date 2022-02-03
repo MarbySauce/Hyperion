@@ -988,7 +988,7 @@ ipc.on("new-camera-frame", function (event, centroidResults) {
 	}
 
 	// Take single shot image if requested
-	if (singleShot.toSave && centroidResults.isLEDon) {
+	if (singleShot.toSave) {
 		// Create a copy of the buffer
 		singleShot.savedBuffer = [...centroidResults.imageBuffer];
 		singleShot.savedCentroids = [centroidResults.CCLCenters, centroidResults.hybridCenters];

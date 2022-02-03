@@ -73,13 +73,6 @@ function startup() {
 		if (!centroidResults) {
 			return;
 		}
-		/*const centroids = centroidResults.slice(0, 2);
-		const computationTime = centroidResults[2];
-		const CentroidData = {
-			imageBuffer: buffer,
-			calcCenters: centroids,
-			computeTime: computationTime,
-		};*/
 		centroidResults.imageBuffer = buffer;
 
 		// Send data to other renderer windows
