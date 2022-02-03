@@ -34,10 +34,12 @@ function UpdateScanDisplays() {
 // Receive message with centroid data
 ipc.on("new-camera-frame", function (event, centroidResults) {
 	// Will return with object containing:
-	// 		CCLCenters			-	Array
-	//		hybridCenters		-	Array
-	//		computationTime		-	Float
-	//		isLEDon				- 	Boolean
+	//		imageBuffer			-	Uint8Buffer - Current image frame
+	// 		CCLCenters			-	Array		- Connect component labeling centroids
+	//		hybridCenters		-	Array		- Hybrid method centroids
+	//		computationTime		-	Float		- Time to calculate centroids (ms)
+	//		isLEDon				- 	Boolean		- Whether IR LED was on in image
+	//		normNoiseIntensity	-	Float		- Ratio of LED area to Noise area normalized intensities
 
 	// Temp variables for image and AoI size
 	let imageWidth = 1024;

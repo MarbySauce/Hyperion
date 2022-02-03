@@ -384,10 +384,11 @@ void sendCentroids() {
 	// Package centroid information into an object to send to JS
 	Napi::Object centroidResults = Napi::Object::New(env);
 	// Contains:
-	// 		CCLCenters			-	Array
-	//		hybridCenters		-	Array
-	//		computationTime		-	Float
-	//		isLEDon				- 	Boolean
+	// 		CCLCenters			-	Array		- Connect component labeling centroids
+	//		hybridCenters		-	Array		- Hybrid method centroids
+	//		computationTime		-	Float		- Time to calculate centroids (ms)
+	//		isLEDon				- 	Boolean		- Whether IR LED was on in image
+	//		normNoiseIntensity	-	Float		- Ratio of LED area to Noise area normalized intensities
 
 	// First add the connected-component-labeling (CCL) centroids
 	Napi::Array centroidList = Napi::Array::New(env);
