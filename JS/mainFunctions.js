@@ -16,7 +16,8 @@
 
 // Startup
 window.onload = function () {
-	Startup();
+	//Startup();
+	// Moved startup until after settings file is read
 };
 
 // Tabs
@@ -896,7 +897,7 @@ function ReadSettingsFromFileSync() {
 
 	try {
 		// Check if the settings file exists
-		settings.read();
+		//settings.read();
 
 		// Update settings display
 		xAoI.value = settings.camera.xAoI;
@@ -998,7 +999,7 @@ ipc.on("new-camera-frame", function (event, centroidResults) {
 		singleShot.toSave = false;
 	}
 
-	doit();
+	doit(); // Add red circle to image if enabled
 });
 
 // Update the accumulated image display
@@ -1150,6 +1151,12 @@ ipc.on("closing-main-window", () => {
 		previousScans.saveScans();
 	}
 	ipc.send("closing-main-window-received", settings);
+});
+
+ipc.on("settings-information", (event, settingsInformation) => {
+	//console.log(settingsInformation);
+	settings = settingsInformation;
+	Startup();
 });
 
 /* When update e- counters on main page, also update on e- Monitor page

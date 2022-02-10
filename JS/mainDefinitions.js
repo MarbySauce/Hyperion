@@ -258,51 +258,9 @@ const eChartData = {
 	},
 };
 
-const settings = {
-	camera: {
-		xAoI: 0,
-		yAoI: 0,
-		xOffset: 0,
-		yOffset: 0,
-		exposureTime: 0,
-		gain: 0,
-		gainBoost: false,
-		trigger: "Rising Edge",
-		triggerDelay: 0,
-	},
-	centroid: {
-		accumulation: "Centroid",
-		hybridMethod: true,
-		binSize: 100,
-	},
-	display: {
-		sliderValue: 0.5,
-	},
-	eChart: {
-		xAxisMax: 30,
-		yAxisMax: 20,
-	},
-	saveDirectory: {
-		currentScan: "./Images",
-		currentScanShort: "./Images",
-		previousScans: "./PreviousScans",
-	},
-	save: function () {
-		let settingsJSON = JSON.stringify(settings);
-		fs.writeFile("./Settings/Settings.JSON", settingsJSON, () => {
-			console.log("Settings Saved!");
-		});
-	},
-	read: function () {
-		let data = fs.readFileSync("./Settings/Settings.JSON");
-		let savedSettings = JSON.parse(data);
-		for (let category in savedSettings) {
-			for (let key in savedSettings[category]) {
-				this[category][key] = savedSettings[category][key];
-			}
-		}
-	},
-};
+// To be filled in after main process reads
+// settings from file
+let settings;
 
 const scanInfo = {
 	running: false, // running does not change if scan is paused

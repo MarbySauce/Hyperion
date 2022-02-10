@@ -74,8 +74,8 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 
 	if (isIROn) {
 		isIROn = false;
-		Radii = {50, 50, 90, 90, 90, 120, 120, 170};
-		return; // Don't add electrons to this frame
+		//Radii = {50, 50, 90, 90, 90, 120, 120, 170};
+		return;
 	} else {
 		isIROn = true;
 	}
