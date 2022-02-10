@@ -160,6 +160,9 @@ function createInvisibleWindow() {
 }
 
 app.whenReady().then(function () {
+	// Read settings from file
+	settings.functions.read();
+
 	// Set dark mode
 	nativeTheme.themeSource = "dark";
 
@@ -183,13 +186,10 @@ app.whenReady().then(function () {
 	// Get rid of Live View menu bar
 	LVWin.removeMenu();
 
-	// Read settings from file
-	settings.functions.read();
-
-	// Send settings information to windows
-	setTimeout(() => {
+	// Send settings information to main window when ready
+	mainWin.on("ready-to-show", () => {
 		mainWin.webContents.send("settings-information", settings.information);
-	}, 2000);
+	})
 
 	// Close LV window when main window is closed
 	mainWin.on("close", function (event) {
