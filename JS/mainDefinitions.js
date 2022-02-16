@@ -727,7 +727,7 @@ const laserInfo = {
 	convertedWavenumber: null,
 	YAGFundamental: 2 * 532.25, // Wavelength of Nd:YAG used for OPO/A
 	nIRWavelength: null,
-	IRMode: 0, // 0 is nIR, 1 is iIR, 2 is mIR
+	IRMode: 0, // 0 is nIR, 1 is iIR, 2 is mIR, 3 is fIR
 	IRConvertedWavelength: null,
 	IRConvertedWavenumber: null,
 	updateWavelength: function (wavelength) {
@@ -815,8 +815,8 @@ const laserInfo = {
 	},
 	updateIRMode: function (IRMode) {
 		// Update IR mode based on user input
-		// 0 is near IR, 1 is intermediate IR, 2 is mid IR
-		if (0 <= IRMode && IRMode <= 2) {
+		// 0 is near IR, 1 is intermediate IR, 2 is mid IR, 3 is far IR
+		if (0 <= IRMode && IRMode <= 3) {
 			this.IRMode = IRMode;
 		} else {
 			// If mode is out of bounds, default to nIR
@@ -850,6 +850,13 @@ const laserInfo = {
 			case 2:
 				// mIR mode, calculate idler out of OPA
 				convertedWavelength = (this.nIRWavelength * this.YAGFundamental) / (this.YAGFundamental - this.nIRWavelength);
+				break;
+
+			case 3:
+				// NOTE: Need to add in something that limits the nIR range to ~725-765 nm when using fIR
+				//		such as making the font red + adding a note
+				// fIR mode, calculate DFG of iIR - mIR
+				convertedWavelength = (this.nIRWavelength * this.YAGFundamental) / (3 * this.nIRWavelength - 2 * this.YAGFundamental);
 				break;
 		}
 		// Convert to wavenumbers

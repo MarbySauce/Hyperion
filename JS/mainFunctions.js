@@ -573,7 +573,7 @@ function UpdateRecentFiles(saveFile) {
 				continue;
 			}
 		} else {
-			// Used iIR or mIR, only write converted value
+			// Used iIR, mIR or fIR, only write converted value
 			if (key == "nIRWavelength") {
 				continue;
 			}
@@ -656,7 +656,7 @@ function GetLaserInput() {
 	const IRWavelengthMode = document.getElementById("IRWavelengthMode");
 	const currentWavelengthNIR = document.getElementById("CurrentWavelengthNIR");
 	let IRMode = IRWavelengthMode.selectedIndex; // IR laser setup mode
-	// 0 is nIR, 1 is iIR, 2 is mIR
+	// 0 is nIR, 1 is iIR, 2 is mIR, 3 is fIR
 	let IRWavelength = parseFloat(currentWavelengthNIR.value); // Measured nIR wavelength
 
 	// Update laser information
