@@ -612,7 +612,7 @@ const accumulatedImage = {
 		percentDepletion = (100 * (irOffSum - irOnSum)) / irOffSum;
 		stringToPrint = "Percent Depletion: " + percentDepletion.toFixed(2).toString() + "%";
 		stringToPrint += "\nCalculated " + datetime;
-		stringToPrint += "\nIR Off Count: " + scanInfo.getTotalCount();
+		stringToPrint += "\nFrame Count: " + scanInfo.frameCount.toString();
 		console.log(stringToPrint);
 		//return [irOffSum, irOnSum];
 	},
