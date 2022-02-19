@@ -103,6 +103,41 @@ used as comparison for LED area
 
 <br>
 
+## setExposure(double exposure)
+
+> Parameters:
+>
+> > exposure - (Number) exposure time (ms)
+>
+> Returns: Boolean describing success of funtion call
+
+Set the camera exposure time. Before setting, it checks that the
+requested exposure time is within camera's bounds
+
+<br>
+
+## setGain(int gain)
+
+> Parameters:
+>
+> > gain - (Number) percent gain as integer value, between 0-100
+>
+> Returns: Boolean describing success of function call
+
+Set the camera gain. Checks that gain is between 0 and 100 inclusive.
+
+<br>
+
+## startCapture()
+
+> Parameters: None
+>
+> Returns: Boolean describing success of function call
+
+Start camera image capture
+
+<br>
+
 ## enableMessages()
 
 > Parameters: None

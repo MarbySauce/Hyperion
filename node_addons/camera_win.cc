@@ -356,6 +356,110 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	return Napi::Boolean::New(env, true);
 }
 
+// Set the camera exposure
+Napi::Boolean SetExposure(Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	int argLength = info.Length(); // Number of arguments passed
+
+	// Check that only 1 argument is passed
+	if (argLength != 1) {
+		Napi::Error::New(env, "setExposure requires only 1 argument").
+			ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Check that the argument is a number
+	if (!info[0].IsNumber()) {
+		Napi::Error::New(env, "setExposure: Exposure must be a number").
+			ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Convert Napi number to C++ double
+	double exposure = (double)info[0].ToNumber().DoubleValue();
+
+	// Get the exposure range from the camera
+	double exposure_range[3]; // [min, max, increment]
+	int nRet = is_Exposure(hCam, IS_EXPOSURE_CMD_GET_EXPOSURE_RANGE, &exposure_range, sizeof(exposure_range));
+	if (nRet != IS_SUCCESS) {
+		std::cout << "Getting exposure failed with error: " << nRet << std::endl;
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Make sure desired exposure is within range
+	if (exposure < exposure_range[0] || exposure > exposure_range[1]) {
+		Napi::Error::New(env, "setExposure: Exposure is out of range").
+			ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Set the exposure
+	nRet = is_Exposure(hCam, IS_EXPOSURE_CMD_SET_EXPOSURE, &exposure, sizeof(exposure));
+	if (nRet != IS_SUCCESS) {
+		std::cout << "Setting exposure failed with error: " << nRet << std::endl;
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Return a success value
+	return Napi::Boolean::New(env, true);
+}
+
+// Set the camera gain
+Napi::Boolean SetGain(Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	int argLength = info.Length(); // Number of arguments passed
+
+	// Check that only 1 argument is passed
+	if (argLength != 1) {
+		Napi::Error::New(env, "setGain requires only 1 argument").
+			ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Check that the argument is a number
+	if (!info[0].IsNumber()) {
+		Napi::Error::New(env, "setGain: Gain must be a number").
+			ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Convert Napi number to C++ int
+	int gain = (int)info[0].ToNumber().DoubleValue();
+
+	// Make sure desired gain is within range (0-100)
+	if (gain < 0 || gain > 100) {
+		Napi::Error::New(env, "setGain: Gain is out of range").
+			ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Set the gain
+	int nRet = is_SetHardwareGain(hCam, gain, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER);
+	if (nRet != IS_SUCCESS) {
+		std::cout << "Setting gain failed with error: " << nRet << std::endl;
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Return a success value
+	return Napi::Boolean::New(env, true);
+}
+
+// Start camera image capture
+Napi::Boolean StartCapture(Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	int nRet = is_CaptureVideo(hCam, IS_WAIT);
+	if (nRet != IS_SUCCESS) {
+		std::cout << "Starting capture failed with error: " << nRet << std::endl;
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Return a success value
+	return Napi::Boolean::New(env, true);
+}
+
 // Enable Windows messages
 Napi::Boolean EnableMessages(Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
@@ -536,6 +640,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	exports["setLEDArea"] = Napi::Function::New(env, SetLEDArea);
 	exports["setNoiseArea"] = Napi::Function::New(env, SetNoiseArea);
 	exports["applySettings"] = Napi::Function::New(env, ApplySettings);
+	exports["setExposure"] = Napi::Function::New(env, SetExposure);
 	exports["enableMessages"] = Napi::Function::New(env, EnableMessages);
 	exports["checkMessages"] = Napi::Function::New(env, CheckMessages);
 	exports["close"] = Napi::Function::New(env, Close);
