@@ -589,16 +589,32 @@ const accumulatedImage = {
 		// Calculate area under curve within set depletion bounds
 		let irOffSum = 0;
 		let irOnSum = 0;
+		let percentDepletion;
+		let stringToPrint;
+		// Getting time of calculation
+		let currentdate = new Date();
+		let datetime =
+			currentdate.getDate() +
+			"/" +
+			(currentdate.getMonth() + 1) +
+			"/" +
+			currentdate.getFullYear() +
+			" @ " +
+			currentdate.getHours() +
+			":" +
+			currentdate.getMinutes() +
+			":" +
+			currentdate.getSeconds();
 		for (let R = this.depletionLowerBound; R <= this.depletionUpperBound; R++) {
 			irOffSum += irIntensities[0][R];
 			irOnSum += irIntensities[1][R];
 		}
-		if (irOffSum > irOnSum) {
-			console.log("Percent Depletion:", (100 * (irOffSum - irOnSum)) / irOffSum, "%");
-		} else {
-			console.log("Percent Depletion:", (100 * (irOnSum - irOffSum)) / irOnSum, "%");
-		}
-		return [irOffSum, irOnSum];
+		percentDepletion = (100 * (irOffSum - irOnSum)) / irOffSum;
+		stringToPrint = "Percent Depletion: " + percentDepletion.toFixed(2).toString() + "%";
+		stringToPrint += "\nCalculated " + datetime;
+		stringToPrint += "\nIR Off Count: " + scanInfo.getTotalCount();
+		console.log(stringToPrint);
+		//return [irOffSum, irOnSum];
 	},
 	reset: function (image) {
 		// Resets the selected accumulated image
