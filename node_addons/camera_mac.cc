@@ -94,7 +94,7 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 		float centerY = imageCenterY + radius * cos(theta);
 		float widthX = (rand() % 50 + 100) / 10.0; // Randomly chooses widths btw 10.0 and 15.0 pixels (closer to real spot sizes)
 		float widthY = (rand() % 50 + 100) / 10.0;
-		float percentIntensity = (rand() % 60 + 50) / 100.0; // Choosing intensity btw 50% and 110%
+		float percentIntensity = (rand() % 60 + 0) / 100.0; // Choosing intensity btw 50% and 110%
 
 		// Add the spot to the image
 		for (int Y = centerY - 8; Y < centerY + 9; Y++)
@@ -365,11 +365,14 @@ void sendCentroids() {
 
 			float xCenter = img.Centroids(0, center, 0);
 			float yCenter = img.Centroids(0, center, 1);
+			float avgInt = img.Centroids(0, center, 2);
 			// Account for offsets
 			xCenter -= img.xLowerBound;
 			yCenter -= img.yLowerBound;
 			spot.Set(Napi::Number::New(env, 0), Napi::Number::New(env, xCenter));
 			spot.Set(Napi::Number::New(env, 1), Napi::Number::New(env, yCenter));
+			// Also include average pixel intensity
+			spot.Set(Napi::Number::New(env, 2), Napi::Number::New(env, avgInt));
 
 			// Add spot to centroidList
 			centroidList.Set(centroidCounter, spot);
@@ -388,11 +391,14 @@ void sendCentroids() {
 
 			float xCenter = img.Centroids(1, center, 0);
 			float yCenter = img.Centroids(1, center, 1);
+			float avgInt = img.Centroids(1, center, 2);
 			// Account for offsets
 			xCenter -= img.xLowerBound;
 			yCenter -= img.yLowerBound;
 			spot.Set(Napi::Number::New(env, 0), Napi::Number::New(env, xCenter));
 			spot.Set(Napi::Number::New(env, 1), Napi::Number::New(env, yCenter));
+			// Also include average pixel intensity
+			spot.Set(Napi::Number::New(env, 2), Napi::Number::New(env, avgInt));
 
 			// Add spot to centroidList
 			centroidList.Set(centroidCounter, spot);

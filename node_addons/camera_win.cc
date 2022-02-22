@@ -400,11 +400,14 @@ void sendCentroids() {
 
 			float xCenter = img.Centroids(0, center, 0);
 			float yCenter = img.Centroids(0, center, 1);
+			float avgInt = img.Centroids(0, center, 2);
 			// Account for offsets
 			xCenter -= img.xLowerBound;
 			yCenter -= img.yLowerBound;
 			spot.Set(Napi::Number::New(env, 0), Napi::Number::New(env, xCenter));
 			spot.Set(Napi::Number::New(env, 1), Napi::Number::New(env, yCenter));
+			// Also include average pixel intensity
+			spot.Set(Napi::Number::New(env, 2), Napi::Number::New(env, avgInt));
 
 			// Add spot to centroidList
 			centroidList.Set(centroidCounter, spot);
@@ -423,11 +426,14 @@ void sendCentroids() {
 
 			float xCenter = img.Centroids(1, center, 0);
 			float yCenter = img.Centroids(1, center, 1);
+			float avgInt = img.Centroids(1, center, 2);
 			// Account for offsets
 			xCenter -= img.xLowerBound;
 			yCenter -= img.yLowerBound;
 			spot.Set(Napi::Number::New(env, 0), Napi::Number::New(env, xCenter));
 			spot.Set(Napi::Number::New(env, 1), Napi::Number::New(env, yCenter));
+			// Also include average pixel intensity
+			spot.Set(Napi::Number::New(env, 2), Napi::Number::New(env, avgInt));
 
 			// Add spot to centroidList
 			centroidList.Set(centroidCounter, spot);

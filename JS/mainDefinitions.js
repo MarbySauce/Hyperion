@@ -685,6 +685,9 @@ const averageCount = {
 	prevTotalCounts: [],
 	prevCalcTimes: [],
 	LEDIntensities: [],
+	avgPixIntensity: new Array(550).fill(0),
+	avgPixIntCount: new Array(550).fill(0),
+	avgNormPixInt: new Array(550).fill(0),
 	updateCounter: 0, // Used to keep track of how many frames have
 	// been processed since the last time avg display was updated
 	updateFrequency: 10, // Number of frames before updating display
@@ -701,6 +704,8 @@ const averageCount = {
 		for (let i = 0; i < results.length; i++) {
 			this.add(arrays[i], results[i]);
 		}
+
+		this.updateAvgInt(centroidResults);
 	},
 	add: function (arr, el) {
 		// Adds element el to array arr and keeps arr at 10 elements
@@ -733,6 +738,44 @@ const averageCount = {
 		// We don't care about that, so filter those out
 		let IROnIntensities = this.LEDIntensities.filter((el) => Math.round(el) !== 1);
 		return this.getAverage(IROnIntensities).toFixed(2);
+	},
+	resetAvgInt: function () {
+		this.avgPixIntensity = new Array(550).fill(0);
+		this.avgPixIntCount = new Array(550).fill(0);
+		this.avgNormPixInt = new Array(550).fill(0);
+	},
+	updateAvgInt: function (centroidResults) {
+		let calculatedCenters = [centroidResults.CCLCenters, centroidResults.hybridCenters];
+		let numberOfCenters;
+		let xCenter;
+		let yCenter;
+		let avgInt;
+		let r;
+
+		for (let centroidMethod = 0; centroidMethod < 2; centroidMethod++) {
+			numberOfCenters = calculatedCenters[centroidMethod].length;
+			for (let center = 0; center < numberOfCenters; center++) {
+				xCenter = calculatedCenters[centroidMethod][center][0];
+				yCenter = calculatedCenters[centroidMethod][center][1];
+				avgInt = calculatedCenters[centroidMethod][center][2];
+				r = Math.round(Math.sqrt(Math.pow(accumulatedImage.imageCenterX - xCenter, 2) + Math.pow(accumulatedImage.imageCenterY - yCenter, 2)));
+				this.avgPixIntensity[r] += avgInt;
+				this.avgPixIntCount[r]++;
+				this.avgNormPixInt[r] = this.avgPixIntensity[r] / this.avgPixIntCount[r];
+			}
+		}
+	},
+	smoothAvgInt: function () {
+		for (let i = 1; i < 550 - 1; i++) {
+			this.avgNormPixInt[i] = (this.avgNormPixInt[i - 1] + this.avgNormPixInt[i] + this.avgNormPixInt[i + 1]) / 3;
+		}
+	},
+	displayAvgInt: function () {
+		this.smoothAvgInt();
+		const radius = Array.from({ length: 550 }, (v, i) => i);
+		IntensityGraph.data.labels = radius;
+		IntensityGraph.data.datasets[0].data = this.avgNormPixInt;
+		IntensityGraph.update("none");
 	},
 };
 

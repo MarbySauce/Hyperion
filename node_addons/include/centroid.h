@@ -283,9 +283,8 @@ void Centroid::calculateCentroids()
 	// Create the list containing the arrays of calculated centroids for each method
 	// Centroids[0] is the centroids calculated using the Connected Component Labeling method
 	// Centroids[1] is the centroids calculated using the hybrid method
-	//Centroids.assign(2);
-	CImg<float> CCLCenters(500, 2);
-	CImg<float> HybridCenters(500, 2);
+	CImg<float> CCLCenters(500, 3); // (xCenter, yCenter, avgPixIntensity)
+	CImg<float> HybridCenters(500, 3);
 	CCLCenters.fill(0);
 	HybridCenters.fill(0);
 
@@ -314,14 +313,16 @@ void Centroid::calculateCentroids()
 
 			if ((pixCount > 3) && (pixCount <= maxPix))
 			{ // Calculate CoM for spots of non-overlapping electrons
-				CCLCenters(CCLCount, 0) = (1.0 * xCOM) / (1.0 * norm);
-				CCLCenters(CCLCount, 1) = (1.0 * yCOM) / (1.0 * norm);
+				CCLCenters(CCLCount, 0) = (1.0 * xCOM) / (1.0 * norm);		// x center
+				CCLCenters(CCLCount, 1) = (1.0 * yCOM) / (1.0 * norm);		// y center
+				CCLCenters(CCLCount, 2) = (1.0 * norm) / (1.0 * pixCount);	// Average pixel intensity
 				CCLCount++;
 			}
 			else if (UseHybridMethod && pixCount > maxPix)
 			{ // Calculate local maxima of spots of overlapping electrons
 				int centerX = round((1.0 * xCOM) / (1.0 * norm));
 				int centerY = round((1.0 * yCOM) / (1.0 * norm));
+				float avgPixInt = (1.0 * norm) / (1.0 * pixCount);
 
 				// Create small window around spot to derive
 				int smallWindowSize = 40; // size of each side of the small window
@@ -417,6 +418,7 @@ void Centroid::calculateCentroids()
 					// Add centers to HybridCenters
 					HybridCenters(HybridCount, 0) = tempHybridCenters(k, 0);
 					HybridCenters(HybridCount, 1) = tempHybridCenters(k, 1);
+					HybridCenters(HybridCount, 2) = avgPixInt;
 					HybridCount++;
 				}
 			}
