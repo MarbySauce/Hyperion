@@ -103,13 +103,30 @@ used as comparison for LED area
 
 <br>
 
+## setTrigger(int trigger)
+
+> Parameters:
+>
+> > trigger - (Number) triggering mode. Argument values are:
+> >
+> > > 0 - No trigger  
+> > > 1 - Falling edge  
+> > > 2 - Rising edge  
+> > > 3 - Software trigger
+>
+> Returns: Boolean describing success of function call
+
+Set the triggering mode of the camera.
+
+<br>
+
 ## setExposure(double exposure)
 
 > Parameters:
 >
 > > exposure - (Number) exposure time (ms)
 >
-> Returns: Boolean describing success of funtion call
+> Returns: Boolean describing success of function call
 
 Set the camera exposure time. Before setting, it checks that the
 requested exposure time is within camera's bounds

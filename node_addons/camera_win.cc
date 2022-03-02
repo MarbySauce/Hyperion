@@ -295,7 +295,7 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 
 	// Allocate memory for images
 	// Fills pMem with image memory address
-	nRet = is_AllocImageMem(hCam, 1024, 768, 8, &camera.pMem, &camera.memID);
+	nRet = is_AllocImageMem(hCam, camera.width, camera.height, 8, &camera.pMem, &camera.memID);
 	if (nRet != IS_SUCCESS) {
 		std::cout << "Allocating memory failed with error: " << nRet << std::endl;
 		return Napi::Boolean::New(env, false);
@@ -352,7 +352,64 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 		std::cout << "Starting capture failed with error: " << nRet << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
+	
+	return Napi::Boolean::New(env, true);
+}
 
+// Set the camera trigger
+Napi::Boolean SetTrigger(Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	int argLength = info.Length(); // Number of arguments passed
+
+	// Check that only 1 argument is passed
+	if (argLength != 1) {
+		Napi::Error::New(env, "setExposure requires only 1 argument").
+			ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Check that the argument is a number
+	if (!info[0].IsNumber()) {
+		Napi::Error::New(env, "setExposure: Exposure must be a number").
+			ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Convert Napi number to C++ int
+	int trigger = (int)info[0].ToNumber().Int32Value();
+	INT triggerMode;
+
+	switch (trigger) {
+		case 0: // No trigger
+			triggerMode = IS_SET_TRIGGER_OFF;
+			break;
+		
+		case 1: // Falling edge
+			triggerMode = IS_SET_TRIGGER_HI_LO;
+			break;
+		
+		case 2: // Rising edge
+			triggerMode = IS_SET_TRIGGER_LO_HI;
+			break;
+		
+		case 3: // Software trigger
+			triggerMode = IS_SET_TRIGGER_SOFTWARE;
+			break;
+		
+		default: // Default to software trigger
+			triggerMode = IS_SET_TRIGGER_SOFTWARE;
+			break;
+	}
+
+	// Set the trigger mode
+	int nRet = is_SetExternalTrigger(hCam, triggerMode);
+	if (nRet != IS_SUCCESS) {
+		std::cout << "Setting trigger failed with error: " << nRet << std::endl;
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Return a success value
 	return Napi::Boolean::New(env, true);
 }
 
@@ -426,7 +483,7 @@ Napi::Boolean SetGain(Napi::CallbackInfo& info) {
 	}
 
 	// Convert Napi number to C++ int
-	int gain = (int)info[0].ToNumber().DoubleValue();
+	int gain = (int)info[0].ToNumber().Int32Value();
 
 	// Make sure desired gain is within range (0-100)
 	if (gain < 0 || gain > 100) {
