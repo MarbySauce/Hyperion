@@ -17,7 +17,8 @@ function UpdateAverageDisplays() {
 	const avgCountDisplay = document.getElementById("AvgECount");
 
 	if (averageCount.updateCounter === averageCount.updateFrequency) {
-		avgCountDisplay.value = averageCount.getTotalAverage();
+		//avgCountDisplay.value = averageCount.getTotalAverage();
+		avgCountDisplay.value = averageCount.getTotalIRAverage();
 
 		averageCount.updateCounter = 0;
 	} else {
@@ -221,6 +222,8 @@ const averageCount = {
 	prevCCLCounts: [],
 	prevHybridCounts: [],
 	prevTotalCounts: [],
+	prevTotalOnCounts: [], // Keeping track of IR on/off counts
+	prevTotalOffCounts: [],
 	updateCounter: 0, // Used to keep track of how many frames have
 	// been processed since the last time avg display was updated
 	updateFrequency: 10, // Number of frames before updating display
@@ -232,6 +235,11 @@ const averageCount = {
 		this.prevCCLCounts.push(ccl);
 		this.prevHybridCounts.push(hybrid);
 		this.prevTotalCounts.push(total);
+		if (centroidResults.isLEDon) {
+			this.prevTotalOnCounts.push(total);
+		} else {
+			this.prevTotalOffCounts.push(total);
+		}
 		// Make sure arrays are only 10 frames long
 		// by removing earliest frame
 		while (this.prevCCLCounts.length > 10) {
@@ -242,6 +250,12 @@ const averageCount = {
 		}
 		while (this.prevTotalCounts.length > 10) {
 			this.prevTotalCounts.shift();
+		}
+		while (this.prevTotalOnCounts.length > 10) {
+			this.prevTotalOnCounts.shift();
+		}
+		while (this.prevTotalOffCounts.length > 10) {
+			this.prevTotalOffCounts.shift();
 		}
 	},
 	getAverage: function (arr) {
@@ -259,6 +273,9 @@ const averageCount = {
 	},
 	getTotalAverage: function () {
 		return this.getAverage(this.prevTotalCounts).toFixed(2);
+	},
+	getTotalIRAverage: function () {
+		return this.getAverage(this.prevTotalOffCounts).toFixed(2) + ", " + this.getAverage(this.prevTotalOnCounts).toFixed(2);
 	},
 };
 
