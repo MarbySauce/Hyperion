@@ -718,21 +718,6 @@ function UpdateLaserWavelengthInput() {
 	}
 }
 
-/*
-Probably useful to create a unitConversions.js file to do all of these
-*/
-
-// Convert wavelength in nm to wavenumbers
-function convertNMtoWN(wavelength) {
-	return Math.pow(10, 7) / wavelength;
-}
-
-// Convert wavenumbers to wavelength in nm
-function convertWNtoNM(wavenumber) {
-	// It's the same as NMtoWN, but I think it's easier to read the code this way
-	return Math.pow(10, 7) / wavenumber;
-}
-
 // Switch between each of the accumulated images to display
 function SwitchAccumulatedImages() {
 	const IRImageDisplay = document.getElementById("IRImageDisplay");
