@@ -784,7 +784,7 @@ const laserInfo = {
 	detachmentMode: 0, // 0 is Standard, 1 is Doubled, 2 is Raman Shifter, 3 is IR-DFG
 	convertedWavelength: null,
 	convertedWavenumber: null,
-	YAGFundamental: 2 * 532.25, // Wavelength of Nd:YAG used for OPO/A
+	YAGFundamental: 1064.486, // Wavelength of Nd:YAG used for OPO/A (Measured 4/12/22)
 	nIRWavelength: null,
 	IRMode: 0, // 0 is nIR, 1 is iIR, 2 is mIR, 3 is fIR
 	IRConvertedWavelength: null,
