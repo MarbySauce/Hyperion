@@ -1,6 +1,12 @@
 const ipc = require("electron").ipcRenderer;
 const Chart = require("chart.js");
 
+
+////
+let DOIT = true;
+////
+
+
 // Startup
 window.onload = function () {
 	Startup();
@@ -67,6 +73,10 @@ ipc.on("new-camera-frame", function (event, centroidResults) {
 	if (scanInfo.running) {
 		scanInfo.update(centroidResults);
 		UpdateScanDisplays();
+	}
+
+	if (DOIT) {
+		doit();
 	}
 });
 
@@ -333,3 +343,13 @@ const scanInfo = {
 		return countString;
 	},
 };
+
+
+function doit() {
+	// Center at (526, 517) in (1024,1024)
+	// => (394, 388)
+	const LiveViewContext = document.getElementById("LiveVideoView").getContext("2d");
+
+	LiveViewContext.fillStyle = "red";
+	LiveViewContext.fillRect(392, 386, 5, 5);
+}

@@ -130,7 +130,7 @@ function createLVWindow() {
 	});
 
 	win.loadFile("HTML/LVWindow.html");
-	//win.webContents.openDevTools();
+	win.webContents.openDevTools();
 
 	LVWinOpen = true;
 
