@@ -18,6 +18,9 @@
 window.onload = function () {
 	//Startup();
 	// Moved startup until after settings file is read
+
+	// Send message to main process that the window is ready
+	ipc.send("main-window-ready", null);
 };
 
 // Tabs
