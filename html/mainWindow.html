@@ -9,7 +9,7 @@
 		<div id="TabBar">
 			<button class="tab" id="NormalMode">Normal Mode</button>
 			<button class="tab" id="IRMode">IR Mode</button>
-			<button class="tab" id="DepletionMode">Depletion Mode</button>
+			<button class="tab" id="IRActionMode">IR Action Mode</button>
 			<button class="tab" id="EMonitor">e<sup>-</sup> Monitor</button>
 			<button class="tab" id="PostProcess">Post Processing</button>
 			<button class="tab" id="Settings">Settings</button>
@@ -80,10 +80,6 @@
 				</header>
 				<div id="RecentScansSection"></div>
 			</div>
-			<!-- Depletion Mode Intensity(R) Plot -->
-			<div class="background-lighter-blue" id="IntensityGraphDisplay">
-				<canvas id="IntensityGraph"></canvas>
-			</div>
 			<div class="grid background-lighter-blue" id="ImageDisplay">
 				<h3 class="white-text">Accumulated View</h3>
 				<select class="square-button white-text" name="IRImageDisplay" id="IRImageDisplay">
@@ -115,6 +111,23 @@
 				<input class="input-read" id="TotalECountIROn" type="text" value="0" readonly />
 			</div>
 			<div class="pause-screen" id="PauseScreenCounters"></div>
+		</div>
+		<div id="IRActionModeContent">
+			<div class="first-page page" id="IRActionFirstPage">
+				<div class="grid background-lighter-blue" id="IRActionControls"></div>
+				<div class="grid background-lighter-blue" id="IRActionOptions"></div>
+				<div class="grid background-lighter-blue" id="IRAbsorptionPlot"></div>
+				<div class="grid background-lighter-blue" id="IRNextWavelength"></div>
+				<div class="grid background-lighter-blue" id="IRActionProgress"></div>
+				<button class="page-down page-button" id="IRActionPageDown"><i class="arrow arrow-down"></i></button>
+			</div>
+			<div class="second-page page" id="IRActionSecondPage">
+				<button class="page-up page-button" id="IRActionPageUp"><i class="arrow arrow-up"></i></button>
+				<div class="grid background-lighter-blue" id="IRActionInfo"></div>
+				<div class="grid background-lighter-blue" id="IRPreviousWavelengths"></div>
+				<div class="grid background-lighter-blue" id="IRActionImage"></div>
+				<div class="grid background-lighter-blue" id="IRActionSpectrum"></div>
+			</div>
 		</div>
 		<div id="EMonitorContent">
 			<div class="grid background-lighter-blue" id="EMonitorButtons">

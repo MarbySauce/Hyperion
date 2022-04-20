@@ -49,7 +49,7 @@ label {
 		"b0"
 		"NormalMode"
 		"IRMode"
-		"DepletionMode"
+		"IRActionMode"
 		"EMonitor"
 		"PostProcessing"
 		"b1"
@@ -85,8 +85,8 @@ label {
 	grid-area: IRMode;
 }
 
-#DepletionMode {
-	grid-area: DepletionMode;
+#IRActionMode {
+	grid-area: IRActionMode;
 }
 
 #EMonitor {
@@ -546,30 +546,6 @@ Left Side
 	/*color: whitesmoke;*/
 	color: white;
 }
-.depletion-mode #RecentScans {
-	display: none;
-}
-
-.normal-mode #IntensityGraphDisplay {
-	display: none;
-}
-.ir-mode #IntensityGraphDisplay {
-	display: none;
-}
-.ir-mode.depletion-mode #IntensityGraphDisplay {
-	display: grid;
-	grid-area: RecentScans;
-}
-#IntensityGraph {
-	background: lightgray;
-	max-height: 350px;
-	max-width: 550px;
-	border-radius: 10px;
-	border: 1.5px solid black;
-	padding: 10px;
-	align-self: center;
-	justify-self: center;
-}
 
 /* 
 End left side 
@@ -775,6 +751,128 @@ End right side
 */
 
 /* End Normal Mode Content */
+
+/*
+
+
+					IR Action Mode Content
+
+
+*/
+.page-button {
+	background: hsl(225, 20%, 35%);
+	border-radius: 7px;
+	border: none;
+}
+
+.page-down:hover {
+	background: linear-gradient(to bottom, hsl(225, 20%, 35%), hsl(225, 20%, 45%));
+}
+
+.page-up:hover {
+	background: linear-gradient(to top, hsl(225, 20%, 35%), hsl(225, 20%, 45%));
+}
+
+.arrow {
+	border: solid white;
+	border-width: 0 3px 3px 0;
+	display: inline-block;
+	padding: 3px;
+}
+
+.arrow-up {
+	transform: rotate(-135deg);
+	-webkit-transform: rotate(-135deg);
+}
+
+.arrow-down {
+	transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+}
+
+#IRActionModeContent {
+	grid-area: Content;
+	display: none; /* Set to none so that it looks cleaner on startup */
+}
+
+#IRActionFirstPage {
+	display: grid;
+	padding: 30px 20px 0 20px;
+	grid-gap: 20px;
+	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 30px;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"IRActionControls IRAbsorptionPlot"
+		"IRActionControls IRAbsorptionPlot"
+		"IRActionOptions IRAbsorptionPlot"
+		"IRActionOptions IRNextWavelength"
+		"IRActionOptions IRActionProgress"
+		"IRActionPageDown IRActionPageDown";
+}
+
+#IRActionControls {
+	grid-area: IRActionControls;
+}
+
+#IRActionOptions {
+	grid-area: IRActionOptions;
+	margin-bottom: -20px;
+}
+
+#IRAbsorptionPlot {
+	grid-area: IRAbsorptionPlot;
+}
+
+#IRNextWavelength {
+	grid-area: IRNextWavelength;
+}
+
+#IRActionProgress {
+	grid-area: IRActionProgress;
+	margin-bottom: -20px;
+}
+
+#IRActionPageDown {
+	grid-area: IRActionPageDown;
+	margin: 0 -20px;
+}
+
+#IRActionSecondPage {
+	display: none;
+	padding: 0 20px 30px 20px;
+	grid-gap: 20px;
+	grid-template-rows: 30px 1fr 1fr;
+	grid-template-columns: 0.8fr 0.16fr 1fr;
+	grid-template-areas:
+		"IRActionPageUp IRActionPageUp IRActionPageUp"
+		"IRActionInfo IRActionInfo IRActionImage"
+		"IRPreviousWavelengths IRActionSpectrum IRActionSpectrum";
+}
+
+#IRActionPageUp {
+	grid-area: IRActionPageUp;
+	margin: 0 -20px;
+}
+
+#IRActionInfo {
+	grid-area: IRActionInfo;
+	margin-top: -20px;
+}
+
+#IRPreviousWavelengths {
+	grid-area: IRPreviousWavelengths;
+}
+
+#IRActionImage {
+	grid-area: IRActionImage;
+	margin-top: -20px;
+}
+
+#IRActionSpectrum {
+	grid-area: IRActionSpectrum;
+}
+
+/* End IR Action Mode Content */
 
 /*
 
