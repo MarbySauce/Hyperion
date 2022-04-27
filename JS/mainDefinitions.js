@@ -9,6 +9,20 @@ const Chart = require("chart.js");
 // Addon libraries
 const wavemeter = require("bindings")("wavemeter");
 
+// Simple averaging wavelength function
+// Currently returns 0 instantly, need to add async/await or something
+function averageWavelength(avg_n) {
+	let average_amt = avg_n || 10;
+	let wavelength_sum = 0;
+	for (let n = 0; n < average_amt; n++) {
+		setTimeout(() => {
+			let wavelength = wavemeter.getWavelength();
+			wavelength_sum += wavelength;
+		}, 100);
+	}
+	return wavelength_sum / average_amt;
+}
+
 const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 	type: "line",
 	data: {
