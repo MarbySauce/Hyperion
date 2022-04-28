@@ -8,6 +8,7 @@ const ipc = require("electron").ipcRenderer;
 const Chart = require("chart.js");
 // Addon libraries
 const wavemeter = require("bindings")("wavemeter");
+const melexir = require("bindings")("melexir");
 
 // Simple averaging wavelength function
 // Currently returns 0 instantly, need to add async/await or something

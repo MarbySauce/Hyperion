@@ -130,7 +130,7 @@ function createLVWindow() {
 	});
 
 	win.loadFile("HTML/LVWindow.html");
-	win.webContents.openDevTools();
+	//win.webContents.openDevTools();
 
 	LVWinOpen = true;
 
@@ -154,7 +154,7 @@ function createInvisibleWindow() {
 	});
 
 	win.loadFile("HTML/InvisibleWindow.html");
-	win.webContents.openDevTools();
+	//win.webContents.openDevTools();
 
 	return win;
 }
