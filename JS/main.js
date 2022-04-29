@@ -168,7 +168,7 @@ app.whenReady().then(function () {
 
 	mainWin = createMainWindow();
 	invisibleWin = createInvisibleWindow();
-	LVWin = createLVWindow();
+	//LVWin = createLVWindow();
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) {
@@ -181,10 +181,10 @@ app.whenReady().then(function () {
 	// If one monitor is too small, Electron doesn't size windows well
 	// Fixed by rechanging the size after creation
 	mainWin.setSize(settings.information.windows.mainWindow.width, settings.information.windows.mainWindow.height);
-	LVWin.setSize(settings.information.windows.LVWindow.width, settings.information.windows.LVWindow.height);
+	//LVWin.setSize(settings.information.windows.LVWindow.width, settings.information.windows.LVWindow.height);
 
 	// Get rid of Live View menu bar
-	LVWin.removeMenu();
+	//LVWin.removeMenu();
 
 	// Send settings information to main window when ready
 	mainWin.on("ready-to-show", () => {
