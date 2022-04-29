@@ -7,7 +7,7 @@ const fs = require("fs");
 const ipc = require("electron").ipcRenderer;
 const Chart = require("chart.js");
 // Addon libraries
-const wavemeter = require("bindings")("wavemeter");
+//const wavemeter = require("bindings")("wavemeter");
 const melexir = require("bindings")("melexir");
 
 // Simple averaging wavelength function

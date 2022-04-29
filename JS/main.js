@@ -167,7 +167,7 @@ app.whenReady().then(function () {
 	nativeTheme.themeSource = "dark";
 
 	mainWin = createMainWindow();
-	invisibleWin = createInvisibleWindow();
+	//invisibleWin = createInvisibleWindow();
 	//LVWin = createLVWindow();
 
 	app.on("activate", function () {
@@ -257,12 +257,12 @@ ipcMain.on("UpdateSaveDirectory", function (event, arg) {
 
 // Tell invisible window to start centroiding
 ipcMain.on("StartCentroiding", function (event, arg) {
-	invisibleWin.webContents.send("StartCentroiding", null);
+	//invisibleWin.webContents.send("StartCentroiding", null);
 });
 
 // Tell invisible window to stop centroiding
 ipcMain.on("StopCentroiding", function (event, arg) {
-	invisibleWin.webContents.send("StopCentroiding", null);
+	//invisibleWin.webContents.send("StopCentroiding", null);
 });
 
 ipcMain.on("ScanUpdate", function (event, update) {
@@ -292,7 +292,7 @@ ipcMain.on("new-camera-frame", function (event, info) {
 // Turn hybrid method on and off
 ipcMain.on("HybridMethod", function (event, message) {
 	// Send message to invisible window
-	invisibleWin.webContents.send("HybridMethod", message);
+	//invisibleWin.webContents.send("HybridMethod", message);
 });
 
 // Update eChart axes on Live Video window
@@ -303,7 +303,7 @@ ipcMain.on("UpdateAxes", function (event, axisSizes) {
 
 // Close camera connection
 function SendCloseCameraMsg() {
-	invisibleWin.webContents.send("CloseCamera", null);
+	//invisibleWin.webContents.send("CloseCamera", null);
 }
 
 // Close the app after the camera is successfully closed
