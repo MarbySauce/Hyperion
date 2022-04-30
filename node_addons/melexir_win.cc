@@ -13,7 +13,6 @@ using namespace std;
 extern "C" {
     void setoptions_(char optString[], long int strLength);
     void checkoption_(char key[], int* iopt, double* fopt, bool* qopt, long int keyLength);
-    //void image2data_(double fimage[][50], int* ldf, int* nrow, int* ncol, double dat[], int* ldd);
     void image2data_(double fimage[], int* ldf, int* nrow, int* ncol, double dat[], int* ldd);
     void melexirdll_(double dat[], double sigma[], double fmap[], double base[], double datainv[], int* nr, int* nt);
 }
