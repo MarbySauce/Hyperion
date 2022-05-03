@@ -1223,6 +1223,8 @@ function checkCurrentFile() {
 function run_melexir(image) {
 	// First check that web workers are allowed
 	// 	(Probably not necessary)
+	console.time("Worker Creation");
+	console.time("Worker Execution");
 	if (window.Worker) {
 		const myWorker = new Worker('../JS/worker.js');
 		// Give the worker the image to process
@@ -1231,12 +1233,13 @@ function run_melexir(image) {
 		myWorker.onmessage = function(e) {
 			let results = e.data;
 			console.log(results);
+			console.timeEnd("Worker Execution");
 		}
 	} else {
 		console.log("Web Workers are not available");
 	}
+	console.timeEnd("Worker Creation");
 }
-
 
 function doit() {
 	if (doit_bool) {
