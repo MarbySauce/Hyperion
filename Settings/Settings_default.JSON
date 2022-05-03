@@ -1,0 +1,35 @@
+{
+	"camera": {
+		"xAoI": 768,
+		"yAoI": 768,
+		"xOffset": 100,
+		"yOffset": 0,
+		"exposureTime": 6,
+		"gain": 75,
+		"gainBoost": false,
+		"trigger": "Rising Edge",
+		"triggerDelay": 0
+	},
+	"centroid": { "accumulation": "Centroid", "hybridMethod": true, "binSize": 2200 },
+	"display": { "sliderValue": 0.5 },
+	"eChart": { "xAxisMax": 80, "yAxisMax": 30 },
+	"saveDirectory": {
+		"currentScan": "/Users/Marty_1/Documents/Programming/Hyperion/Images",
+		"currentScanShort": "./Images",
+		"previousScans": "./PreviousScans"
+	},
+	"windows": {
+		"mainWindow": {
+			"x": 0,
+			"y": 0,
+			"width": 1200,
+			"height": 1000
+		},
+		"LVWindow": {
+			"x": 0,
+			"y": 0,
+			"width": 1200,
+			"height": 820
+		}
+	}
+}
