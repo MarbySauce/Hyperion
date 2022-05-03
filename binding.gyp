@@ -17,14 +17,16 @@
 					"libraries": ["MaxEntAbel.lib"],
 					"link_settings": {
 						"library_dirs": [
-                            "C:\\Users\\sevi\\Documents\\data_current\\MaxEntAbel\\DLL"
+                            #"C:\\Users\\sevi\\Documents\\data_current\\MaxEntAbel\\DLL"
+							"C:\\MaxEntAbel\\DLL"
 						]
 					},
 					"include_dirs": [],
 					"copies": [
 						{
 							"destination": "<(module_root_dir)/build/Release/",
-							"files": ["C:\\Users\\sevi\\Documents\\data_current\\MaxEntAbel\\DLL\\MaxEntAbel.dll"]
+							#"files": ["C:\\Users\\sevi\\Documents\\data_current\\MaxEntAbel\\DLL\\MaxEntAbel.dll"]
+							"files": ["C:\\MaxEntAbel\\DLL\\MaxEntAbel.dll"]
 						}
 					],
                     "msvs_settings": {
