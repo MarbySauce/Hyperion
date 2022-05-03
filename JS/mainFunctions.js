@@ -1220,6 +1220,24 @@ function checkCurrentFile() {
 
 // ----------------------------------------------- //
 
+function run_melexir(image) {
+	// First check that web workers are allowed
+	// 	(Probably not necessary)
+	if (window.Worker) {
+		const myWorker = new Worker('../JS/worker.js');
+		// Give the worker the image to process
+		myWorker.postMessage(image);
+		// Wait for worker's response with results
+		myWorker.onmessage = function(e) {
+			let results = e.data;
+			console.log(results);
+		}
+	} else {
+		console.log("Web Workers are not available");
+	}
+}
+
+
 function doit() {
 	if (doit_bool) {
 		//const display = document.getElementById("Display");

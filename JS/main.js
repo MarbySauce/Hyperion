@@ -82,6 +82,7 @@ function createMainWindow() {
 		y: settings.information.windows.mainWindow.y,
 		webPreferences: {
 			nodeIntegration: true,
+			nodeIntegrationInWorker: true,
 			contextIsolation: false,
 			backgroundThrottling: false,
 		},
