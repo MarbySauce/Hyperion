@@ -88,6 +88,7 @@ function createMainWindow() {
 		},
 	});
 
+	/*
 	let menu = Menu.buildFromTemplate([
 		{
 			label: "Menu",
@@ -110,6 +111,7 @@ function createMainWindow() {
 		},
 	]);
 	Menu.setApplicationMenu(menu);
+	*/
 
 	win.loadFile("HTML/mainWindow.html");
 	win.webContents.openDevTools();
@@ -188,9 +190,9 @@ app.whenReady().then(function () {
 	//LVWin.removeMenu();
 
 	// Send settings information to main window when ready
-	mainWin.on("ready-to-show", () => {
-		mainWin.webContents.send("settings-information", settings.information);
-	})
+	//mainWin.on("ready-to-show", () => {
+	//	mainWin.webContents.send("settings-information", settings.information);
+	//})
 
 	// Close LV window when main window is closed
 	mainWin.on("close", function (event) {
@@ -222,6 +224,12 @@ app.on("window-all-closed", function () {
 //
 //		Messengers
 //
+
+// Main window is loaded, send the settings info
+ipcMain.on("main-window-ready", function (event, arg) {
+	mainWin.webContents.send("settings-information", settings.information);
+});
+
 ipcMain.on("UpdateSaveDirectory", function (event, arg) {
 	dialog
 		.showOpenDialog({

@@ -82,15 +82,14 @@ function startup() {
 	// Initialize emitter
 	camera.initEmitter(emitter.emit.bind(emitter));
 
-	
 	// Connect to the camera
 	nRet = camera.connect();
 	console.log("Connect to camera:", nRet);
-	
+
 	// Get camera info
 	let camInfo = camera.getInfo();
 	console.log("Camera info: ", camInfo);
-	
+
 	// Adjust camera settings
 	nRet = camera.applySettings();
 	console.log("Apply settings:", nRet);
@@ -108,6 +107,13 @@ function startup() {
 	// Set IR LED areas
 	camera.setLEDArea(0, 100, 250, 450); // (x-start, x-end, y-start, y-end)
 	camera.setNoiseArea(0, 100, 0, 250); // (x-start, x-end, y-start, y-end)
+
+	// Start processing images
+	if (camera.enableMessages()) {
+		console.log("Messages enabled");
+		checkMessageBool = true;
+		messageLoop();
+	}
 }
 
 function messageLoop() {
@@ -132,7 +138,7 @@ function closeCamera() {
 /*			Messengers				*/
 //
 
-ipc.on("StartCentroiding", function (event, arg) {
+ipc.on("StartCentroiding_NULL", function (event, arg) {
 	// Enable messages
 	setTimeout(() => {
 		if (camera.enableMessages()) {

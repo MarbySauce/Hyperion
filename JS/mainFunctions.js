@@ -18,6 +18,9 @@
 window.onload = function () {
 	//Startup();
 	// Moved startup until after settings file is read
+
+	// Send message to main process that the window is ready
+	ipc.send("main-window-ready", null);
 };
 
 // Tabs
@@ -29,7 +32,7 @@ document.getElementById("IRMode").onclick = function () {
 	// IR mode tab
 	SwitchTabs(1);
 };
-document.getElementById("DepletionMode").onclick = function () {
+document.getElementById("IRActionMode").onclick = function () {
 	// Depletion mode tab
 	SwitchTabs(2);
 };
@@ -142,6 +145,24 @@ document.getElementById("ResetCounters").onclick = function () {
 	// Reset counters button
 	scanCounters.reset();
 	UpdateScanCountDisplays();
+};
+
+/*		IR Action Mode		*/
+
+document.getElementById("IRActionPageDown").onclick = function () {
+	const firstPage = document.getElementById("IRActionFirstPage");
+	const secondPage = document.getElementById("IRActionSecondPage");
+
+	firstPage.style.display = "none";
+	secondPage.style.display = "grid";
+};
+
+document.getElementById("IRActionPageUp").onclick = function () {
+	const firstPage = document.getElementById("IRActionFirstPage");
+	const secondPage = document.getElementById("IRActionSecondPage");
+
+	firstPage.style.display = "grid";
+	secondPage.style.display = "none";
 };
 
 /*		e- Monitor		*/
@@ -272,7 +293,7 @@ function SwitchTabs(Tab) {
 	const tabList = [
 		document.getElementById("NormalMode"),
 		document.getElementById("IRMode"),
-		document.getElementById("DepletionMode"),
+		document.getElementById("IRActionMode"),
 		document.getElementById("EMonitor"),
 		document.getElementById("PostProcess"),
 		document.getElementById("Settings"),
@@ -282,7 +303,7 @@ function SwitchTabs(Tab) {
 	const contentList = [
 		document.getElementById("NormalModeContent"),
 		document.getElementById("NormalModeContent"),
-		document.getElementById("NormalModeContent"),
+		document.getElementById("IRActionModeContent"),
 		document.getElementById("EMonitorContent"),
 		document.getElementById("PostProcessContent"),
 		document.getElementById("SettingsContent"),
@@ -306,11 +327,11 @@ function SwitchTabs(Tab) {
 	pageInfo.currentTab = Tab;
 
 	// Activate Normal or IR tab
-	// IR and Depletion Mode are augmentations of Normal Mode
+	// IR is an augmentation of Normal Mode
 	// So we have to be a bit more careful here
-	if (Tab >= 0 && Tab <= 2) {
+	if (Tab == 0 || Tab == 1) {
 		// Hide other pages if shown
-		for (let i = 3; i < tabList.length; i++) {
+		for (let i = 2; i < tabList.length; i++) {
 			contentList[i].style.display = "none";
 		}
 		// Display Normal Mode's content
@@ -337,17 +358,6 @@ function SwitchTabs(Tab) {
 				contentList[Tab].classList.remove("normal-mode");
 				contentList[Tab].classList.remove("depletion-mode");
 				contentList[Tab].classList.add("ir-mode");
-				AddIRLabels();
-				break;
-			case 2:
-				if (!scanInfo.running) {
-					// Switch to depletion mode method if scan is not being taken
-					scanInfo.method = "depletion";
-				}
-				tabList[Tab].classList.add("pressed-tab");
-				contentList[Tab].classList.remove("normal-mode");
-				contentList[Tab].classList.add("ir-mode");
-				contentList[Tab].classList.add("depletion-mode");
 				AddIRLabels();
 				break;
 		}

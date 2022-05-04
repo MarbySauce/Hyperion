@@ -61,50 +61,6 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 	},
 });
 
-const IntensityGraph = new Chart(document.getElementById("IntensityGraph").getContext("2d"), {
-	type: "line",
-	data: {
-		datasets: [
-			{
-				label: "IR Off",
-				borderColor: "black",
-				borderWidth: 1,
-				borderJoinStyle: "round",
-			},
-			{
-				label: "IR On",
-				borderColor: "red",
-				borderWidth: 1,
-				borderJoinStyle: "round",
-			},
-		],
-	},
-	options: {
-		scales: {
-			y: {
-				title: {
-					text: "Electron Count",
-					color: "black",
-					display: true,
-				},
-			},
-			x: {
-				title: {
-					text: "Radius (px)",
-					color: "black",
-					display: true,
-				},
-			},
-		},
-		elements: {
-			point: {
-				radius: 0,
-			},
-		},
-		aspectRatio: 1.2,
-	},
-});
-
 const eChartData = {
 	running: false,
 	xAxisUpDisabled: false,
@@ -589,10 +545,6 @@ const accumulatedImage = {
 				}
 			}
 		}
-		IntensityGraph.data.labels = radius;
-		IntensityGraph.data.datasets[0].data = irOffIntensity;
-		IntensityGraph.data.datasets[1].data = irOnIntensity;
-		IntensityGraph.update("none");
 		return [irOffIntensity, irOnIntensity];
 	},
 	getDepletion: function () {
