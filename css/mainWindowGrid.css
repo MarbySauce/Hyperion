@@ -1,0 +1,407 @@
+/* 
+	This file is used to arrange each HTML element into a grid structure
+	to make sure it aligns well, especially when resizing the window. The
+	other element styles are specified in mainWindow.css
+*/
+
+/* NOTE TO MARTY: It might be better to split up the css files into one for each section (Sevi and IR Sevi could be in one) */
+
+body {
+	display: grid;
+	grid-template-columns: 1fr 15fr;
+	grid-template-areas: "TabBar Content";
+}
+
+/* Tabs */
+
+#TabBar {
+	grid-area: TabBar;
+	display: grid;
+	grid-template-rows: 0.5fr repeat(9, 1fr);
+	grid-row-gap: 10px;
+	grid-template-areas:
+		"b0"
+		"SeviMode"
+		"IRSeviMode"
+		"IRActionMode"
+		"EMonitor"
+		"b1"
+		"b1"
+		"b1"
+		"b1"
+		"Settings";
+}
+
+#SeviMode {
+	grid-area: SeviMode;
+}
+
+#IRSeviMode {
+	grid-area: IRSeviMode;
+}
+
+#IRActionMode {
+	grid-area: IRActionMode;
+}
+
+#EMonitor {
+	grid-area: EMonitor;
+}
+
+#Settings {
+	grid-area: Settings;
+}
+
+/* Sevi and IR Sevi Mode Content */
+
+#NormalModeContent {
+	grid-area: Content;
+	grid-template-columns: 10fr 9fr;
+	grid-template-rows: 1fr 1fr 3fr 1fr 3fr;
+	grid-template-areas:
+		"TitleSection ImageDisplay"
+		"ScanControls ImageDisplay"
+		"SaveControls ImageDisplay"
+		"RecentScans ImageDisplay"
+		"RecentScans Counters";
+}
+
+/* Left Side */
+
+#TitleSection {
+	grid-area: TitleSection;
+}
+
+#ScanControls {
+	grid-area: ScanControls;
+	grid-template-columns: repeat(3, 1fr);
+	grid-template-areas: "StartSave Pause SingleShot";
+}
+#StartSave {
+	grid-area: StartSave;
+}
+#Pause {
+	grid-area: Pause;
+}
+#SingleShot {
+	grid-area: SingleShot;
+}
+
+.sevi-mode #SaveControls {
+	grid-area: SaveControls;
+	grid-template-rows: 0.7fr 1fr 1.2fr 1.3fr;
+	grid-template-columns: 2fr 1fr 2fr repeat(7, 1fr);
+	grid-template-areas:
+		"CurrentFileName CurrentFileName CurrentFileName b0 b0 b0 b0 Increment Increment Increment"
+		"CurrentFile CurrentFile CurrentFile b1 b1 b1 b1 I0NCounterDown I0NCounter I0NCounterUp"
+		"CWDropdown CWLabel CurrentWavelength NMLabel ConvertedWavelength ConvertedWavelength NMLabel2 CurrentWavenumber CurrentWavenumber WNLabel"
+		"SDLabel SaveDirectory SaveDirectory SaveDirectory SaveDirectory SaveDirectory b4 b4 ChangeSaveDirectory ChangeSaveDirectory";
+	/* bn here is just a blank space */
+}
+.sevi-mode #IRWavelengthMode {
+	display: none;
+}
+.sevi-mode #CWLabelNIR {
+	display: none;
+}
+.sevi-mode #CurrentWavelengthNIR {
+	display: none;
+}
+.sevi-mode #NMLabelIR {
+	display: none;
+}
+.sevi-mode #ConvertedWavelengthIR {
+	display: none;
+}
+.sevi-mode #NMLabel2IR {
+	display: none;
+}
+.sevi-mode #CurrentWavenumberIR {
+	display: none;
+}
+.sevi-mode #WNLabelIR {
+	display: none;
+}
+.ir-mode #SaveControls {
+	grid-area: SaveControls;
+	grid-template-rows: 0.7fr 1fr 1.2fr 1.2fr 1.1fr;
+	grid-template-columns: 2fr 1fr 2fr repeat(7, 1fr);
+	grid-template-areas:
+		"CurrentFileName CurrentFileName CurrentFileName b0 b0 b0 b0 Increment Increment Increment"
+		"CurrentFile CurrentFile CurrentFile CurrentFile CurrentFile CurrentFile b1 I0NCounterDown I0NCounter I0NCounterUp"
+		"CWDropdown CWLabel CurrentWavelength NMLabel ConvertedWavelength ConvertedWavelength NMLabel2 CurrentWavenumber CurrentWavenumber WNLabel"
+		"CWDropdownIR CWLabelIR CurrentWavelengthIR NMLabelIR ConvertedWavelengthIR ConvertedWavelengthIR NMLabel2IR CurrentWavenumberIR CurrentWavenumberIR WNLabelIR"
+		"SDLabel SaveDirectory SaveDirectory SaveDirectory SaveDirectory SaveDirectory b4 b4 ChangeSaveDirectory ChangeSaveDirectory";
+	/* bn here is just a blank space */
+}
+.ir-mode #IRWavelengthMode {
+	grid-area: CWDropdownIR;
+}
+.ir-mode #CWLabelNIR {
+	grid-area: CWLabelIR;
+}
+.ir-mode #CurrentWavelengthNIR {
+	grid-area: CurrentWavelengthIR;
+}
+.ir-mode #NMLabelIR {
+	grid-area: NMLabelIR;
+}
+.ir-mode #ConvertedWavelengthIR {
+	grid-area: ConvertedWavelengthIR;
+}
+.ir-mode #NMLabel2IR {
+	grid-area: NMLabel2IR;
+}
+.ir-mode #CurrentWavenumberIR {
+	grid-area: CurrentWavenumberIR;
+}
+.ir-mode #WNLabelIR {
+	grid-area: WNLabelIR;
+}
+/* First row: Titles */
+#CurrentFileName {
+	grid-area: CurrentFileName;
+}
+#Increment {
+	grid-area: Increment;
+}
+/* Second row: File Naming */
+#CurrentFile {
+	grid-area: CurrentFile;
+}
+#I0NCounterDown {
+	grid-area: I0NCounterDown;
+}
+#I0NCounter {
+	grid-area: I0NCounter;
+}
+#I0NCounterUp {
+	grid-area: I0NCounterUp;
+}
+/* Third row: Current Wavelength */
+#WavelengthMode {
+	grid-area: CWDropdown;
+}
+#CWLabel {
+	grid-area: CWLabel;
+}
+#CurrentWavelength {
+	grid-area: CurrentWavelength;
+}
+#NMLabel {
+	grid-area: NMLabel;
+}
+#ConvertedWavelength {
+	grid-area: ConvertedWavelength;
+}
+#NMLabel2 {
+	grid-area: NMLabel2;
+}
+#CurrentWavenumber {
+	grid-area: CurrentWavenumber;
+}
+#WNLabel {
+	grid-area: WNLabel;
+}
+/* Fourth row: Save Directory */
+#SDLabel {
+	grid-area: SDLabel;
+}
+#SaveDirectory {
+	grid-area: SaveDirectory;
+}
+#ChangeSaveDirectory {
+	grid-area: ChangeSaveDirectory;
+}
+
+/* Right Side */
+
+.sevi-mode #ImageDisplay {
+	grid-area: ImageDisplay;
+	grid-template-rows: 1fr 14fr 1fr;
+	grid-template-areas:
+		"Title"
+		"Display"
+		"Slider";
+}
+.ir-mode #ImageDisplay {
+	grid-area: ImageDisplay;
+	grid-template-rows: 1fr 14fr 1fr;
+	grid-template-columns: 5.5fr 1.5fr;
+	grid-template-areas:
+		"Title IRImageDisplay"
+		"Display Display"
+		"Slider Slider";
+}
+.ir-mode #IRImageDisplay {
+	grid-area: IRImageDisplay;
+}
+/* Properties for whichever accumulated image is shown */
+/* NOTE TO MARTY: Holy fuck why are they all different canvas elements just use one */
+.active-display {
+	grid-area: Display;
+}
+#ImageDisplay h3 {
+	grid-area: Title;
+}
+/* NOTE TO MARTY: Rename this to DisplaySlider */
+#DisplaySlider1 {
+	grid-area: Slider;
+}
+
+.sevi-mode #Counters {
+	grid-area: Counters;
+	grid-template-rows: 1fr 1fr 1fr 0.8fr;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"TotalFramesLabel TotalFrames"
+		"TotalECountLabel TotalECount"
+		"AvgECountLabel AvgECount"
+		"blank ResetCounters";
+}
+.sevi-mode #TotalFramesLabel {
+	grid-area: TotalFramesLabel;
+}
+.sevi-mode #TotalFrames {
+	grid-area: TotalFrames;
+}
+.sevi-mode #TotalECountLabel {
+	grid-area: TotalECountLabel;
+}
+.sevi-mode #TotalECount {
+	grid-area: TotalECount;
+}
+.ir-mode #Counters {
+	grid-area: Counters;
+	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 0.8fr;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"TotalFramesLabelIROff TotalFramesIROff"
+		"TotalECountLabelIROff TotalECountIROff"
+		"TotalFramesLabelIROn TotalFramesIROn"
+		"TotalECountLabelIROn TotalECountIROn"
+		"AvgECountLabel AvgECount"
+		"blank ResetCounters";
+}
+.ir-mode #TotalFramesLabel {
+	grid-area: TotalFramesLabelIROff;
+}
+.ir-mode #TotalFrames {
+	grid-area: TotalFramesIROff;
+}
+.ir-mode #TotalFramesLabelIROn {
+	grid-area: TotalFramesLabelIROn;
+}
+.ir-mode #TotalFramesIROn {
+	grid-area: TotalFramesIROn;
+}
+.ir-mode #TotalECountLabel {
+	grid-area: TotalECountLabelIROff;
+}
+.ir-mode #TotalECount {
+	grid-area: TotalECountIROff;
+}
+.ir-mode #TotalECountLabelIROn {
+	grid-area: TotalECountLabelIROn;
+}
+.ir-mode #TotalECountIROn {
+	grid-area: TotalECountIROn;
+}
+/* Counters used in both modes */
+#AvgECountLabel {
+	grid-area: AvgECountLabel;
+}
+#AvgECount {
+	grid-area: AvgECount;
+}
+#ResetCounters {
+	grid-area: ResetCounters;
+}
+
+/* Pause "animation" */
+.paused #PauseScreenSaveControls {
+	grid-area: SaveControls;
+}
+.paused #PauseScreenDisplay {
+	grid-area: ImageDisplay;
+}
+.paused #PauseScreenCounters {
+	grid-area: Counters;
+}
+
+/* IR Action Mode Content */
+
+#IRActionModeContent {
+	grid-area: Content;
+}
+
+#IRActionFirstPage {
+	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 30px;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"IRActionControls IRAbsorptionPlot"
+		"IRActionControls IRAbsorptionPlot"
+		"IRActionOptions IRAbsorptionPlot"
+		"IRActionOptions IRNextWavelength"
+		"IRActionOptions IRActionProgress"
+		"IRActionPageDown IRActionPageDown";
+}
+
+#IRActionControls {
+	grid-area: IRActionControls;
+}
+
+#IRActionOptions {
+	grid-area: IRActionOptions;
+}
+
+#IRAbsorptionPlot {
+	grid-area: IRAbsorptionPlot;
+}
+
+#IRNextWavelength {
+	grid-area: IRNextWavelength;
+}
+
+#IRActionProgress {
+	grid-area: IRActionProgress;
+}
+
+#IRActionPageDown {
+	grid-area: IRActionPageDown;
+}
+
+#IRActionSecondPage {
+	grid-template-rows: 30px 1fr 1fr;
+	grid-template-columns: 0.8fr 0.16fr 1fr;
+	grid-template-areas:
+		"IRActionPageUp IRActionPageUp IRActionPageUp"
+		"IRActionInfo IRActionInfo IRActionImage"
+		"IRPreviousWavelengths IRActionSpectrum IRActionSpectrum";
+}
+
+#IRActionPageUp {
+	grid-area: IRActionPageUp;
+}
+
+#IRActionInfo {
+	grid-area: IRActionInfo;
+}
+
+#IRPreviousWavelengths {
+	grid-area: IRPreviousWavelengths;
+}
+
+#IRActionImage {
+	grid-area: IRActionImage;
+}
+
+#IRActionSpectrum {
+	grid-area: IRActionSpectrum;
+}
+
+/* Settings Content */
+
+#SettingsContent {
+	grid-area: Content;
+}
