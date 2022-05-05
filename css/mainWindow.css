@@ -69,9 +69,19 @@ label {
 
 */
 
-#NormalModeContent {
-	padding: 20px;
+/* NOTE TO MARTY: Maybe move these? Better to group ID's and classes */
+#SeviModeContent {
 	display: none; /* Set to none so that it looks cleaner on startup */
+}
+
+#SeviFirstPage {
+	padding: 30px 20px 0 20px;
+	grid-gap: 20px;
+}
+
+#SeviSecondPage {
+	display: none;
+	padding: 0 20px 30px 20px;
 	grid-gap: 20px;
 }
 
@@ -523,6 +533,7 @@ End right side
 	background: hsl(225, 20%, 35%);
 	border-radius: 7px;
 	border: none;
+	margin: 0 -20px;
 }
 
 .page-down:hover {
@@ -559,34 +570,10 @@ End right side
 	grid-gap: 20px;
 }
 
-#IRActionOptions {
-	margin-bottom: -20px;
-}
-
-#IRActionProgress {
-	margin-bottom: -20px;
-}
-
-#IRActionPageDown {
-	margin: 0 -20px;
-}
-
 #IRActionSecondPage {
 	display: none;
 	padding: 0 20px 30px 20px;
 	grid-gap: 20px;
-}
-
-#IRActionPageUp {
-	margin: 0 -20px;
-}
-
-#IRActionInfo {
-	margin-top: -20px;
-}
-
-#IRActionImage {
-	margin-top: -20px;
 }
 
 /* End IR Action Mode Content */
@@ -673,4 +660,14 @@ input::-webkit-inner-spin-button {
 /* Get rid of scroll bars */
 *::-webkit-scrollbar {
 	display: none;
+}
+
+/* NOTE TO MARTY: Putting random classes down here. Need to sort later */
+
+/* Negative margins to make room for page up / page down buttons */
+.negative-bottom-margin {
+	margin-bottom: -20px;
+}
+.negative-top-margin {
+	margin-top: -20px;
 }

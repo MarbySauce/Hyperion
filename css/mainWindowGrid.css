@@ -24,7 +24,7 @@ body {
 		"SeviMode"
 		"IRSeviMode"
 		"IRActionMode"
-		"EMonitor"
+		"b1"
 		"b1"
 		"b1"
 		"b1"
@@ -44,10 +44,6 @@ body {
 	grid-area: IRActionMode;
 }
 
-#EMonitor {
-	grid-area: EMonitor;
-}
-
 #Settings {
 	grid-area: Settings;
 }
@@ -56,14 +52,18 @@ body {
 
 #NormalModeContent {
 	grid-area: Content;
-	grid-template-columns: 10fr 9fr;
-	grid-template-rows: 1fr 1fr 3fr 1fr 3fr;
+}
+
+#SeviFirstPage {
+	grid-template-columns: 9fr 10fr;
+	grid-template-rows: 1fr 1fr 2fr 2fr 3fr 30px;
 	grid-template-areas:
 		"TitleSection ImageDisplay"
 		"ScanControls ImageDisplay"
+		"ScanControls ImageDisplay"
 		"SaveControls ImageDisplay"
-		"RecentScans ImageDisplay"
-		"RecentScans Counters";
+		"SaveControls Counters"
+		"SeviPageDown SeviPageDown";
 }
 
 /* Left Side */
@@ -318,6 +318,10 @@ body {
 	grid-area: ResetCounters;
 }
 
+#SeviPageDown {
+	grid-area: SeviPageDown;
+}
+
 /* Pause "animation" */
 .paused #PauseScreenSaveControls {
 	grid-area: SaveControls;
@@ -327,6 +331,31 @@ body {
 }
 .paused #PauseScreenCounters {
 	grid-area: Counters;
+}
+
+#SeviSecondPage {
+	grid-template-rows: 30px 7fr 8fr;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"SeviPageUp SeviPageUp"
+		"SpectrumDisplay SpectrumDisplay"
+		"RecentScans ElectronCountHistory";
+}
+
+#SeviPageUp {
+	grid-area: SeviPageUp;
+}
+
+#SpectrumDisplay {
+	grid-area: SpectrumDisplay;
+}
+
+#RecentScans {
+	grid-area: RecentScans;
+}
+
+#ElectronCountHistory {
+	grid-area: ElectronCountHistory;
 }
 
 /* IR Action Mode Content */

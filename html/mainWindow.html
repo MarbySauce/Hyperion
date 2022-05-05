@@ -11,24 +11,23 @@
 			<button class="tab" id="SeviMode">SEVI</button>
 			<button class="tab" id="IRSeviMode">IR SEVI</button>
 			<button class="tab" id="IRActionMode">IR Action Mode</button>
-			<button class="tab" id="EMonitor">e<sup>-</sup> Monitor</button>
 			<button class="tab" id="Settings">Settings</button>
 		</div>
 		<div class="sevi-mode" id="SeviModeContent">
 			<div class="first-page page grid" id="SeviFirstPage">
 				<div class="grid background-lighter-blue" id="TitleSection"></div>
 				<div class="grid background-lighter-blue" id="ScanControls"></div>
-				<div class="grid background-lighter-blue" id="SaveControls"></div>
+				<div class="grid background-lighter-blue negative-bottom-margin" id="SaveControls"></div>
 				<div class="grid background-lighter-blue" id="ImageDisplay"></div>
-				<div class="grid background-lighter-blue" id="Counters"></div>
-				<button class="page-down page-button" id="IRActionPageDown"><i class="arrow arrow-down"></i></button>
+				<div class="grid background-lighter-blue negative-bottom-margin" id="Counters"></div>
+				<button class="page-down page-button" id="SeviPageDown"><i class="arrow arrow-down"></i></button>
 				<div class="pause-screen" id="PauseScreenDisplay"></div>
-				<div class="pause-screen" id="PauseScreenSaveControls"></div>
-				<div class="pause-screen" id="PauseScreenCounters"></div>
+				<div class="pause-screen negative-bottom-margin" id="PauseScreenSaveControls"></div>
+				<div class="pause-screen negative-bottom-margin" id="PauseScreenCounters"></div>
 			</div>
 			<div class="second-page page grid" id="SeviSecondPage">
-				<button class="page-up page-button" id="IRActionPageUp"><i class="arrow arrow-up"></i></button>
-				<div class="grid background-lighter-blue" id="SpectrumDisplay"></div>
+				<button class="page-up page-button" id="SeviPageUp"><i class="arrow arrow-up"></i></button>
+				<div class="grid background-lighter-blue negative-top-margin" id="SpectrumDisplay"></div>
 				<div class="background-lighter-blue" id="RecentScans"></div>
 				<div class="background-lighter-blue" id="ElectronCountHistory"></div>
 			</div>
@@ -36,52 +35,18 @@
 		<div id="IRActionModeContent">
 			<div class="first-page page grid" id="IRActionFirstPage">
 				<div class="grid background-lighter-blue" id="IRActionControls"></div>
-				<div class="grid background-lighter-blue" id="IRActionOptions"></div>
+				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionOptions"></div>
 				<div class="grid background-lighter-blue" id="IRAbsorptionPlot"></div>
 				<div class="grid background-lighter-blue" id="IRNextWavelength"></div>
-				<div class="grid background-lighter-blue" id="IRActionProgress"></div>
+				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionProgress"></div>
 				<button class="page-down page-button" id="IRActionPageDown"><i class="arrow arrow-down"></i></button>
 			</div>
 			<div class="second-page page grid" id="IRActionSecondPage">
 				<button class="page-up page-button" id="IRActionPageUp"><i class="arrow arrow-up"></i></button>
-				<div class="grid background-lighter-blue" id="IRActionInfo"></div>
+				<div class="grid background-lighter-blue negative-top-margin" id="IRActionInfo"></div>
 				<div class="grid background-lighter-blue" id="IRPreviousWavelengths"></div>
-				<div class="grid background-lighter-blue" id="IRActionImage"></div>
+				<div class="grid background-lighter-blue negative-top-margin" id="IRActionImage"></div>
 				<div class="grid background-lighter-blue" id="IRActionSpectrum"></div>
-			</div>
-		</div>
-		<div id="EMonitorContent">
-			<!-- Should change the classes here to be lowercase, dash separated -->
-			<div class="grid background-lighter-blue" id="EMonitorButtons">
-				<button class="eChartButton square-button white-text" id="eChartStartStop">
-					<img class="eChartImage" id="eChartStartButtonImg" src="../ImageSrc/Play.png" />
-					<span id="eChartStartButtonText">Start</span>
-				</button>
-				<button class="eChartButton square-button white-text" id="eChartReset">Reset</button>
-			</div>
-			<div class="grid background-lighter-blue" id="EMonitorChart">
-				<div id="eChartYAxisButtons">
-					<button class="square-button white-text eChartAxis" id="eChartYAxisUp">+</button>
-					<input class="input-read eChartAxisLabel" id="eChartYAxis" readonly />
-					<button class="square-button white-text eChartAxis" id="eChartYAxisDown">-</button>
-				</div>
-				<canvas id="eChart"></canvas>
-				<div id="eChartXAxisButtons">
-					<button class="square-button white-text eChartAxis" id="eChartXAxisDown">-</button>
-					<input class="input-read eChartAxisLabel" id="eChartXAxis" readonly />
-					<button class="square-button white-text eChartAxis" id="eChartXAxisUp">+</button>
-				</div>
-			</div>
-			<div class="grid background-lighter-blue" id="EMonitorCounters">
-				<h1 class="white-text">Electron Count Monitor</h1>
-				<label class="white-text eChartLabel" id="eChartCCLAvgLabel" for="eChartCCLAvg">Average Isolated Spot Count:</label>
-				<input class="input-read eChartInput" id="eChartCCLAvg" type="number" readonly />
-				<label class="white-text eChartLabel" id="eChartHybridAvgLabel" for="eChartHybridAvg">Average Overlapping Spot Count:</label>
-				<input class="input-read eChartInput" id="eChartHybridAvg" type="number" readonly />
-				<label class="white-text eChartLabel" id="eChartTotalAvgLabel" for="eChartTotalAvg">Average Total Spot Count:</label>
-				<input class="input-read eChartInput" id="eChartTotalAvg" type="number" readonly />
-				<label class="white-text eChartLabel" id="eChartCalcTimeLabel" for="eChartCalcTime">Average Time to Calculate Centroids:</label>
-				<input class="input-read eChartInput" id="eChartCalcTime" type="text" readonly />
 			</div>
 		</div>
 		<div id="SettingsContent">
