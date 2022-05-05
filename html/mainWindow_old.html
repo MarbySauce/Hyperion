@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Hyperion</title>
+		<link href="../css/mainWindow.css" rel="stylesheet" />
+	</head>
+	<body>
+		<div id="TabBar">
+			<button class="tab" id="NormalMode">Normal Mode</button>
+			<button class="tab" id="IRMode">IR Mode</button>
+			<button class="tab" id="IRActionMode">IR Action Mode</button>
+			<button class="tab" id="EMonitor">e<sup>-</sup> Monitor</button>
+			<button class="tab" id="PostProcess">Post Processing</button>
+			<button class="tab" id="Settings">Settings</button>
+		</div>
+		<div class="normal-mode" id="NormalModeContent">
+			<div class="grid background-lighter-blue" id="TitleSection">
+				<h1 class="white-text">Hyperion</h1>
+			</div>
+			<div class="grid background-lighter-blue" id="ScanControls">
+				<button class="ScanButton square-button white-text" id="StartSave">
+					<img class="ScanImage" id="StartButtonImg" src="../ImageSrc/Play.png" /><span id="StartButtonText">Start</span>
+				</button>
+				<button class="ScanButton square-button white-text" id="Pause" disabled>
+					<img class="ScanImage" id="PauseButtonImg" src="../ImageSrc/Pause.png" /><span id="PauseButtonText">Pause</span>
+				</button>
+				<button class="ScanButton square-button white-text" id="SingleShot">Single Shot</button>
+			</div>
+			<div class="grid background-lighter-blue" id="SaveControls">
+				<!-- First row: Titles -->
+				<h4 class="white-text" id="CurrentFileName"><u>Current File Name</u></h4>
+				<h4 class="white-text" id="Increment"><u>Increment</u></h4>
+				<!-- Second row: File Naming -->
+				<input class="white-text" id="CurrentFile" />
+				<button class="I0NButton" id="I0NCounterDown">-</button>
+				<input class="input-change" type="number" value="1" id="I0NCounter" readonly />
+				<button class="I0NButton" id="I0NCounterUp">+</button>
+				<!-- Third row: Current Wavelength -->
+				<select class="square-button white-text" name="WavelengthMode" id="WavelengthMode">
+					<option value="Standard">Standard</option>
+					<option value="Doubled">Doubled</option>
+					<option value="Raman">Raman</option>
+					<option value="IRDFG">IR-DFG</option>
+				</select>
+				<label class="white-text" for="CurrentWavelength" id="CWLabel">h<em class="serif">ν</em>:</label>
+				<input class="input-change" id="CurrentWavelength" type="number" min="0" placeholder="Enter" />
+				<label class="white-text" id="NMLabel">nm</label>
+				<input class="input-change" id="ConvertedWavelength" type="number" placeholder="-" readonly />
+				<label class="white-text" id="NMLabel2">nm</label>
+				<input class="input-read" id="CurrentWavenumber" type="number" placeholder="-" readonly />
+				<label class="white-text" id="WNLabel">cm<sup>-1</sup></label>
+				<!-- IR Mode Wavelength Input -->
+				<select class="square-button white-text" name="IRWavelengthMode" id="IRWavelengthMode">
+					<option value="nIR">Near IR</option>
+					<option value="iIR">Inter. IR</option>
+					<option value="mIR">Mid IR</option>
+					<option value="fIR">Far IR</option>
+				</select>
+				<label class="white-text" for="CurrentWavelengthNIR" id="CWLabelNIR">h<em class="serif">ν</em>:</label>
+				<input class="input-change" id="CurrentWavelengthNIR" type="number" min="0" placeholder="Enter" />
+				<label class="white-text" id="NMLabelIR">nm</label>
+				<input class="input-change" id="ConvertedWavelengthIR" type="number" placeholder="-" readonly />
+				<label class="white-text" id="NMLabel2IR">nm</label>
+				<input class="input-read" id="CurrentWavenumberIR" type="number" placeholder="-" readonly />
+				<label class="white-text" id="WNLabelIR">cm<sup>-1</sup></label>
+				<!-- Fourth row: Save Directory -->
+				<label class="SaveRow4 white-text" for="SaveDirectory" id="SDLabel">Save to:</label>
+				<input class="SaveRow4 white-text" id="SaveDirectory" readonly />
+				<button class="SaveRow4 square-button white-text" id="ChangeSaveDirectory">Change</button>
+			</div>
+			<div class="pause-screen" id="PauseScreenSaveControls"></div>
+			<div class="background-lighter-blue" id="RecentScans">
+				<header>
+					<h4 class="white-text">File Name</h4>
+					<h4 class="white-text">h<em class="serif">ν</em> (nm)</h4>
+					<h4 class="white-text">h<em class="serif">ν</em> (cm<sup>-1</sup>)</h4>
+					<h4 class="white-text">Frame Count</h4>
+					<h4 class="white-text">e<sup>-</sup> Count</h4>
+				</header>
+				<div id="RecentScansSection"></div>
+			</div>
+			<div class="grid background-lighter-blue" id="ImageDisplay">
+				<h3 class="white-text">Accumulated View</h3>
+				<select class="square-button white-text" name="IRImageDisplay" id="IRImageDisplay">
+					<option value="IROff">IR Off</option>
+					<option value="IROn">IR On</option>
+					<option value="Difference">Difference</option>
+				</select>
+				<canvas class="active-display accumulated-image" id="Display" width="1024" height="1024"></canvas>
+				<!-- IR Mode Displays -->
+				<canvas class="inactive-display accumulated-image" id="DisplayIROff" width="1024" height="1024"></canvas>
+				<canvas class="inactive-display accumulated-image" id="DisplayIROn" width="1024" height="1024"></canvas>
+				<canvas class="inactive-display accumulated-image" id="DisplayIRDifference" width="1024" height="1024"></canvas>
+				<label for="DisplaySlider1">Contrast</label>
+				<input class="DisplaySlider" id="DisplaySlider1" type="range" min="0.05" max="1" step="0.05" value="0.5" />
+			</div>
+			<div class="pause-screen" id="PauseScreenDisplay"></div>
+			<div class="grid background-lighter-blue" id="Counters">
+				<label class="white-text" id="TotalFramesLabel" for="TotalFrames">Total Frames:</label>
+				<input class="input-read" id="TotalFrames" type="number" value="0" readonly />
+				<label class="white-text" id="TotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
+				<input class="input-read" id="TotalECount" type="text" value="0" readonly />
+				<label class="white-text" id="AvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
+				<input class="input-read" id="AvgECount" type="number" value="0" readonly />
+				<button class="square-button white-text" id="ResetCounters">Reset Counters</button>
+				<!-- IR Mode Counters -->
+				<label class="white-text" id="TotalFramesLabelIROn" for="TotalFramesIROn">Total Frames (IR On):</label>
+				<input class="input-read" id="TotalFramesIROn" type="number" value="0" readonly />
+				<label class="white-text" id="TotalECountLabelIROn" for="TotalECountIROn">Total e<sup>-</sup> Count (IR On):</label>
+				<input class="input-read" id="TotalECountIROn" type="text" value="0" readonly />
+			</div>
+			<div class="pause-screen" id="PauseScreenCounters"></div>
+		</div>
+		<div id="IRActionModeContent">
+			<div class="first-page page" id="IRActionFirstPage">
+				<div class="grid background-lighter-blue" id="IRActionControls"></div>
+				<div class="grid background-lighter-blue" id="IRActionOptions"></div>
+				<div class="grid background-lighter-blue" id="IRAbsorptionPlot"></div>
+				<div class="grid background-lighter-blue" id="IRNextWavelength"></div>
+				<div class="grid background-lighter-blue" id="IRActionProgress"></div>
+				<button class="page-down page-button" id="IRActionPageDown"><i class="arrow arrow-down"></i></button>
+			</div>
+			<div class="second-page page" id="IRActionSecondPage">
+				<button class="page-up page-button" id="IRActionPageUp"><i class="arrow arrow-up"></i></button>
+				<div class="grid background-lighter-blue" id="IRActionInfo"></div>
+				<div class="grid background-lighter-blue" id="IRPreviousWavelengths"></div>
+				<div class="grid background-lighter-blue" id="IRActionImage"></div>
+				<div class="grid background-lighter-blue" id="IRActionSpectrum"></div>
+			</div>
+		</div>
+		<div id="EMonitorContent">
+			<div class="grid background-lighter-blue" id="EMonitorButtons">
+				<button class="eChartButton square-button white-text" id="eChartStartStop">
+					<img class="eChartImage" id="eChartStartButtonImg" src="../ImageSrc/Play.png" />
+					<span id="eChartStartButtonText">Start</span>
+				</button>
+				<button class="eChartButton square-button white-text" id="eChartReset">Reset</button>
+			</div>
+			<div class="grid background-lighter-blue" id="EMonitorChart">
+				<div id="eChartYAxisButtons">
+					<button class="square-button white-text eChartAxis" id="eChartYAxisUp">+</button>
+					<input class="input-read eChartAxisLabel" id="eChartYAxis" readonly />
+					<button class="square-button white-text eChartAxis" id="eChartYAxisDown">-</button>
+				</div>
+				<canvas id="eChart"></canvas>
+				<div id="eChartXAxisButtons">
+					<button class="square-button white-text eChartAxis" id="eChartXAxisDown">-</button>
+					<input class="input-read eChartAxisLabel" id="eChartXAxis" readonly />
+					<button class="square-button white-text eChartAxis" id="eChartXAxisUp">+</button>
+				</div>
+			</div>
+			<div class="grid background-lighter-blue" id="EMonitorCounters">
+				<h1 class="white-text">Electron Count Monitor</h1>
+				<label class="white-text eChartLabel" id="eChartCCLAvgLabel" for="eChartCCLAvg">Average Isolated Spot Count:</label>
+				<input class="input-read eChartInput" id="eChartCCLAvg" type="number" readonly />
+				<label class="white-text eChartLabel" id="eChartHybridAvgLabel" for="eChartHybridAvg">Average Overlapping Spot Count:</label>
+				<input class="input-read eChartInput" id="eChartHybridAvg" type="number" readonly />
+				<label class="white-text eChartLabel" id="eChartTotalAvgLabel" for="eChartTotalAvg">Average Total Spot Count:</label>
+				<input class="input-read eChartInput" id="eChartTotalAvg" type="number" readonly />
+				<label class="white-text eChartLabel" id="eChartCalcTimeLabel" for="eChartCalcTime">Average Time to Calculate Centroids:</label>
+				<input class="input-read eChartInput" id="eChartCalcTime" type="text" readonly />
+			</div>
+		</div>
+		<div id="PostProcessContent"></div>
+		<div id="SettingsContent">
+			<h1 class="SettingsTitle">Settings</h1>
+			<div class="SettingsSection" id="CameraSettingsContent">
+				<h3 class="SettingsSectionTitle">Camera Settings</h3>
+				<br />
+				<label for="AoIx">AoI Width:</label>
+				<input type="number" class="AoI SettingsNumberInput input-change" id="AoIx" />
+				<label for="AoIy">AoI Height:</label>
+				<input type="number" class="AoI SettingsNumberInput input-change" id="AoIy" />
+				<br /><br />
+				<label for="xOffset">Offset Left:</label>
+				<input type="number" class="AoI SettingsNumberInput input-change" id="xOffset" />
+				<label for="yOffset">Offset Top:</label>
+				<input type="number" class="AoI SettingsNumberInput input-change" id="yOffset" />
+				<br /><br />
+				<label for="ExposureTime">Exposure Time:</label>
+				<input type="number" class="Exposure SettingsNumberInput input-change" id="ExposureTime" />
+				<label class="UnitLabel" for="ExposureTime">ms</label>
+				<label for="Gain">Gain:</label>
+				<input type="number" class="SettingsNumberInput input-change" id="Gain" min="0" max="100" />
+				<label class="UnitLabel" for="Gain">%</label>
+				<label for="GainBoost">Use Gain Boost:</label>
+				<input type="checkbox" id="GainBoost" />
+				<br /><br />
+				<label>Trigger:</label>
+				<label for="InternalTrigger">Internal Trigger</label>
+				<input type="radio" class="Trigger" name="Trigger" id="InternalTrigger" value="InternalTrigger" />
+				<label for="RisingEdge">Rising Edge</label>
+				<input type="radio" class="Trigger" name="Trigger" id="RisingEdge" value="RisingEdge" />
+				<label for="FallingEdge">Falling Edge</label>
+				<input type="radio" class="Trigger" name="Trigger" id="FallingEdge" value="FallingEdge" />
+				<br /><br />
+				<label for="TriggerDelay">Trigger Delay:</label>
+				<input type="number" class="SettingsNumberInput input-change" id="TriggerDelay" />
+				<label class="UnitLabel" for="TriggerDelay">ms</label>
+				<!--
+					flash settings
+					Location of IR light
+				-->
+			</div>
+			<div class="SettingsSection" id="CentroidingSettingsContent">
+				<h3 class="SettingsSectionTitle">Centroid Settings</h3>
+				<br />
+				<label for="RawAccumulation">Accumulate Raw Spots</label>
+				<input type="radio" name="CentroidAccumulationRadio" id="RawAccumulation" value="Raw" />
+				<label for="CentroidAccumulation">Accumulate Centroids</label>
+				<input type="radio" name="CentroidAccumulationRadio" id="CentroidAccumulation" value="Centroid" />
+				<br /><br />
+				<label for="HybridMethod">Use Hybrid Method</label>
+				<input type="checkbox" id="HybridMethod" />
+				<br /><br />
+				<label for="CentroidBinSize">Additional Centroid Binning Size:</label>
+				<input class="SettingsNumberInput input-change" id="CentroidBinSize" type="number" min="0" max="4096" />
+				<label class="UnitLabel" for="CentroidBinSize"><sup>2</sup></label>
+			</div>
+			<div class="SettingsSection" id="DisplaySettingsContent">
+				<!--
+					Show red circles for centroids
+					?Show e- graph or previous files on main page
+					Startup page size and location
+				-->
+			</div>
+			<div class="SettingSection" id="PostProcessSettingsContent">
+				<!--
+					Location of MEVELER stuff
+				-->
+			</div>
+			<div class="SettingsSection" id="SavingSettingsContent"></div>
+			<div class="SettingsSection" id="SaveButtonSection">
+				<!-- Add text that says "Saved!" when save button clicked -->
+				<button class="square-button white-text" id="SaveSettingsButton">Save</button>
+			</div>
+		</div>
+
+		<script src="../JS/mainDefinitions.js"></script>
+		<script src="../JS/mainFunctions.js"></script>
+	</body>
+</html>

@@ -1,0 +1,1138 @@
+/* 
+Main window dimensions:
+	width: 1200 px
+	height: 900 px
+
+margin and padding syntax: 
+	top left bottom right
+
+grid-template-areas defines where 
+	in grid to place items using keywords
+*/
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	font-family: helvetica;
+}
+
+html,
+body {
+	/*background: rgb(74, 85, 114);*/
+	background: hsl(225, 20%, 35%);
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	display: grid;
+	grid-template-columns: 1fr 15fr;
+	grid-template-areas: "TabBar Content";
+	overflow-y: hidden;
+}
+
+label {
+	/*color: whitesmoke;*/
+	color: white;
+}
+
+#TabBar {
+	grid-area: TabBar;
+	height: 100%;
+	padding: 30px 0;
+	background: hsl(225, 20%, 25%);
+	display: grid;
+	grid-template-rows: 0.5fr repeat(9, 1fr);
+	grid-row-gap: 10px;
+	grid-template-areas:
+		"b0"
+		"NormalMode"
+		"IRMode"
+		"IRActionMode"
+		"EMonitor"
+		"PostProcessing"
+		"b1"
+		"b1"
+		"b1"
+		"Settings";
+}
+
+/* Tabs */
+
+.tab {
+	padding: 3px;
+	text-align: center;
+	background: none;
+	border: none;
+	color: hsla(0, 70%, 100%, 0.7);
+}
+.tab:hover {
+	color: white;
+}
+
+.pressed-tab {
+	color: white;
+	border-left: 3px solid white;
+	/*background: hsl(225, 20%, 27%);*/
+}
+
+#NormalMode {
+	grid-area: NormalMode;
+}
+
+#IRMode {
+	grid-area: IRMode;
+}
+
+#IRActionMode {
+	grid-area: IRActionMode;
+}
+
+#EMonitor {
+	grid-area: EMonitor;
+}
+
+#PostProcess {
+	grid-area: PostProcessing;
+}
+
+#Settings {
+	grid-area: Settings;
+}
+
+/* 
+
+
+					Normal Mode Content
+
+
+*/
+
+#NormalModeContent {
+	grid-area: Content;
+	padding: 20px;
+	/*display: grid;*/
+	display: none; /* Set to none so that it looks cleaner on startup */
+	grid-gap: 20px;
+	grid-template-columns: 10fr 9fr;
+	grid-template-rows: 1fr 1fr 3fr 1fr 3fr;
+	grid-template-areas:
+		"TitleSection ImageDisplay"
+		"ScanControls ImageDisplay"
+		"SaveControls ImageDisplay"
+		"RecentScans ImageDisplay"
+		"RecentScans Counters";
+}
+
+.grid {
+	overflow: scroll;
+}
+
+.background-lighter-blue {
+	/*background: rgb(82, 92, 121);*/
+	background: hsl(225, 20%, 40%);
+	border-radius: 7px;
+}
+
+.white-text {
+	/*color: whitesmoke;*/
+	color: white;
+}
+
+.serif {
+	font-family: Garamond;
+	font-size: 1.4vw;
+}
+
+.square-button {
+	border-radius: 10px;
+	border: none;
+	background: hsla(225, 20%, 10%, 0.6);
+}
+.square-button:hover {
+	background: hsla(225, 20%, 25%, 1);
+	border: 1px solid hsla(0, 100%, 100%, 0.5);
+}
+.square-button:active {
+	background: hsla(225, 20%, 35%, 1);
+	border: 1px solid hsla(0, 100%, 100%, 0.7);
+}
+.square-button:disabled {
+	border: 1px solid hsla(0, 0%, 0%, 0.2);
+	background: hsla(225, 20%, 35%, 0.6);
+	opacity: 0.6;
+}
+
+.input-change,
+.input-read {
+	background: hsla(225, 20%, 80%, 1);
+	border: 1px solid hsla(225, 20%, 10%, 1);
+	border-radius: 3px;
+}
+.input-change:focus-visible {
+	border: 2px solid hsla(225, 20%, 100%, 1);
+	outline: none;
+}
+.input-read:focus-visible {
+	border: 1px solid hsla(225, 20%, 10%, 1);
+	outline: none;
+	outline-offset: 0;
+}
+
+.I0NButton {
+	width: 60%;
+	height: 60%;
+	justify-self: center;
+	border-radius: 100%;
+	border: none;
+	background: hsla(225, 20%, 10%, 0.6);
+	/*color: whitesmoke;*/
+	color: white;
+}
+.I0NButton:hover {
+	background: hsla(225, 20%, 25%, 1);
+	border: 1px solid hsla(0, 100%, 100%, 0.5);
+}
+.I0NButton:active {
+	background: hsla(225, 20%, 55%, 1);
+	border: 1px solid hsla(0, 100%, 100%, 0.7);
+}
+.I0NButton:disabled {
+	border: 1px solid hsla(0, 0%, 0%, 0.2);
+	background: hsla(225, 20%, 35%, 0.6);
+	opacity: 0.6;
+}
+
+.DisplaySlider {
+	-webkit-appearance: none;
+	background: hsla(225, 20%, 25%, 1);
+	height: 40%;
+	width: 80%;
+	border-radius: 5px;
+	margin-top: 2px;
+}
+
+.DisplaySlider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	height: 20px;
+	width: 20px;
+	border-radius: 20px;
+	background: hsla(225, 20%, 55%, 1);
+	border: 1px solid black;
+}
+/* Slider hover affects are controlled in mainFunctions.js */
+
+.HoverText {
+	padding: 2px;
+	visibility: hidden;
+	background: gray;
+	border: 1px solid red;
+	border-radius: 3px;
+}
+
+.noHover {
+	pointer-events: none;
+}
+
+/* 
+Left Side 
+*/
+
+/* Title Section */
+#TitleSection {
+	grid-area: TitleSection;
+	display: grid;
+	align-items: center;
+}
+#TitleSection h1 {
+	text-align: center;
+	font-size: 3.7vw;
+	font-family: "Libre Baskerville";
+	text-transform: uppercase;
+	/*color: gainsboro;*/
+	color: white;
+	letter-spacing: 0.1em;
+	text-shadow: black 0 0 5px;
+}
+
+/* Scan Controls */
+#ScanControls {
+	padding: 0 5%;
+	grid-area: ScanControls;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	grid-template-areas: "StartSave Pause SingleShot";
+	justify-items: center;
+	align-items: center;
+}
+.ScanButton {
+	width: 60%;
+	height: 60%;
+	font-size: 1.3vw;
+}
+.ScanImage {
+	width: 10px;
+	height: 10px;
+}
+#StartSave {
+	grid-area: StartSave;
+}
+#StartButtonText {
+	padding-left: 8px;
+}
+#Pause {
+	grid-area: Pause;
+}
+#PauseButtonText {
+	padding-left: 8px;
+}
+#SingleShot {
+	grid-area: SingleShot;
+}
+
+/* Save Controls */
+.normal-mode #SaveControls {
+	padding: 5px 20px 10px 20px;
+	grid-area: SaveControls;
+	display: grid;
+	grid-gap: 5px 2px;
+	grid-template-rows: 0.7fr 1fr 1.2fr 1.3fr;
+	grid-template-columns: 2fr 1fr 2fr repeat(7, 1fr);
+	grid-template-areas:
+		"CurrentFileName CurrentFileName CurrentFileName b0 b0 b0 b0 Increment Increment Increment"
+		"CurrentFile CurrentFile CurrentFile b1 b1 b1 b1 I0NCounterDown I0NCounter I0NCounterUp"
+		"CWDropdown CWLabel CurrentWavelength NMLabel ConvertedWavelength ConvertedWavelength NMLabel2 CurrentWavenumber CurrentWavenumber WNLabel"
+		"SDLabel SaveDirectory SaveDirectory SaveDirectory SaveDirectory SaveDirectory b4 b4 ChangeSaveDirectory ChangeSaveDirectory";
+	/* bn here is just a blank space */
+	align-items: center;
+}
+.normal-mode #IRWavelengthMode {
+	display: none;
+}
+.normal-mode #CWLabelNIR {
+	display: none;
+}
+.normal-mode #CurrentWavelengthNIR {
+	display: none;
+}
+.normal-mode #NMLabelIR {
+	display: none;
+}
+.normal-mode #ConvertedWavelengthIR {
+	display: none;
+}
+.normal-mode #NMLabel2IR {
+	display: none;
+}
+.normal-mode #CurrentWavenumberIR {
+	display: none;
+}
+.normal-mode #WNLabelIR {
+	display: none;
+}
+.ir-mode #SaveControls {
+	padding: 5px 15px 5px 15px;
+	grid-area: SaveControls;
+	display: grid;
+	grid-gap: 5px 2px;
+	grid-template-rows: 0.7fr 1fr 1.2fr 1.2fr 1.1fr;
+	grid-template-columns: 2fr 1fr 2fr repeat(7, 1fr);
+	grid-template-areas:
+		"CurrentFileName CurrentFileName CurrentFileName b0 b0 b0 b0 Increment Increment Increment"
+		"CurrentFile CurrentFile CurrentFile CurrentFile CurrentFile CurrentFile b1 I0NCounterDown I0NCounter I0NCounterUp"
+		"CWDropdown CWLabel CurrentWavelength NMLabel ConvertedWavelength ConvertedWavelength NMLabel2 CurrentWavenumber CurrentWavenumber WNLabel"
+		"CWDropdownIR CWLabelIR CurrentWavelengthIR NMLabelIR ConvertedWavelengthIR ConvertedWavelengthIR NMLabel2IR CurrentWavenumberIR CurrentWavenumberIR WNLabelIR"
+		"SDLabel SaveDirectory SaveDirectory SaveDirectory SaveDirectory SaveDirectory b4 b4 ChangeSaveDirectory ChangeSaveDirectory";
+	/* bn here is just a blank space */
+	align-items: center;
+}
+.ir-mode #IRWavelengthMode {
+	grid-area: CWDropdownIR;
+	height: 50%;
+	padding-left: 3px;
+}
+#IRWavelengthMode:focus-visible {
+	outline: none;
+}
+.ir-mode #CWLabelNIR {
+	text-align: right;
+	padding-right: 5px;
+	grid-area: CWLabelIR;
+}
+.ir-mode #CurrentWavelengthNIR {
+	text-align: center;
+	width: 100%;
+	height: 60%;
+	grid-area: CurrentWavelengthIR;
+}
+.ir-mode #NMLabelIR {
+	padding-left: 3px;
+	grid-area: NMLabelIR;
+}
+.ir-mode #ConvertedWavelengthIR {
+	text-align: center;
+	width: 100%;
+	height: 60%;
+	grid-area: ConvertedWavelengthIR;
+}
+.ir-mode #NMLabel2IR {
+	padding-left: 3px;
+	grid-area: NMLabel2IR;
+}
+.ir-mode #CurrentWavenumberIR {
+	text-align: center;
+	width: 100%;
+	height: 60%;
+	grid-area: CurrentWavenumberIR;
+}
+.ir-mode #WNLabelIR {
+	padding-left: 3px;
+	grid-area: WNLabelIR;
+}
+#SaveControls h4 {
+	font-size: 1.5vw;
+	text-align: center;
+	align-self: end;
+}
+#SaveControls label {
+	font-size: 1.4vw;
+}
+#SaveControls button {
+	font-size: 1.35vw;
+}
+/* First row: Titles */
+#CurrentFileName {
+	grid-area: CurrentFileName;
+}
+#Increment {
+	grid-area: Increment;
+}
+/* Second row: File Naming */
+#CurrentFile {
+	height: 70%;
+	font-size: 1.3vw;
+	text-align: center;
+	background: inherit;
+	border: 1px solid rgb(62, 71, 95);
+	grid-area: CurrentFile;
+}
+#I0NCounterDown {
+	grid-area: I0NCounterDown;
+}
+#I0NCounter {
+	width: 100%;
+	height: 70%;
+	text-align: center;
+	grid-area: I0NCounter;
+}
+#I0NCounterUp {
+	grid-area: I0NCounterUp;
+}
+/* Third row: Current Wavelength */
+#WavelengthMode {
+	grid-area: CWDropdown;
+	height: 50%;
+	padding-left: 3px;
+}
+#WavelengthMode:focus-visible {
+	outline: none;
+}
+#CWLabel {
+	text-align: right;
+	padding-right: 5px;
+	grid-area: CWLabel;
+}
+#CurrentWavelength {
+	text-align: center;
+	width: 100%;
+	height: 60%;
+	grid-area: CurrentWavelength;
+}
+#NMLabel {
+	padding-left: 3px;
+	grid-area: NMLabel;
+}
+#ConvertedWavelength {
+	grid-area: ConvertedWavelength;
+	text-align: center;
+	width: 100%;
+	height: 60%;
+}
+#NMLabel2 {
+	padding-left: 3px;
+	grid-area: NMLabel2;
+}
+#CurrentWavenumber {
+	text-align: center;
+	width: 100%;
+	height: 60%;
+	grid-area: CurrentWavenumber;
+}
+#WNLabel {
+	padding-left: 3px;
+	grid-area: WNLabel;
+}
+/* Fourth row: Save Directory */
+.SaveRow4 {
+	height: 50%;
+	opacity: 0.7;
+	align-self: end;
+}
+.ir-mode #SDLabel {
+	height: 50%;
+}
+#SDLabel {
+	height: 40%;
+	text-align: right;
+	padding-right: 10px;
+	grid-area: SDLabel;
+}
+#SaveDirectory {
+	grid-area: SaveDirectory;
+	background: inherit;
+	padding-left: 10px;
+	border: 1px solid rgb(62, 71, 95);
+}
+#ChangeSaveDirectory {
+	grid-area: ChangeSaveDirectory;
+}
+
+#PauseScreenSaveControls {
+	display: none;
+}
+.paused #PauseScreenSaveControls {
+	display: block;
+	grid-area: SaveControls;
+	z-index: 1;
+	background: hsla(225, 20%, 55%, 0.6);
+	border-radius: 7px;
+}
+
+/* Recent Scans */
+#RecentScans {
+	padding: 0 25px 5px 25px;
+	grid-area: RecentScans;
+	display: grid;
+	grid-template-rows: 1fr 5fr;
+}
+#RecentScans header {
+	padding-bottom: 10px;
+	z-index: 5;
+	border-bottom: black;
+	display: grid;
+	grid-template-columns: 1.7fr 1fr 1fr 1fr 1fr;
+}
+#RecentScans h4 {
+	text-align: center;
+	align-self: end;
+	font-size: 1.3vw;
+}
+#RecentScansSection {
+	overflow: scroll;
+	max-height: 280px;
+	display: grid;
+	padding-top: 5px;
+	border: 2px solid rgb(62, 71, 95);
+	grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr;
+	grid-auto-rows: 35px;
+}
+#RecentScans p {
+	text-align: center;
+	font-size: 1.3vw;
+	padding-top: 7px;
+	height: 100%;
+	border-bottom: 1px dotted rgb(62, 71, 95);
+	/*color: whitesmoke;*/
+	color: white;
+}
+
+/* 
+End left side 
+*/
+
+/* 
+Right Side 
+*/
+
+/* Image Display */
+.normal-mode #ImageDisplay {
+	padding: 5px 5px;
+	display: grid;
+	grid-gap: 10px;
+	grid-area: ImageDisplay;
+	grid-template-rows: 1fr 14fr 1fr;
+	grid-template-areas:
+		"Title"
+		"Display"
+		"Slider";
+}
+.normal-mode #IRImageDisplay {
+	display: none;
+}
+.ir-mode #ImageDisplay {
+	padding: 5px 5px;
+	display: grid;
+	grid-gap: 10px;
+	grid-area: ImageDisplay;
+	grid-template-rows: 1fr 14fr 1fr;
+	grid-template-columns: 5.5fr 1.5fr;
+	grid-template-areas:
+		"Title IRImageDisplay"
+		"Display Display"
+		"Slider Slider";
+	/*"Label Slider";*/
+}
+.ir-mode #IRImageDisplay {
+	text-align: center;
+	grid-area: IRImageDisplay;
+}
+#IRImageDisplay:focus-visible {
+	outline: none;
+}
+.active-display {
+	height: 52vh;
+	aspect-ratio: 1 / 1;
+	background: white;
+	border-radius: 10px;
+	grid-area: Display;
+	justify-self: center;
+}
+.inactive-display {
+	display: none;
+}
+#ImageDisplay h3 {
+	text-align: center;
+	grid-area: Title;
+	align-self: end;
+}
+.ir-mode #ImageDisplay h3 {
+	padding-left: 30%;
+}
+#ImageDisplay label {
+	text-align: center;
+	grid-area: Label;
+	align-self: center;
+	display: none;
+}
+#DisplaySlider1 {
+	grid-area: Slider;
+	justify-self: center;
+}
+
+#PauseScreenDisplay {
+	display: none;
+}
+.paused #PauseScreenDisplay {
+	display: block;
+	grid-area: ImageDisplay;
+	z-index: 1;
+	background: hsla(225, 20%, 55%, 0.6);
+	border-radius: 7px;
+}
+
+/* Electron & Frame Counters */
+#Counters label {
+	font-size: 1.5vw;
+	text-align: right;
+}
+#Counters input {
+	font-size: 1.3vw;
+	text-align: center;
+	width: 50%;
+}
+/* Counters for Normal scanning mode */
+.normal-mode #Counters {
+	padding: 20px 50px;
+	grid-area: Counters;
+	display: grid;
+	grid-gap: 0 20px;
+	grid-template-rows: 1fr 1fr 1fr 0.8fr;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"TotalFramesLabel TotalFrames"
+		"TotalECountLabel TotalECount"
+		"AvgECountLabel AvgECount"
+		"blank ResetCounters";
+	align-items: center;
+}
+.normal-mode #TotalFramesLabel {
+	grid-area: TotalFramesLabel;
+}
+.normal-mode #TotalFrames {
+	grid-area: TotalFrames;
+}
+.normal-mode #TotalFramesLabelIROn {
+	display: none;
+}
+.normal-mode #TotalFramesIROn {
+	display: none;
+}
+.normal-mode #TotalECountLabel {
+	grid-area: TotalECountLabel;
+}
+.normal-mode #TotalECount {
+	grid-area: TotalECount;
+}
+.normal-mode #TotalECountLabelIROn {
+	display: none;
+}
+.normal-mode #TotalECountIROn {
+	display: none;
+}
+/* Counters for IR On/Off Scanning */
+.ir-mode #Counters {
+	padding: 20px 50px;
+	grid-area: Counters;
+	display: grid;
+	grid-gap: 0 20px;
+	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 0.8fr;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"TotalFramesLabelIROff TotalFramesIROff"
+		"TotalECountLabelIROff TotalECountIROff"
+		"TotalFramesLabelIROn TotalFramesIROn"
+		"TotalECountLabelIROn TotalECountIROn"
+		"AvgECountLabel AvgECount"
+		"blank ResetCounters";
+	align-items: center;
+}
+.ir-mode #TotalFramesLabel {
+	grid-area: TotalFramesLabelIROff;
+}
+.ir-mode #TotalFrames {
+	grid-area: TotalFramesIROff;
+}
+.ir-mode #TotalFramesLabelIROn {
+	grid-area: TotalFramesLabelIROn;
+}
+.ir-mode #TotalFramesIROn {
+	grid-area: TotalFramesIROn;
+}
+.ir-mode #TotalECountLabel {
+	grid-area: TotalECountLabelIROff;
+}
+.ir-mode #TotalECount {
+	grid-area: TotalECountIROff;
+}
+.ir-mode #TotalECountLabelIROn {
+	grid-area: TotalECountLabelIROn;
+}
+.ir-mode #TotalECountIROn {
+	grid-area: TotalECountIROn;
+}
+/* Counters used in both modes */
+#AvgECountLabel {
+	grid-area: AvgECountLabel;
+}
+#AvgECount {
+	grid-area: AvgECount;
+}
+#ResetCounters {
+	width: 50%;
+	height: 80%;
+	font-size: 1vw;
+	grid-area: ResetCounters;
+}
+
+#PauseScreenCounters {
+	display: none;
+}
+.paused #PauseScreenCounters {
+	display: block;
+	grid-area: Counters;
+	z-index: 1;
+	background: hsla(225, 20%, 55%, 0.6);
+	border-radius: 7px;
+}
+
+/* 
+End right side 
+*/
+
+/* End Normal Mode Content */
+
+/*
+
+
+					IR Action Mode Content
+
+
+*/
+.page-button {
+	background: hsl(225, 20%, 35%);
+	border-radius: 7px;
+	border: none;
+}
+
+.page-down:hover {
+	background: linear-gradient(to bottom, hsl(225, 20%, 35%), hsl(225, 20%, 45%));
+}
+
+.page-up:hover {
+	background: linear-gradient(to top, hsl(225, 20%, 35%), hsl(225, 20%, 45%));
+}
+
+.arrow {
+	border: solid white;
+	border-width: 0 3px 3px 0;
+	display: inline-block;
+	padding: 3px;
+}
+
+.arrow-up {
+	transform: rotate(-135deg);
+	-webkit-transform: rotate(-135deg);
+}
+
+.arrow-down {
+	transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+}
+
+#IRActionModeContent {
+	grid-area: Content;
+	display: none; /* Set to none so that it looks cleaner on startup */
+}
+
+#IRActionFirstPage {
+	display: grid;
+	padding: 30px 20px 0 20px;
+	grid-gap: 20px;
+	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 30px;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"IRActionControls IRAbsorptionPlot"
+		"IRActionControls IRAbsorptionPlot"
+		"IRActionOptions IRAbsorptionPlot"
+		"IRActionOptions IRNextWavelength"
+		"IRActionOptions IRActionProgress"
+		"IRActionPageDown IRActionPageDown";
+}
+
+#IRActionControls {
+	grid-area: IRActionControls;
+}
+
+#IRActionOptions {
+	grid-area: IRActionOptions;
+	margin-bottom: -20px;
+}
+
+#IRAbsorptionPlot {
+	grid-area: IRAbsorptionPlot;
+}
+
+#IRNextWavelength {
+	grid-area: IRNextWavelength;
+}
+
+#IRActionProgress {
+	grid-area: IRActionProgress;
+	margin-bottom: -20px;
+}
+
+#IRActionPageDown {
+	grid-area: IRActionPageDown;
+	margin: 0 -20px;
+}
+
+#IRActionSecondPage {
+	display: none;
+	padding: 0 20px 30px 20px;
+	grid-gap: 20px;
+	grid-template-rows: 30px 1fr 1fr;
+	grid-template-columns: 0.8fr 0.16fr 1fr;
+	grid-template-areas:
+		"IRActionPageUp IRActionPageUp IRActionPageUp"
+		"IRActionInfo IRActionInfo IRActionImage"
+		"IRPreviousWavelengths IRActionSpectrum IRActionSpectrum";
+}
+
+#IRActionPageUp {
+	grid-area: IRActionPageUp;
+	margin: 0 -20px;
+}
+
+#IRActionInfo {
+	grid-area: IRActionInfo;
+	margin-top: -20px;
+}
+
+#IRPreviousWavelengths {
+	grid-area: IRPreviousWavelengths;
+}
+
+#IRActionImage {
+	grid-area: IRActionImage;
+	margin-top: -20px;
+}
+
+#IRActionSpectrum {
+	grid-area: IRActionSpectrum;
+}
+
+/* End IR Action Mode Content */
+
+/*
+
+
+					e- Monitor Content
+
+
+*/
+
+#EMonitorContent {
+	grid-area: Content;
+	padding: 20px;
+	/*display: grid;*/
+	display: none; /* Set to none so that it looks cleaner on startup */
+	grid-gap: 20px;
+	grid-template-rows: 1fr 5fr;
+	grid-template-columns: 2fr 1fr;
+	grid-template-areas:
+		"Buttons Counters"
+		"Chart Counters";
+}
+
+/* Buttons */
+#EMonitorButtons {
+	padding: 5% 7%;
+	grid-area: Buttons;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-areas: "StartStop Reset";
+	justify-items: center;
+	align-items: center;
+}
+.eChartButton {
+	width: 40%;
+	height: 90%;
+	font-size: 1.3vw;
+}
+.eChartImage {
+	width: 10px;
+	height: 10px;
+}
+#eChartStartStop {
+	grid-area: StartStop;
+}
+#eChartStartButtonText {
+	padding-left: 8px;
+}
+#eChartReset {
+	grid-area: Reset;
+}
+
+/* Chart */
+#EMonitorChart {
+	grid-area: Chart;
+	padding: 20px;
+	display: grid;
+	grid-template-rows: 9fr 0.7fr;
+	grid-template-columns: 0.7fr 9fr;
+	grid-template-areas:
+		"YButtons Chart"
+		"b0 XButtons";
+}
+#eChart {
+	background: lightgray;
+	max-height: 650px;
+	max-width: 650px;
+	border-radius: 10px;
+	border: 1.5px solid black;
+	padding: 10px;
+	grid-area: Chart;
+	align-self: center;
+	justify-self: center;
+}
+#eChartYAxisButtons {
+	grid-area: YButtons;
+	padding: 260px 10px;
+	display: grid;
+	grid-template-rows: 1fr 1.4fr 1fr;
+	align-items: center;
+	justify-items: center;
+}
+#eChartXAxisButtons {
+	grid-area: XButtons;
+	padding: 10px 260px;
+	display: grid;
+	grid-template-columns: 1fr 1.4fr 1fr;
+	align-items: center;
+	justify-items: center;
+}
+.eChartAxis {
+	width: 30px;
+	height: 30px;
+}
+.eChartAxisLabel {
+	text-align: center;
+}
+#eChartYAxis {
+	width: 30px;
+	height: 40px;
+}
+#eChartXAxis {
+	width: 40px;
+	height: 30px;
+}
+
+/* Counters */
+#EMonitorCounters {
+	grid-area: Counters;
+	padding: 20px 20px 70px 20px;
+	display: grid;
+	grid-template-rows: 1.2fr repeat(4, 1fr);
+	grid-template-columns: 2fr 1fr;
+	grid-template-areas:
+		"Title Title"
+		"CCLAvgLabel CCLAvg"
+		"HybridAvgLabel HybridAvg"
+		"TotalAvgLabel TotalAvg"
+		"CalcTimeLabel CalcTime";
+	align-items: center;
+}
+#EMonitorCounters h1 {
+	grid-area: Title;
+	text-align: center;
+	border-bottom: 2px solid whitesmoke;
+}
+.eChartLabel {
+	justify-self: end;
+	text-align: center;
+	width: 90%;
+	padding: 10px;
+}
+.eChartInput {
+	height: 40px;
+	width: 80px;
+	font-size: 1.3vw;
+	text-align: center;
+}
+#eChartCCLAvgLabel {
+	grid-area: CCLAvgLabel;
+}
+#eChartCCLAvg {
+	grid-area: CCLAvg;
+}
+#eChartHybridAvgLabel {
+	grid-area: HybridAvgLabel;
+}
+#eChartHybridAvg {
+	grid-area: HybridAvg;
+}
+#eChartTotalAvgLabel {
+	grid-area: TotalAvgLabel;
+}
+#eChartTotalAvg {
+	grid-area: TotalAvg;
+}
+#eChartCalcTimeLabel {
+	grid-area: CalcTimeLabel;
+}
+#eChartCalcTime {
+	grid-area: CalcTime;
+}
+
+/* End e- Monitor Content */
+
+/*
+
+
+					Post Processing Content
+
+
+*/
+
+#PostProcessContent {
+	grid-area: Content;
+	display: none;
+}
+
+/*
+
+
+					Settings Content
+
+
+*/
+
+#SettingsContent {
+	grid-area: Content;
+	padding: 40px 40px 0 40px;
+	overflow: scroll;
+	display: none; /* Set to none so that it looks cleaner on startup */
+}
+
+#SettingsContent label {
+	padding: 0 10px 0 30px;
+}
+
+.SettingsNumberInput {
+	width: 8%;
+	height: 25px;
+	text-align: center;
+}
+
+#SettingsContent .UnitLabel {
+	padding: 0 0 0 0;
+}
+
+.SettingsTitle {
+	height: 50px;
+	padding-left: 50px;
+	/*color: whitesmoke;*/
+	color: white;
+	border-bottom: 1px solid white;
+}
+
+.SettingsSection {
+	padding-left: 40px;
+}
+
+.SettingsSectionTitle {
+	height: 40px;
+	padding-left: 20px;
+	/*color: whitesmoke;*/
+	color: white;
+	border-bottom: 1px dotted white;
+}
+
+/* Camera Settings */
+
+#Gain {
+	width: 8%;
+}
+
+#GainBoost {
+	width: 20px;
+}
+
+/* Centroid Settings */
+
+/* Save Button */
+
+#SaveButtonSection {
+	padding: 10px;
+	padding-left: 90%;
+}
+
+#SaveSettingsButton {
+	width: 100%;
+	height: 50%;
+}
+
+/* End Settings Content */
+
+/* Get rid of input arrows */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+/* Get rid of scroll bars */
+*::-webkit-scrollbar {
+	display: none;
+}
