@@ -592,32 +592,32 @@ End right side
 	display: none; /* Set to none so that it looks cleaner on startup */
 }
 
-#SettingsContent label {
+.settings-input-label {
 	padding: 0 10px 0 30px;
 }
 
-.SettingsNumberInput {
+.settings-number-input {
 	width: 8%;
 	height: 25px;
 	text-align: center;
 }
 
-#SettingsContent .UnitLabel {
+.unit-label {
 	padding: 0 0 0 0;
 }
 
-.SettingsTitle {
+#SettingsTitle {
 	height: 50px;
 	padding-left: 50px;
 	color: white;
 	border-bottom: 1px solid white;
 }
 
-.SettingsSection {
+.settings-section {
 	padding-left: 40px;
 }
 
-.SettingsSectionTitle {
+.settings-section-title {
 	height: 40px;
 	padding-left: 20px;
 	color: white;

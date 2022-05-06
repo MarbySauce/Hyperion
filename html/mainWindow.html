@@ -50,74 +50,74 @@
 			</div>
 		</div>
 		<div id="SettingsContent">
-			<h1 class="SettingsTitle">Settings</h1>
-			<div class="SettingsSection" id="CameraSettingsContent">
-				<h3 class="SettingsSectionTitle">Camera Settings</h3>
+			<h1 id="SettingsTitle">Settings</h1>
+			<div class="settings-section" id="CameraSettingsContent">
+				<h3 class="settings-section-title">Camera Settings</h3>
 				<br />
-				<label for="AoIx">AoI Width:</label>
-				<input type="number" class="AoI SettingsNumberInput input-change" id="AoIx" />
-				<label for="AoIy">AoI Height:</label>
-				<input type="number" class="AoI SettingsNumberInput input-change" id="AoIy" />
+				<label class="settings-input-label" for="AoIx">AoI Width:</label>
+				<input type="number" class="settings-number-input input-change" id="AoIx" />
+				<label class="settings-input-label" for="AoIy">AoI Height:</label>
+				<input type="number" class="settings-number-input input-change" id="AoIy" />
 				<br /><br />
-				<label for="xOffset">Offset Left:</label>
-				<input type="number" class="AoI SettingsNumberInput input-change" id="xOffset" />
-				<label for="yOffset">Offset Top:</label>
-				<input type="number" class="AoI SettingsNumberInput input-change" id="yOffset" />
+				<label class="settings-input-label" for="xOffset">Offset Left:</label>
+				<input type="number" class="settings-number-input input-change" id="xOffset" />
+				<label class="settings-input-label" for="yOffset">Offset Top:</label>
+				<input type="number" class="settings-number-input input-change" id="yOffset" />
 				<br /><br />
-				<label for="ExposureTime">Exposure Time:</label>
-				<input type="number" class="Exposure SettingsNumberInput input-change" id="ExposureTime" />
-				<label class="UnitLabel" for="ExposureTime">ms</label>
-				<label for="Gain">Gain:</label>
-				<input type="number" class="SettingsNumberInput input-change" id="Gain" min="0" max="100" />
-				<label class="UnitLabel" for="Gain">%</label>
-				<label for="GainBoost">Use Gain Boost:</label>
+				<label class="settings-input-label" for="ExposureTime">Exposure Time:</label>
+				<input type="number" class="settings-number-input input-change" id="ExposureTime" />
+				<label class="unit-label" for="ExposureTime">ms</label>
+				<label class="settings-input-label" for="Gain">Gain:</label>
+				<input type="number" class="settings-number-input input-change" id="Gain" min="0" max="100" />
+				<label class="unit-label" for="Gain">%</label>
+				<label class="settings-input-label" for="GainBoost">Use Gain Boost:</label>
 				<input type="checkbox" id="GainBoost" />
 				<br /><br />
-				<label>Trigger:</label>
-				<label for="InternalTrigger">Internal Trigger</label>
-				<input type="radio" class="Trigger" name="Trigger" id="InternalTrigger" value="InternalTrigger" />
-				<label for="RisingEdge">Rising Edge</label>
-				<input type="radio" class="Trigger" name="Trigger" id="RisingEdge" value="RisingEdge" />
-				<label for="FallingEdge">Falling Edge</label>
-				<input type="radio" class="Trigger" name="Trigger" id="FallingEdge" value="FallingEdge" />
+				<label class="settings-input-label">Trigger:</label>
+				<label class="settings-input-label" for="InternalTrigger">Internal Trigger</label>
+				<input type="radio" name="Trigger" id="InternalTrigger" value="InternalTrigger" />
+				<label class="settings-input-label" for="RisingEdge">Rising Edge</label>
+				<input type="radio" name="Trigger" id="RisingEdge" value="RisingEdge" />
+				<label class="settings-input-label" for="FallingEdge">Falling Edge</label>
+				<input type="radio" name="Trigger" id="FallingEdge" value="FallingEdge" />
 				<br /><br />
-				<label for="TriggerDelay">Trigger Delay:</label>
-				<input type="number" class="SettingsNumberInput input-change" id="TriggerDelay" />
-				<label class="UnitLabel" for="TriggerDelay">ms</label>
+				<label class="settings-input-label" for="TriggerDelay">Trigger Delay:</label>
+				<input type="number" class="settings-number-input input-change" id="TriggerDelay" />
+				<label class="unit-label" for="TriggerDelay">ms</label>
 				<!--
 					flash settings
 					Location of IR light
 				-->
 			</div>
-			<div class="SettingsSection" id="CentroidingSettingsContent">
-				<h3 class="SettingsSectionTitle">Centroid Settings</h3>
+			<div class="settings-section" id="CentroidingSettingsContent">
+				<h3 class="settings-section-title">Centroid Settings</h3>
 				<br />
-				<label for="RawAccumulation">Accumulate Raw Spots</label>
+				<label class="settings-input-label" for="RawAccumulation">Accumulate Raw Spots</label>
 				<input type="radio" name="CentroidAccumulationRadio" id="RawAccumulation" value="Raw" />
-				<label for="CentroidAccumulation">Accumulate Centroids</label>
+				<label class="settings-input-label" for="CentroidAccumulation">Accumulate Centroids</label>
 				<input type="radio" name="CentroidAccumulationRadio" id="CentroidAccumulation" value="Centroid" />
 				<br /><br />
-				<label for="HybridMethod">Use Hybrid Method</label>
+				<label class="settings-input-label" for="HybridMethod">Use Hybrid Method</label>
 				<input type="checkbox" id="HybridMethod" />
 				<br /><br />
-				<label for="CentroidBinSize">Additional Centroid Binning Size:</label>
-				<input class="SettingsNumberInput input-change" id="CentroidBinSize" type="number" min="0" max="4096" />
-				<label class="UnitLabel" for="CentroidBinSize"><sup>2</sup></label>
+				<label class="settings-input-label" for="CentroidBinSize">Additional Centroid Binning Size:</label>
+				<input class="settings-number-input input-change" id="CentroidBinSize" type="number" min="0" max="4096" />
+				<label class="unit-label" for="CentroidBinSize"><sup>2</sup></label>
 			</div>
-			<div class="SettingsSection" id="DisplaySettingsContent">
+			<div class="settings-section" id="DisplaySettingsContent">
 				<!--
 					Show red circles for centroids
 					?Show e- graph or previous files on main page
 					Startup page size and location
 				-->
 			</div>
-			<div class="SettingSection" id="PostProcessSettingsContent">
+			<div class="settings-section" id="PostProcessSettingsContent">
 				<!--
 					Location of MEVELER stuff
 				-->
 			</div>
-			<div class="SettingsSection" id="SavingSettingsContent"></div>
-			<div class="SettingsSection" id="SaveButtonSection">
+			<div class="settings-section" id="SavingSettingsContent"></div>
+			<div class="settings-section" id="SaveButtonSection">
 				<!-- Add text that says "Saved!" when save button clicked -->
 				<button class="square-button white-text" id="SaveSettingsButton">Save</button>
 			</div>
