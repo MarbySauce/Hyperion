@@ -325,6 +325,42 @@ void SetNoiseArea(const Napi::CallbackInfo& info) {
 	return;
 }
 
+// Set the camera trigger
+// Returns true
+Napi::Boolean SetTrigger(Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
+// Set the camera exposure
+// Returns true
+Napi::Boolean SetExposure(Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
+// Set the camera gain
+// Returns true
+Napi::Boolean SetGain(Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
+// Start camera image capture
+// Returns true
+Napi::Boolean StartCapture(Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
 // Start trigger delay stopwatch
 // Returns true unless "window" was not generated
 Napi::Boolean EnableMessages(const Napi::CallbackInfo& info) {
