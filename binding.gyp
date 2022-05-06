@@ -2,7 +2,7 @@
 	"targets": [
 		{
 			"target_name": "melexir",
-			"sources": ["node_addons/melexir_win.cc"],
+			"sources": ["node_addons/melexir.cc"],
 			"include_dirs": [
 				"<!@(node -p \"require('node-addon-api').include\")",
 				"./node_addons/include"
