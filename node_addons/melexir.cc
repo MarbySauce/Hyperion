@@ -77,7 +77,7 @@ Napi::Array GenerateImage(const Napi::CallbackInfo& info) {
     // For now, just generate a 1024 x 1024 image with three transitions, slightly off center
     int const image_width = 1024;
     int const image_height = 1024;
-    int center_x = 525;
+    int center_x = 525; // Melexir gives 525.513, 517.496
     int center_y = 517;
 
     // First we'll generate the image in a C++ array, then convert to a Napi array
