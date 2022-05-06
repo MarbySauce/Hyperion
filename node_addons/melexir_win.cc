@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <string>
+#include <math.h>
 #include <napi.h>
 #include "timer.h"
 #include "mlxr.h"
@@ -100,7 +101,6 @@ Napi::Array GenerateImage(const Napi::CallbackInfo& info) {
 		int X = round(center_x + radius * sin(theta) * cos(phi)); // Converting to Cartesian coords
 		int Y = round(center_y + radius * cos(theta));
         image[Y][X]++;
-        total_count++;
     }
 
     // Convert image to a Napi array
