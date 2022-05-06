@@ -16,7 +16,7 @@
 					"libraries": ["MaxEntAbel.lib"],
 					"link_settings": {
 						"library_dirs": [
-                            #"C:\\Users\\sevi\\Documents\\data_current\\MaxEntAbel\\DLL"
+							#"C:\\Users\\sevi\\Documents\\data_current\\MaxEntAbel\\DLL"
 							"C:\\MaxEntAbel\\DLL"
 						]
 					},
@@ -28,11 +28,11 @@
 							"files": ["C:\\MaxEntAbel\\DLL\\MaxEntAbel.dll"]
 						}
 					],
-                    "msvs_settings": {
-                        "VCCLCompilerTool": {
-                            "ExceptionHandling": 1
-                        }
-                    }
+					"msvs_settings": {
+						"VCCLCompilerTool": {
+							"ExceptionHandling": 1
+						}
+					}
 				}],
 				['OS=="mac"', {
 					'xcode_settings': {
@@ -45,7 +45,6 @@
 					"include_dirs": [
 						"/opt/X11/include"
 					],
-					
 				}]
 			]
 		}
