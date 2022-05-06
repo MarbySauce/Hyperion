@@ -2,7 +2,7 @@
 	"targets": [
 		{
 			"target_name": "melexir",
-			"sources": [],
+			"sources": ["node_addons/melexir_win.cc"],
 			"include_dirs": [
 				"<!@(node -p \"require('node-addon-api').include\")",
 				"./node_addons/include"
@@ -13,7 +13,6 @@
 			'cflags_cc!': [ '-fno-exceptions' ],
 			'conditions': [
 				['OS=="win"', {
-					"sources": ["node_addons/melexir_win.cc"],
 					"libraries": ["MaxEntAbel.lib"],
 					"link_settings": {
 						"library_dirs": [
@@ -36,22 +35,17 @@
                     }
 				}],
 				['OS=="mac"', {
-					"sources": ["node_addons/melexir_mac.cc"],
 					'xcode_settings': {
 						'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
 					},
+					"libraries": ["/Users/Marty_1/Documents/Programming/MaxEntAbel/macOSX/MaxEntAbel.dylib"],
 					"link_settings": {
 						"library_dirs": ["/opt/X11/lib"] 
 					},
 					"include_dirs": [
 						"/opt/X11/include"
 					],
-					"copies": [
-						{
-							"destination": "<(module_root_dir)/build/Release/",
-							"files": ["/Users/Marty_1/Documents/Programming/MaxEntAbel/macOSX/MaxEntAbel.dylib"]
-						}
-					]
+					
 				}]
 			]
 		}
