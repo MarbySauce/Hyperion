@@ -365,7 +365,6 @@ Left Side
 /* Recent Scans */
 #RecentScans {
 	padding: 0 25px 5px 25px;
-	grid-area: RecentScans;
 	display: grid;
 	grid-template-rows: 1fr 5fr;
 }
