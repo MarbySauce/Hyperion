@@ -45,6 +45,12 @@
 					},
 					"include_dirs": [
 						"/opt/X11/include"
+					],
+					"copies": [
+						{
+							"destination": "<(module_root_dir)/build/Release/",
+							"files": ["/Users/Marty_1/Documents/Programming/MaxEntAbel/macOSX/MaxEntAbel.dylib"]
+						}
 					]
 				}]
 			]

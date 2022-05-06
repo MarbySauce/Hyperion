@@ -16,6 +16,13 @@ using namespace std;
 	In the meantime, going to create fake functions, similar to camera_mac.cc
 */
 
+extern "C" {
+    void setoptions_(char optString[], long int strLength);
+    void checkoption_(char key[], int* iopt, double* fopt, bool* qopt, long int keyLength);
+    void image2data_(double fimage[], int* ldf, int* nrow, int* ncol, double dat[], int* ldd);
+    void melexirdll_(double dat[], double sigma[], double fmap[], double base[], double datainv[], int* nr, int* nt);
+}
+
 // Generate a simulated image and return it as a 2D array
 Napi::Array GenerateImage(const Napi::CallbackInfo& info) {
     Timer gen_time;
@@ -126,12 +133,23 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
     return results;
 }
 
+void Test(const Napi::CallbackInfo& info) {
+	char string1[] = "Hello -LP2";
+
+    setoptions_(string1, sizeof(string1));
+    // Need to end the string with a null character since Fortran doesn't (but C++ requires it)
+    string1[sizeof(string1)-1] = '\0';
+
+	cout << string1 << endl;
+}
+
 
 // Set up module to export functions to JavaScript
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
     // Fill exports object with addon functions
     exports["generateImage"] = Napi::Function::New(env, GenerateImage);
     exports["process"] = Napi::Function::New(env, Process);
+	exports["test"] = Napi::Function::New(env, Test);
 
     return exports;
 }
