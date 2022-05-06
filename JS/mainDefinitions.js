@@ -602,10 +602,10 @@ const laserInfo = {
 		// Convert to wavenumbers
 		if (convertedWavelength == null) {
 			// Only need to convert the input wavelength
-			this.convertedWavenumber = convertNMtoWN(this.inputWavelength);
+			this.convertedWavenumber = Math.pow(10, 7) / this.inputWavelength;
 		} else {
 			// Need to convert based on the new wavelength
-			this.convertedWavenumber = convertNMtoWN(convertedWavelength);
+			this.convertedWavenumber = Math.pow(10, 7) / convertedWavelength;
 		}
 		// Update converted wavelength
 		this.convertedWavelength = convertedWavelength;
@@ -670,12 +670,10 @@ const laserInfo = {
 		if (convertedWavelength == null) {
 			// Only need to convert the input wavelength
 			//
-			// NOTE:
-			// convertNMtoWN should be removed as a function
-			this.IRConvertedWavenumber = convertNMtoWN(this.nIRWavelength);
+			this.IRConvertedWavenumber = Math.pow(10, 7) / this.nIRWavelength;
 		} else {
 			// Need to convert based on the new wavelength
-			this.IRConvertedWavenumber = convertNMtoWN(convertedWavelength);
+			this.IRConvertedWavenumber = Math.pow(10, 7) / convertedWavelength;
 		}
 		// Update converted wavelength
 		this.IRConvertedWavelength = convertedWavelength;
