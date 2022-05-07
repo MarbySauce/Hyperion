@@ -44,14 +44,14 @@ const settings = {
 		},
 		windows: {
 			mainWindow: {
-				x: 1480,
-				y: -300,
+				x: 0,
+				y: 0,
 				width: 1200,
 				height: 1000,
 			},
 			LVWindow: {
-				x: 2950,
-				y: -300,
+				x: 0,
+				y: 0,
 				width: 1200,
 				height: 820,
 			},
