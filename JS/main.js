@@ -310,7 +310,6 @@ ipcMain.on("update-save-directory", function (event, arg) {
 			if (!result.canceled) {
 				// File explorer was not canceled
 				let actualReturnPath = result.filePaths[0];
-				console.log(result.filePaths);
 				let returnPath;
 
 				// Check if Home directory is included in path
@@ -324,8 +323,6 @@ ipcMain.on("update-save-directory", function (event, arg) {
 					// NOTE TO MARTY: I don't think "~" works on Windows
 					returnPath = "~" + actualReturnPath.substr(homePath.length);
 				}
-
-				console.log(returnPath);
 
 				// Send message back to main window with directory path
 				event.reply("new-save-directory", [actualReturnPath, returnPath]);
