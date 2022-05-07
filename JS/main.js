@@ -34,7 +34,7 @@ const settings = {
 			yAxisMax: 20,
 		},
 		save_directory: {
-			base_dir: "/Users/Marty_1/Documents/Programming/Hyperion/Images",
+			base_dir: "./Images",
 			base_dir_short: "./Images",
 			year_dir: "",
 			day_dir: "",
@@ -64,6 +64,11 @@ const settings = {
 			fs.writeFile(settings.file_name, settingsJSON, () => {
 				console.log("Settings Saved!");
 			});
+		},
+		save_sync: function () {
+			let settingsJSON = JSON.stringify(settings.information);
+			fs.writeFileSync(settings.file_name, settingsJSON);
+			console.log("Settings Saved!");
 		},
 		// Read settings from file
 		read: function () {
@@ -241,10 +246,11 @@ app.on("window-all-closed", function () {
 
 // Close camera connection and quit the app
 function send_close_camera_msg() {
+	console.log("hi");
 	// Need to delete the day's folders if no images were saved
 	delete_empty_folder();
 	// Save the settings to file
-	settings.functions.save();
+	settings.functions.save_sync();
 	// Send message to invisible window to close camera
 	if (invisibleWin) {
 		invisibleWin.webContents.send("close-camera", null);
