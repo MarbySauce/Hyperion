@@ -32,7 +32,7 @@ float const pi = 3.14159265358979;
 // C++ functions
 //
 
-float Gauss(int i, float center, float width)
+float gauss(int i, float center, float width)
 {
 	return sqrt(255) * exp(-pow(i - center, 2) / width);
 }
@@ -41,7 +41,7 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 	srand(randSeed); // Setting up random number generator
 
 	// Simulated values
-	int NumberOfSpots = (rand() % 10) + 15;
+	int numberOfSpots = (rand() % 10) + 15;
 	//std::vector<float> Radii = {30, 50, 90, 120, 170};
 	std::vector<float> Radii = {50, 50, 90, 90, 90, 90, 170, 170, 170};
 
@@ -82,7 +82,7 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 
 	// Add spots
 	int spotNumber = 0;
-	while (spotNumber < NumberOfSpots)
+	while (spotNumber < numberOfSpots)
 	{
 		float radius = Radii[rand() % Radii.size()];
 		
@@ -101,7 +101,7 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 		{
 			for (int X = centerX - 8; X < centerX + 9; X++)
 			{
-				int intensity = round(Gauss(Y, centerY, widthY) * Gauss(X, centerX, widthX) * percentIntensity);
+				int intensity = round(gauss(Y, centerY, widthY) * gauss(X, centerX, widthX) * percentIntensity);
 				int currentIntensity = (unsigned char)simImage[camera.width * Y + X];
 				currentIntensity += intensity;
 				if (currentIntensity > 255)
@@ -162,6 +162,7 @@ Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 	img.yUpperBound = camera.height;
 	
 	// Fill out with information
+	// NOTE TO MARTY: Might want to change these to be snake_case to be consistent with JS side
 	information["infoReceived"] = Napi::Boolean::New(env, true);
 	information["model"] = Napi::String::New(env, "Simulation");
 	information["ID"] = Napi::Number::New(env, 0);

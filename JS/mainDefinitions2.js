@@ -18,7 +18,7 @@ const electrons = {
 		},
 		stats: {
 			calculation_time: [],
-			LED_intensities: [],
+			led_intensities: [],
 		},
 		counters: {
 			update_counter: 0,
@@ -147,17 +147,17 @@ const laser = {
 		mode: 0, // 0 is near IR, 1 is intermediate IR, 2 is mid IR, 3 is far IR
 		wavelength: {
 			yag_fundamental: 1064.5, // Nd:YAG fundamental wavelength
-			nIR: 0, // User entered wavelength
-			iIR: 0,
-			mIR: 0,
-			fIR: 0,
+			nir: 0, // User entered wavelength
+			iir: 0,
+			mir: 0,
+			fir: 0,
 		},
 		wavenumber: {
 			yag_fundamental: 0, // Nd:YAG fundamental wavelength
-			nIR: 0, // User entered wavelength
-			iIR: 0,
-			mIR: 0,
-			fIR: 0,
+			nir: 0, // User entered wavelength
+			iir: 0,
+			mir: 0,
+			fir: 0,
 		},
 	},
 };
