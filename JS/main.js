@@ -6,9 +6,9 @@ let mainWin;
 let LVWin;
 let invisibleWin;
 
-let LVWinOpen = false;
-
+// NOTE TO MARTY: Should change these to be snake case
 const settings = {
+	file_name: "./Settings/Settings.JSON",
 	information: {
 		camera: {
 			xAoI: 0,
@@ -33,10 +33,14 @@ const settings = {
 			xAxisMax: 30,
 			yAxisMax: 20,
 		},
-		saveDirectory: {
-			currentScan: "./Images",
-			currentScanShort: "./Images",
-			previousScans: "./PreviousScans",
+		save_directory: {
+			base_dir: "/Users/Marty_1/Documents/Programming/Hyperion/Images",
+			base_dir_short: "./Images",
+			year_dir: "",
+			day_dir: "",
+			full_dir: "",
+			full_dir_short: "",
+			previous_scans_dir: "./PreviousScans",
 		},
 		windows: {
 			mainWindow: {
@@ -54,20 +58,40 @@ const settings = {
 		},
 	},
 	functions: {
+		// Save settings to file
 		save: function () {
-			let settingsJSON = JSON.stringify(settings);
-			fs.writeFile("./Settings/Settings.JSON", settingsJSON, () => {
+			let settingsJSON = JSON.stringify(settings.information);
+			fs.writeFile(settings.file_name, settingsJSON, () => {
 				console.log("Settings Saved!");
 			});
 		},
+		// Read settings from file
 		read: function () {
-			let data = fs.readFileSync("./Settings/Settings.JSON");
-			let savedSettings = JSON.parse(data);
-			for (let category in savedSettings) {
-				for (let key in savedSettings[category]) {
-					settings.information[category][key] = savedSettings[category][key];
+			// Make sure the settings file exists
+			if (fs.existsSync(settings.file_name)) {
+				let data = fs.readFileSync(settings.file_name);
+				let savedSettings = JSON.parse(data);
+				for (let category in savedSettings) {
+					for (let key in savedSettings[category]) {
+						settings.information[category][key] = savedSettings[category][key];
+					}
 				}
 			}
+		},
+		// Generate full save directory names
+		get_full_dir: function () {
+			settings.information.save_directory.full_dir =
+				settings.information.save_directory.base_dir +
+				"/" +
+				settings.information.save_directory.year_dir +
+				"/" +
+				settings.information.save_directory.day_dir;
+			settings.information.save_directory.full_dir_short =
+				settings.information.save_directory.base_dir_short +
+				"/" +
+				settings.information.save_directory.year_dir +
+				"/" +
+				settings.information.save_directory.day_dir;
 		},
 	},
 };
@@ -88,7 +112,6 @@ function createMainWindow() {
 		},
 	});
 
-	/*
 	let menu = Menu.buildFromTemplate([
 		{
 			label: "Menu",
@@ -96,22 +119,23 @@ function createMainWindow() {
 				{
 					label: "Open Live View",
 					click() {
-						if (!LVWinOpen) {
+						// Only open the live view window if it's not open already
+						if (!LVWin) {
 							LVWin = createLVWindow();
 						}
 					},
 				},
+				// NOTE TO MARTY: Do I want to keep this function in?
 				{
 					label: "Close Camera",
 					click() {
-						SendCloseCameraMsg();
+						send_close_camera_msg();
 					},
 				},
 			],
 		},
 	]);
 	Menu.setApplicationMenu(menu);
-	*/
 
 	win.loadFile("HTML/mainWindow.html");
 	win.webContents.openDevTools();
@@ -134,12 +158,6 @@ function createLVWindow() {
 
 	win.loadFile("HTML/LVWindow.html");
 	//win.webContents.openDevTools();
-
-	LVWinOpen = true;
-
-	win.on("close", function (event) {
-		LVWinOpen = false;
-	});
 
 	return win;
 }
@@ -183,57 +201,101 @@ app.whenReady().then(function () {
 
 	// If one monitor is too small, Electron doesn't size windows well
 	// Fixed by rechanging the size after creation
-	mainWin.setSize(settings.information.windows.mainWindow.width, settings.information.windows.mainWindow.height);
-	//LVWin.setSize(settings.information.windows.LVWindow.width, settings.information.windows.LVWindow.height);
+	if (mainWin) {
+		mainWin.setSize(settings.information.windows.mainWindow.width, settings.information.windows.mainWindow.height);
+		// Close app when main window is closed
+		mainWin.on("close", function (event) {
+			send_close_camera_msg();
+		});
+	}
 
-	// Get rid of Live View menu bar
-	//LVWin.removeMenu();
+	if (LVWin) {
+		LVWin.setSize(settings.information.windows.LVWindow.width, settings.information.windows.LVWindow.height);
 
-	// Send settings information to main window when ready
-	//mainWin.on("ready-to-show", () => {
-	//	mainWin.webContents.send("settings-information", settings.information);
-	//})
+		// Get rid of Live View menu bar
+		LVWin.removeMenu();
+	}
 
-	// Close LV window when main window is closed
-	mainWin.on("close", function (event) {
-		/*event.preventDefault();
-	mainWin.hide();
-	LVWin.hide();
-	mainWin.webContents.send("closing-main-window", null);*/
-
-		//
-		// Could add in a timeout so that if a success is not received
-		// from the main window, the app still quits
-		//
-
-		SendCloseCameraMsg();
-		//app.quit();
+	// Check if there is a folder for today's year and date, and if not create it
+	let folder_names = get_folder_names();
+	// Update save directory in settings
+	settings.information.save_directory.year_dir = folder_names[0];
+	settings.information.save_directory.day_dir = folder_names[1];
+	settings.functions.get_full_dir();
+	// Try to make the year's folder first
+	let save_dir = settings.information.save_directory.base_dir + "/" + folder_names[0];
+	fs.mkdir(save_dir, (error) => {
+		// Error will be filled if the folder already exists, otherwise it'll make the folder
+		// In either case we don't care about the error message, so move on
+		// Try to make the day's folder
+		save_dir += "/" + folder_names[1];
+		fs.mkdir(save_dir, (error) => {
+			// Again, don't care about the error
+		});
 	});
-});
-
-ipcMain.on("closing-main-window-received", (event, arg) => {
-	//console.log(arg);
-	mainWin.destroy();
-	//app.quit();
 });
 
 app.on("window-all-closed", function () {
 	app.quit();
 });
 
+// Close camera connection and quit the app
+function send_close_camera_msg() {
+	// Need to delete the day's folders if no images were saved
+	delete_empty_folder();
+	// Save the settings to file
+	settings.functions.save();
+	// Send message to invisible window to close camera
+	if (invisibleWin) {
+		invisibleWin.webContents.send("close-camera", null);
+	} else {
+		// The invisible window is already closed (ergo no camera connection), just quit the app
+		app.quit();
+	}
+}
+
+// Delete the data folder made on startup if no images were saved
+function delete_empty_folder() {
+	fs.readdir(settings.information.save_directory.full_dir, (error, files) => {
+		if (!error && !files.length) {
+			// The folder is empty but does exists, so we need to delete it
+			fs.rmdir(settings.information.save_directory.full_dir, (error) => {
+				// Folder is deleted
+			});
+			// Could do this without reading the directory first, but I don't want to risk
+			// 	accidentally deleting data
+		}
+	});
+}
+
+function get_folder_names() {
+	let today = new Date();
+	let formatted_day = ("0" + today.getDate()).slice(-2);
+	let formatted_month = ("0" + (today.getMonth() + 1)).slice(-2);
+	let full_formatted_year = today.getFullYear().toString();
+	let formatted_year = full_formatted_year.slice(-2);
+	return [full_formatted_year, formatted_month + formatted_day + formatted_year];
+}
+
 //
 //		Messengers
 //
 
+// Message received from main window
 // Main window is loaded, send the settings info
 ipcMain.on("main-window-ready", function (event, arg) {
-	mainWin.webContents.send("settings-information", settings.information);
+	//settings.functions.read();
+	if (mainWin) {
+		mainWin.webContents.send("settings-information", settings.information);
+	}
 });
 
-ipcMain.on("UpdateSaveDirectory", function (event, arg) {
+// Message received from main window
+// Load dialog to choose which directory to save the images to
+ipcMain.on("update-save-directory", function (event, arg) {
 	dialog
 		.showOpenDialog({
-			title: "Choose Save Directory",
+			title: "Choose Base Save Directory (Not Year or Day Directories)",
 			buttonLabel: "Choose Folder",
 			defaultPath: app.getPath("documents"),
 			properties: ["openDirectory"],
@@ -242,6 +304,7 @@ ipcMain.on("UpdateSaveDirectory", function (event, arg) {
 			if (!result.canceled) {
 				// File explorer was not canceled
 				let actualReturnPath = result.filePaths[0];
+				console.log(result.filePaths);
 				let returnPath;
 
 				// Check if Home directory is included in path
@@ -255,8 +318,10 @@ ipcMain.on("UpdateSaveDirectory", function (event, arg) {
 					returnPath = "~" + actualReturnPath.substr(homePath.length);
 				}
 
-				// Send message back with directory path
-				event.reply("NewSaveDirectory", [actualReturnPath, returnPath]);
+				console.log(returnPath);
+
+				// Send message back to main window with directory path
+				event.reply("new-save-directory", [actualReturnPath, returnPath]);
 			}
 		})
 		.catch(function (err) {
@@ -264,71 +329,53 @@ ipcMain.on("UpdateSaveDirectory", function (event, arg) {
 		});
 });
 
-// Tell invisible window to start centroiding
-ipcMain.on("StartCentroiding", function (event, arg) {
-	//invisibleWin.webContents.send("StartCentroiding", null);
+// Message received from main window
+// Update the settings
+ipcMain.on("update-settings", function (event, update) {
+	let MartyDoSomethingHere = true;
 });
 
-// Tell invisible window to stop centroiding
-ipcMain.on("StopCentroiding", function (event, arg) {
-	//invisibleWin.webContents.send("StopCentroiding", null);
+// Message received from main window
+// Tell live view window whether a scan was started/paused/etc
+ipcMain.on("scan-update", function (event, update) {
+	// Need to make sure the live view window is open
+	if (LVWin) {
+		LVWin.webContents.send("scan-update", update);
+	}
 });
 
-ipcMain.on("ScanUpdate", function (event, update) {
-	LVWin.webContents.send("ScanUpdate", update);
-});
-
-// Relay centroid data to visible windows
+// Message received from invisible window
+// Relay centroid data to main and live view windows
 ipcMain.on("new-camera-frame", function (event, info) {
-	// info is an object containing image and calculated centers
-	let doNothing;
-
 	// Send data to main window if it's open
-	try {
+	if (mainWin) {
 		mainWin.webContents.send("new-camera-frame", info);
-	} catch {
-		doNothing = true;
 	}
 
 	// Send data to live view window if it's open
-	try {
+	if (LVWin) {
 		LVWin.webContents.send("new-camera-frame", info);
-	} catch {
-		doNothing = true;
 	}
 });
 
-// Turn hybrid method on and off
-ipcMain.on("HybridMethod", function (event, message) {
-	// Send message to invisible window
-	//invisibleWin.webContents.send("HybridMethod", message);
+// Message received from main window
+// Send message to live view window to update e- chart axes
+ipcMain.on("update-axes", function (event, axisSizes) {
+	if (LVWin) {
+		LVWin.webContents.send("update-axes", axisSizes);
+	}
 });
 
-// Update eChart axes on Live Video window
-ipcMain.on("UpdateAxes", function (event, axisSizes) {
-	// Send message to LV window
-	LVWin.webContents.send("UpdateAxes", axisSizes);
-});
-
-// Close camera connection
-function SendCloseCameraMsg() {
-	//invisibleWin.webContents.send("CloseCamera", null);
-}
-
+// Message received from invisible window
 // Close the app after the camera is successfully closed
-// Need to change this so it doesn't close the app if you only want to close the camera
-ipcMain.on("CameraClosed", function (event, msg) {
-	setTimeout(() => {
-		app.quit();
-	}, 2000 /* ms */);
+ipcMain.on("camera-closed", function (event, msg) {
+	app.quit();
 });
 
-// Send the settings information to the main and live view windows
-function SendSettings() {
-	let settings2 = {
-		a: "Hi",
-		b: "There",
-	};
-	mainWin.webContents.send("settings-information", settings2);
-	LVWin.webContents.send("settings-information", settings2);
-}
+// Message received from main window
+// Send message to invisible window to turn hybrid method on and off
+ipcMain.on("hybrid-method", function (event, message) {
+	if (invisibleWin) {
+		invisibleWin.webContents.send("hybrid-method", message);
+	}
+});

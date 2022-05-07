@@ -138,23 +138,6 @@ function closeCamera() {
 /*			Messengers				*/
 //
 
-ipc.on("StartCentroiding_NULL", function (event, arg) {
-	// Enable messages
-	setTimeout(() => {
-		if (camera.enableMessages()) {
-			console.log("Messages enabled");
-			checkMessageBool = true;
-			messageLoop();
-		}
-		//let nRet = camera.enableMessages();
-		//console.log("Enable messages:",nRet);
-	}, 1000 /* ms */);
-});
-
-ipc.on("StopCentroiding", function (event, arg) {
-	checkMessageBool = false;
-});
-
 // Turn on / off hybrid method
 ipc.on("HybridMethod", function (event, message) {
 	//centroid.useHybrid(message);
@@ -162,5 +145,5 @@ ipc.on("HybridMethod", function (event, message) {
 
 ipc.on("CloseCamera", function (event, message) {
 	closeCamera();
-	ipc.send("CameraClosed", null);
+	ipc.send("camera-closed", null);
 });
