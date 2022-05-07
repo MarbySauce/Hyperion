@@ -68,7 +68,6 @@ const settings = {
 		save_sync: function () {
 			let settingsJSON = JSON.stringify(settings.information);
 			fs.writeFileSync(settings.file_name, settingsJSON);
-			console.log("Settings Saved!");
 		},
 		// Read settings from file
 		read: function () {
@@ -209,8 +208,9 @@ app.whenReady().then(function () {
 	if (mainWin) {
 		mainWin.setSize(settings.information.windows.mainWindow.width, settings.information.windows.mainWindow.height);
 		// Close app when main window is closed
-		mainWin.on("close", function (event) {
+		mainWin.on("closed", function (event) {
 			send_close_camera_msg();
+			mainWin = null;
 		});
 	}
 
@@ -246,7 +246,6 @@ app.on("window-all-closed", function () {
 
 // Close camera connection and quit the app
 function send_close_camera_msg() {
-	console.log("hi");
 	// Need to delete the day's folders if no images were saved
 	delete_empty_folder();
 	// Save the settings to file
@@ -321,6 +320,7 @@ ipcMain.on("update-save-directory", function (event, arg) {
 				if (actualReturnPath.includes(appPath)) {
 					returnPath = "." + actualReturnPath.substr(appPath.length);
 				} else if (actualReturnPath.includes(homePath)) {
+					// NOTE TO MARTY: I don't think "~" works on Windows
 					returnPath = "~" + actualReturnPath.substr(homePath.length);
 				}
 
