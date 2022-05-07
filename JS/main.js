@@ -295,6 +295,7 @@ ipcMain.on("main-window-ready", function (event, arg) {
 	}
 });
 
+// NOTE TO MARTY: Need to update this part to actually change the settings and then send it to main window
 // Message received from main window
 // Load dialog to choose which directory to save the images to
 ipcMain.on("update-save-directory", function (event, arg) {
