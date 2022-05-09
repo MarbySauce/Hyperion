@@ -2,54 +2,55 @@ const { app, BrowserWindow, dialog, ipcMain, nativeTheme, Menu } = require("elec
 const path = require("path");
 const fs = require("fs");
 
-let mainWin;
-let LVWin;
-let invisibleWin;
+// Declaring variables for each window used
+let main_window; // Main window, for bulk of processing and control
+let live_view_window; // Auxilliary window for displaying incoming camera images
+let invisible_window; // Hidden window used to communicate with camera and centroid images
 
-// NOTE TO MARTY: Should change these to be snake case
 const settings = {
 	file_name: "./Settings/Settings.JSON",
 	information: {
 		camera: {
-			xAoI: 0,
-			yAoI: 0,
-			xOffset: 0,
-			yOffset: 0,
-			exposureTime: 0,
+			x_AoI: 0,
+			y_AoI: 0,
+			x_offset: 0,
+			y_offset: 0,
+			exposure_time: 0,
 			gain: 0,
-			gainBoost: false,
+			gain_boost: false,
 			trigger: "Rising Edge",
-			triggerDelay: 0,
+			trigger_delay: 0,
 		},
 		centroid: {
 			accumulation: "Centroid",
-			hybridMethod: true,
-			binSize: 100,
+			hybrid_method: true,
+			bin_size: 100,
 		},
 		display: {
-			sliderValue: 0.5,
+			slider_value: 0.5,
 		},
-		eChart: {
-			xAxisMax: 30,
-			yAxisMax: 20,
+		e_chart: {
+			x_axis_max: 30,
+			y_axis_max: 20,
 		},
 		save_directory: {
 			base_dir: "./Images",
 			base_dir_short: "./Images",
 			year_dir: "",
 			day_dir: "",
+			scan_dir: "Hyperion Scan Information",
 			full_dir: "",
 			full_dir_short: "",
-			previous_scans_dir: "./PreviousScans",
+			full_scan_dir: "",
 		},
 		windows: {
-			mainWindow: {
+			main_window: {
 				x: 0,
 				y: 0,
 				width: 1200,
 				height: 1000,
 			},
-			LVWindow: {
+			live_view_window: {
 				x: 0,
 				y: 0,
 				width: 1200,
@@ -60,54 +61,67 @@ const settings = {
 	functions: {
 		// Save settings to file
 		save: function () {
-			let settingsJSON = JSON.stringify(settings.information);
-			fs.writeFile(settings.file_name, settingsJSON, () => {
-				console.log("Settings Saved!");
-			});
+			// Save settings asynchronously (non-blocking)
+			let settings_JSON = JSON.stringify(settings.information);
+			fs.writeFile(settings.file_name, settings_JSON, () => {});
 		},
 		save_sync: function () {
-			let settingsJSON = JSON.stringify(settings.information);
-			fs.writeFileSync(settings.file_name, settingsJSON);
+			// Save settings synchronously (blocking)
+			// Used to save settings on app close
+			let settings_JSON = JSON.stringify(settings.information);
+			fs.writeFileSync(settings.file_name, settings_JSON);
 		},
 		// Read settings from file
 		read: function () {
 			// Make sure the settings file exists
 			if (fs.existsSync(settings.file_name)) {
 				let data = fs.readFileSync(settings.file_name);
-				let savedSettings = JSON.parse(data);
-				for (let category in savedSettings) {
-					for (let key in savedSettings[category]) {
-						settings.information[category][key] = savedSettings[category][key];
+				let saved_settings = JSON.parse(data);
+				for (let category in saved_settings) {
+					for (let key in saved_settings[category]) {
+						if (settings.information[category] !== undefined && settings.information[category][key] !== undefined) {
+							settings.information[category][key] = saved_settings[category][key];
+						}
 					}
 				}
 			}
 		},
 		// Generate full save directory names
 		get_full_dir: function () {
+			// Create full save directory location
 			settings.information.save_directory.full_dir =
 				settings.information.save_directory.base_dir +
 				"/" +
 				settings.information.save_directory.year_dir +
 				"/" +
 				settings.information.save_directory.day_dir;
+			// Create shorter version of save directory location (for displaying)
 			settings.information.save_directory.full_dir_short =
 				settings.information.save_directory.base_dir_short +
 				"/" +
 				settings.information.save_directory.year_dir +
 				"/" +
 				settings.information.save_directory.day_dir;
+			// Create scan information save directory
+			settings.information.save_directory.full_scan_dir =
+				settings.information.save_directory.base_dir_short +
+				"/" +
+				settings.information.save_directory.year_dir +
+				"/" +
+				settings.information.save_directory.scan_dir;
 		},
 	},
 };
 
-function createMainWindow() {
+function create_main_window() {
+	// Create the window
 	let win = new BrowserWindow({
 		width: 1200,
 		height: 1000,
 		minWidth: 600,
 		minHeight: 600,
-		x: settings.information.windows.mainWindow.x,
-		y: settings.information.windows.mainWindow.y,
+		x: settings.information.windows.main_window.x,
+		y: settings.information.windows.main_window.y,
 		webPreferences: {
 			nodeIntegration: true,
 			nodeIntegrationInWorker: true,
@@ -116,6 +130,7 @@ function createMainWindow() {
 		},
 	});
 
+	// Create custom menu for main window
 	let menu = Menu.buildFromTemplate([
 		{
 			label: "Menu",
@@ -124,8 +139,8 @@ function createMainWindow() {
 					label: "Open Live View",
 					click() {
 						// Only open the live view window if it's not open already
-						if (!LVWin) {
-							LVWin = createLVWindow();
+						if (!live_view_window) {
+							live_view_window = create_live_view_window();
 						}
 					},
 				},
@@ -147,12 +162,13 @@ function createMainWindow() {
 	return win;
 }
 
-function createLVWindow() {
+function create_live_view_window() {
+	// Create the window
 	win = new BrowserWindow({
 		width: 1200,
 		height: 820,
-		x: settings.information.windows.LVWindow.x,
-		y: settings.information.windows.LVWindow.y,
+		x: settings.information.windows.live_view_window.x,
+		y: settings.information.windows.live_view_window.y,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
@@ -166,7 +182,8 @@ function createLVWindow() {
 	return win;
 }
 
-function createInvisibleWindow() {
+function create_invisible_window() {
+	// Create the window
 	win = new BrowserWindow({
 		width: 400,
 		height: 400,
@@ -191,58 +208,50 @@ app.whenReady().then(function () {
 	// Set dark mode
 	nativeTheme.themeSource = "dark";
 
-	mainWin = createMainWindow();
-	//invisibleWin = createInvisibleWindow();
-	//LVWin = createLVWindow();
+	main_window = create_main_window();
+	//invisible_window = create_invisible_window();
+	//live_view_window = create_live_view_window();
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) {
-			mainWin = createMainWindow();
-			invisibleWin = createInvisibleWindow();
-			LVWin = createLVWindow();
+			main_window = create_main_window();
+			invisible_window = create_invisible_window();
+			live_view_window = create_live_view_window();
 		}
 	});
 
 	// If one monitor is too small, Electron doesn't size windows well
 	// Fixed by rechanging the size after creation
-	if (mainWin) {
-		mainWin.setSize(settings.information.windows.mainWindow.width, settings.information.windows.mainWindow.height);
+	if (main_window) {
+		main_window.setSize(settings.information.windows.main_window.width, settings.information.windows.main_window.height);
 		// Close app when main window is closed
-		mainWin.on("closed", function (event) {
+		main_window.on("closed", function (event) {
 			send_close_camera_msg();
-			mainWin = null;
+			main_window = null;
 		});
 	}
 
-	if (LVWin) {
-		LVWin.setSize(settings.information.windows.LVWindow.width, settings.information.windows.LVWindow.height);
+	if (live_view_window) {
+		live_view_window.setSize(settings.information.windows.live_view_window.width, settings.information.windows.live_view_window.height);
 
 		// Get rid of Live View menu bar
-		LVWin.removeMenu();
+		live_view_window.removeMenu();
 	}
 
 	// Check if there is a folder for today's year and date, and if not create it
-	let folder_names = get_folder_names();
-	// Update save directory in settings
-	settings.information.save_directory.year_dir = folder_names[0];
-	settings.information.save_directory.day_dir = folder_names[1];
-	settings.functions.get_full_dir();
-	// Try to make the year's folder first
-	let save_dir = settings.information.save_directory.base_dir + "/" + folder_names[0];
-	fs.mkdir(save_dir, (error) => {
-		// Error will be filled if the folder already exists, otherwise it'll make the folder
-		// In either case we don't care about the error message, so move on
-		// Try to make the day's folder
-		save_dir += "/" + folder_names[1];
-		fs.mkdir(save_dir, (error) => {
-			// Again, don't care about the error
-		});
-	});
+	create_folders();
 });
 
 app.on("window-all-closed", function () {
 	app.quit();
 });
+
+// Send settings information to main window
+function send_settings() {
+	if (main_window) {
+		main_window.webContents.send("settings-information", settings.information);
+	}
+}
 
 // Close camera connection and quit the app
 function send_close_camera_msg() {
@@ -251,16 +260,43 @@ function send_close_camera_msg() {
 	// Save the settings to file
 	settings.functions.save_sync();
 	// Send message to invisible window to close camera
-	if (invisibleWin) {
-		invisibleWin.webContents.send("close-camera", null);
+	if (invisible_window) {
+		invisible_window.webContents.send("close-camera", null);
 	} else {
 		// The invisible window is already closed (ergo no camera connection), just quit the app
 		app.quit();
 	}
 }
 
+// Create folders (day, year) to store images and scan information
+function create_folders() {
+	// Check if there is a folder for today's year and date, and if not create it
+	let folder_names = get_folder_names();
+	// Update save directory in settings
+	settings.information.save_directory.year_dir = folder_names[0];
+	settings.information.save_directory.day_dir = folder_names[1];
+	settings.functions.get_full_dir();
+	// Try to make the year's folder first
+	let year_save_dir = settings.information.save_directory.base_dir + "/" + folder_names[0];
+	fs.mkdir(year_save_dir, (error) => {
+		// Error will be filled if the folder already exists, otherwise it'll make the folder
+		// In either case we don't care about the error message, so move on
+
+		// Try to make the day's folder
+		let day_save_dir = settings.information.save_directory.full_dir;
+		console.log(day_save_dir);
+		fs.mkdir(day_save_dir, (error) => {});
+
+		// Try to make scan info folder
+		let scan_save_dir = settings.information.save_directory.full_scan_dir;
+		console.log(scan_save_dir);
+		fs.mkdir(scan_save_dir, (error) => {});
+	});
+}
+
 // Delete the data folder made on startup if no images were saved
 function delete_empty_folder() {
+	// Check for today's folder
 	fs.readdir(settings.information.save_directory.full_dir, (error, files) => {
 		if (!error && !files.length) {
 			// The folder is empty but does exists, so we need to delete it
@@ -271,8 +307,16 @@ function delete_empty_folder() {
 			// 	accidentally deleting data
 		}
 	});
+	// Check for scan information folder (same process)
+	fs.readdir(settings.information.save_directory.full_scan_dir, (error, files) => {
+		if (!error && !files.length) {
+			// The folder is empty but does exists, so we need to delete it
+			fs.rmdir(settings.information.save_directory.full_scan_dir, (error) => {});
+		}
+	});
 }
 
+// Get formatted names of year and date (MMDDYY) for folder creation
 function get_folder_names() {
 	let today = new Date();
 	let formatted_day = ("0" + today.getDate()).slice(-2);
@@ -289,13 +333,9 @@ function get_folder_names() {
 // Message received from main window
 // Main window is loaded, send the settings info
 ipcMain.on("main-window-ready", function (event, arg) {
-	//settings.functions.read();
-	if (mainWin) {
-		mainWin.webContents.send("settings-information", settings.information);
-	}
+	send_settings();
 });
 
-// NOTE TO MARTY: Need to update this part to actually change the settings and then send it to main window
 // Message received from main window
 // Load dialog to choose which directory to save the images to
 ipcMain.on("update-save-directory", function (event, arg) {
@@ -309,23 +349,31 @@ ipcMain.on("update-save-directory", function (event, arg) {
 		.then(function (result) {
 			if (!result.canceled) {
 				// File explorer was not canceled
-				let actualReturnPath = result.filePaths[0];
-				let returnPath;
+				let full_save_path = result.filePaths[0];
+				let short_save_path;
 
 				// Check if Home directory is included in path
 				// If so, remove (to clean up aesthetically)
 				// Do the same for the app's parent directory
-				let homePath = app.getPath("home");
-				let appPath = app.getAppPath();
-				if (actualReturnPath.includes(appPath)) {
-					returnPath = "." + actualReturnPath.substr(appPath.length);
-				} else if (actualReturnPath.includes(homePath)) {
-					// NOTE TO MARTY: I don't think "~" works on Windows
-					returnPath = "~" + actualReturnPath.substr(homePath.length);
+				let home_path = app.getPath("home");
+				let app_path = app.getAppPath();
+				if (full_save_path.includes(app_path)) {
+					// Use "." to represent base app folder
+					short_save_path = "." + full_save_path.substring(app_path.length, full_save_path.length);
+				} else if (full_save_path.includes(home_path)) {
+					// Use "~" to represent user folder
+					short_save_path = "~" + full_save_path.substring(home_path.length, full_save_path.length);
 				}
 
-				// Send message back to main window with directory path
-				event.reply("new-save-directory", [actualReturnPath, returnPath]);
+				console.log(short_save_path);
+
+				// Update path in settings
+				settings.information.save_directory.base_dir = full_save_path;
+				settings.information.save_directory.base_dir_short = short_save_path;
+				settings.functions.get_full_dir();
+
+				// Send updated settings to main window
+				send_settings();
 			}
 		})
 		.catch(function (err) {
@@ -343,8 +391,8 @@ ipcMain.on("update-settings", function (event, update) {
 // Tell live view window whether a scan was started/paused/etc
 ipcMain.on("scan-update", function (event, update) {
 	// Need to make sure the live view window is open
-	if (LVWin) {
-		LVWin.webContents.send("scan-update", update);
+	if (live_view_window) {
+		live_view_window.webContents.send("scan-update", update);
 	}
 });
 
@@ -352,21 +400,21 @@ ipcMain.on("scan-update", function (event, update) {
 // Relay centroid data to main and live view windows
 ipcMain.on("new-camera-frame", function (event, info) {
 	// Send data to main window if it's open
-	if (mainWin) {
-		mainWin.webContents.send("new-camera-frame", info);
+	if (main_window) {
+		main_window.webContents.send("new-camera-frame", info);
 	}
 
 	// Send data to live view window if it's open
-	if (LVWin) {
-		LVWin.webContents.send("new-camera-frame", info);
+	if (live_view_window) {
+		live_view_window.webContents.send("new-camera-frame", info);
 	}
 });
 
 // Message received from main window
 // Send message to live view window to update e- chart axes
 ipcMain.on("update-axes", function (event, axisSizes) {
-	if (LVWin) {
-		LVWin.webContents.send("update-axes", axisSizes);
+	if (live_view_window) {
+		live_view_window.webContents.send("update-axes", axisSizes);
 	}
 });
 
@@ -379,7 +427,7 @@ ipcMain.on("camera-closed", function (event, msg) {
 // Message received from main window
 // Send message to invisible window to turn hybrid method on and off
 ipcMain.on("hybrid-method", function (event, message) {
-	if (invisibleWin) {
-		invisibleWin.webContents.send("hybrid-method", message);
+	if (invisible_window) {
+		invisible_window.webContents.send("hybrid-method", message);
 	}
 });
