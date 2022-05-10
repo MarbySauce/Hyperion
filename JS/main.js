@@ -412,9 +412,9 @@ ipcMain.on("new-camera-frame", function (event, info) {
 
 // Message received from main window
 // Send message to live view window to update e- chart axes
-ipcMain.on("update-axes", function (event, axisSizes) {
+ipcMain.on("update-axes", function (event, axis_sizes) {
 	if (live_view_window) {
-		live_view_window.webContents.send("update-axes", axisSizes);
+		live_view_window.webContents.send("update-axes", axis_sizes);
 	}
 });
 
