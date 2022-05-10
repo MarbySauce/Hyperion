@@ -56,7 +56,7 @@ body {
 
 #SeviFirstPage {
 	grid-template-columns: 9fr 10fr;
-	grid-template-rows: 1fr 1fr 2fr 2fr 3fr 30px;
+	grid-template-rows: 1fr 1fr 1.5fr 2.5fr 3fr 30px;
 	grid-template-areas:
 		"TitleSection ImageDisplay"
 		"ScanControls ImageDisplay"
@@ -228,15 +228,7 @@ body {
 
 /* Right Side */
 
-.sevi-mode #ImageDisplay {
-	grid-area: ImageDisplay;
-	grid-template-rows: 1fr 14fr 1fr;
-	grid-template-areas:
-		"Title"
-		"Display"
-		"Slider";
-}
-.ir-mode #ImageDisplay {
+#ImageDisplay {
 	grid-area: ImageDisplay;
 	grid-template-rows: 1fr 14fr 1fr;
 	grid-template-columns: 5.5fr 1.5fr;
@@ -245,7 +237,7 @@ body {
 		"Display Display"
 		"Slider Slider";
 }
-.ir-mode #IRImageDisplay {
+#IRImageDisplay {
 	grid-area: IRImageDisplay;
 }
 #ImageDisplay h3 {
@@ -260,7 +252,7 @@ body {
 
 #Counters {
 	grid-area: Counters;
-	grid-template-rows: 0.5fr 1fr 1fr 1fr;
+	grid-template-rows: 0.3fr 1fr 1fr 1fr;
 	grid-template-columns: 1.5fr 1fr 1fr;
 	grid-template-areas:
 		"blank IROffTitle IROnTitle"

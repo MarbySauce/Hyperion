@@ -43,7 +43,7 @@
 				<div class="grid background-lighter-blue negative-bottom-margin" id="SaveControls"></div>
 				<div class="grid background-lighter-blue" id="ImageDisplay">
 					<h3 class="white-text">Accumulated View</h3>
-					<select class="square-button white-text" name="IRImageDisplay" id="IRImageDisplay">
+					<select class="square-button white-text sevi-mode-hide" name="IRImageDisplay" id="IRImageDisplay">
 						<option value="IROff">IR Off</option>
 						<option value="IROn">IR On</option>
 						<option value="Difference">Difference</option>
@@ -52,17 +52,17 @@
 					<input class="display-slider" id="DisplaySlider" type="range" min="0.05" max="1" step="0.05" value="0.5" />
 				</div>
 				<div class="grid background-lighter-blue negative-bottom-margin" id="Counters">
-					<h3 class="white-text" id="IROffCountersTitle">IR Off</h3>
-					<h3 class="white-text" id="IROnCountersTitle">IR On</h3>
+					<h3 class="white-text sevi-mode-hide" id="IROffCountersTitle">IR Off</h3>
+					<h3 class="white-text sevi-mode-hide" id="IROnCountersTitle">IR On</h3>
 					<label class="white-text" id="TotalFramesLabel" for="TotalFrames">Total Frames:</label>
 					<input class="input-read" id="TotalFrames" type="number" value="0" readonly />
-					<input class="input-read" id="TotalFramesIROn" type="number" value="0" readonly />
+					<input class="input-read sevi-mode-hide" id="TotalFramesIROn" type="number" value="0" readonly />
 					<label class="white-text" id="TotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
 					<input class="input-read" id="TotalECount" type="text" value="0" readonly />
-					<input class="input-read" id="TotalECountIROn" type="text" value="0" readonly />
+					<input class="input-read sevi-mode-hide" id="TotalECountIROn" type="text" value="0" readonly />
 					<label class="white-text" id="AvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
 					<input class="input-read" id="AvgECount" type="number" value="0" readonly />
-					<input class="input-read" id="AvgECountIROn" type="number" value="0" readonly />
+					<input class="input-read sevi-mode-hide" id="AvgECountIROn" type="number" value="0" readonly />
 				</div>
 				<button class="page-down page-button" id="SeviPageDown"><i class="arrow arrow-down"></i></button>
 				<div class="pause-screen" id="PauseScreenDisplay"></div>
