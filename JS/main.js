@@ -154,7 +154,7 @@ function create_main_window() {
 			],
 		},
 	]);
-	Menu.setApplicationMenu(menu);
+	//Menu.setApplicationMenu(menu);
 
 	win.loadFile("HTML/mainWindow.html");
 	win.webContents.openDevTools();
@@ -284,12 +284,10 @@ function create_folders() {
 
 		// Try to make the day's folder
 		let day_save_dir = settings.information.save_directory.full_dir;
-		console.log(day_save_dir);
 		fs.mkdir(day_save_dir, (error) => {});
 
 		// Try to make scan info folder
 		let scan_save_dir = settings.information.save_directory.full_scan_dir;
-		console.log(scan_save_dir);
 		fs.mkdir(scan_save_dir, (error) => {});
 	});
 }
