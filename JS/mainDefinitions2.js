@@ -1,7 +1,7 @@
 // Libraries
-const fs = require("fs");
-const ipc = require("electron").ipcRenderer;
-const Chart = require("chart.js");
+//const fs = require("fs");
+//const ipc = require("electron").ipcRenderer;
+//const Chart = require("chart.js");
 
 // Process and track info relating to electron count
 const electrons = {
