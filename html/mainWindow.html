@@ -15,11 +15,55 @@
 		</div>
 		<div class="sevi-mode" id="SeviModeContent">
 			<div class="first-page page grid" id="SeviFirstPage">
-				<div class="grid background-lighter-blue" id="TitleSection"></div>
-				<div class="grid background-lighter-blue" id="ScanControls"></div>
+				<div class="grid background-lighter-blue" id="TitleSection">
+					<h1 class="white-text">Hyperion</h1>
+				</div>
+				<div class="grid background-lighter-blue" id="ScanControls">
+					<button class="scan-control-button square-button white-text" id="ScanStartSave">
+						<span class="scan-button-text" id="ScanStartSaveText">Start</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="ScanPauseResume">
+						<span class="scan-button-text" id="ScanPauseResumeText">Resume</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="ScanCancel">
+						<span class="scan-button-text" id="ScanCancelText">Cancel</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="ScanAutosave">
+						<span class="scan-button-text" id="ScanAutosaveText">Autosave</span>
+						<br />
+						<span class="scan-button-text" id="ScanAutosaveStatusText">On</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="ScanReset">
+						<span class="scan-button-text" id="ScanResetText">Reset</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="ScanSingleShot">
+						<span class="scan-button-text" id="ScanSingleShotText">Single Shot</span>
+					</button>
+				</div>
 				<div class="grid background-lighter-blue negative-bottom-margin" id="SaveControls"></div>
-				<div class="grid background-lighter-blue" id="ImageDisplay"></div>
-				<div class="grid background-lighter-blue negative-bottom-margin" id="Counters"></div>
+				<div class="grid background-lighter-blue" id="ImageDisplay">
+					<h3 class="white-text">Accumulated View</h3>
+					<select class="square-button white-text" name="IRImageDisplay" id="IRImageDisplay">
+						<option value="IROff">IR Off</option>
+						<option value="IROn">IR On</option>
+						<option value="Difference">Difference</option>
+					</select>
+					<canvas class="accumulated-image" id="Display"></canvas>
+					<input class="display-slider" id="DisplaySlider" type="range" min="0.05" max="1" step="0.05" value="0.5" />
+				</div>
+				<div class="grid background-lighter-blue negative-bottom-margin" id="Counters">
+					<h3 class="white-text" id="IROffCountersTitle">IR Off</h3>
+					<h3 class="white-text" id="IROnCountersTitle">IR On</h3>
+					<label class="white-text" id="TotalFramesLabel" for="TotalFrames">Total Frames:</label>
+					<input class="input-read" id="TotalFrames" type="number" value="0" readonly />
+					<input class="input-read" id="TotalFramesIROn" type="number" value="0" readonly />
+					<label class="white-text" id="TotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
+					<input class="input-read" id="TotalECount" type="text" value="0" readonly />
+					<input class="input-read" id="TotalECountIROn" type="text" value="0" readonly />
+					<label class="white-text" id="AvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
+					<input class="input-read" id="AvgECount" type="number" value="0" readonly />
+					<input class="input-read" id="AvgECountIROn" type="number" value="0" readonly />
+				</div>
 				<button class="page-down page-button" id="SeviPageDown"><i class="arrow arrow-down"></i></button>
 				<div class="pause-screen" id="PauseScreenDisplay"></div>
 				<div class="pause-screen negative-bottom-margin" id="PauseScreenSaveControls"></div>
@@ -124,6 +168,7 @@
 		</div>
 
 		<script src="../JS/mainDefinitions.js"></script>
+		<script src="../JS/mainDefinitions2.js"></script>
 		<script src="../JS/mainFunctions.js"></script>
 	</body>
 </html>

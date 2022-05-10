@@ -74,17 +74,29 @@ body {
 
 #ScanControls {
 	grid-area: ScanControls;
+	grid-template-rows: 1fr 1fr;
 	grid-template-columns: 1fr 1fr 1fr;
-	grid-template-areas: "StartSave Pause SingleShot";
+	grid-template-areas:
+		"ScanStartSave ScanPauseResume ScanCancel"
+		"ScanAutosave ScanReset ScanSingleShot";
 }
-#StartSave {
-	grid-area: StartSave;
+#ScanStartSave {
+	grid-area: ScanStartSave;
 }
-#Pause {
-	grid-area: Pause;
+#ScanPauseResume {
+	grid-area: ScanPauseResume;
 }
-#SingleShot {
-	grid-area: SingleShot;
+#ScanCancel {
+	grid-area: ScanCancel;
+}
+#ScanAutosave {
+	grid-area: ScanAutosave;
+}
+#ScanReset {
+	grid-area: ScanReset;
+}
+#ScanSingleShot {
+	grid-area: ScanSingleShot;
 }
 
 .sevi-mode #SaveControls {
@@ -236,86 +248,58 @@ body {
 .ir-mode #IRImageDisplay {
 	grid-area: IRImageDisplay;
 }
-/* Properties for whichever accumulated image is shown */
-/* NOTE TO MARTY: Holy fuck why are they all different canvas elements just use one */
-.active-display {
-	grid-area: Display;
-}
 #ImageDisplay h3 {
 	grid-area: Title;
 }
-/* NOTE TO MARTY: Rename this to DisplaySlider */
-#DisplaySlider1 {
+#Display {
+	grid-area: Display;
+}
+#DisplaySlider {
 	grid-area: Slider;
 }
 
-.sevi-mode #Counters {
+#Counters {
 	grid-area: Counters;
-	grid-template-rows: 1fr 1fr 1fr 0.8fr;
-	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 0.5fr 1fr 1fr 1fr;
+	grid-template-columns: 1.5fr 1fr 1fr;
 	grid-template-areas:
-		"TotalFramesLabel TotalFrames"
-		"TotalECountLabel TotalECount"
-		"AvgECountLabel AvgECount"
-		"blank ResetCounters";
+		"blank IROffTitle IROnTitle"
+		"TotalFramesLabel TotalFrames TotalFramesIROn"
+		"TotalECountLabel TotalECount TotalECountIROn"
+		"AvgECountLabel AvgECount AvgECountIROn";
 }
-.sevi-mode #TotalFramesLabel {
+#IROffCountersTitle {
+	grid-area: IROffTitle;
+}
+#IROnCountersTitle {
+	grid-area: IROnTitle;
+}
+#TotalFramesLabel {
 	grid-area: TotalFramesLabel;
 }
-.sevi-mode #TotalFrames {
+#TotalFrames {
 	grid-area: TotalFrames;
 }
-.sevi-mode #TotalECountLabel {
-	grid-area: TotalECountLabel;
-}
-.sevi-mode #TotalECount {
-	grid-area: TotalECount;
-}
-.ir-mode #Counters {
-	grid-area: Counters;
-	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 0.8fr;
-	grid-template-columns: 1fr 1fr;
-	grid-template-areas:
-		"TotalFramesLabelIROff TotalFramesIROff"
-		"TotalECountLabelIROff TotalECountIROff"
-		"TotalFramesLabelIROn TotalFramesIROn"
-		"TotalECountLabelIROn TotalECountIROn"
-		"AvgECountLabel AvgECount"
-		"blank ResetCounters";
-}
-.ir-mode #TotalFramesLabel {
-	grid-area: TotalFramesLabelIROff;
-}
-.ir-mode #TotalFrames {
-	grid-area: TotalFramesIROff;
-}
-.ir-mode #TotalFramesLabelIROn {
-	grid-area: TotalFramesLabelIROn;
-}
-.ir-mode #TotalFramesIROn {
+#TotalFramesIROn {
 	grid-area: TotalFramesIROn;
 }
-.ir-mode #TotalECountLabel {
-	grid-area: TotalECountLabelIROff;
+#TotalECountLabel {
+	grid-area: TotalECountLabel;
 }
-.ir-mode #TotalECount {
-	grid-area: TotalECountIROff;
+#TotalECount {
+	grid-area: TotalECount;
 }
-.ir-mode #TotalECountLabelIROn {
-	grid-area: TotalECountLabelIROn;
-}
-.ir-mode #TotalECountIROn {
+#TotalECountIROn {
 	grid-area: TotalECountIROn;
 }
-/* Counters used in both modes */
 #AvgECountLabel {
 	grid-area: AvgECountLabel;
 }
 #AvgECount {
 	grid-area: AvgECount;
 }
-#ResetCounters {
-	grid-area: ResetCounters;
+#AvgECountIROn {
+	grid-area: AvgECountIROn;
 }
 
 #SeviPageDown {

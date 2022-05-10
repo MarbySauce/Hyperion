@@ -163,7 +163,7 @@ label {
 	opacity: 0.6;
 }
 
-.DisplaySlider {
+.display-slider {
 	-webkit-appearance: none;
 	background: hsla(225, 20%, 25%, 1);
 	height: 40%;
@@ -172,7 +172,7 @@ label {
 	margin-top: 2px;
 }
 
-.DisplaySlider::-webkit-slider-thumb {
+.display-slider::-webkit-slider-thumb {
 	-webkit-appearance: none;
 	height: 20px;
 	width: 20px;
@@ -214,24 +214,19 @@ Left Side
 
 /* Scan Controls */
 #ScanControls {
-	padding: 0 5%;
+	padding: 5%;
+	grid-gap: 5%;
 	justify-items: center;
 	align-items: center;
 }
-.ScanButton {
-	width: 60%;
-	height: 60%;
+.scan-control-button {
+	width: 100%;
+	height: 70%;
 	font-size: 1.3vw;
 }
 .ScanImage {
 	width: 10px;
 	height: 10px;
-}
-#StartButtonText {
-	padding-left: 8px;
-}
-#PauseButtonText {
-	padding-left: 8px;
 }
 
 /* Save Controls */
@@ -424,15 +419,12 @@ Right Side
 #IRImageDisplay:focus-visible {
 	outline: none;
 }
-.active-display {
-	height: 52vh;
+.accumulated-image {
+	height: 50vh;
 	aspect-ratio: 1 / 1;
 	background: white;
 	border-radius: 10px;
 	justify-self: center;
-}
-.inactive-display {
-	display: none;
 }
 #ImageDisplay h3 {
 	text-align: center;
@@ -441,11 +433,14 @@ Right Side
 .ir-mode #ImageDisplay h3 {
 	padding-left: 30%;
 }
-#DisplaySlider1 {
+#DisplaySlider {
 	justify-self: center;
 }
 
 /* Electron & Frame Counters */
+#Counters h3 {
+	text-align: center;
+}
 #Counters label {
 	font-size: 1.5vw;
 	text-align: right;
@@ -453,36 +448,29 @@ Right Side
 #Counters input {
 	font-size: 1.3vw;
 	text-align: center;
-	width: 50%;
+	width: 80%;
+	height: 40%;
 }
-/* Counters for Normal scanning mode */
-.sevi-mode #Counters {
+#Counters {
 	padding: 20px 50px;
 	grid-gap: 0 20px;
 	align-items: center;
+	justify-items: center;
 }
-.sevi-mode #TotalFramesLabelIROn {
+.sevi-mode #IROffCountersTitle {
+	display: none;
+}
+.sevi-mode #IROnCountersTitle {
 	display: none;
 }
 .sevi-mode #TotalFramesIROn {
 	display: none;
 }
-.sevi-mode #TotalECountLabelIROn {
-	display: none;
-}
 .sevi-mode #TotalECountIROn {
 	display: none;
 }
-/* Counters for IR On/Off Scanning */
-.ir-mode #Counters {
-	padding: 20px 50px;
-	grid-gap: 0 20px;
-	align-items: center;
-}
-#ResetCounters {
-	width: 50%;
-	height: 80%;
-	font-size: 1vw;
+.sevi-mode #AvgECountIROn {
+	display: none;
 }
 
 /* Pause "animation" */

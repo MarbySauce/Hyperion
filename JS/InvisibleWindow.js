@@ -16,52 +16,12 @@ window.onload = function () {
 /*			Centroid variables			*/
 //
 
-let checkMessageBool = false;
+let check_messages = false;
 let buffer;
 
 //
 /*			Centroid functions			*/
 //
-
-// Startup
-function Startup_old() {
-	const emitter = new EventEmitter();
-
-	// Initialize buffer
-	buffer = camera.initBuffer();
-
-	// Set up emitter messages
-	emitter.on("new-image", (centroidResults) => {
-		if (!centroidResults) {
-			return;
-		}
-		const centroids = centroidResults.slice(0, 2);
-		const computationTime = centroidResults[2];
-		const CentroidData = {
-			imageBuffer: buffer,
-			calcCenters: centroids,
-			computeTime: computationTime,
-		};
-
-		// Send data to other renderer windows
-		ipc.send("new-camera-frame", CentroidData);
-	});
-
-	// Initialize emitter
-	camera.initEmitter(emitter.emit.bind(emitter));
-
-	// Create WinAPI Window (to receive camera trigger messages)
-	let nRet = camera.createWinAPIWindow();
-	console.log("Create window:", nRet);
-
-	// Connect to the camera
-	nRet = camera.connect();
-	console.log("Connect to camera:", nRet);
-
-	// Adjust camera settings
-	nRet = camera.applySettings();
-	console.log("Apply settings:", nRet);
-}
 
 function startup() {
 	let nRet; // Temp variable for success of camera commands
@@ -111,25 +71,25 @@ function startup() {
 	// Start processing images
 	if (camera.enableMessages()) {
 		console.log("Messages enabled");
-		checkMessageBool = true;
+		check_messages = true;
 		messageLoop();
 	}
 }
 
 function messageLoop() {
-	if (checkMessageBool) {
+	if (check_messages) {
 		setTimeout(() => {
 			// Re-execute this function at the end of event loop cycle
 			messageLoop();
 		}, 0);
-		//checkMessageBool = false;
+		//check_messages = false;
 		camera.checkMessages();
 	}
 }
 
 // End the message loop and close the camera
-function closeCamera() {
-	checkMessageBool = false;
+function close_camera() {
+	check_messages = false;
 	camera.close();
 	console.log("Camera Closed!");
 }
@@ -139,11 +99,11 @@ function closeCamera() {
 //
 
 // Turn on / off hybrid method
-ipc.on("HybridMethod", function (event, message) {
+ipc.on("hybrid-method", function (event, message) {
 	//centroid.useHybrid(message);
 });
 
-ipc.on("CloseCamera", function (event, message) {
-	closeCamera();
+ipc.on("close-camera", function (event, message) {
+	close_camera();
 	ipc.send("camera-closed", null);
 });

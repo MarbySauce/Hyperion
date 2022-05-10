@@ -86,6 +86,8 @@ function Startup() {
 
 	// Go to Normal Mode tab (ID = 0)
 	SwitchTabs(0);
+
+	make_display_black();
 }
 
 /*		Tabs		*/
@@ -224,6 +226,28 @@ ipc.on("settings-information", (event, settingsInformation) => {
 /* When update e- counters on main page, also update on e- Monitor page
 	and add in an if statement whether to add to chart
 	And have addon send over calc time data */
+
+function make_display_black() {
+	const display = document.getElementById("Display");
+	const ctx = display.getContext("2d");
+	let image_width = scan.accumulated_image.params.accumulation_width;
+	let image_height = scan.accumulated_image.params.accumulation_height;
+
+	ctx.fillStyle = "black";
+	ctx.fillRect(0, 0, image_width, image_height);
+}
+
+function ir_mode() {
+	const sevi_mode_content = document.getElementById("SeviModeContent");
+	sevi_mode_content.classList.remove("sevi-mode");
+	sevi_mode_content.classList.add("ir-mode");
+}
+
+function normal_mode() {
+	const sevi_mode_content = document.getElementById("SeviModeContent");
+	sevi_mode_content.classList.add("sevi-mode");
+	sevi_mode_content.classList.remove("ir-mode");
+}
 
 /*
 
