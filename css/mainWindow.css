@@ -400,6 +400,8 @@ Right Side
 /* Electron & Frame Counters */
 #Counters h3 {
 	text-align: center;
+	width: 100%;
+	border-bottom: 3px solid white;
 }
 #Counters label {
 	font-size: 1.5vw;

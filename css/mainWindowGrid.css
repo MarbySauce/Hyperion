@@ -56,7 +56,7 @@ body {
 
 #SeviFirstPage {
 	grid-template-columns: 9fr 10fr;
-	grid-template-rows: 1fr 1fr 1.5fr 2.5fr 3fr 30px;
+	grid-template-rows: 1fr 1fr 1.3fr 2.7fr 3fr 30px;
 	grid-template-areas:
 		"TitleSection ImageDisplay"
 		"ScanControls ImageDisplay"
@@ -99,131 +99,50 @@ body {
 	grid-area: ScanSingleShot;
 }
 
+/* NOTE TO MARTY: repeat(4, 2fr 1fr) will be helpful */
+.red-border {
+	border: 1px solid red;
+	height: 100%;
+	width: 100%;
+}
 .sevi-mode #SaveControls {
 	grid-area: SaveControls;
-	grid-template-rows: 0.7fr 1fr 1.2fr 1.3fr;
-	grid-template-columns: 2fr 1fr 2fr repeat(7, 1fr);
+	grid-template-rows: 2fr 2fr 1fr 1fr 1fr;
 	grid-template-areas:
-		"CurrentFileName CurrentFileName CurrentFileName b0 b0 b0 b0 Increment Increment Increment"
-		"CurrentFile CurrentFile CurrentFile b1 b1 b1 b1 I0NCounterDown I0NCounter I0NCounterUp"
-		"CWDropdown CWLabel CurrentWavelength NMLabel ConvertedWavelength ConvertedWavelength NMLabel2 CurrentWavenumber CurrentWavenumber WNLabel"
-		"SDLabel SaveDirectory SaveDirectory SaveDirectory SaveDirectory SaveDirectory b4 b4 ChangeSaveDirectory ChangeSaveDirectory";
-	/* bn here is just a blank space */
-}
-.sevi-mode #IRWavelengthMode {
-	display: none;
-}
-.sevi-mode #CWLabelNIR {
-	display: none;
-}
-.sevi-mode #CurrentWavelengthNIR {
-	display: none;
-}
-.sevi-mode #NMLabelIR {
-	display: none;
-}
-.sevi-mode #ConvertedWavelengthIR {
-	display: none;
-}
-.sevi-mode #NMLabel2IR {
-	display: none;
-}
-.sevi-mode #CurrentWavenumberIR {
-	display: none;
-}
-.sevi-mode #WNLabelIR {
-	display: none;
+		"FileNaming"
+		"DetachmentLaserSetup"
+		"AutomaticStopSetup"
+		"VMISetup"
+		"SaveDirectorySection";
 }
 .ir-mode #SaveControls {
 	grid-area: SaveControls;
-	grid-template-rows: 0.7fr 1fr 1.2fr 1.2fr 1.1fr;
-	grid-template-columns: 2fr 1fr 2fr repeat(7, 1fr);
+	grid-template-rows: 2fr 2fr 2fr 1fr 1fr 1fr;
 	grid-template-areas:
-		"CurrentFileName CurrentFileName CurrentFileName b0 b0 b0 b0 Increment Increment Increment"
-		"CurrentFile CurrentFile CurrentFile CurrentFile CurrentFile CurrentFile b1 I0NCounterDown I0NCounter I0NCounterUp"
-		"CWDropdown CWLabel CurrentWavelength NMLabel ConvertedWavelength ConvertedWavelength NMLabel2 CurrentWavenumber CurrentWavenumber WNLabel"
-		"CWDropdownIR CWLabelIR CurrentWavelengthIR NMLabelIR ConvertedWavelengthIR ConvertedWavelengthIR NMLabel2IR CurrentWavenumberIR CurrentWavenumberIR WNLabelIR"
-		"SDLabel SaveDirectory SaveDirectory SaveDirectory SaveDirectory SaveDirectory b4 b4 ChangeSaveDirectory ChangeSaveDirectory";
-	/* bn here is just a blank space */
+		"FileNaming"
+		"DetachmentLaserSetup"
+		"IRLaserSetup"
+		"AutomaticStopSetup"
+		"VMISetup"
+		"SaveDirectorySection";
 }
-.ir-mode #IRWavelengthMode {
-	grid-area: CWDropdownIR;
+#FileNaming {
+	grid-area: FileNaming;
 }
-.ir-mode #CWLabelNIR {
-	grid-area: CWLabelIR;
+#DetachmentLaserSetup {
+	grid-area: DetachmentLaserSetup;
 }
-.ir-mode #CurrentWavelengthNIR {
-	grid-area: CurrentWavelengthIR;
+#IRLaserSetup {
+	grid-area: IRLaserSetup;
 }
-.ir-mode #NMLabelIR {
-	grid-area: NMLabelIR;
+#AutomaticStopSetup {
+	grid-area: AutomaticStopSetup;
 }
-.ir-mode #ConvertedWavelengthIR {
-	grid-area: ConvertedWavelengthIR;
+#VMISetup {
+	grid-area: VMISetup;
 }
-.ir-mode #NMLabel2IR {
-	grid-area: NMLabel2IR;
-}
-.ir-mode #CurrentWavenumberIR {
-	grid-area: CurrentWavenumberIR;
-}
-.ir-mode #WNLabelIR {
-	grid-area: WNLabelIR;
-}
-/* First row: Titles */
-#CurrentFileName {
-	grid-area: CurrentFileName;
-}
-#Increment {
-	grid-area: Increment;
-}
-/* Second row: File Naming */
-#CurrentFile {
-	grid-area: CurrentFile;
-}
-#I0NCounterDown {
-	grid-area: I0NCounterDown;
-}
-#I0NCounter {
-	grid-area: I0NCounter;
-}
-#I0NCounterUp {
-	grid-area: I0NCounterUp;
-}
-/* Third row: Current Wavelength */
-#WavelengthMode {
-	grid-area: CWDropdown;
-}
-#CWLabel {
-	grid-area: CWLabel;
-}
-#CurrentWavelength {
-	grid-area: CurrentWavelength;
-}
-#NMLabel {
-	grid-area: NMLabel;
-}
-#ConvertedWavelength {
-	grid-area: ConvertedWavelength;
-}
-#NMLabel2 {
-	grid-area: NMLabel2;
-}
-#CurrentWavenumber {
-	grid-area: CurrentWavenumber;
-}
-#WNLabel {
-	grid-area: WNLabel;
-}
-/* Fourth row: Save Directory */
-#SDLabel {
-	grid-area: SDLabel;
-}
-#SaveDirectory {
-	grid-area: SaveDirectory;
-}
-#ChangeSaveDirectory {
-	grid-area: ChangeSaveDirectory;
+#SaveDirectorySection {
+	grid-area: SaveDirectorySection;
 }
 
 /* Right Side */
