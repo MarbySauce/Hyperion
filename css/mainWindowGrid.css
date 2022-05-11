@@ -55,8 +55,8 @@ body {
 }
 
 #SeviFirstPage {
-	grid-template-columns: 9fr 10fr;
-	grid-template-rows: 1fr 1fr 1.3fr 2.7fr 3fr 30px;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 1fr 1fr 0.5fr 3.5fr 3fr 30px;
 	grid-template-areas:
 		"TitleSection ImageDisplay"
 		"ScanControls ImageDisplay"
@@ -99,7 +99,7 @@ body {
 	grid-area: ScanSingleShot;
 }
 
-/* NOTE TO MARTY: repeat(4, 2fr 1fr) will be helpful */
+/* Save Controls */
 .red-border {
 	border: 1px solid red;
 	height: 100%;
@@ -107,7 +107,7 @@ body {
 }
 .sevi-mode #SaveControls {
 	grid-area: SaveControls;
-	grid-template-rows: 2fr 2fr 1fr 1fr 1fr;
+	grid-template-rows: repeat(2, 2fr) repeat(3, 1fr);
 	grid-template-areas:
 		"FileNaming"
 		"DetachmentLaserSetup"
@@ -115,9 +115,9 @@ body {
 		"VMISetup"
 		"SaveDirectorySection";
 }
-.ir-mode #SaveControls {
+.ir-sevi-mode #SaveControls {
 	grid-area: SaveControls;
-	grid-template-rows: 2fr 2fr 2fr 1fr 1fr 1fr;
+	grid-template-rows: repeat(3, 2fr) repeat(3, 1fr);
 	grid-template-areas:
 		"FileNaming"
 		"DetachmentLaserSetup"
@@ -126,23 +126,134 @@ body {
 		"VMISetup"
 		"SaveDirectorySection";
 }
-#FileNaming {
+/* Save Controls - File Naming */
+.sevi-mode #FileNaming {
 	grid-area: FileNaming;
+	grid-template-rows: 1fr 5px 2fr 2fr;
+	grid-template-columns: 8fr 1fr 1fr 1fr 1fr;
+	grid-template-areas:
+		"CurrentImageTitle blank1 ImageCounterTitle ImageCounterTitle ImageCounterTitle"
+		"blank2 blank2 blank2 blank2 blank2"
+		"CurrentImageFile blank3 ImageCounterDown ImageCounter ImageCounterUp"
+		"blank4 blank4 blank4 blank4 blank4";
 }
+.ir-sevi-mode #FileNaming {
+	grid-area: FileNaming;
+	grid-template-rows: 1fr 5px 2fr 2fr;
+	grid-template-columns: 8fr 1fr 1fr 1fr 1fr;
+	grid-template-areas:
+		"CurrentImageTitle blank1 ImageCounterTitle ImageCounterTitle ImageCounterTitle"
+		"blank2 blank2 blank2 blank2 blank2"
+		"CurrentImageFile blank3 ImageCounterDown ImageCounter ImageCounterUp"
+		"CurrentImageFileIROn blank4 blank4 blank4 blank4";
+}
+#CurrentImageTitle {
+	grid-area: CurrentImageTitle;
+}
+#ImageCounterTitle {
+	grid-area: ImageCounterTitle;
+}
+#CurrentImageFile {
+	grid-area: CurrentImageFile;
+}
+#ImageCounterDown {
+	grid-area: ImageCounterDown;
+}
+#ImageCounter {
+	grid-area: ImageCounter;
+}
+#ImageCounterUp {
+	grid-area: ImageCounterUp;
+}
+#CurrentImageFileIROn {
+	grid-area: CurrentImageFileIROn;
+}
+
+/* Save Controls - Detachment Laser Setup */
 #DetachmentLaserSetup {
 	grid-area: DetachmentLaserSetup;
+	grid-template-rows: 1fr 1fr;
+	grid-template-columns: repeat(3, 3fr 1fr) 3fr 1.5fr;
+	grid-template-areas:
+		"WavelengthMode DetachmentWavelengthLabel DetachmentWavelength NMLabel1 ConvertedWavelength NMLabel2 DetachmentWavenumber WNLabel1"
+		"blank1 blank1 blank1 blank1 blank1 blank1 MeasureDetachmentWavelength blank2";
 }
+#WavelengthMode {
+	grid-area: WavelengthMode;
+}
+#DetachmentWavelengthLabel {
+	grid-area: DetachmentWavelengthLabel;
+}
+#DetachmentWavelength {
+	grid-area: DetachmentWavelength;
+}
+#NMLabel1 {
+	grid-area: NMLabel1;
+}
+#ConvertedWavelength {
+	grid-area: ConvertedWavelength;
+}
+#NMLabel2 {
+	grid-area: NMLabel2;
+}
+#DetachmentWavenumber {
+	grid-area: DetachmentWavenumber;
+}
+#WNLabel1 {
+	grid-area: WNLabel1;
+}
+#MeasureDetachmentWavelength {
+	grid-area: MeasureDetachmentWavelength;
+}
+
+/* Save Controls - IR Laser Setup */
 #IRLaserSetup {
 	grid-area: IRLaserSetup;
 }
+
+/* Save Controls - Automatic Stop Setup */
 #AutomaticStopSetup {
 	grid-area: AutomaticStopSetup;
+	grid-template-columns: 3fr 2fr 2.5fr 1fr;
+	grid-template-areas: "AutomaticStopLabel AutomaticStop AutomaticStopUnit blank";
 }
+#AutomaticStopLabel {
+	grid-area: AutomaticStopLabel;
+}
+#AutomaticStop {
+	grid-area: AutomaticStop;
+}
+#AutomaticStopUnit {
+	grid-area: AutomaticStopUnit;
+}
+
+/* Save Controls - VMI Setup */
 #VMISetup {
 	grid-area: VMISetup;
+	grid-template-columns: 3fr 2fr 2.5fr 1fr;
+	grid-template-areas: "VMILabel VMIMode blank blank";
 }
+#VMILabel {
+	grid-area: VMILabel;
+}
+#VMIMode {
+	grid-area: VMIMode;
+}
+
+/* Save Controls - Save Directory */
 #SaveDirectorySection {
 	grid-area: SaveDirectorySection;
+	grid-template-columns: 1fr 4fr 1fr;
+	grid-template-areas: "SaveDirectoryLabel SaveDirectory ChangeSaveDirectory";
+}
+#SaveDirectoryLabel {
+	grid-area: SaveDirectoryLabel;
+}
+#SaveDirectory {
+	grid-area: SaveDirectory;
+}
+#ChangeSaveDirectory {
+	grid-area: ChangeSaveDirectory;
 }
 
 /* Right Side */

@@ -110,6 +110,7 @@ label {
 }
 
 .square-button {
+	height: 50%;
 	border-radius: 10px;
 	border: none;
 	background: hsla(225, 20%, 10%, 0.6);
@@ -144,25 +145,24 @@ label {
 	outline-offset: 0;
 }
 
-.I0NButton {
+.image-id-button {
 	width: 60%;
 	height: 60%;
 	justify-self: center;
 	border-radius: 100%;
 	border: none;
 	background: hsla(225, 20%, 10%, 0.6);
-	/*color: whitesmoke;*/
 	color: white;
 }
-.I0NButton:hover {
+.image-id-button:hover {
 	background: hsla(225, 20%, 25%, 1);
 	border: 1px solid hsla(0, 100%, 100%, 0.5);
 }
-.I0NButton:active {
+.image-id-button:active {
 	background: hsla(225, 20%, 55%, 1);
 	border: 1px solid hsla(0, 100%, 100%, 0.7);
 }
-.I0NButton:disabled {
+.image-id-button:disabled {
 	border: 1px solid hsla(0, 0%, 0%, 0.2);
 	background: hsla(225, 20%, 35%, 0.6);
 	opacity: 0.6;
@@ -199,6 +199,11 @@ label {
 	pointer-events: none;
 }
 
+.text-box-label {
+	font-size: 1.5vw;
+	text-align: right;
+}
+
 /* 
 Left Side 
 */
@@ -219,14 +224,14 @@ Left Side
 
 /* Scan Controls */
 #ScanControls {
-	padding: 5%;
-	grid-gap: 5%;
+	padding: 3%;
+	grid-gap: 3%;
 	justify-items: center;
 	align-items: center;
 }
 .scan-control-button {
 	width: 100%;
-	height: 70%;
+	height: 80%;
 	font-size: 1.3vw;
 }
 .ScanImage {
@@ -235,131 +240,67 @@ Left Side
 }
 
 /* Save Controls */
-.sevi-mode #SaveControls {
-	padding: 5px 20px 10px 20px;
-	grid-gap: 5px 2px;
-	align-items: center;
+#SaveControls {
+	padding: 20px 15px;
+	grid-gap: 5px;
 }
-.ir-mode #SaveControls {
-	padding: 5px 15px 5px 15px;
-	grid-gap: 5px 2px;
-	align-items: center;
-}
-.ir-mode #IRWavelengthMode {
-	height: 50%;
-	padding-left: 3px;
-}
-#IRWavelengthMode:focus-visible {
-	outline: none;
-}
-.ir-mode #CWLabelNIR {
-	text-align: right;
-	padding-right: 5px;
-}
-.ir-mode #CurrentWavelengthNIR {
-	text-align: center;
-	width: 100%;
-	height: 60%;
-}
-.ir-mode #NMLabelIR {
-	grid-area: NMLabelIR;
-}
-.ir-mode #ConvertedWavelengthIR {
-	text-align: center;
-	width: 100%;
-	height: 60%;
-}
-.ir-mode #NMLabel2IR {
-	padding-left: 3px;
-}
-.ir-mode #CurrentWavenumberIR {
-	text-align: center;
-	width: 100%;
-	height: 60%;
-}
-.ir-mode #WNLabelIR {
-	padding-left: 3px;
-}
-#SaveControls h4 {
-	font-size: 1.5vw;
+.save-control-title {
 	text-align: center;
 	align-self: end;
+	border-bottom: 1px solid white;
 }
-#SaveControls label {
-	font-size: 1.4vw;
-}
-#SaveControls button {
-	font-size: 1.35vw;
-}
-/* First row: Titles */
-
-/* Second row: File Naming */
-#CurrentFile {
-	height: 70%;
+.file-name-display {
+	height: 80%;
 	font-size: 1.3vw;
 	text-align: center;
 	background: inherit;
 	border: 1px solid rgb(62, 71, 95);
 }
-#I0NCounter {
+.save-control-section {
+	grid-gap: 5%;
+	align-items: center;
+}
+
+/* Save Controls - File Naming */
+#FileNaming {
+	grid-gap: 2px;
+}
+#ImageCounter {
 	width: 100%;
 	height: 70%;
 	text-align: center;
 }
-/* Third row: Current Wavelength */
-#WavelengthMode {
+
+/* Save Controls - Detachment Wavelength */
+.drop-down {
 	height: 50%;
-	padding-left: 3px;
+	padding-left: 5%;
 }
-#WavelengthMode:focus-visible {
+.drop-down:focus-visible {
 	outline: none;
 }
-#CWLabel {
-	text-align: right;
-	padding-right: 5px;
-}
-#CurrentWavelength {
-	text-align: center;
+.hv-display {
 	width: 100%;
 	height: 60%;
-}
-#NMLabel {
-	padding-left: 3px;
-}
-#ConvertedWavelength {
 	text-align: center;
-	width: 100%;
-	height: 60%;
 }
-#NMLabel2 {
+.hv-unit-label {
 	padding-left: 3px;
 }
-#CurrentWavenumber {
-	text-align: center;
-	width: 100%;
-	height: 60%;
+#DetachmentLaserSetup {
+	grid-gap: 5px;
 }
-#WNLabel {
-	padding-left: 3px;
-}
+
+/* Save Controls - Automatic Stop Setup */
+
 /* Fourth row: Save Directory */
-.SaveRow4 {
-	height: 50%;
+.faded {
 	opacity: 0.7;
-	align-self: end;
-}
-.ir-mode #SDLabel {
-	height: 50%;
-}
-#SDLabel {
-	height: 40%;
-	text-align: right;
-	padding-right: 10px;
 }
 #SaveDirectory {
-	background: inherit;
+	height: 60%;
+	text-align: left;
 	padding-left: 10px;
-	border: 1px solid rgb(62, 71, 95);
 }
 
 /* 
@@ -375,8 +316,8 @@ Right Side
 	padding: 5px 5px;
 	grid-gap: 10px;
 }
-.ir-mode #IRImageDisplay {
-	text-align: center;
+#ImageDisplaySelect {
+	height: 80%;
 }
 #IRImageDisplay:focus-visible {
 	outline: none;
@@ -402,10 +343,6 @@ Right Side
 	text-align: center;
 	width: 100%;
 	border-bottom: 3px solid white;
-}
-#Counters label {
-	font-size: 1.5vw;
-	text-align: right;
 }
 #Counters input {
 	font-size: 1.3vw;

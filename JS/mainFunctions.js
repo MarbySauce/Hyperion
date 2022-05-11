@@ -87,7 +87,10 @@ function Startup() {
 	// Go to Normal Mode tab (ID = 0)
 	SwitchTabs(0);
 
+	// Dummy functions for aesthetics
 	make_display_black();
+	add_file_names();
+	add_photon_energies();
 }
 
 /*		Tabs		*/
@@ -153,9 +156,8 @@ function SwitchTabs(Tab) {
 					scanInfo.method = "normal";
 				}
 				tabList[Tab].classList.add("pressed-tab");
-				contentList[Tab].classList.remove("ir-mode");
-				contentList[Tab].classList.remove("depletion-mode");
-				contentList[Tab].classList.add("normal-mode");
+				contentList[Tab].classList.remove("ir-sevi-mode");
+				contentList[Tab].classList.add("sevi-mode");
 				//RemoveIRLabels();
 				break;
 			case 1:
@@ -164,9 +166,8 @@ function SwitchTabs(Tab) {
 					scanInfo.method = "ir";
 				}
 				tabList[Tab].classList.add("pressed-tab");
-				contentList[Tab].classList.remove("normal-mode");
-				contentList[Tab].classList.remove("depletion-mode");
-				contentList[Tab].classList.add("ir-mode");
+				contentList[Tab].classList.remove("sevi-mode");
+				contentList[Tab].classList.add("ir-sevi-mode");
 				//AddIRLabels();
 				break;
 		}
@@ -237,16 +238,23 @@ function make_display_black() {
 	ctx.fillRect(0, 0, image_width, image_height);
 }
 
-function ir_mode() {
-	const sevi_mode_content = document.getElementById("SeviModeContent");
-	sevi_mode_content.classList.remove("sevi-mode");
-	sevi_mode_content.classList.add("ir-mode");
+function add_file_names() {
+	const image_file = document.getElementById("CurrentImageFile");
+	const ir_image_file = document.getElementById("CurrentImageFileIROn");
+	const save_directory = document.getElementById("SaveDirectory");
+	let current_date = getFormattedDate();
+	image_file.value = current_date + "i01_1024.i0N";
+	ir_image_file.value = current_date + "i01_IR_1024.i0N";
+	save_directory.value = "~/Documents/data_current";
 }
 
-function normal_mode() {
-	const sevi_mode_content = document.getElementById("SeviModeContent");
-	sevi_mode_content.classList.add("sevi-mode");
-	sevi_mode_content.classList.remove("ir-mode");
+function add_photon_energies() {
+	const detachment_wavelength = document.getElementById("DetachmentWavelength");
+	const detachment_converted_wavelength = document.getElementById("ConvertedWavelength");
+	const detachment_wavenumber = document.getElementById("DetachmentWavenumber");
+
+	detachment_wavelength.value = 640.054;
+	detachment_wavenumber.value = 15623.682;
 }
 
 /*
