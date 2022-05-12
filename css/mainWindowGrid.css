@@ -105,27 +105,17 @@ body {
 	height: 100%;
 	width: 100%;
 }
-.sevi-mode #SaveControls {
+#SaveControls {
 	grid-area: SaveControls;
-	grid-template-rows: repeat(2, 2fr) repeat(3, 1fr);
+	grid-template-rows: 2fr 4fr 0.3fr 1fr 1fr;
 	grid-template-areas:
 		"FileNaming"
-		"DetachmentLaserSetup"
+		"LaserSetup"
+		"blank"
 		"AutomaticStopSetup"
-		"VMISetup"
-		"SaveDirectorySection";
+		"VMISetup";
 }
-.ir-sevi-mode #SaveControls {
-	grid-area: SaveControls;
-	grid-template-rows: repeat(3, 2fr) repeat(3, 1fr);
-	grid-template-areas:
-		"FileNaming"
-		"DetachmentLaserSetup"
-		"IRLaserSetup"
-		"AutomaticStopSetup"
-		"VMISetup"
-		"SaveDirectorySection";
-}
+
 /* Save Controls - File Naming */
 .sevi-mode #FileNaming {
 	grid-area: FileNaming;
@@ -169,14 +159,35 @@ body {
 	grid-area: CurrentImageFileIROn;
 }
 
-/* Save Controls - Detachment Laser Setup */
-#DetachmentLaserSetup {
-	grid-area: DetachmentLaserSetup;
-	grid-template-rows: 1fr 1fr;
-	grid-template-columns: repeat(3, 3fr 1fr) 3fr 1.5fr;
+/* Save Controls - Laser Setup */
+.sevi-mode #LaserSetup {
+	grid-area: LaserSetup;
+	grid-template-rows: 0.5fr 1fr 1fr 2fr;
 	grid-template-areas:
-		"WavelengthMode DetachmentWavelengthLabel DetachmentWavelength NMLabel1 ConvertedWavelength NMLabel2 DetachmentWavenumber WNLabel1"
-		"blank1 blank1 blank1 blank1 blank1 blank1 MeasureDetachmentWavelength blank2";
+		"LaserSetupTitle"
+		"DetachmentLaserReadout"
+		"LaserMeasurement"
+		"blank";
+}
+.ir-sevi-mode #LaserSetup {
+	grid-area: LaserSetup;
+	grid-template-rows: 0.5fr 1fr 1fr 1fr 1fr;
+	grid-template-areas:
+		"LaserSetupTitle"
+		"DetachmentLaserReadout"
+		"IRLaserReadout"
+		"IRLaserControl"
+		"LaserMeasurement";
+}
+#LaserSetupTitle {
+	grid-area: LaserSetupTitle;
+}
+
+/* Save Controls - Laser Setup - Detachment Laser Readout */
+#DetachmentLaserReadout {
+	grid-area: DetachmentLaserReadout;
+	grid-template-columns: repeat(3, 2.5fr 1fr) 2fr 1.3fr;
+	grid-template-areas: "WavelengthMode DetachmentWavelengthLabel DetachmentWavelength NMLabel1 ConvertedWavelength NMLabel2 DetachmentWavenumber WNLabel1";
 }
 #WavelengthMode {
 	grid-area: WavelengthMode;
@@ -201,6 +212,20 @@ body {
 }
 #WNLabel1 {
 	grid-area: WNLabel1;
+}
+
+#IRLaserReadout {
+	grid-area: IRLaserReadout;
+}
+#IRLaserControl {
+	grid-area: IRLaserControl;
+}
+
+/* Save Controls - Laser Setup - Laser Measurement */
+#LaserMeasurement {
+	grid-area: LaserMeasurement;
+	grid-template-columns: 6fr 2fr 1fr;
+	grid-template-areas: "blank1 MeasureDetachmentWavelength blank2";
 }
 #MeasureDetachmentWavelength {
 	grid-area: MeasureDetachmentWavelength;
@@ -238,22 +263,6 @@ body {
 }
 #VMIMode {
 	grid-area: VMIMode;
-}
-
-/* Save Controls - Save Directory */
-#SaveDirectorySection {
-	grid-area: SaveDirectorySection;
-	grid-template-columns: 1fr 4fr 1fr;
-	grid-template-areas: "SaveDirectoryLabel SaveDirectory ChangeSaveDirectory";
-}
-#SaveDirectoryLabel {
-	grid-area: SaveDirectoryLabel;
-}
-#SaveDirectory {
-	grid-area: SaveDirectory;
-}
-#ChangeSaveDirectory {
-	grid-area: ChangeSaveDirectory;
 }
 
 /* Right Side */

@@ -57,26 +57,33 @@
 						<button class="image-id-button" id="ImageCounterUp">+</button>
 						<input class="white-text input-read file-name-display sevi-mode-hide" id="CurrentImageFileIROn" readonly />
 					</div>
-					<!-- SEVI Mode - First Page - Save Controls - Detachment Laser Setup -->
-					<div class="grid background-lighter-blue save-control-section red-border" id="DetachmentLaserSetup">
-						<select class="white-text square-button drop-down" name="WavelengthMode" id="WavelengthMode">
-							<option value="Standard">Standard</option>
-							<option value="Doubled">Doubled</option>
-							<option value="Raman">Raman</option>
-							<option value="IRDFG">IR-DFG</option>
-						</select>
-						<label class="white-text" for="DetachmentWavelength" id="DetachmentWavelengthLabel">h<em class="serif">ν</em>:</label>
-						<input class="input-change hv-display" id="DetachmentWavelength" type="number" min="0" placeholder="-" />
-						<label class="white-text hv-unit-label" id="NMLabel1">nm</label>
-						<input class="input-read hv-display" id="ConvertedWavelength" type="number" placeholder="-" readonly />
-						<label class="white-text hv-unit-label" id="NMLabel2">nm</label>
-						<input class="input-read hv-display" id="DetachmentWavenumber" type="number" placeholder="-" readonly />
-						<label class="white-text hv-unit-label" id="WNLabel1">cm<sup>-1</sup></label>
-						<button class="white-text square-button" id="MeasureDetachmentWavelength">Measure</button>
-					</div>
-					<!-- SEVI Mode - First Page - Save Controls - IR Laser Setup -->
-					<div class="grid background-lighter-blue save-control-section sevi-mode-hide red-border" id="IRLaserSetup">
-						<!--<select class="white-text square-button sevi-mode-hide" name="IRWavelengthMode" id="IRWavelengthMode">
+					<!-- SEVI Mode - First Page - Save Controls - Laser Control -->
+					<div class="grid background-lighter-blue save-control-section red-border" id="LaserSetup">
+						<div class="grid background-lighter-blue red-border" id="LaserSetupTitle">
+							<h3 class="white-text" id="LaserControlTitle">Laser Control</h3>
+						</div>
+						<div class="grid background-lighter-blue red-border" id="DetachmentLaserReadout">
+							<select class="white-text square-button drop-down" name="WavelengthMode" id="WavelengthMode">
+								<option value="Standard">Standard</option>
+								<option value="Doubled">Doubled</option>
+								<option value="Raman">Raman</option>
+								<option value="IRDFG">IR-DFG</option>
+							</select>
+							<label class="white-text" for="DetachmentWavelength" id="DetachmentWavelengthLabel">h<em class="serif">ν</em>:</label>
+							<input class="input-change hv-display" id="DetachmentWavelength" type="number" min="0" placeholder="-" />
+							<label class="white-text hv-unit-label" id="NMLabel1">nm</label>
+							<input class="input-read hv-display" id="ConvertedWavelength" type="number" placeholder="-" readonly />
+							<label class="white-text hv-unit-label" id="NMLabel2">nm</label>
+							<input class="input-read hv-display" id="DetachmentWavenumber" type="number" placeholder="-" readonly />
+							<label class="white-text hv-unit-label" id="WNLabel1">cm<sup>-1</sup></label>
+						</div>
+						<div class="grid background-lighter-blue sevi-mode-hide red-border" id="IRLaserReadout"></div>
+						<div class="grid background-lighter-blue sevi-mode-hide red-border" id="IRLaserControl"></div>
+						<div class="grid background-lighter-blue red-border" id="LaserMeasurement">
+							<button class="white-text square-button" id="MeasureDetachmentWavelength">Measure</button>
+						</div>
+						<!--
+						<select class="white-text square-button sevi-mode-hide" name="IRWavelengthMode" id="IRWavelengthMode">
 							<option value="Standard">Near IR</option>
 							<option value="Doubled">Inter. IR</option>
 							<option value="Raman">Mid IR</option>
@@ -111,12 +118,16 @@
 							<option value="V4">V4</option>
 						</select>
 					</div>
-					<!-- SEVI Mode - First Page - Save Controls - Save Directory -->
-					<div class="grid background-lighter-blue save-control-section faded red-border" id="SaveDirectorySection">
-						<label class="white-text text-box-label" for="SaveDirectory" id="SaveDirectoryLabel">Save to:</label>
-						<input class="white-text file-name-display" id="SaveDirectory" readonly />
-						<button class="white-text square-button" id="ChangeSaveDirectory">Change</button>
-					</div>
+					<!--
+						Move SD to settings
+						Make sections for:
+							WL Title
+							Det WL
+							IR WL
+							IR Control
+								Desired IR energy: - Input - [nm / µm] - [Move]
+							Measure WL
+					-->
 				</div>
 				<!-- SEVI Mode - First Page - Image Display -->
 				<div class="grid background-lighter-blue" id="ImageDisplay">

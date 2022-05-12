@@ -90,7 +90,7 @@ function Startup() {
 	// Dummy functions for aesthetics
 	make_display_black();
 	add_file_names();
-	add_photon_energies();
+	//add_photon_energies();
 }
 
 /*		Tabs		*/
@@ -241,11 +241,9 @@ function make_display_black() {
 function add_file_names() {
 	const image_file = document.getElementById("CurrentImageFile");
 	const ir_image_file = document.getElementById("CurrentImageFileIROn");
-	const save_directory = document.getElementById("SaveDirectory");
 	let current_date = getFormattedDate();
 	image_file.value = current_date + "i01_1024.i0N";
 	ir_image_file.value = current_date + "i01_IR_1024.i0N";
-	save_directory.value = "~/Documents/data_current";
 }
 
 function add_photon_energies() {
