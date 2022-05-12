@@ -28,7 +28,7 @@
 						<span class="scan-button-text" id="ScanStartSaveText">Start</span>
 					</button>
 					<button class="scan-control-button square-button white-text" id="ScanPauseResume">
-						<span class="scan-button-text" id="ScanPauseResumeText">Resume</span>
+						<span class="scan-button-text" id="ScanPauseResumeText">Pause</span>
 					</button>
 					<button class="scan-control-button square-button white-text" id="ScanCancel">
 						<span class="scan-button-text" id="ScanCancelText">Cancel</span>
@@ -45,89 +45,74 @@
 						<span class="scan-button-text" id="ScanSingleShotText">Single Shot</span>
 					</button>
 				</div>
-				<!-- SEVI Mode - First Page - Save Controls -->
-				<div class="grid background-lighter-blue negative-bottom-margin" id="SaveControls">
-					<!-- SEVI Mode - First Page - Save Controls - File Naming -->
-					<div class="grid background-lighter-blue save-control-section red-border" id="FileNaming">
-						<h4 class="white-text save-control-title" id="CurrentImageTitle">Current Image</h4>
-						<h4 class="white-text save-control-title" id="ImageCounterTitle">Image ID</h4>
-						<input class="white-text input-read file-name-display" id="CurrentImageFile" readonly />
-						<button class="image-id-button" id="ImageCounterDown">-</button>
-						<input class="input-read" type="number" value="1" id="ImageCounter" readonly />
-						<button class="image-id-button" id="ImageCounterUp">+</button>
-						<input class="white-text input-read file-name-display sevi-mode-hide" id="CurrentImageFileIROn" readonly />
+				<!-- SEVI Mode - First Page - File Naming -->
+				<div class="grid background-lighter-blue" id="FileNaming">
+					<h4 class="white-text save-control-title" id="CurrentImageTitle">Current Image</h4>
+					<h4 class="white-text save-control-title" id="ImageCounterTitle">Image ID</h4>
+					<input class="white-text input-read file-name-display" id="CurrentImageFile" readonly />
+					<button class="image-id-button" id="ImageCounterDown">-</button>
+					<input class="input-read" type="number" value="1" id="ImageCounter" readonly />
+					<button class="image-id-button" id="ImageCounterUp">+</button>
+					<input class="white-text input-read file-name-display sevi-mode-hide" id="CurrentImageFileIROn" readonly />
+					<label class="white-text text-box-label" id="VMILabel">VMI Setting:</label>
+					<select class="white-text square-button drop-down" name="VMIMode" id="VMIMode">
+						<option value="V1">V1</option>
+						<option value="V2">V2</option>
+						<option value="V3">V3</option>
+						<option value="V4">V4</option>
+					</select>
+				</div>
+				<!-- SEVI Mode - First Page - Laser Setup -->
+				<div class="grid background-lighter-blue save-control-section negative-bottom-margin" id="LaserSetup">
+					<div class="grid background-lighter-blue red-border" id="LaserSetupTitle">
+						<h3 class="white-text" id="LaserControlTitle">Laser Control</h3>
 					</div>
-					<!-- SEVI Mode - First Page - Save Controls - Laser Control -->
-					<div class="grid background-lighter-blue save-control-section red-border" id="LaserSetup">
-						<div class="grid background-lighter-blue red-border" id="LaserSetupTitle">
-							<h3 class="white-text" id="LaserControlTitle">Laser Control</h3>
-						</div>
-						<div class="grid background-lighter-blue red-border" id="DetachmentLaserReadout">
-							<select class="white-text square-button drop-down" name="WavelengthMode" id="WavelengthMode">
-								<option value="Standard">Standard</option>
-								<option value="Doubled">Doubled</option>
-								<option value="Raman">Raman</option>
-								<option value="IRDFG">IR-DFG</option>
-							</select>
-							<label class="white-text" for="DetachmentWavelength" id="DetachmentWavelengthLabel">h<em class="serif">ν</em>:</label>
-							<input class="input-change hv-display" id="DetachmentWavelength" type="number" min="0" placeholder="-" />
-							<label class="white-text hv-unit-label" id="NMLabel1">nm</label>
-							<input class="input-read hv-display" id="ConvertedWavelength" type="number" placeholder="-" readonly />
-							<label class="white-text hv-unit-label" id="NMLabel2">nm</label>
-							<input class="input-read hv-display" id="DetachmentWavenumber" type="number" placeholder="-" readonly />
-							<label class="white-text hv-unit-label" id="WNLabel1">cm<sup>-1</sup></label>
-						</div>
-						<div class="grid background-lighter-blue sevi-mode-hide red-border" id="IRLaserReadout"></div>
-						<div class="grid background-lighter-blue sevi-mode-hide red-border" id="IRLaserControl"></div>
-						<div class="grid background-lighter-blue red-border" id="LaserMeasurement">
-							<button class="white-text square-button" id="MeasureDetachmentWavelength">Measure</button>
-						</div>
-						<!--
-						<select class="white-text square-button sevi-mode-hide" name="IRWavelengthMode" id="IRWavelengthMode">
+					<!-- Detachment Laser Readout -->
+					<div class="grid background-lighter-blue laser-readout red-border" id="DetachmentLaserReadout">
+						<select class="white-text square-button drop-down" name="WavelengthMode" id="WavelengthMode">
+							<option value="Standard">Standard</option>
+							<option value="Doubled">Doubled</option>
+							<option value="Raman">Raman</option>
+							<option value="IRDFG">IR-DFG</option>
+						</select>
+						<label class="white-text right-align" for="DetachmentWavelength" id="DetachmentWavelengthLabel">h<em class="serif">ν</em>:</label>
+						<input class="input-change hv-display" id="DetachmentWavelength" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="NMLabel1">nm</label>
+						<input class="input-read hv-display" id="ConvertedWavelength" type="number" placeholder="-" readonly />
+						<label class="white-text" id="NMLabel2">nm</label>
+						<input class="input-read hv-display" id="DetachmentWavenumber" type="number" placeholder="-" readonly />
+						<label class="white-text" id="WNLabel1">cm<sup>-1</sup></label>
+					</div>
+					<!-- IR Laser Readout -->
+					<div class="grid background-lighter-blue laser-readout sevi-mode-hide red-border" id="IRLaserReadout">
+						<select class="white-text square-button drop-down sevi-mode-hide" name="IRWavelengthMode" id="IRWavelengthMode">
 							<option value="Standard">Near IR</option>
 							<option value="Doubled">Inter. IR</option>
 							<option value="Raman">Mid IR</option>
 							<option value="IRDFG">Far IR</option>
 						</select>
-						<label class="white-text sevi-mode-hide" for="IRWavelength" id="IRWavelengthLabel">h<em class="serif">ν</em>:</label>
-						<input class="input-change sevi-mode-hide" id="IRWavelength" type="number" min="0" placeholder="-" />
+						<label class="white-text right-align sevi-mode-hide" for="IRWavelength" id="IRWavelengthLabel">h<em class="serif">ν</em>:</label>
+						<input class="input-change hv-display sevi-mode-hide" id="IRWavelength" type="number" min="0" placeholder="-" />
 						<label class="white-text sevi-mode-hide" id="NMLabel3">nm</label>
-						<input class="input-read sevi-mode-hide" id="ConvertedWavelength" type="number" placeholder="-" readonly />
+						<input class="input-read hv-display sevi-mode-hide" id="IRConvertedWavelength" type="number" placeholder="-" readonly />
 						<label class="white-text sevi-mode-hide" id="NMLabel4">nm</label>
-						<input class="input-read sevi-mode-hide" id="IRWavenumber" type="number" placeholder="-" readonly />
+						<input class="input-read hv-display sevi-mode-hide" id="IRWavenumber" type="number" placeholder="-" readonly />
 						<label class="white-text sevi-mode-hide" id="WNLabel2">cm<sup>-1</sup></label>
-						<button class="white-text square-button sevi-mode-hide" id="MeasureIRWavelength">Measure</button>-->
 					</div>
-					<!-- SEVI Mode - First Page - Save Controls - Automatic Stop Setup -->
-					<div class="grid background-lighter-blue save-control-section red-border" id="AutomaticStopSetup">
-						<label class="white-text text-box-label" id="AutomaticStopLabel">Stop Scan After:</label>
-						<input class="input-change hv-display" id="AutomaticStop" placeholder="-" />
-						<select class="white-text square-button drop-down" name="AutomaticStopUnit" id="AutomaticStopUnit">
-							<option value="None">None</option>
-							<option value="Electrons">x10e5 Electrons</option>
-							<option value="Frames">x1000 Frames</option>
+					<!-- IR Laser Control -->
+					<div class="grid background-lighter-blue laser-readout sevi-mode-hide red-border" id="IRLaserControl">
+						<label class="white-text sevi-mode-hide" id="IRLaserControlLabel">Desired IR Energy:</label>
+						<input class="input-change hv-display sevi-mode-hide" id="DesiredEnergy" type="number" min="0" placeholder="-" />
+						<select class="white-text square-button drop-down sevi-mode-hide" name="DesiredEnergyUnit" id="DesiredEnergyUnit">
+							<option value="cm-1">cm^-1</option>
+							<option value="um">µm</option>
 						</select>
+						<label class="white-text faded sevi-mode-hide" id="DesiredIRRangeMessage"></label>
+						<button class="white-text square-button sevi-mode-hide" id="MoveIRButton">Go</button>
 					</div>
-					<!-- SEVI Mode - First Page - Save Controls - VMI Setup -->
-					<div class="grid background-lighter-blue save-control-section red-border" id="VMISetup">
-						<label class="white-text text-box-label" id="VMILabel">VMI Setting:</label>
-						<select class="white-text square-button drop-down" name="VMIMode" id="VMIMode">
-							<option value="V1">V1</option>
-							<option value="V2">V2</option>
-							<option value="V3">V3</option>
-							<option value="V4">V4</option>
-						</select>
+					<div class="grid background-lighter-blue red-border" id="LaserMeasurement">
+						<button class="white-text square-button" id="MeasureDetachmentWavelength">Measure</button>
 					</div>
-					<!--
-						Move SD to settings
-						Make sections for:
-							WL Title
-							Det WL
-							IR WL
-							IR Control
-								Desired IR energy: - Input - [nm / µm] - [Move]
-							Measure WL
-					-->
 				</div>
 				<!-- SEVI Mode - First Page - Image Display -->
 				<div class="grid background-lighter-blue" id="ImageDisplay">
@@ -145,14 +130,22 @@
 					<h3 class="white-text sevi-mode-hide" id="IROffCountersTitle">IR Off</h3>
 					<h3 class="white-text sevi-mode-hide" id="IROnCountersTitle">IR On</h3>
 					<label class="white-text text-box-label" id="TotalFramesLabel" for="TotalFrames">Total Frames:</label>
-					<input class="input-read" id="TotalFrames" type="number" value="0" readonly />
-					<input class="input-read sevi-mode-hide" id="TotalFramesIROn" type="number" value="0" readonly />
+					<input class="input-read e-counter-box" id="TotalFrames" type="number" value="0" readonly />
+					<input class="input-read e-counter-box sevi-mode-hide" id="TotalFramesIROn" type="number" value="0" readonly />
 					<label class="white-text text-box-label" id="TotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
-					<input class="input-read" id="TotalECount" type="text" value="0" readonly />
-					<input class="input-read sevi-mode-hide" id="TotalECountIROn" type="text" value="0" readonly />
+					<input class="input-read e-counter-box" id="TotalECount" type="text" value="0" readonly />
+					<input class="input-read e-counter-box sevi-mode-hide" id="TotalECountIROn" type="text" value="0" readonly />
 					<label class="white-text text-box-label" id="AvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
-					<input class="input-read" id="AvgECount" type="number" value="0" readonly />
-					<input class="input-read sevi-mode-hide" id="AvgECountIROn" type="number" value="0" readonly />
+					<input class="input-read e-counter-box" id="AvgECount" type="number" value="0" readonly />
+					<input class="input-read e-counter-box sevi-mode-hide" id="AvgECountIROn" type="number" value="0" readonly />
+					<div class="divider-line" id="ECountersDivLine"></div>
+					<label class="white-text text-box-label" id="AutomaticStopLabel">Stop Scan After:</label>
+					<input class="input-change" id="AutomaticStop" placeholder="-" />
+					<select class="white-text square-button drop-down" name="AutomaticStopUnit" id="AutomaticStopUnit">
+						<option value="None">None</option>
+						<option value="Electrons">x10e5 Electrons</option>
+						<option value="Frames">x1000 Frames</option>
+					</select>
 				</div>
 				<button class="page-down page-button" id="SeviPageDown"><i class="arrow arrow-down"></i></button>
 				<div class="pause-screen" id="PauseScreenDisplay"></div>

@@ -56,13 +56,21 @@ body {
 
 #SeviFirstPage {
 	grid-template-columns: 1fr 1fr;
-	grid-template-rows: 1fr 1fr 0.5fr 3.5fr 3fr 30px;
+	/*grid-template-rows: 1fr 1fr 0.5fr 3.5fr 3fr 30px;
 	grid-template-areas:
 		"TitleSection ImageDisplay"
 		"ScanControls ImageDisplay"
 		"ScanControls ImageDisplay"
 		"SaveControls ImageDisplay"
 		"SaveControls Counters"
+		"SeviPageDown SeviPageDown";*/
+	grid-template-rows: 1fr 2fr 3fr 1fr 3fr 30px;
+	grid-template-areas:
+		"TitleSection ImageDisplay"
+		"ScanControls ImageDisplay"
+		"FileNaming ImageDisplay"
+		"LaserSetup ImageDisplay"
+		"LaserSetup Counters"
 		"SeviPageDown SeviPageDown";
 }
 
@@ -99,43 +107,26 @@ body {
 	grid-area: ScanSingleShot;
 }
 
-/* Save Controls */
+/* File Naming */
 .red-border {
-	border: 1px solid red;
+	/*border: 1px solid red;*/
 	height: 100%;
 	width: 100%;
 }
-#SaveControls {
-	grid-area: SaveControls;
-	grid-template-rows: 2fr 4fr 0.3fr 1fr 1fr;
-	grid-template-areas:
-		"FileNaming"
-		"LaserSetup"
-		"blank"
-		"AutomaticStopSetup"
-		"VMISetup";
+#FileNaming {
+	grid-area: FileNaming;
 }
 
 /* Save Controls - File Naming */
-.sevi-mode #FileNaming {
+#FileNaming {
 	grid-area: FileNaming;
-	grid-template-rows: 1fr 5px 2fr 2fr;
+	grid-template-rows: 1fr 2fr 2fr 1.3fr;
 	grid-template-columns: 8fr 1fr 1fr 1fr 1fr;
 	grid-template-areas:
 		"CurrentImageTitle blank1 ImageCounterTitle ImageCounterTitle ImageCounterTitle"
-		"blank2 blank2 blank2 blank2 blank2"
-		"CurrentImageFile blank3 ImageCounterDown ImageCounter ImageCounterUp"
-		"blank4 blank4 blank4 blank4 blank4";
-}
-.ir-sevi-mode #FileNaming {
-	grid-area: FileNaming;
-	grid-template-rows: 1fr 5px 2fr 2fr;
-	grid-template-columns: 8fr 1fr 1fr 1fr 1fr;
-	grid-template-areas:
-		"CurrentImageTitle blank1 ImageCounterTitle ImageCounterTitle ImageCounterTitle"
-		"blank2 blank2 blank2 blank2 blank2"
-		"CurrentImageFile blank3 ImageCounterDown ImageCounter ImageCounterUp"
-		"CurrentImageFileIROn blank4 blank4 blank4 blank4";
+		"CurrentImageFile blank2 ImageCounterDown ImageCounter ImageCounterUp"
+		"CurrentImageFileIROn blank3 blank3 blank3 blank3"
+		"VMILabel VMILabel VMIMode VMIMode blank4";
 }
 #CurrentImageTitle {
 	grid-area: CurrentImageTitle;
@@ -157,6 +148,12 @@ body {
 }
 #CurrentImageFileIROn {
 	grid-area: CurrentImageFileIROn;
+}
+#VMILabel {
+	grid-area: VMILabel;
+}
+#VMIMode {
+	grid-area: VMIMode;
 }
 
 /* Save Controls - Laser Setup */
@@ -183,10 +180,10 @@ body {
 	grid-area: LaserSetupTitle;
 }
 
-/* Save Controls - Laser Setup - Detachment Laser Readout */
+/* Laser Setup - Detachment Laser Readout */
 #DetachmentLaserReadout {
 	grid-area: DetachmentLaserReadout;
-	grid-template-columns: repeat(3, 2.5fr 1fr) 2fr 1.3fr;
+	grid-template-columns: repeat(3, 3fr 1fr) 3fr 1.3fr;
 	grid-template-areas: "WavelengthMode DetachmentWavelengthLabel DetachmentWavelength NMLabel1 ConvertedWavelength NMLabel2 DetachmentWavenumber WNLabel1";
 }
 #WavelengthMode {
@@ -214,55 +211,67 @@ body {
 	grid-area: WNLabel1;
 }
 
+/* Laser Setup - IR Laser Readout */
 #IRLaserReadout {
 	grid-area: IRLaserReadout;
+	grid-template-columns: repeat(3, 3fr 1fr) 3fr 1.3fr;
+	grid-template-areas: "IRWavelengthMode IRWavelengthLabel IRWavelength NMLabel3 IRConvertedWavelength NMLabel4 IRWavenumber WNLabel2";
 }
-#IRLaserControl {
-	grid-area: IRLaserControl;
+#IRWavelengthMode {
+	grid-area: IRWavelengthMode;
+}
+#IRWavelengthLabel {
+	grid-area: IRWavelengthLabel;
+}
+#IRWavelength {
+	grid-area: IRWavelength;
+}
+#NMLabel3 {
+	grid-area: NMLabel3;
+}
+#IRConvertedWavelength {
+	grid-area: IRConvertedWavelength;
+}
+#NMLabel4 {
+	grid-area: NMLabel4;
+}
+#IRWavenumber {
+	grid-area: IRWavenumber;
+}
+#WNLabel2 {
+	grid-area: WNLabel2;
 }
 
-/* Save Controls - Laser Setup - Laser Measurement */
+/* Laser Setup - IR Laser Control */
+#IRLaserControl {
+	grid-area: IRLaserControl;
+	grid-template-columns: 2.4fr 1.2fr 1.2fr 1fr 0.1fr 1.3fr;
+	grid-template-areas: "IRLaserControlLabel DesiredEnergy DesiredEnergyUnit DesiredIRRangeMessage blank MoveIRButton";
+}
+#IRLaserControlLabel {
+	grid-area: IRLaserControlLabel;
+}
+#DesiredEnergy {
+	grid-area: DesiredEnergy;
+}
+#DesiredEnergyUnit {
+	grid-area: DesiredEnergyUnit;
+}
+#DesiredIRRangeMessage {
+	grid-area: DesiredIRRangeMessage;
+}
+#MoveIRButton {
+	grid-area: MoveIRButton;
+}
+
+/* Laser Setup - Laser Measurement Button */
 #LaserMeasurement {
 	grid-area: LaserMeasurement;
-	grid-template-columns: 6fr 2fr 1fr;
-	grid-template-areas: "blank1 MeasureDetachmentWavelength blank2";
+	grid-template-columns: 6fr 2fr;
+	grid-template-areas: "blank1 MeasureDetachmentWavelength";
 }
 #MeasureDetachmentWavelength {
 	grid-area: MeasureDetachmentWavelength;
-}
-
-/* Save Controls - IR Laser Setup */
-#IRLaserSetup {
-	grid-area: IRLaserSetup;
-}
-
-/* Save Controls - Automatic Stop Setup */
-#AutomaticStopSetup {
-	grid-area: AutomaticStopSetup;
-	grid-template-columns: 3fr 2fr 2.5fr 1fr;
-	grid-template-areas: "AutomaticStopLabel AutomaticStop AutomaticStopUnit blank";
-}
-#AutomaticStopLabel {
-	grid-area: AutomaticStopLabel;
-}
-#AutomaticStop {
-	grid-area: AutomaticStop;
-}
-#AutomaticStopUnit {
-	grid-area: AutomaticStopUnit;
-}
-
-/* Save Controls - VMI Setup */
-#VMISetup {
-	grid-area: VMISetup;
-	grid-template-columns: 3fr 2fr 2.5fr 1fr;
-	grid-template-areas: "VMILabel VMIMode blank blank";
-}
-#VMILabel {
-	grid-area: VMILabel;
-}
-#VMIMode {
-	grid-area: VMIMode;
 }
 
 /* Right Side */
@@ -291,13 +300,15 @@ body {
 
 #Counters {
 	grid-area: Counters;
-	grid-template-rows: 0.3fr 1fr 1fr 1fr;
-	grid-template-columns: 1.5fr 1fr 1fr;
+	grid-template-rows: 0.5fr 1fr 1fr 1fr 5px 1fr;
+	grid-template-columns: 1.2fr 1fr 1fr;
 	grid-template-areas:
 		"blank IROffTitle IROnTitle"
 		"TotalFramesLabel TotalFrames TotalFramesIROn"
 		"TotalECountLabel TotalECount TotalECountIROn"
-		"AvgECountLabel AvgECount AvgECountIROn";
+		"AvgECountLabel AvgECount AvgECountIROn"
+		"ECountersDivLine ECountersDivLine ECountersDivLine"
+		"AutomaticStopLabel AutomaticStop AutomaticStopUnit";
 }
 #IROffCountersTitle {
 	grid-area: IROffTitle;
@@ -331,6 +342,18 @@ body {
 }
 #AvgECountIROn {
 	grid-area: AvgECountIROn;
+}
+#ECountersDivLine {
+	grid-area: ECountersDivLine;
+}
+#AutomaticStopLabel {
+	grid-area: AutomaticStopLabel;
+}
+#AutomaticStop {
+	grid-area: AutomaticStop;
+}
+#AutomaticStopUnit {
+	grid-area: AutomaticStopUnit;
 }
 
 #SeviPageDown {

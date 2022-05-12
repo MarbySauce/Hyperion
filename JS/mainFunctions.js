@@ -90,7 +90,7 @@ function Startup() {
 	// Dummy functions for aesthetics
 	make_display_black();
 	add_file_names();
-	//add_photon_energies();
+	add_photon_energies();
 }
 
 /*		Tabs		*/
@@ -250,9 +250,19 @@ function add_photon_energies() {
 	const detachment_wavelength = document.getElementById("DetachmentWavelength");
 	const detachment_converted_wavelength = document.getElementById("ConvertedWavelength");
 	const detachment_wavenumber = document.getElementById("DetachmentWavenumber");
+	const ir_detachment_wavelength = document.getElementById("IRWavelength");
+	const ir_detachment_converted_wavelength = document.getElementById("IRConvertedWavelength");
+	const ir_detachment_wavenumber = document.getElementById("IRWavenumber");
+	const desired_energy = document.getElementById("DesiredEnergy");
+	const desired_range_message = document.getElementById("DesiredIRRangeMessage");
 
 	detachment_wavelength.value = 640.054;
 	detachment_wavenumber.value = 15623.682;
+	ir_detachment_wavelength.value = 837.799;
+	ir_detachment_converted_wavelength.value = 3933.979;
+	ir_detachment_wavenumber.value = 2541.955;
+	desired_energy.value = 2543.567;
+	desired_range_message.innerText = "[ " + "mIR" + " ]";
 }
 
 /*
