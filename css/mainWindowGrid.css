@@ -245,8 +245,8 @@ body {
 /* Laser Setup - IR Laser Control */
 #IRLaserControl {
 	grid-area: IRLaserControl;
-	grid-template-columns: 2.4fr 1.2fr 1.2fr 1fr 0.1fr 1.3fr;
-	grid-template-areas: "IRLaserControlLabel DesiredEnergy DesiredEnergyUnit DesiredIRRangeMessage blank MoveIRButton";
+	grid-template-columns: 2.4fr 1.4fr 1.2fr 1fr 1.3fr;
+	grid-template-areas: "IRLaserControlLabel DesiredEnergy DesiredEnergyUnit DesiredIRRangeMessage MoveIRButton";
 }
 #IRLaserControlLabel {
 	grid-area: IRLaserControlLabel;
