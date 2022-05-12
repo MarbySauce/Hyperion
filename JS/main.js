@@ -68,7 +68,7 @@ const settings = {
 		save_sync: function () {
 			// Save settings synchronously (blocking)
 			// Used to save settings on app close
-			let settings_JSON = JSON.stringify(settings.information);
+			let settings_JSON = JSON.stringify(settings.information, null, "\t");
 			fs.writeFileSync(settings.file_name, settings_JSON);
 		},
 		// Read settings from file
@@ -77,13 +77,7 @@ const settings = {
 			if (fs.existsSync(settings.file_name)) {
 				let data = fs.readFileSync(settings.file_name);
 				let saved_settings = JSON.parse(data);
-				for (let category in saved_settings) {
-					for (let key in saved_settings[category]) {
-						if (settings.information[category] !== undefined && settings.information[category][key] !== undefined) {
-							settings.information[category][key] = saved_settings[category][key];
-						}
-					}
-				}
+				settings.information = saved_settings;
 			}
 		},
 		// Generate full save directory names
