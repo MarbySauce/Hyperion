@@ -54,16 +54,10 @@ body {
 	grid-area: Content;
 }
 
+/* Sevi Mode - First Page */
+
 #SeviFirstPage {
 	grid-template-columns: 1fr 1fr;
-	/*grid-template-rows: 1fr 1fr 0.5fr 3.5fr 3fr 30px;
-	grid-template-areas:
-		"TitleSection ImageDisplay"
-		"ScanControls ImageDisplay"
-		"ScanControls ImageDisplay"
-		"SaveControls ImageDisplay"
-		"SaveControls Counters"
-		"SeviPageDown SeviPageDown";*/
 	grid-template-rows: 1fr 2fr 3fr 1fr 3fr 30px;
 	grid-template-areas:
 		"TitleSection ImageDisplay"
@@ -74,12 +68,13 @@ body {
 		"SeviPageDown SeviPageDown";
 }
 
-/* Left Side */
+/* Sevi Mode - Left Side */
 
 #TitleSection {
 	grid-area: TitleSection;
 }
 
+/* Sevi Mode - Left Side - Scan Controls */
 #ScanControls {
 	grid-area: ScanControls;
 	grid-template-rows: 1fr 1fr;
@@ -107,17 +102,7 @@ body {
 	grid-area: ScanSingleShot;
 }
 
-/* File Naming */
-.red-border {
-	/*border: 1px solid red;*/
-	height: 100%;
-	width: 100%;
-}
-#FileNaming {
-	grid-area: FileNaming;
-}
-
-/* Save Controls - File Naming */
+/* Sevi Mode - Left Side - File Naming */
 #FileNaming {
 	grid-area: FileNaming;
 	grid-template-rows: 1fr 2fr 2fr 1.3fr;
@@ -156,7 +141,7 @@ body {
 	grid-area: VMIMode;
 }
 
-/* Save Controls - Laser Setup */
+/* Sevi Mode - Left Side - Laser Setup */
 .sevi-mode #LaserSetup {
 	grid-area: LaserSetup;
 	grid-template-rows: 0.5fr 1fr 1fr 2fr;
@@ -180,7 +165,7 @@ body {
 	grid-area: LaserSetupTitle;
 }
 
-/* Laser Setup - Detachment Laser Readout */
+/* Sevi Mode - Left Side - Laser Setup - Detachment Laser Readout */
 #DetachmentLaserReadout {
 	grid-area: DetachmentLaserReadout;
 	grid-template-columns: repeat(3, 3fr 1fr) 3fr 1.3fr;
@@ -211,7 +196,7 @@ body {
 	grid-area: WNLabel1;
 }
 
-/* Laser Setup - IR Laser Readout */
+/* Sevi Mode - Left Side - Laser Setup - IR Laser Readout */
 #IRLaserReadout {
 	grid-area: IRLaserReadout;
 	grid-template-columns: repeat(3, 3fr 1fr) 3fr 1.3fr;
@@ -242,7 +227,7 @@ body {
 	grid-area: WNLabel2;
 }
 
-/* Laser Setup - IR Laser Control */
+/* Sevi Mode - Left Side - Laser Setup - IR Laser Control */
 #IRLaserControl {
 	grid-area: IRLaserControl;
 	grid-template-columns: 2.4fr 1.4fr 1.2fr 1fr 1.3fr;
@@ -264,7 +249,7 @@ body {
 	grid-area: MoveIRButton;
 }
 
-/* Laser Setup - Laser Measurement Button */
+/* Sevi Mode - Left Side - Laser Setup - Laser Measurement Button */
 #LaserMeasurement {
 	grid-area: LaserMeasurement;
 	grid-template-columns: 6fr 2fr;
@@ -274,8 +259,9 @@ body {
 	grid-area: MeasureDetachmentWavelength;
 }
 
-/* Right Side */
+/* Sevi Mode - Right Side */
 
+/* Sevi Mode - Right Side - Accumulated Image Display */
 #ImageDisplay {
 	grid-area: ImageDisplay;
 	grid-template-rows: 1fr 14fr 1fr;
@@ -298,6 +284,7 @@ body {
 	grid-area: Slider;
 }
 
+/* Sevi Mode - Right Side - Electron Counters */
 #Counters {
 	grid-area: Counters;
 	grid-template-rows: 0.5fr 1fr 1fr 1fr 5px 1fr;
@@ -370,6 +357,8 @@ body {
 .paused #PauseScreenCounters {
 	grid-area: Counters;
 }
+
+/* Sevi Mode - Second Page */
 
 #SeviSecondPage {
 	grid-template-rows: 30px 7fr 8fr;

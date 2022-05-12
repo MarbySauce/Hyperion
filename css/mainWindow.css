@@ -13,8 +13,6 @@ grid-template-areas defines where
 /* NOTE TO MARTY: After moving all grid aspects over, try to consolidate as much as you can
 	so that you are rarely using # here */
 
-/* NOTE TO MARTY: Figure out how to consolidate of all of the "display: none" tags */
-
 * {
 	box-sizing: border-box;
 	margin: 0;
@@ -318,8 +316,6 @@ Left Side
 	align-items: center;
 }
 
-/* Save Controls - Automatic Stop Setup */
-
 /* 
 End left side 
 */
@@ -361,11 +357,6 @@ Right Side
 	height: 100%;
 	border-bottom: 1px solid white;
 }
-#Counters h3 {
-	text-align: center;
-	width: 100%;
-	border-bottom: 1px solid white;
-}
 .e-counter-box {
 	font-size: 1.3vw;
 	text-align: center;
@@ -377,6 +368,11 @@ Right Side
 	grid-gap: 0 10px;
 	align-items: center;
 	justify-items: center;
+}
+#Counters h3 {
+	text-align: center;
+	width: 100%;
+	border-bottom: 1px solid white;
 }
 #AutomaticStop {
 	width: 80%;
