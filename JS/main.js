@@ -62,7 +62,7 @@ const settings = {
 		// Save settings to file
 		save: function () {
 			// Save settings asynchronously (non-blocking)
-			let settings_JSON = JSON.stringify(settings.information);
+			let settings_JSON = JSON.stringify(settings.information, null, "\t");
 			fs.writeFile(settings.file_name, settings_JSON, () => {});
 		},
 		save_sync: function () {
