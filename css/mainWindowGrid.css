@@ -365,7 +365,7 @@ body {
 	grid-template-columns: 1fr 1fr;
 	grid-template-areas:
 		"SeviPageUp SeviPageUp"
-		"SpectrumDisplay SpectrumDisplay"
+		"SpectrumDisplaySection SpectrumDisplaySection"
 		"RecentScans ElectronCountHistory";
 }
 
@@ -373,8 +373,50 @@ body {
 	grid-area: SeviPageUp;
 }
 
-#SpectrumDisplay {
-	grid-area: SpectrumDisplay;
+#SpectrumDisplaySection {
+	grid-area: SpectrumDisplaySection;
+	grid-template-columns: 3fr 1fr;
+	grid-template-areas: "SpectrumDisplayInner SpectrumControl";
+}
+#SpectrumDisplayInner {
+	grid-area: SpectrumDisplayInner;
+}
+
+#SpectrumControl {
+	grid-area: SpectrumControl;
+	grid-template-rows: 1fr 2.6fr 0.7fr 1fr 0.7fr 1fr;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"SpectrumSwitch blank1"
+		"CalculateSpectrumButton CalculateSpectrumButton"
+		"SpectrumYRangeLabel SpectrumYRangeLabel"
+		"SpectrumYLower SpectrumYUpper"
+		"SpectrumXRangeLabel SpectrumXRangeLabel"
+		"SpectrumXLower SpectrumXUpper";
+}
+#SpectrumSwitch {
+	grid-area: SpectrumSwitch;
+}
+#CalculateSpectrumButton {
+	grid-area: CalculateSpectrumButton;
+}
+#SpectrumYRangeLabel {
+	grid-area: SpectrumYRangeLabel;
+}
+#SpectrumYLower {
+	grid-area: SpectrumYLower;
+}
+#SpectrumYUpper {
+	grid-area: SpectrumYUpper;
+}
+#SpectrumXRangeLabel {
+	grid-area: SpectrumXRangeLabel;
+}
+#SpectrumXLower {
+	grid-area: SpectrumXLower;
+}
+#SpectrumXUpper {
+	grid-area: SpectrumXUpper;
 }
 
 #RecentScans {

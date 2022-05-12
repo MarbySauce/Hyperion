@@ -104,7 +104,8 @@
 						<label class="white-text sevi-mode-hide" id="IRLaserControlLabel">Desired IR Energy:</label>
 						<input class="input-change hv-display sevi-mode-hide" id="DesiredEnergy" type="number" min="0" placeholder="-" />
 						<select class="white-text square-button drop-down sevi-mode-hide" name="DesiredEnergyUnit" id="DesiredEnergyUnit">
-							<option value="cm-1">cm^-1</option>
+							<!-- $#x is the beginning for unicode characters, 207B is superscript "-", 00B9 is superscript "1" -->
+							<option value="cm-1">cm&#x207B;&#x00B9;</option>
 							<option value="um">µm</option>
 							<option value="nm">nm</option>
 						</select>
@@ -149,14 +150,36 @@
 					</select>
 				</div>
 				<button class="page-down page-button" id="SeviPageDown"><i class="arrow arrow-down"></i></button>
+				<!-- Pause Screen Animation Elements -->
 				<div class="pause-screen" id="PauseScreenDisplay"></div>
 				<div class="pause-screen negative-bottom-margin" id="PauseScreenSaveControls"></div>
 				<div class="pause-screen negative-bottom-margin" id="PauseScreenCounters"></div>
 			</div>
+			<!-- SEVI Mode - Second Page -->
 			<div class="second-page page grid" id="SeviSecondPage">
 				<button class="page-up page-button" id="SeviPageUp"><i class="arrow arrow-up"></i></button>
-				<div class="grid background-lighter-blue negative-top-margin" id="SpectrumDisplay"></div>
+				<!-- SEVI Mode - Second Page - PE Spectrum Display -->
+				<div class="grid background-lighter-blue negative-top-margin" id="SpectrumDisplaySection">
+					<div class="background-lighter-blue" id="SpectrumDisplayInner">
+						<canvas id="PESpectrum"></canvas>
+					</div>
+					<div class="grid background-lighter-blue" id="SpectrumControl">
+						<select class="white-text square-button drop-down sevi-mode-hide" name="SpectrumSwitch" id="SpectrumSwitch">
+							<option value="on-off">On/Off</option>
+							<option value="difference">Difference</option>
+						</select>
+						<button class="white-text square-button" id="CalculateSpectrumButton">Calculate</button>
+						<h4 class="white-text range-label" id="SpectrumYRangeLabel">Vertical Axis Range</h4>
+						<input class="input-change axis-range-input" id="SpectrumYLower" type="number" placeholder="-" />
+						<input class="input-change axis-range-input" id="SpectrumYUpper" type="number" placeholder="-" />
+						<h4 class="white-text range-label" id="SpectrumXRangeLabel">Horizontal Axis Range</h4>
+						<input class="input-change axis-range-input" id="SpectrumXLower" type="number" placeholder="-" />
+						<input class="input-change axis-range-input" id="SpectrumXUpper" type="number" placeholder="-" />
+					</div>
+				</div>
+				<!-- SEVI Mode - Second Page - Recent Scans -->
 				<div class="background-lighter-blue" id="RecentScans"></div>
+				<!-- SEVI Mode - Second Page - Electron Count History -->
 				<div class="background-lighter-blue" id="ElectronCountHistory"></div>
 			</div>
 		</div>

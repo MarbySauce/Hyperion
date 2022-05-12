@@ -418,6 +418,44 @@ Right Side
 End right side 
 */
 
+/* Sevi Mode - Second Page */
+.red-border {
+	border: 1px solid red;
+	width: 100%;
+	height: 100%;
+}
+
+#SpectrumDisplaySection {
+	padding: 10px;
+}
+#SpectrumDisplayInner {
+	padding: 15px 20px 0 10px;
+	background: hsla(225, 20%, 90%, 0.85);
+	align-items: center;
+}
+#SpectrumControl {
+	padding: 5px;
+	padding-left: 10px;
+	grid-gap: 0 5px;
+	align-items: center;
+	justify-items: center;
+}
+#SpectrumSwitch {
+	width: 80%;
+}
+#CalculateSpectrumButton {
+	width: 65%;
+	height: 35%;
+}
+.range-label {
+	text-align: center;
+}
+.axis-range-input {
+	width: 80%;
+	height: 80%;
+	text-align: center;
+}
+
 /* End Normal Mode Content */
 
 /*

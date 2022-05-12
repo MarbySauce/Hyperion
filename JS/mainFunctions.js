@@ -91,6 +91,7 @@ function Startup() {
 	make_display_black();
 	add_file_names();
 	add_photon_energies();
+	sevi_page_down_function();
 }
 
 /*		Tabs		*/
@@ -185,14 +186,70 @@ function SwitchTabs(Tab) {
 	}
 }
 
+let spectrum_display;
 // NOTE TO MARTY: Should probably try to make all of these one (or two) functions
 document.getElementById("SeviPageDown").onclick = function () {
+	sevi_page_down_function();
+};
+
+function sevi_page_down_function() {
 	const firstPage = document.getElementById("SeviFirstPage");
 	const secondPage = document.getElementById("SeviSecondPage");
 
 	firstPage.style.display = "none";
 	secondPage.style.display = "grid";
-};
+
+	console.time("Spectrum");
+	spectrum_display = new Chart(document.getElementById("PESpectrum").getContext("2d"), {
+		type: "line",
+		data: {
+			labels: [0, 1, 2, 3, 4, 5],
+			datasets: [
+				{
+					data: [0, 2, 0, 0, 1.8, 0],
+					label: "IR On",
+					borderColor: "red",
+				},
+				{
+					data: [0, 1, 0, 0, 2, 0],
+					label: "IR Off",
+					borderColor: "black",
+				},
+			],
+		},
+		options: {
+			scales: {
+				y: {
+					beginAtZero: true,
+					title: {
+						text: "Electron Intensity",
+						color: "black",
+						display: true,
+					},
+				},
+				x: {
+					title: {
+						text: "eBE ( cm\u207B\u00B9 )", // \u207B is unicode for superscript "-", and \u00B9 is for superscript "1"
+						color: "black",
+						display: true,
+					},
+				},
+			},
+			plugins: {
+				title: {
+					display: true,
+					fullSize: false,
+					align: "end",
+					text: "Displaying Image: i01",
+					padding: 0,
+				},
+			},
+			//animation: false,
+			//aspectRatio: 2.8,
+		},
+	});
+	console.timeEnd("Spectrum");
+}
 
 document.getElementById("SeviPageUp").onclick = function () {
 	const firstPage = document.getElementById("SeviFirstPage");
@@ -200,6 +257,8 @@ document.getElementById("SeviPageUp").onclick = function () {
 
 	firstPage.style.display = "grid";
 	secondPage.style.display = "none";
+
+	spectrum_display.destroy();
 };
 
 document.getElementById("IRActionPageDown").onclick = function () {
