@@ -265,7 +265,7 @@ body {
 #ImageDisplay {
 	grid-area: ImageDisplay;
 	grid-template-rows: 1fr 14fr 1fr;
-	grid-template-columns: 5.5fr 1.5fr;
+	grid-template-columns: 5.2fr 1.8fr;
 	grid-template-areas:
 		"Title IRImageDisplay"
 		"Display Display"

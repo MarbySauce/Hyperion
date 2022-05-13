@@ -207,6 +207,8 @@ const scan = {
 	// Update images with new electrons
 	update_images: function (centroid_results) {
 		let image_to_update; // Will be either ir_off or ir_on
+		let difference_image = this.accumulated_image.images.difference;
+		let difference_increment; // Will be +1 for ir_on and -1 for ir_off
 		let X; // Filled with centroid values
 		let Y;
 		// If a scan is not running (or paused), don't update
@@ -216,8 +218,10 @@ const scan = {
 		// Update to ir_off or ir_on based on IR LED
 		if (centroid_results.is_led_on) {
 			image_to_update = this.accumulated_image.images.ir_on;
+			difference_increment = 1;
 		} else {
 			image_to_update = this.accumulated_image.images.ir_off;
+			difference_increment = -1;
 		}
 		// Update image with electrons
 		// CCL centroids first
@@ -230,6 +234,7 @@ const scan = {
 				X = Math.round((X * this.accumulated_image.params.accumulation_width) / this.accumulated_image.params.aoi_width);
 				Y = Math.round((Y * this.accumulated_image.params.accumulation_height) / this.accumulated_image.params.aoi_height);
 				image_to_update[Y][X]++;
+				difference_image[Y][X] += difference_increment;
 			}
 		}
 		// Hybrid centroids now
@@ -242,11 +247,13 @@ const scan = {
 				X = Math.round((X * this.accumulated_image.params.accumulation_width) / this.accumulated_image.params.aoi_width);
 				Y = Math.round((Y * this.accumulated_image.params.accumulation_height) / this.accumulated_image.params.aoi_height);
 				image_to_update[Y][X]++;
+				difference_image[Y][X] += difference_increment;
 			}
 		}
 	},
 	// Calculate IR Difference image (ir_on - ir_off)
 	calculate_difference: function () {
+		return;
 		if (this.accumulated_image.counters.difference_counter > this.accumulated_image.counters.difference_frequency) {
 			let image_height = this.accumulated_image.params.accumulation_height;
 			let image_width = this.accumulated_image.params.accumulation_width;
