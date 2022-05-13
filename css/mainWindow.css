@@ -425,6 +425,7 @@ End right side
 	height: 100%;
 }
 
+/* Sevi Mode - Second Page - PE Spectrum */
 #SpectrumDisplaySection {
 	padding: 10px;
 }
@@ -456,7 +457,35 @@ End right side
 	text-align: center;
 }
 
-/* End Normal Mode Content */
+/* Sevi Mode - Second Page - Recent Scans */
+#RecentScans {
+	padding: 0 25px 5px 25px;
+}
+#RecentScansHeader {
+	padding-bottom: 10px;
+	z-index: 5;
+	border-bottom: black;
+}
+#RecentScans h4 {
+	text-align: center;
+	align-self: end;
+	font-size: 1.3vw;
+}
+#RecentScansSection {
+	max-height: 375px;
+	padding-top: 5px;
+	border: 2px solid rgb(62, 71, 95);
+}
+#RecentScans p {
+	text-align: center;
+	font-size: 1.3vw;
+	padding-top: 7px;
+	height: 100%;
+	border-bottom: 1px dotted rgb(62, 71, 95);
+	color: white;
+}
+
+/* End Sevi Mode Content */
 
 /*
 

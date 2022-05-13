@@ -12,6 +12,7 @@
 			<button class="tab" id="SeviMode">SEVI</button>
 			<button class="tab" id="IRSeviMode">IR SEVI</button>
 			<button class="tab" id="IRActionMode">IR Action Mode</button>
+			<!-- Future tab buttons should be added here -->
 			<button class="tab" id="Settings">Settings</button>
 		</div>
 		<!-- SEVI Mode Content -->
@@ -178,11 +179,21 @@
 					</div>
 				</div>
 				<!-- SEVI Mode - Second Page - Recent Scans -->
-				<div class="background-lighter-blue" id="RecentScans"></div>
+				<div class="grid background-lighter-blue" id="RecentScans">
+					<header class="grid" id="RecentScansHeader">
+						<h4 class="white-text">File Name</h4>
+						<h4 class="white-text">h<em class="serif">ν</em> (nm)</h4>
+						<h4 class="white-text">h<em class="serif">ν</em> (cm<sup>-1</sup>)</h4>
+						<h4 class="white-text">Frame Count</h4>
+						<h4 class="white-text">e<sup>-</sup> Count</h4>
+					</header>
+					<div class="grid" id="RecentScansSection"></div>
+				</div>
 				<!-- SEVI Mode - Second Page - Electron Count History -->
 				<div class="background-lighter-blue" id="ElectronCountHistory"></div>
 			</div>
 		</div>
+		<!-- IR Action Mode -->
 		<div id="IRActionModeContent">
 			<div class="first-page page grid" id="IRActionFirstPage">
 				<div class="grid background-lighter-blue" id="IRActionControls"></div>
@@ -200,6 +211,8 @@
 				<div class="grid background-lighter-blue" id="IRActionSpectrum"></div>
 			</div>
 		</div>
+		<!-- Future tabs should be added here (before settings section) -->
+		<!-- Settings Section -->
 		<div id="SettingsContent">
 			<h1 id="SettingsTitle">Settings</h1>
 			<div class="settings-section" id="CameraSettingsContent">
@@ -274,7 +287,7 @@
 			</div>
 		</div>
 
-		<script src="../JS/mainDefinitions.js"></script>
+		<!--<script src="../JS/mainDefinitions.js"></script>-->
 		<script src="../JS/mainDefinitions2.js"></script>
 		<script src="../JS/mainFunctions.js"></script>
 	</body>

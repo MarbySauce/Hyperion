@@ -16,49 +16,45 @@
 
 // Startup
 window.onload = function () {
-	//Startup();
-	// Moved startup until after settings file is read
-
 	// Send message to main process that the window is ready
 	ipc.send("main-window-ready", null);
 };
 
-// Tabs
+/*		Tabs		*/
+
 document.getElementById("SeviMode").onclick = function () {
 	// SEVI mode tab
-	SwitchTabs(0);
+	switch_tabs(0);
 };
 document.getElementById("IRSeviMode").onclick = function () {
 	// IR SEVI mode tab
-	SwitchTabs(1);
+	switch_tabs(1);
 };
 document.getElementById("IRActionMode").onclick = function () {
 	// IR Action mode tab
-	SwitchTabs(2);
+	switch_tabs(2);
 };
 document.getElementById("Settings").onclick = function () {
 	// Settings tab
-	SwitchTabs(3);
+	switch_tabs(8);
 };
 
-/*		Normal Mode		*/
+/*		Sevi and IR-Sevi Mode		*/
+
+document.getElementById("SeviPageDown").onclick = function () {
+	switch_pages(1); // Switch to second page
+};
+document.getElementById("SeviPageUp").onclick = function () {
+	switch_pages(0); // Switch to first page
+};
 
 /*		IR Action Mode		*/
 
 document.getElementById("IRActionPageDown").onclick = function () {
-	const firstPage = document.getElementById("IRActionFirstPage");
-	const secondPage = document.getElementById("IRActionSecondPage");
-
-	firstPage.style.display = "none";
-	secondPage.style.display = "grid";
+	switch_pages(1); // Switch to second page
 };
-
 document.getElementById("IRActionPageUp").onclick = function () {
-	const firstPage = document.getElementById("IRActionFirstPage");
-	const secondPage = document.getElementById("IRActionSecondPage");
-
-	firstPage.style.display = "grid";
-	secondPage.style.display = "none";
+	switch_pages(0); // Switch to first page
 };
 
 /*		Settings		*/
@@ -81,213 +77,124 @@ document.getElementById("SaveSettingsButton").onclick = function () {
 /*		Startup		*/
 
 // Execute various functions on application startup
-function Startup() {
-	SwitchTabs();
+function startup() {
+	// Go to Sevi Mode tab (ID = 0)
+	switch_tabs(0);
 
-	// Go to Normal Mode tab (ID = 0)
-	SwitchTabs(0);
-
-	// Dummy functions for aesthetics
-	make_display_black();
-	add_file_names();
-	add_photon_energies();
-	sevi_page_down_function();
+	// Color the accumulated image display black
+	fill_image_display();
 }
 
 /*		Tabs		*/
 
 // Depress all of the buttons (to behave like a radio button)
 // and then activate the tab 'Tab'
-function SwitchTabs(Tab) {
+function switch_tabs(tab) {
 	// Tab name should be an integer corresponding to the index of tabList
-	// e.g. NormalMode = 0, IRMode = 1, DetachmentMode = 2,
-	// 		Settings = 3
+	// 		Some tabs are left empty and can be filled in if a new tab is added in the future
+	// 0 => SEVI mode, 1 => IR-SEVI Mode, 2 => IR Action Mode,
+	// 3 => blank, 4 => blank, 5 => blank, 6 => blank, 7 => blank,
+	// 8 => Settings section
 	//
 	// If you only want to hide all tabs and show nothing,
 	// call the function with no parameters
 
 	// List of each tab section
-	const tabList = [
+	const tab_list = [
 		document.getElementById("SeviMode"),
 		document.getElementById("IRSeviMode"),
 		document.getElementById("IRActionMode"),
+		null,
+		null,
+		null,
+		null,
+		null,
 		document.getElementById("Settings"),
 	];
 
 	// Content corresponding to each tab
-	const contentList = [
+	const content_list = [
 		document.getElementById("SeviModeContent"),
 		document.getElementById("SeviModeContent"),
 		document.getElementById("IRActionModeContent"),
+		null,
+		null,
+		null,
+		null,
+		null,
 		document.getElementById("SettingsContent"),
 	];
 
-	// Depress each tab
-	for (let i = 0; i < tabList.length; i++) {
-		tabList[i].classList.remove("pressed-tab");
-	}
+	// Depress the current tab and hide content
+	tab_list[page_info.current_tab].classList.remove("pressed-tab");
+	content_list[page_info.current_tab].style.display = "none";
 
-	// Make sure the Tab argument passed is an integer
-	// and that the element tabList[Tab] exists
-	if (!tabList[Tab]) {
-		// If no arguments were passed, Tab is not a number,
-		// Tab is too large, or Tab is negative,
-		// do not activate any tabs
+	// Make sure the tab argument passed is an integer corresponding to a real tab
+	if (!tab_list[tab]) {
+		console.log("Returned");
 		return;
 	}
 
 	// Store the current tab info
-	pageInfo.currentTab = Tab;
+	page_info.current_tab = tab;
 
-	// Activate Normal or IR tab
-	// IR is an augmentation of Normal Mode
-	// So we have to be a bit more careful here
-	if (Tab == 0 || Tab == 1) {
-		// Hide other pages if shown
-		for (let i = 2; i < tabList.length; i++) {
-			contentList[i].style.display = "none";
-		}
-		// Display Normal Mode's content
-		contentList[0].style.display = "grid";
+	// Activate selected tab and show content
+	tab_list[tab].classList.add("pressed-tab");
+	content_list[tab].style.display = "grid";
 
-		switch (Tab) {
-			case 0:
-				if (!scanInfo.running) {
-					// Switch to normal mode method if scan is not being taken
-					scanInfo.method = "normal";
-				}
-				tabList[Tab].classList.add("pressed-tab");
-				contentList[Tab].classList.remove("ir-sevi-mode");
-				contentList[Tab].classList.add("sevi-mode");
-				//RemoveIRLabels();
-				break;
-			case 1:
-				if (!scanInfo.running) {
-					// Switch to IR mode method if scan is not being taken
-					scanInfo.method = "ir";
-				}
-				tabList[Tab].classList.add("pressed-tab");
-				contentList[Tab].classList.remove("sevi-mode");
-				contentList[Tab].classList.add("ir-sevi-mode");
-				//AddIRLabels();
-				break;
-		}
+	// If a scan is not currently being taken, switch the scan method (if relevant)
+	let sevi_methods = ["sevi", "ir-sevi", "ir-action"];
+	if (!scan.status.running && sevi_methods[tab]) {
+		scan.status.method = sevi_methods[tab];
+	}
 
-		//SwitchAccumulatedImages();
+	// If chosen tab is Sevi or IR-Sevi mode, we have to do a bit more
+	// since IR-SEVI is just Sevi with a few more elements shown
+	if (tab <= 1) {
+		// Remove class of the tab not chosen (e.g. remove "sevi-mode" if ir-sevi chosen)
+		content_list[tab].classList.remove(sevi_methods[(tab + 1) % 2] + "-mode");
+		// Add class of the chosen tab
+		content_list[tab].classList.add(sevi_methods[tab] + "-mode");
+	}
+
+	// Lastly, make sure we switch to the first page (if there are two)
+	switch_pages(0);
+}
+
+// Switch between first and second page
+function switch_pages(page_index) {
+	// page_index = 0 to switch to first page, 1 to switch to second
+	let page_prefix;
+	if (page_info.current_tab <= 1) {
+		// Currently on Sevi or IR-Sevi tab
+		page_prefix = "Sevi";
+	} else if (page_info.current_tab == 2) {
+		// Currently on IR Action tab
+		page_prefix = "IRAction";
 	} else {
-		// Hide all pages
-		for (let i = 0; i < tabList.length; i++) {
-			contentList[i].style.display = "none";
-		}
-		// Activate the selected tab
-		tabList[Tab].classList.add("pressed-tab");
-		contentList[Tab].style.display = "grid";
+		// Currently on a tab without pages, just return
+		// Note: need to add another "else if" if you add another tab with two pages
 		return;
+	}
+
+	const first_page = document.getElementById(page_prefix + "FirstPage");
+	const second_page = document.getElementById(page_prefix + "SecondPage");
+
+	if (page_index === 0) {
+		// Display first page
+		first_page.style.display = "grid";
+		second_page.style.display = "none";
+	} else if (page_index === 1) {
+		// Display second page
+		first_page.style.display = "none";
+		second_page.style.display = "grid";
 	}
 }
 
-let spectrum_display;
-// NOTE TO MARTY: Should probably try to make all of these one (or two) functions
-document.getElementById("SeviPageDown").onclick = function () {
-	sevi_page_down_function();
-};
+/* Sevi and IR-Sevi Modes */
 
-function sevi_page_down_function() {
-	const firstPage = document.getElementById("SeviFirstPage");
-	const secondPage = document.getElementById("SeviSecondPage");
-
-	firstPage.style.display = "none";
-	secondPage.style.display = "grid";
-
-	console.time("Spectrum");
-	spectrum_display = new Chart(document.getElementById("PESpectrum").getContext("2d"), {
-		type: "line",
-		data: {
-			labels: [0, 1, 2, 3, 4, 5],
-			datasets: [
-				{
-					data: [0, 2, 0, 0, 1.8, 0],
-					label: "IR On",
-					borderColor: "red",
-				},
-				{
-					data: [0, 1, 0, 0, 2, 0],
-					label: "IR Off",
-					borderColor: "black",
-				},
-			],
-		},
-		options: {
-			scales: {
-				y: {
-					beginAtZero: true,
-					title: {
-						text: "Electron Intensity",
-						color: "black",
-						display: true,
-					},
-				},
-				x: {
-					title: {
-						text: "eBE ( cm\u207B\u00B9 )", // \u207B is unicode for superscript "-", and \u00B9 is for superscript "1"
-						color: "black",
-						display: true,
-					},
-				},
-			},
-			plugins: {
-				title: {
-					display: true,
-					fullSize: false,
-					align: "end",
-					text: "Displaying Image: i01",
-					padding: 0,
-				},
-			},
-			//animation: false,
-			//aspectRatio: 2.8,
-		},
-	});
-	console.timeEnd("Spectrum");
-}
-
-document.getElementById("SeviPageUp").onclick = function () {
-	const firstPage = document.getElementById("SeviFirstPage");
-	const secondPage = document.getElementById("SeviSecondPage");
-
-	firstPage.style.display = "grid";
-	secondPage.style.display = "none";
-
-	spectrum_display.destroy();
-};
-
-document.getElementById("IRActionPageDown").onclick = function () {
-	const firstPage = document.getElementById("IRActionFirstPage");
-	const secondPage = document.getElementById("IRActionSecondPage");
-
-	firstPage.style.display = "none";
-	secondPage.style.display = "grid";
-};
-
-document.getElementById("IRActionPageUp").onclick = function () {
-	const firstPage = document.getElementById("IRActionFirstPage");
-	const secondPage = document.getElementById("IRActionSecondPage");
-
-	firstPage.style.display = "grid";
-	secondPage.style.display = "none";
-};
-
-ipc.on("settings-information", (event, settingsInformation) => {
-	//console.log(settingsInformation);
-	settings = settingsInformation;
-	Startup();
-});
-
-/* When update e- counters on main page, also update on e- Monitor page
-	and add in an if statement whether to add to chart
-	And have addon send over calc time data */
-
-function make_display_black() {
+// Color the accumulated image display black
+function fill_image_display() {
 	const display = document.getElementById("Display");
 	const ctx = display.getContext("2d");
 	let image_width = scan.accumulated_image.params.accumulation_width;
@@ -297,32 +204,21 @@ function make_display_black() {
 	ctx.fillRect(0, 0, image_width, image_height);
 }
 
-function add_file_names() {
-	const image_file = document.getElementById("CurrentImageFile");
-	const ir_image_file = document.getElementById("CurrentImageFileIROn");
-	let current_date = getFormattedDate();
-	image_file.value = current_date + "i01_1024.i0N";
-	ir_image_file.value = current_date + "i01_IR_1024.i0N";
-}
+/*
 
-function add_photon_energies() {
-	const detachment_wavelength = document.getElementById("DetachmentWavelength");
-	const detachment_converted_wavelength = document.getElementById("ConvertedWavelength");
-	const detachment_wavenumber = document.getElementById("DetachmentWavenumber");
-	const ir_detachment_wavelength = document.getElementById("IRWavelength");
-	const ir_detachment_converted_wavelength = document.getElementById("IRConvertedWavelength");
-	const ir_detachment_wavenumber = document.getElementById("IRWavenumber");
-	const desired_energy = document.getElementById("DesiredEnergy");
-	const desired_range_message = document.getElementById("DesiredIRRangeMessage");
 
-	detachment_wavelength.value = 640.054;
-	detachment_wavenumber.value = 15623.682;
-	ir_detachment_wavelength.value = 837.799;
-	ir_detachment_converted_wavelength.value = 3933.979;
-	ir_detachment_wavenumber.value = 2541.955;
-	desired_energy.value = 2543.567;
-	desired_range_message.innerText = "[ " + "mIR" + " ]";
-}
+*/
+/*			IPC Messages			*/
+/*
+
+
+*/
+
+// Recieve setting information and go through startup procedure
+ipc.on("settings-information", (event, settings_information) => {
+	settings = settings_information;
+	startup();
+});
 
 /*
 

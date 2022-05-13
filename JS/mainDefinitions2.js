@@ -1,7 +1,12 @@
 // Libraries
-//const fs = require("fs");
-//const ipc = require("electron").ipcRenderer;
-//const Chart = require("chart.js");
+const fs = require("fs");
+const ipc = require("electron").ipcRenderer;
+const Chart = require("chart.js");
+// Addon libraries
+//const wavemeter = require("bindings")("wavemeter");
+const melexir = require("bindings")("melexir");
+
+let settings; // Global variable, to be filled in on startup
 
 // Process and track info relating to electron count
 const electrons = {
@@ -12,7 +17,6 @@ const electrons = {
 			hybrid: [],
 		},
 		mode: {
-			total: [],
 			ir_on: [],
 			ir_off: [],
 		},
@@ -50,12 +54,10 @@ const electrons = {
 			hybrid: 0,
 		},
 		mode: {
-			total: 0,
 			ir_on: 0,
 			ir_off: 0,
 		},
 		frame_count: {
-			total: 0,
 			ir_on: 0,
 			ir_off: 0,
 		},
@@ -67,10 +69,11 @@ const scan = {
 	status: {
 		running: false,
 		paused: false,
-		method: "normal",
+		method: "sevi",
 	},
 	saving: {
 		file_name: "",
+		file_name_ir: "",
 		autosave: false,
 		autosave_timer: 100000, // in ms, time between autosaves
 	},
@@ -84,16 +87,24 @@ const scan = {
 			accumulation_height: 1024,
 		},
 		images: {
-			total: [],
 			ir_off: [],
 			ir_on: [],
 			difference: [],
 		},
-		radial_plot: {
+		spectra: {
+			data: {
+				radial_values: [],
+				eBE_values: [],
+				ir_off: [],
+				ir_on: [],
+				difference: [],
+			},
 			params: {
-				plot_length: 300,
-				depletion_lower_bound: 130,
-				depletion_upper_bound: 155,
+				x_range_lower: 0,
+				x_range_upper: 0,
+				y_range_lower: 0,
+				y_range_upper: 0,
+				// Add more here for depletion parameters
 			},
 		},
 		counters: {
@@ -159,5 +170,15 @@ const laser = {
 			mir: 0,
 			fir: 0,
 		},
+		control: {
+			nir_lower_bound: 710,
+			nir_upper_bound: 880,
+			current_nir_motor: 0,
+			desired_ir: 0,
+		},
 	},
+};
+
+page_info = {
+	current_tab: 0,
 };
