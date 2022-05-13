@@ -180,10 +180,6 @@ const scan = {
 				// Add more here for depletion parameters
 			},
 		},
-		counters: {
-			difference_counter: 0,
-			difference_frequency: 20,
-		},
 		// Method for distinguishing IR off from IR on
 		binning: {
 			use_led: true, // If false, uses parity binning
@@ -249,28 +245,6 @@ const scan = {
 				image_to_update[Y][X]++;
 				difference_image[Y][X] += difference_increment;
 			}
-		}
-	},
-	// Calculate IR Difference image (ir_on - ir_off)
-	calculate_difference: function () {
-		return;
-		if (this.accumulated_image.counters.difference_counter > this.accumulated_image.counters.difference_frequency) {
-			let image_height = this.accumulated_image.params.accumulation_height;
-			let image_width = this.accumulated_image.params.accumulation_width;
-			let ir_on_pix;
-			let ir_off_pix;
-			for (let Y = 0; Y < image_height; Y++) {
-				for (let X = 0; X < image_width; X++) {
-					ir_on_pix = this.accumulated_image.images.ir_on[Y][X];
-					ir_off_pix = this.accumulated_image.images.ir_off[Y][X];
-					this.accumulated_image.images.difference[Y][X] = ir_on_pix - ir_off_pix;
-				}
-			}
-			// Reset counter
-			this.accumulated_image.counters.difference_counter = 0;
-		} else {
-			// Just increment the counter
-			this.accumulated_image.counters.difference_counter++;
 		}
 	},
 	// Reset images if a new scan was started

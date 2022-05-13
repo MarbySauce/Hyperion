@@ -46,12 +46,6 @@ document.getElementById("ScanStartSave").onclick = function () {
 	sevi_start_save_button();
 };
 
-// Accumulated Image Display
-document.getElementById("ImageDisplaySelect").onclick = function () {
-	// Make sure difference image is calculated immediately when option is selected
-	scan.accumulated_image.counters.difference_counter = scan.accumulated_image.counters.difference_frequency;
-};
-
 // Page Up/Down buttons
 document.getElementById("SeviPageDown").onclick = function () {
 	switch_pages(1); // Switch to second page
@@ -353,13 +347,11 @@ function update_accumulated_image_display() {
 			case 2:
 				// Difference positive (need to calculate difference first)
 				displayed_image = scan.accumulated_image.images.difference;
-				scan.calculate_difference();
 				break;
 			case 3:
 				// Difference negative (need to calculate difference first)
 				display_positive = false;
 				displayed_image = scan.accumulated_image.images.difference;
-				scan.calculate_difference();
 				break;
 			default:
 				// Just display IR Off
