@@ -29,14 +29,14 @@ function startup() {
 	const emitter = new EventEmitter(); // Emit messages between C++ and JS
 
 	// Set up emitter messages
-	emitter.on("new-image", (centroidResults) => {
-		if (!centroidResults) {
+	emitter.on("new-image", (centroid_results) => {
+		if (!centroid_results) {
 			return;
 		}
-		centroidResults.imageBuffer = buffer;
+		centroid_results.image_buffer = buffer;
 
 		// Send data to other renderer windows
-		ipc.send("new-camera-frame", centroidResults);
+		ipc.send("new-camera-frame", centroid_results);
 	});
 
 	// Initialize emitter
@@ -72,15 +72,15 @@ function startup() {
 	if (camera.enableMessages()) {
 		console.log("Messages enabled");
 		check_messages = true;
-		messageLoop();
+		message_loop();
 	}
 }
 
-function messageLoop() {
+function message_loop() {
 	if (check_messages) {
 		setTimeout(() => {
 			// Re-execute this function at the end of event loop cycle
-			messageLoop();
+			message_loop();
 		}, 0);
 		//check_messages = false;
 		camera.checkMessages();

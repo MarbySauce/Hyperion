@@ -163,10 +163,10 @@ Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 	
 	// Fill out with information
 	// NOTE TO MARTY: Might want to change these to be snake_case to be consistent with JS side
-	information["infoReceived"] = Napi::Boolean::New(env, true);
+	information["info_received"] = Napi::Boolean::New(env, true);
 	information["model"] = Napi::String::New(env, "Simulation");
-	information["ID"] = Napi::Number::New(env, 0);
-	information["colorMode"] = Napi::Number::New(env, 1);
+	information["id"] = Napi::Number::New(env, 0);
+	information["color_mode"] = Napi::Number::New(env, 1);
 	information["width"] = Napi::Number::New(env, camera.width);
 	information["height"] = Napi::Number::New(env, camera.height);
 	
@@ -386,12 +386,13 @@ void sendCentroids() {
 	// Package centroid information into an object to send to JS
 	Napi::Object centroidResults = Napi::Object::New(env);
 	// Contains:
-	// 		CCLCenters			-	Array		- Connect component labeling centroids
-	//		hybridCenters		-	Array		- Hybrid method centroids
-	//		computationTime		-	Float		- Time to calculate centroids (ms)
-	//		isLEDon				- 	Boolean		- Whether IR LED was on in image
-	//		normNoiseIntensity	-	Float		- Ratio of LED area to Noise area normalized intensities
-
+	// 		ccl_centers				-	Array		- Connect component labeling centroids
+	//		hybrid_centers			-	Array		- Hybrid method centroids
+	//		computation_time		-	Float		- Time to calculate centroids (ms)
+	//		is_led_on				- 	Boolean		- Whether IR LED was on in image
+	//		avg_led_intensity		-	Float		- Average intensity of pixels in LED region
+	//		avg_noise_intensity		-	Float		- Average intensity of pixels in noise region
+	
 	// First add the connected-component-labeling (CCL) centroids
 	Napi::Array centroidList = Napi::Array::New(env);
 	int centroidCounter = 0; // To keep track of how many center were found
@@ -416,7 +417,7 @@ void sendCentroids() {
 			centroidCounter++;
 		}
 	}
-	centroidResults["CCLCenters"] = centroidList;
+	centroidResults["ccl_centers"] = centroidList;
 
 	// Next add the hybrid method centroids
 	centroidList = Napi::Array::New(env);
@@ -442,13 +443,13 @@ void sendCentroids() {
 			centroidCounter++;
 		}
 	}
-	centroidResults["hybridCenters"] = centroidList;
+	centroidResults["hybrid_centers"] = centroidList;
 
 	// Add the other important values
-	centroidResults["computationTime"] = Napi::Number::New(env, img.computationTime);
-	centroidResults["isLEDon"] = Napi::Boolean::New(env, img.isLEDon);
-	centroidResults["normLEDIntensity"] = Napi::Number::New(env, img.LEDIntensity / img.LEDCount);
-	centroidResults["normNoiseIntensity"] = Napi::Number::New(env, img.NoiseIntensity / img.NoiseCount);
+	centroidResults["computation_time"] = Napi::Number::New(env, img.computationTime);
+	centroidResults["is_led_on"] = Napi::Boolean::New(env, img.isLEDon);
+	centroidResults["avg_led_intensity"] = Napi::Number::New(env, img.LEDIntensity / img.LEDCount);
+	centroidResults["avg_noise_intensity"] = Napi::Number::New(env, img.NoiseIntensity / img.NoiseCount);
 
 	// Send message to JavaScript with packaged results
 	eventEmitter.Call(

@@ -1,11 +1,9 @@
 const ipc = require("electron").ipcRenderer;
 const Chart = require("chart.js");
 
-
 ////
 let DOIT = true;
 ////
-
 
 // Startup
 window.onload = function () {
@@ -39,14 +37,15 @@ function UpdateScanDisplays() {
 }
 
 // Receive message with centroid data
-ipc.on("new-camera-frame", function (event, centroidResults) {
+ipc.on("new-camera-frame", function (event, centroid_results) {
 	// Will return with object containing:
-	//		imageBuffer			-	Uint8Buffer - Current image frame
-	// 		CCLCenters			-	Array		- Connect component labeling centroids
-	//		hybridCenters		-	Array		- Hybrid method centroids
-	//		computationTime		-	Float		- Time to calculate centroids (ms)
-	//		isLEDon				- 	Boolean		- Whether IR LED was on in image
-	//		normNoiseIntensity	-	Float		- Ratio of LED area to Noise area normalized intensities
+	//		image_buffer			-	Uint8Buffer - Current image frame
+	// 		ccl_centers				-	Array		- Connect component labeling centroids
+	//		hybrid_centers			-	Array		- Hybrid method centroids
+	//		computation_time		-	Float		- Time to calculate centroids (ms)
+	//		is_led_on				- 	Boolean		- Whether IR LED was on in image
+	//		avg_led_intensity		-	Float		- Average intensity of pixels in LED region
+	//		avg_noise_intensity		-	Float		- Average intensity of pixels in noise region
 
 	// Temp variables for image and AoI size
 	let imageWidth = 1024;
@@ -58,20 +57,20 @@ ipc.on("new-camera-frame", function (event, centroidResults) {
 	const LVData = LiveViewContext.getImageData(0, 0, imageWidth, imageHeight);
 
 	// Put image on display
-	LVData.data.set(centroidResults.imageBuffer);
+	LVData.data.set(centroid_results.image_buffer);
 	LiveViewContext.putImageData(LVData, -xOffset, -yOffset);
 
 	// Add counts to chart
-	eChartData.updateData(centroidResults);
+	eChartData.updateData(centroid_results);
 	eChartData.updateChart(eChart);
 
 	// Update average counters
-	averageCount.update(centroidResults);
+	averageCount.update(centroid_results);
 	UpdateAverageDisplays();
 
 	// Update scan display if a scan is running
 	if (scanInfo.running) {
-		scanInfo.update(centroidResults);
+		scanInfo.update(centroid_results);
 		UpdateScanDisplays();
 	}
 
@@ -190,10 +189,10 @@ const eChartData = {
 		this.hybridData = [];
 		this.frameCount = 0;
 	},
-	updateData: function (centroidResults) {
+	updateData: function (centroid_results) {
 		this.labels.push(this.frameCount);
-		this.cclData.push(centroidResults.CCLCenters.length);
-		this.hybridData.push(centroidResults.CCLCenters.length + centroidResults.hybridCenters.length);
+		this.cclData.push(centroid_results.ccl_centers.length);
+		this.hybridData.push(centroid_results.ccl_centers.length + centroid_results.hybrid_centers.length);
 		this.frameCount++;
 		this.cleaveData();
 	},
@@ -237,15 +236,15 @@ const averageCount = {
 	updateCounter: 0, // Used to keep track of how many frames have
 	// been processed since the last time avg display was updated
 	updateFrequency: 10, // Number of frames before updating display
-	update: function (centroidResults) {
-		let ccl = centroidResults.CCLCenters.length;
-		let hybrid = centroidResults.hybridCenters.length;
+	update: function (centroid_results) {
+		let ccl = centroid_results.ccl_centers.length;
+		let hybrid = centroid_results.hybrid_centers.length;
 		let total = ccl + hybrid;
 		// Add to respective arrays
 		this.prevCCLCounts.push(ccl);
 		this.prevHybridCounts.push(hybrid);
 		this.prevTotalCounts.push(total);
-		if (centroidResults.isLEDon) {
+		if (centroid_results.is_led_on) {
 			this.prevTotalOnCounts.push(total);
 		} else {
 			this.prevTotalOffCounts.push(total);
@@ -302,9 +301,9 @@ const scanInfo = {
 	stopScan: function () {
 		this.running = false;
 	},
-	update: function (centroidResults) {
-		let ccl = centroidResults.CCLCenters.length;
-		let hybrid = centroidResults.hybridCenters.length;
+	update: function (centroid_results) {
+		let ccl = centroid_results.ccl_centers.length;
+		let hybrid = centroid_results.hybrid_centers.length;
 		let total = ccl + hybrid;
 		// Add to counts
 		this.cclCount += ccl;
@@ -343,7 +342,6 @@ const scanInfo = {
 		return countString;
 	},
 };
-
 
 function doit() {
 	// Center at (526, 517) in (1024,1024)
