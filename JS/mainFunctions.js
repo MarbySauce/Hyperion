@@ -41,6 +41,18 @@ document.getElementById("Settings").onclick = function () {
 
 /*		Sevi and IR-Sevi Mode		*/
 
+// Scan control buttons
+document.getElementById("ScanStartSave").onclick = function () {
+	sevi_start_save_button();
+};
+
+// Accumulated Image Display
+document.getElementById("ImageDisplaySelect").onclick = function () {
+	// Make sure difference image is calculated immediately when option is selected
+	scan.accumulated_image.counters.difference_counter = scan.accumulated_image.counters.difference_frequency;
+};
+
+// Page Up/Down buttons
 document.getElementById("SeviPageDown").onclick = function () {
 	switch_pages(1); // Switch to second page
 };
@@ -82,7 +94,7 @@ function startup() {
 	switch_tabs(0);
 
 	// Color the accumulated image display black
-	fill_image_display();
+	//fill_image_display();
 }
 
 /*		Tabs		*/
@@ -220,8 +232,8 @@ function update_counter_displays() {
 	let avg_off = electrons.average.mode.ir_off_value;
 	let avg_on = electrons.average.mode.ir_on_value;
 
-	// If running Sevi mode, total values = ir_off + ir_on
-	if (scan.status.method === "sevi") {
+	// If on Sevi mode tab, total values = ir_off + ir_on
+	if (page_info.current_tab === 0) {
 		total_frames.value = frame_count_off + frame_count_on;
 		total_e_count.value = e_count_off + e_count_on;
 		avg_e_count.value = ((avg_off + avg_on) / 2).toFixed(2);
@@ -232,6 +244,169 @@ function update_counter_displays() {
 		total_e_count_ir.value = e_count_on;
 		avg_e_count.value = avg_off.toFixed(2);
 		avg_e_count_ir.value = avg_on.toFixed(2);
+	}
+
+	// NOTE TO MARTY: Change this to add ir_on and ir_off based on tab, not scan status
+	// The displayed file name should change based on status tho (so you can see which mode it's running in)
+	// if it's possible it would be cool to have the IR file name displayed even when on Sevi tab
+}
+
+// Functionality for Sevi Mode Start/Save button
+function sevi_start_save_button() {
+	// Since the scan running status gets changed in the process, we need a constant value
+	//	that tells whether the scan was just started or ended
+	let was_running = scan.status.running;
+	// Change button text appropriately
+	update_start_save(was_running);
+	// Start or stop the scan (and save if stopped)
+	update_scan_running_status(was_running, true);
+	// Reset electron and frame counts if new scan started
+	electrons.reset(was_running);
+	// Reset accumulated image if new scan started
+	scan.reset_images(was_running);
+}
+
+// Update Start/Save button on press
+// was_running is bool that says whether a scan was running when button pressed
+function update_start_save(was_running) {
+	const start_button_text = document.getElementById("ScanStartSaveText");
+
+	// If a scan has not been started, change text to "Save"
+	//	otherwise change to "Start"
+	if (was_running) {
+		start_button_text.innerText = "Start";
+	} else {
+		start_button_text.innerText = "Save";
+	}
+}
+
+// Update the scan "running" status
+// was_running is bool that says whether a scan was running when button pressed
+// if_save is bool that tells whether to save image/spectra to file
+function update_scan_running_status(was_running, if_save) {
+	// First check if we need to save (i.e. if a scan just finished)
+	if (if_save) {
+		console.log("File saved!");
+	}
+	// Change running status
+	scan.status.running = !was_running;
+}
+
+counter = 0;
+// Update the accumulated image display
+function update_accumulated_image_display() {
+	// First check if a scan is currently being taken
+	if (!scan.status.running || scan.status.paused) {
+		// Don't update the images
+		return;
+	}
+	const image_select = document.getElementById("ImageDisplaySelect");
+	const image_display = document.getElementById("Display");
+	const ctx = image_display.getContext("2d");
+	const display_slider_value = parseFloat(document.getElementById("DisplaySlider").value);
+	let image_height = scan.accumulated_image.params.accumulation_height;
+	let image_width = scan.accumulated_image.params.accumulation_width;
+	let image_data = new ImageData(image_width, image_height); //ctx.getImageData(0, 0, image_width, image_height);
+	let displayed_image;
+	let image_pixel;
+	let display_positive = true; // If false, display only negative values (for difference image)
+
+	// Clear the current image
+	ctx.clearRect(0, 0, image_display.width, image_display.height);
+
+	if (counter < 20) {
+		console.time("time");
+	}
+	if (page_info.current_tab === 0) {
+		// On Sevi Mode tab, display ir_off + ir_on
+		for (let Y = 0; Y < image_height; Y++) {
+			for (let X = 0; X < image_width; X++) {
+				image_pixel = scan.accumulated_image.images.ir_off[Y][X];
+				image_pixel += scan.accumulated_image.images.ir_on[Y][X];
+				// If the pixel is zero we can just skip it
+				if (image_pixel === 0) {
+					continue;
+				}
+				// Adjust for contrast
+				image_pixel = 255 * image_pixel * display_slider_value;
+				// If image_pixel is oversaturated, set to 255
+				if (image_pixel > 255) {
+					image_pixel = 255;
+				}
+				// Want to make pixels white -> RGBA = [255, 255, 255, 255] (at full contrast)
+				for (let i = 0; i < 4; i++) {
+					image_data.data[4 * (image_width * Y + X) + i] = image_pixel;
+				}
+			}
+		}
+	} else if (page_info.current_tab === 1) {
+		// On IR-Sevi tab, display selected image
+		switch (image_select.selectedIndex) {
+			case 0:
+				// IR Off
+				displayed_image = scan.accumulated_image.images.ir_off;
+				break;
+			case 1:
+				// IR On
+				displayed_image = scan.accumulated_image.images.ir_on;
+				break;
+			case 2:
+				// Difference positive (need to calculate difference first)
+				displayed_image = scan.accumulated_image.images.difference;
+				scan.calculate_difference();
+				break;
+			case 3:
+				// Difference negative (need to calculate difference first)
+				display_positive = false;
+				displayed_image = scan.accumulated_image.images.difference;
+				scan.calculate_difference();
+				break;
+			default:
+				// Just display IR Off
+				displayed_image = scan.accumulated_image.images.ir_off;
+				break;
+		}
+		for (let Y = 0; Y < image_height; Y++) {
+			for (let X = 0; X < image_width; X++) {
+				image_pixel = displayed_image[Y][X];
+				// If the pixel is zero we can just skip it
+				if (image_pixel === 0) {
+					continue;
+				}
+				// For difference image, figure out if positive or negative values should be shown
+				if (display_positive) {
+					// Only display positive differences
+					if (image_pixel < 0) {
+						image_pixel = 0;
+					}
+				} else {
+					// Only display negative differences
+					image_pixel = -image_pixel; // Invert values
+					if (image_pixel < 0) {
+						image_pixel = 0;
+					}
+				}
+				// Adjust for contrast
+				image_pixel = 255 * image_pixel * display_slider_value;
+				// If image_pixel is oversaturated, set to 255
+				if (image_pixel > 255) {
+					image_pixel = 255;
+				}
+				// Want to make pixels white -> RGBA = [255, 255, 255, 255] (at full contrast)
+				for (let i = 0; i < 4; i++) {
+					image_data.data[4 * (image_width * Y + X) + i] = image_pixel;
+				}
+			}
+		}
+	}
+	// Put image_data on the display
+	// Have to do this bullshit so that the image is resized to fill the display correctly
+	createImageBitmap(image_data).then(function (imgBitmap) {
+		ctx.drawImage(imgBitmap, 0, 0, image_width, image_height, 0, 0, image_display.width, image_display.height);
+	});
+	if (counter < 20) {
+		console.timeEnd("time");
+		counter++;
 	}
 }
 
@@ -259,12 +434,13 @@ ipc.on("new-camera-frame", (event, centroid_results) => {
 	//		hybrid_centers			-	Array		- Hybrid method centroids
 	//		computation_time		-	Float		- Time to calculate centroids (ms)
 	//		is_led_on				- 	Boolean		- Whether IR LED was on in image
-	//		avg_led_intensity		-	Float		- Average intensity of pixels in LED region
-	//		avg_noise_intensity		-	Float		- Average intensity of pixels in noise region
 
 	// Update electron counters
 	electrons.update(centroid_results);
 	update_counter_displays();
+	// Add electrons to accumulated image and update display
+	scan.update_images(centroid_results);
+	update_accumulated_image_display();
 });
 
 /*

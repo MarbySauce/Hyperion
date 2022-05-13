@@ -171,7 +171,7 @@ function create_live_view_window() {
 	});
 
 	win.loadFile("HTML/LVWindow.html");
-	win.webContents.openDevTools();
+	//win.webContents.openDevTools();
 
 	return win;
 }
@@ -190,7 +190,7 @@ function create_invisible_window() {
 	});
 
 	win.loadFile("HTML/InvisibleWindow.html");
-	win.webContents.openDevTools();
+	//win.webContents.openDevTools();
 
 	return win;
 }
@@ -218,6 +218,7 @@ app.whenReady().then(function () {
 	// Fixed by rechanging the size after creation
 	if (main_window) {
 		main_window.setSize(settings.information.windows.main_window.width, settings.information.windows.main_window.height);
+
 		// Close app when main window is closed
 		main_window.on("closed", function (event) {
 			send_close_camera_msg();
@@ -230,6 +231,11 @@ app.whenReady().then(function () {
 
 		// Get rid of Live View menu bar
 		live_view_window.removeMenu();
+
+		// Delete window reference if window is closed
+		live_view_window.on("closed", function (event) {
+			live_view_window = null;
+		});
 	}
 
 	// Check if there is a folder for today's year and date, and if not create it

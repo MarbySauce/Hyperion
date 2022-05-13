@@ -277,7 +277,7 @@ body {
 #ImageDisplay h3 {
 	grid-area: Title;
 }
-#Display {
+#DisplayWrapper {
 	grid-area: Display;
 }
 #DisplaySlider {

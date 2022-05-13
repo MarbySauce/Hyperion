@@ -126,12 +126,14 @@ const electrons = {
 		});
 		return sum / arr.length;
 	},
-	// Reset total values
-	reset: function () {
-		this.total.e_count.ir_off = 0;
-		this.total.e_count.ir_on = 0;
-		this.total.frame_count.ir_off = 0;
-		this.total.frame_count.ir_on = 0;
+	// Reset total values (if scan just started)
+	reset: function (was_running) {
+		if (!was_running) {
+			this.total.e_count.ir_off = 0;
+			this.total.e_count.ir_on = 0;
+			this.total.frame_count.ir_off = 0;
+			this.total.frame_count.ir_on = 0;
+		}
 	},
 };
 
@@ -201,6 +203,78 @@ const scan = {
 	previous: {
 		all: [], // Array of all scans taken in a day
 		last: undefined, // Most recent scan taken
+	},
+	// Update images with new electrons
+	update_images: function (centroid_results) {
+		let image_to_update; // Will be either ir_off or ir_on
+		let X; // Filled with centroid values
+		let Y;
+		// If a scan is not running (or paused), don't update
+		if (!scan.status.running || scan.status.paused) {
+			return;
+		}
+		// Update to ir_off or ir_on based on IR LED
+		if (centroid_results.is_led_on) {
+			image_to_update = this.accumulated_image.images.ir_on;
+		} else {
+			image_to_update = this.accumulated_image.images.ir_off;
+		}
+		// Update image with electrons
+		// CCL centroids first
+		for (let i = 0; i < centroid_results.ccl_centers.length; i++) {
+			// make sure centroid is not blank (i.e. [0, 0])
+			if (centroid_results.ccl_centers[i][0] !== 0) {
+				X = centroid_results.ccl_centers[i][0];
+				Y = centroid_results.ccl_centers[i][1];
+				// Need to account for accumulated image size and round to ints
+				X = Math.round((X * this.accumulated_image.params.accumulation_width) / this.accumulated_image.params.aoi_width);
+				Y = Math.round((Y * this.accumulated_image.params.accumulation_height) / this.accumulated_image.params.aoi_height);
+				image_to_update[Y][X]++;
+			}
+		}
+		// Hybrid centroids now
+		for (let i = 0; i < centroid_results.hybrid_centers.length; i++) {
+			// make sure centroid is not blank (i.e. [0, 0])
+			if (centroid_results.hybrid_centers[i][0] !== 0) {
+				X = centroid_results.hybrid_centers[i][0];
+				Y = centroid_results.hybrid_centers[i][1];
+				// Need to account for accumulated image size and round to ints
+				X = Math.round((X * this.accumulated_image.params.accumulation_width) / this.accumulated_image.params.aoi_width);
+				Y = Math.round((Y * this.accumulated_image.params.accumulation_height) / this.accumulated_image.params.aoi_height);
+				image_to_update[Y][X]++;
+			}
+		}
+	},
+	// Calculate IR Difference image (ir_on - ir_off)
+	calculate_difference: function () {
+		if (this.accumulated_image.counters.difference_counter > this.accumulated_image.counters.difference_frequency) {
+			let image_height = this.accumulated_image.params.accumulation_height;
+			let image_width = this.accumulated_image.params.accumulation_width;
+			let ir_on_pix;
+			let ir_off_pix;
+			for (let Y = 0; Y < image_height; Y++) {
+				for (let X = 0; X < image_width; X++) {
+					ir_on_pix = this.accumulated_image.images.ir_on[Y][X];
+					ir_off_pix = this.accumulated_image.images.ir_off[Y][X];
+					this.accumulated_image.images.difference[Y][X] = ir_on_pix - ir_off_pix;
+				}
+			}
+			// Reset counter
+			this.accumulated_image.counters.difference_counter = 0;
+		} else {
+			// Just increment the counter
+			this.accumulated_image.counters.difference_counter++;
+		}
+	},
+	// Reset images if a new scan was started
+	reset_images: function (was_running) {
+		if (!was_running) {
+			let image_height = this.accumulated_image.params.accumulation_height;
+			let image_width = this.accumulated_image.params.accumulation_width;
+			this.accumulated_image.images.ir_off = Array.from(Array(image_height), () => new Array(image_width).fill(0));
+			this.accumulated_image.images.ir_on = Array.from(Array(image_height), () => new Array(image_width).fill(0));
+			this.accumulated_image.images.difference = Array.from(Array(image_height), () => new Array(image_width).fill(0));
+		}
 	},
 };
 

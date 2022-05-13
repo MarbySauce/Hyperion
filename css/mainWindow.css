@@ -335,12 +335,16 @@ Right Side
 #IRImageDisplay:focus-visible {
 	outline: none;
 }
-.accumulated-image {
+#DisplayWrapper {
 	height: 50vh;
 	aspect-ratio: 1 / 1;
-	background: white;
-	border-radius: 10px;
 	justify-self: center;
+}
+.accumulated-image {
+	height: inherit;
+	width: inherit;
+	background: black;
+	border-radius: 10px;
 }
 #ImageDisplay h3 {
 	padding-left: 30%;
