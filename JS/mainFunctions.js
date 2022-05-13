@@ -204,6 +204,37 @@ function fill_image_display() {
 	ctx.fillRect(0, 0, image_width, image_height);
 }
 
+// Update electron counter displays
+function update_counter_displays() {
+	const total_frames = document.getElementById("TotalFrames");
+	const total_frames_ir = document.getElementById("TotalFramesIROn");
+	const total_e_count = document.getElementById("TotalECount");
+	const total_e_count_ir = document.getElementById("TotalECountIROn");
+	const avg_e_count = document.getElementById("AvgECount");
+	const avg_e_count_ir = document.getElementById("AvgECountIROn");
+
+	let frame_count_off = electrons.total.frame_count.ir_off;
+	let frame_count_on = electrons.total.frame_count.ir_on;
+	let e_count_off = electrons.total.e_count.ir_off;
+	let e_count_on = electrons.total.e_count.ir_on;
+	let avg_off = electrons.average.mode.ir_off_value;
+	let avg_on = electrons.average.mode.ir_on_value;
+
+	// If running Sevi mode, total values = ir_off + ir_on
+	if (scan.status.method === "sevi") {
+		total_frames.value = frame_count_off + frame_count_on;
+		total_e_count.value = e_count_off + e_count_on;
+		avg_e_count.value = ((avg_off + avg_on) / 2).toFixed(2);
+	} else {
+		total_frames.value = frame_count_off;
+		total_frames_ir.value = frame_count_on;
+		total_e_count.value = e_count_off;
+		total_e_count_ir.value = e_count_on;
+		avg_e_count.value = avg_off.toFixed(2);
+		avg_e_count_ir.value = avg_on.toFixed(2);
+	}
+}
+
 /*
 
 
@@ -218,6 +249,22 @@ function fill_image_display() {
 ipc.on("settings-information", (event, settings_information) => {
 	settings = settings_information;
 	startup();
+});
+
+// Recieve message from (eventually) invisible window with camera frame data
+ipc.on("new-camera-frame", (event, centroid_results) => {
+	// centroid_results is an object containing:
+	//		image_buffer			-	Uint8Buffer - Current image frame
+	// 		ccl_centers				-	Array		- Connect component labeling centroids
+	//		hybrid_centers			-	Array		- Hybrid method centroids
+	//		computation_time		-	Float		- Time to calculate centroids (ms)
+	//		is_led_on				- 	Boolean		- Whether IR LED was on in image
+	//		avg_led_intensity		-	Float		- Average intensity of pixels in LED region
+	//		avg_noise_intensity		-	Float		- Average intensity of pixels in noise region
+
+	// Update electron counters
+	electrons.update(centroid_results);
+	update_counter_displays();
 });
 
 /*

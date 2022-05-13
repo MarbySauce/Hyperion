@@ -38,7 +38,7 @@ function UpdateScanDisplays() {
 
 // Receive message with centroid data
 ipc.on("new-camera-frame", function (event, centroid_results) {
-	// Will return with object containing:
+	// centroid_results is an object containing:
 	//		image_buffer			-	Uint8Buffer - Current image frame
 	// 		ccl_centers				-	Array		- Connect component labeling centroids
 	//		hybrid_centers			-	Array		- Hybrid method centroids

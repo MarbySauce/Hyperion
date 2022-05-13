@@ -15,14 +15,18 @@ const electrons = {
 		method: {
 			ccl: [],
 			hybrid: [],
+			ccl_value: 0, // Store the average values
+			hybrid_value: 0,
 		},
 		mode: {
 			ir_on: [],
 			ir_off: [],
+			ir_on_value: 0, // Store the average values
+			ir_off_value: 0,
 		},
 		stats: {
-			calculation_time: [],
-			led_intensities: [],
+			computation_time: [],
+			computation_time_value: 0, // Store the average values
 		},
 		counters: {
 			update_counter: 0,
@@ -53,7 +57,7 @@ const electrons = {
 			ccl: 0,
 			hybrid: 0,
 		},
-		mode: {
+		e_count: {
 			ir_on: 0,
 			ir_off: 0,
 		},
@@ -61,6 +65,73 @@ const electrons = {
 			ir_on: 0,
 			ir_off: 0,
 		},
+	},
+	// Update values with results from invisible window
+	update: function (centroid_results) {
+		let ccl_count = centroid_results.ccl_centers.length;
+		let hybrid_count = centroid_results.hybrid_centers.length;
+		let total_count = ccl_count + hybrid_count;
+		let comp_time = centroid_results.computation_time;
+
+		// If a scan is currently being taken, update total values
+		if (scan.status.running && !scan.status.paused) {
+			this.total.method.ccl += ccl_count;
+			this.total.method.hybrid += hybrid_count;
+			// Check if the IR LED is on
+			if (centroid_results.is_led_on) {
+				this.total.e_count.ir_on += total_count;
+				this.total.frame_count.ir_on++;
+			} else {
+				this.total.e_count.ir_off += total_count;
+				this.total.frame_count.ir_off++;
+			}
+		}
+
+		// Add values to average arrays
+		this.add(this.average.method.ccl, ccl_count);
+		this.add(this.average.method.hybrid, hybrid_count);
+		// Check if IR LED is on
+		if (centroid_results.is_led_on) {
+			this.add(this.average.mode.ir_on, total_count);
+		} else {
+			this.add(this.average.mode.ir_off, total_count);
+		}
+		this.add(this.average.stats.computation_time, comp_time);
+		this.average.counters.update_counter++;
+		this.charting.counters.frame_count++;
+		// Update average values
+		if (this.average.counters.update_counter >= this.average.counters.update_frequency) {
+			this.average.method.ccl_value = this.get_average(this.average.method.ccl);
+			this.average.method.hybrid_value = this.get_average(this.average.method.hybrid);
+			this.average.mode.ir_on_value = this.get_average(this.average.mode.ir_on);
+			this.average.mode.ir_off_value = this.get_average(this.average.mode.ir_off);
+			// Reset update counter
+			this.average.counters.update_counter = 0;
+		} else {
+			// Increment update counter
+			this.average.counters.update_counter++;
+		}
+	},
+	// Adds element el to array arr and keeps arr at a certain number of elements
+	add: function (arr, el) {
+		arr.push(el);
+		while (arr.length > this.average.counters.update_frequency) {
+			arr.shift();
+		}
+	},
+	// Calculates the average value of the arrays
+	get_average: function (arr) {
+		const sum = arr.reduce((accumulator, current_value) => {
+			return accumulator + current_value;
+		});
+		return sum / arr.length;
+	},
+	// Reset total values
+	reset: function () {
+		this.total.e_count.ir_off = 0;
+		this.total.e_count.ir_on = 0;
+		this.total.frame_count.ir_off = 0;
+		this.total.frame_count.ir_on = 0;
 	},
 };
 
@@ -139,7 +210,7 @@ const laser = {
 		mode: 0, // 0 is Standard, 1 is Doubled, 2 is Raman Shifter, 3 is IR-DFG
 		wavelength: {
 			yag_fundamental: 1064.0, // Nd:YAG fundamental wavelength
-			input: 0, // User entered wavelength
+			input: 0, // User entered (or measured) wavelength
 			standard: 0,
 			doubled: 0,
 			raman: 0,
@@ -147,7 +218,6 @@ const laser = {
 		},
 		wavenumber: {
 			yag_fundamental: 0, // Nd:YAG fundamental energy
-			input: 0, // User entered energy
 			standard: 0,
 			doubled: 0,
 			raman: 0,
@@ -158,14 +228,14 @@ const laser = {
 		mode: 0, // 0 is near IR, 1 is intermediate IR, 2 is mid IR, 3 is far IR
 		wavelength: {
 			yag_fundamental: 1064.5, // Nd:YAG fundamental wavelength
-			nir: 0, // User entered wavelength
+			nir: 0, // User entered (or measured) wavelength
 			iir: 0,
 			mir: 0,
 			fir: 0,
 		},
 		wavenumber: {
 			yag_fundamental: 0, // Nd:YAG fundamental wavelength
-			nir: 0, // User entered wavelength
+			nir: 0,
 			iir: 0,
 			mir: 0,
 			fir: 0,
