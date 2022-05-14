@@ -46,9 +46,21 @@ document.getElementById("ScanStartSave").onclick = function () {
 	sevi_start_save_button();
 };
 
+// PE Spectrum control buttons
+document.getElementById("CalculateSpectrumButton").onclick = function () {
+	run_melexir();
+};
+document.getElementById("SpectrumXLower").oninput = function () {
+	change_spectrum_x_display_range();
+};
+document.getElementById("SpectrumXUpper").oninput = function () {
+	change_spectrum_x_display_range();
+};
+
 // Page Up/Down buttons
 document.getElementById("SeviPageDown").onclick = function () {
 	switch_pages(1); // Switch to second page
+	create_spectrum_plot(); // Create plot for PE Spectrum
 };
 document.getElementById("SeviPageUp").onclick = function () {
 	switch_pages(0); // Switch to first page
@@ -190,6 +202,12 @@ function switch_pages(page_index) {
 		// Display first page
 		first_page.style.display = "grid";
 		second_page.style.display = "none";
+
+		// PE Spectrum is on second page, and needs to be destroyed if moving to first page
+		//	(if it exists)
+		if (spectrum_display) {
+			destroy_spectrum_plot();
+		}
 	} else if (page_index === 1) {
 		// Display second page
 		first_page.style.display = "none";
@@ -198,17 +216,6 @@ function switch_pages(page_index) {
 }
 
 /* Sevi and IR-Sevi Modes */
-
-// Color the accumulated image display black
-function fill_image_display() {
-	const display = document.getElementById("Display");
-	const ctx = display.getContext("2d");
-	let image_width = scan.accumulated_image.params.accumulation_width;
-	let image_height = scan.accumulated_image.params.accumulation_height;
-
-	ctx.fillStyle = "black";
-	ctx.fillRect(0, 0, image_width, image_height);
-}
 
 // Update electron counter displays
 function update_counter_displays() {
@@ -279,14 +286,13 @@ function update_start_save(was_running) {
 // if_save is bool that tells whether to save image/spectra to file
 function update_scan_running_status(was_running, if_save) {
 	// First check if we need to save (i.e. if a scan just finished)
-	if (if_save) {
+	if (was_running && if_save) {
 		console.log("File saved!");
 	}
 	// Change running status
 	scan.status.running = !was_running;
 }
 
-counter = 0;
 // Update the accumulated image display
 function update_accumulated_image_display() {
 	// First check if a scan is currently being taken
@@ -308,9 +314,6 @@ function update_accumulated_image_display() {
 	// Clear the current image
 	ctx.clearRect(0, 0, image_display.width, image_display.height);
 
-	if (counter < 20) {
-		console.time("time");
-	}
 	if (page_info.current_tab === 0) {
 		// On Sevi Mode tab, display ir_off + ir_on
 		for (let Y = 0; Y < image_height; Y++) {
@@ -393,13 +396,93 @@ function update_accumulated_image_display() {
 	}
 	// Put image_data on the display
 	// Have to do this bullshit so that the image is resized to fill the display correctly
-	createImageBitmap(image_data).then(function (imgBitmap) {
-		ctx.drawImage(imgBitmap, 0, 0, image_width, image_height, 0, 0, image_display.width, image_display.height);
+	// (turning the ImageData object into a BMP image and then using drawImage to put it on the canvas)
+	createImageBitmap(image_data).then(function (bitmap_img) {
+		ctx.drawImage(bitmap_img, 0, 0, image_width, image_height, 0, 0, image_display.width, image_display.height);
 	});
-	if (counter < 20) {
-		console.timeEnd("time");
-		counter++;
+}
+
+// Create chart to plot PE Spectrum
+function create_spectrum_plot() {
+	const spectrum_display_ctx = document.getElementById("PESpectrum").getContext("2d");
+	spectrum_display = new Chart(spectrum_display_ctx, spectrum_config);
+}
+
+// Destroy PE Spectrum chart
+function destroy_spectrum_plot() {
+	spectrum_display.destroy();
+	spectrum_display = null;
+}
+
+// Run Melexir in Web Worker
+function run_melexir() {
+	// If the worker was already created, it must still be running, so just return
+	if (melexir_worker) {
+		return;
 	}
+	// If there are no accumulated images made, return
+	if (scan.accumulated_image.images.ir_off.length === 0) {
+		return;
+	}
+	melexir_worker = new Worker("../JS/worker.js");
+	// Prepare data to send
+	let sent_data = {
+		ir_off: scan.accumulated_image.images.ir_off,
+		ir_on: scan.accumulated_image.images.ir_on,
+		method: scan.status.method,
+	};
+	// Send message to worker
+	melexir_worker.postMessage(sent_data);
+	// Store results
+	melexir_worker.onmessage = function (event) {
+		let returned_results = event.data;
+		scan.accumulated_image.spectra.data.radial_values = returned_results.ir_off.spectrum[0];
+		// Do something here to get eBE
+		scan.accumulated_image.spectra.data.ir_off_intensity = returned_results.ir_off.spectrum[1];
+		scan.accumulated_image.spectra.data.ir_off_anisotropy = returned_results.ir_off.spectrum[2];
+		scan.accumulated_image.spectra.data.ir_on_intensity = returned_results.ir_on.spectrum[1];
+		scan.accumulated_image.spectra.data.ir_on_anisotropy = returned_results.ir_on.spectrum[2];
+		// Display results on spectrum
+		chart_spectrum_results();
+		// Terminate worker
+		melexir_worker.terminate();
+		melexir_worker = null;
+	};
+}
+
+// Display PE Spectrum on chart
+function chart_spectrum_results() {
+	// Check if the chart exists
+	if (!spectrum_display) {
+		return;
+	}
+	// Used to shorted code
+	const spectrum_data = scan.accumulated_image.spectra.data;
+	// Check if eBE array is empty
+	if (scan.accumulated_image.spectra.data.eBE_values.length === 0) {
+		// eBE was not calculated, show radial plot
+		spectrum_display.data.labels = spectrum_data.radial_values;
+	} else {
+		// Use eBE
+		spectrum_display.data.labels = spectrum_data.eBE_values;
+	}
+	// Update ir_on data
+	spectrum_display.data.datasets[0].data = spectrum_data.ir_on_intensity;
+	// Update ir_off data
+	spectrum_display.data.datasets[1].data = spectrum_data.ir_off_intensity;
+	// Update chart
+	spectrum_display.update();
+}
+
+function change_spectrum_x_display_range() {
+	const x_range_min = parseFloat(document.getElementById("SpectrumXLower").value);
+	const x_range_max = parseFloat(document.getElementById("SpectrumXUpper").value);
+	if (!spectrum_display) {
+		return;
+	}
+	spectrum_display.options.scales.x.min = x_range_min;
+	spectrum_display.options.scales.x.max = x_range_max;
+	spectrum_display.update();
 }
 
 /*

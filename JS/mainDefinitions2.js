@@ -4,7 +4,7 @@ const ipc = require("electron").ipcRenderer;
 const Chart = require("chart.js");
 // Addon libraries
 //const wavemeter = require("bindings")("wavemeter");
-const melexir = require("bindings")("melexir");
+//const melexir = require("bindings")("melexir");
 
 let settings; // Global variable, to be filled in on startup
 
@@ -166,10 +166,13 @@ const scan = {
 		},
 		spectra: {
 			data: {
+				image_id: 1,
 				radial_values: [],
 				eBE_values: [],
-				ir_off: [],
-				ir_on: [],
+				ir_off_intensity: [],
+				ir_off_anisotropy: [],
+				ir_on_intensity: [],
+				ir_on_anisotropy: [],
 				difference: [],
 			},
 			params: {
@@ -304,6 +307,63 @@ const laser = {
 	},
 };
 
-page_info = {
+const page_info = {
 	current_tab: 0,
 };
+
+let spectrum_display; // Will be filled in with chart for PE Spectrum
+
+// Configuration for PE Spectra
+const spectrum_config = {
+	type: "line",
+	data: {
+		labels: [],
+		datasets: [
+			{
+				data: [],
+				label: "IR On",
+				borderColor: "red",
+			},
+			{
+				data: [],
+				label: "IR Off",
+				borderColor: "black",
+			},
+		],
+	},
+	options: {
+		scales: {
+			y: {
+				beginAtZero: true,
+				title: {
+					text: "Electron Intensity",
+					color: "black",
+					display: true,
+				},
+			},
+			x: {
+				title: {
+					text: "eBE ( cm\u207B\u00B9 )", // \u207B is unicode for superscript "-", and \u00B9 is for superscript "1"
+					color: "black",
+					display: true,
+				},
+			},
+		},
+		elements: {
+			point: {
+				radius: 0,
+			},
+		},
+		plugins: {
+			title: {
+				display: true,
+				fullSize: false,
+				align: "end",
+				text: "Displaying Image: i01",
+				padding: 0,
+			},
+		},
+	},
+};
+
+let melexir_worker; // Filled in with Web Worker for Melexir
