@@ -265,7 +265,7 @@ const scan = {
 // Process and track info relating to lasers
 const laser = {
 	detachment: {
-		mode: 0, // 0 is Standard, 1 is Doubled, 2 is Raman Shifter, 3 is IR-DFG
+		mode: "standard", // Can be "standard", "doubled", "raman", or "irdfg"
 		wavelength: {
 			yag_fundamental: 1064.0, // Nd:YAG fundamental wavelength
 			input: 0, // User entered (or measured) wavelength
@@ -283,7 +283,7 @@ const laser = {
 		},
 	},
 	excitation: {
-		mode: 0, // 0 is near IR, 1 is intermediate IR, 2 is mid IR, 3 is far IR
+		mode: "nir", // Can be "nir", "iir", "mir", or "fir"
 		wavelength: {
 			yag_fundamental: 1064.5, // Nd:YAG fundamental wavelength
 			nir: 0, // User entered (or measured) wavelength
@@ -305,6 +305,38 @@ const laser = {
 			desired_ir: 0,
 		},
 	},
+	// Convert between wavelength (nm) and wavenumbers (cm^-1)
+	convert_wn_wl: function (energy) {
+		if (!energy) {
+			// Energy is 0 or undefined
+			return 0;
+		}
+		return Math.pow(10, 7) / energy;
+	},
+};
+
+const vmi_info = {
+	selected_setting: "V1", // "V1", "V2", "V3", or "V4"
+	// Calibration constants to convert from R(px) to eBE(cm^-1)
+	// 		eBE = hv(cm^-1) - (a * R^2 + b * R^4)
+	calibration_constants: {
+		V1: {
+			a: 1.591962e-2,
+			b: 3.016263e-9,
+		},
+		V2: {
+			a: 3.15732e-2,
+			b: 7.116001e-9,
+		},
+		V3: {
+			a: 6.238694e-2,
+			b: 1.309954e-8,
+		},
+		V4: {
+			a: 0,
+			b: 0,
+		},
+	},
 };
 
 const page_info = {
@@ -315,7 +347,7 @@ let spectrum_display; // Will be filled in with chart for PE Spectrum
 
 // Configuration for PE Spectra
 const spectrum_config = {
-	type: "line",
+	type: "scatter",
 	data: {
 		labels: [],
 		datasets: [
@@ -323,11 +355,13 @@ const spectrum_config = {
 				data: [],
 				label: "IR On",
 				borderColor: "red",
+				showLine: true,
 			},
 			{
 				data: [],
 				label: "IR Off",
 				borderColor: "black",
+				showLine: true,
 			},
 		],
 	},
@@ -346,6 +380,9 @@ const spectrum_config = {
 					text: "eBE ( cm\u207B\u00B9 )", // \u207B is unicode for superscript "-", and \u00B9 is for superscript "1"
 					color: "black",
 					display: true,
+				},
+				ticks: {
+					stepSize: 100,
 				},
 			},
 		},

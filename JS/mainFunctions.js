@@ -425,6 +425,8 @@ function run_melexir() {
 		return;
 	}
 	melexir_worker = new Worker("../JS/worker.js");
+	// Disable calculate button
+	change_pes_calculate_text(true);
 	// Prepare data to send
 	let sent_data = {
 		ir_off: scan.accumulated_image.images.ir_off,
@@ -437,17 +439,118 @@ function run_melexir() {
 	melexir_worker.onmessage = function (event) {
 		let returned_results = event.data;
 		scan.accumulated_image.spectra.data.radial_values = returned_results.ir_off.spectrum[0];
-		// Do something here to get eBE
 		scan.accumulated_image.spectra.data.ir_off_intensity = returned_results.ir_off.spectrum[1];
 		scan.accumulated_image.spectra.data.ir_off_anisotropy = returned_results.ir_off.spectrum[2];
 		scan.accumulated_image.spectra.data.ir_on_intensity = returned_results.ir_on.spectrum[1];
 		scan.accumulated_image.spectra.data.ir_on_anisotropy = returned_results.ir_on.spectrum[2];
+		// Calculate eBE
+		convert_r_to_ebe();
+		// Scale by Jacobian and normalize
+		scale_and_normalize_pes();
 		// Display results on spectrum
 		chart_spectrum_results();
 		// Terminate worker
 		melexir_worker.terminate();
 		melexir_worker = null;
+		// Re-enable calculate button
+		change_pes_calculate_text(false);
 	};
+}
+
+// Change PES Calculate button display while calculating
+function change_pes_calculate_text(is_still_calculating) {
+	const calculate_button = document.getElementById("CalculateSpectrumButton");
+	if (is_still_calculating) {
+		// Calculation is running
+		calculate_button.innerText = "Calculating...";
+		// Disable button
+		calculate_button.disabled = true;
+	} else {
+		// Calculation is finished
+		calculate_button.innerText = "Calculate";
+		// Enable button
+		calculate_button.disabled = false;
+	}
+}
+
+// Convert PES radial plot to eBE plot
+function convert_r_to_ebe() {
+	// Make sure radial array is not empty
+	if (scan.accumulated_image.spectra.data.radial_values.length === 0) {
+		return;
+	}
+	// Get detachment laser wavelength
+	let detachment_wavelength;
+	let detachment_wavenumber;
+	if (laser.detachment.wavelength[laser.detachment.mode] !== 0) {
+		detachment_wavelength = laser.detachment.wavelength[laser.detachment.mode];
+		// Convert wavelength to wavenumbers
+		detachment_wavenumber = laser.convert_wn_wl(detachment_wavelength);
+	} else {
+		// No measured wavelength, just use radial plot
+		return;
+	}
+	// Get VMI calibration constants
+	// Make sure they aren't zero (is this necessary?)
+	if (vmi_info.calibration_constants[vmi_info.selected_setting].a === 0) {
+		// Just use radial plot
+		return;
+	}
+	let vmi_a = vmi_info.calibration_constants[vmi_info.selected_setting].a;
+	let vmi_b = vmi_info.calibration_constants[vmi_info.selected_setting].b;
+	// Convert R to eBE
+	let eBE = scan.accumulated_image.spectra.data.radial_values.map((r) => detachment_wavenumber - (vmi_a * r * r + vmi_b * Math.pow(r, 4)));
+	// Round eBE values to 2 decimal places make chart easier to read
+	//	adding Number.EPSILON prevents floating point errors
+	eBE = eBE.map((num) => Math.round((num + Number.EPSILON) * 100) / 100);
+	scan.accumulated_image.spectra.data.eBE_values = eBE;
+	// Since we're using eBE, we need to reverse the x axis
+	reverse_pes_x_axis();
+}
+
+// Reverse the x axis (to account for R -> eBE conversion)
+function reverse_pes_x_axis() {
+	// Reverse eBE array
+	scan.accumulated_image.spectra.data.eBE_values.reverse();
+	// Reverse ir_off and ir_on intensities
+	scan.accumulated_image.spectra.data.ir_off_intensity.reverse();
+	// If ir_on is empty, this function still behaves fine, so no need to check
+	scan.accumulated_image.spectra.data.ir_on_intensity.reverse();
+}
+
+// If showing PES eBE plot, apply Jacobian (to account for R -> eKE conversion) and normalize
+function scale_and_normalize_pes() {
+	// If eBE array is empty, we'll just show radial plot, no need to scale
+	if (scan.accumulated_image.spectra.data.eBE_values.length === 0) {
+		return;
+	}
+	// Check if we need to do ir_on too, or just ir_off
+	let scale_ir_on = false;
+	if (scan.accumulated_image.spectra.data.ir_on_intensity.length > 0) {
+		scale_ir_on = true;
+	}
+	let vmi_a = vmi_info.calibration_constants[vmi_info.selected_setting].a;
+	let vmi_b = vmi_info.calibration_constants[vmi_info.selected_setting].b;
+	// In order to conserve areas of peaks (i.e. Intensity(R)dR == Intensity(eKE)deKE)
+	// 	need to divide intensity by deKE/dR = 2 a R + 4 b R^3
+	let r;
+	let jacobian;
+	for (let i = 0; i < scan.accumulated_image.spectra.data.ir_off_intensity.length; i++) {
+		r = scan.accumulated_image.spectra.data.radial_values[i];
+		jacobian = 2 * vmi_a * r + 4 * vmi_b * Math.pow(r, 3);
+		scan.accumulated_image.spectra.data.ir_off_intensity[i] /= jacobian;
+		if (scale_ir_on) {
+			scan.accumulated_image.spectra.data.ir_on_intensity[i] /= jacobian;
+		}
+	}
+	// Now normalize ir_off (and ir_on) by maximum value of ir_off
+	let max_intensity = Math.max(...scan.accumulated_image.spectra.data.ir_off_intensity); // "..." turns array into list of arguments
+	for (let i = 0; i < scan.accumulated_image.spectra.data.ir_off_intensity.length; i++) {
+		scan.accumulated_image.spectra.data.ir_off_intensity[i] /= max_intensity;
+		if (scale_ir_on) {
+			scan.accumulated_image.spectra.data.ir_on_intensity[i] /= max_intensity;
+		}
+	}
 }
 
 // Display PE Spectrum on chart
@@ -456,12 +559,13 @@ function chart_spectrum_results() {
 	if (!spectrum_display) {
 		return;
 	}
-	// Used to shorted code
+	// Used to shorten code
 	const spectrum_data = scan.accumulated_image.spectra.data;
 	// Check if eBE array is empty
 	if (scan.accumulated_image.spectra.data.eBE_values.length === 0) {
 		// eBE was not calculated, show radial plot
 		spectrum_display.data.labels = spectrum_data.radial_values;
+		console.log("Radial values");
 	} else {
 		// Use eBE
 		spectrum_display.data.labels = spectrum_data.eBE_values;
@@ -474,6 +578,8 @@ function chart_spectrum_results() {
 	spectrum_display.update();
 }
 
+// Update x display range of PES Spectrum
+// NOTE TO MARTY: This fucks up for eBE plots
 function change_spectrum_x_display_range() {
 	const x_range_min = parseFloat(document.getElementById("SpectrumXLower").value);
 	const x_range_max = parseFloat(document.getElementById("SpectrumXUpper").value);

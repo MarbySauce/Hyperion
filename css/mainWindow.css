@@ -125,7 +125,6 @@ label {
 }
 .square-button:disabled {
 	border: 1px solid hsla(0, 0%, 0%, 0.2);
-	background: hsla(225, 20%, 35%, 0.6);
 	opacity: 0.6;
 }
 
