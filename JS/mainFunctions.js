@@ -45,16 +45,26 @@ document.getElementById("Settings").onclick = function () {
 document.getElementById("ScanStartSave").onclick = function () {
 	sevi_start_save_button();
 };
+document.getElementById("ImageCounterDown").onclick = function () {
+	downtick_image_counter();
+};
+document.getElementById("ImageCounterUp").onclick = function () {
+	uptick_image_counter();
+};
 
 // PE Spectrum control buttons
 document.getElementById("CalculateSpectrumButton").onclick = function () {
 	run_melexir();
 };
+const spectrum_x_lower_input_delay = new input_delay(change_spectrum_x_display_range);
 document.getElementById("SpectrumXLower").oninput = function () {
-	change_spectrum_x_display_range();
+	//change_spectrum_x_display_range();
+	spectrum_x_lower_input_delay.start_timer();
 };
+const spectrum_x_upper_input_delay = new input_delay(change_spectrum_x_display_range);
 document.getElementById("SpectrumXUpper").oninput = function () {
-	change_spectrum_x_display_range();
+	//change_spectrum_x_display_range();
+	spectrum_x_upper_input_delay.start_timer();
 };
 
 // Page Up/Down buttons
@@ -258,27 +268,51 @@ function sevi_start_save_button() {
 	//	that tells whether the scan was just started or ended
 	let was_running = scan.status.running;
 	// Change button text appropriately
-	update_start_save(was_running);
+	update_start_save_button(was_running);
 	// Start or stop the scan (and save if stopped)
 	update_scan_running_status(was_running, true);
 	// Reset electron and frame counts if new scan started
 	electrons.reset(was_running);
 	// Reset accumulated image if new scan started
 	scan.reset_images(was_running);
+	// Update ID for PES spectrum (if starting new scan)
+	update_scan_id(was_running);
 }
 
 // Update Start/Save button on press
 // was_running is bool that says whether a scan was running when button pressed
-function update_start_save(was_running) {
+function update_start_save_button(was_running) {
 	const start_button_text = document.getElementById("ScanStartSaveText");
 
 	// If a scan has not been started, change text to "Save"
 	//	otherwise change to "Start"
 	if (was_running) {
 		start_button_text.innerText = "Start";
+		// Since we just saved an image, increase the image counter as well
+		uptick_image_counter();
 	} else {
 		start_button_text.innerText = "Save";
 	}
+}
+
+// Increment the image counter up by one
+function uptick_image_counter() {
+	const image_counter = document.getElementById("ImageCounter");
+	let current_counter_val = parseInt(image_counter.value);
+	current_counter_val++;
+	image_counter.value = current_counter_val;
+}
+
+// Decrement the image counter by one
+function downtick_image_counter() {
+	const image_counter = document.getElementById("ImageCounter");
+	let current_counter_val = parseInt(image_counter.value);
+	if (current_counter_val === 1) {
+		// Don't lower below 1
+		return;
+	}
+	current_counter_val--;
+	image_counter.value = current_counter_val;
 }
 
 // Update the scan "running" status
@@ -291,6 +325,16 @@ function update_scan_running_status(was_running, if_save) {
 	}
 	// Change running status
 	scan.status.running = !was_running;
+}
+
+// Update the ID used for PE Spectrum display
+function update_scan_id(was_running) {
+	const image_counter = document.getElementById("ImageCounter");
+	// Only update if a new scan has started
+	if (!was_running) {
+		let image_id = parseInt(image_counter.value);
+		scan.accumulated_image.spectra.data.image_id = image_id;
+	}
 }
 
 // Update the accumulated image display
@@ -447,6 +491,8 @@ function run_melexir() {
 		convert_r_to_ebe();
 		// Scale by Jacobian and normalize
 		scale_and_normalize_pes();
+		// Calculate extrema of horizontal axis
+		scan.calculate_extrema();
 		// Display results on spectrum
 		chart_spectrum_results();
 		// Terminate worker
@@ -499,11 +545,11 @@ function convert_r_to_ebe() {
 	let vmi_a = vmi_info.calibration_constants[vmi_info.selected_setting].a;
 	let vmi_b = vmi_info.calibration_constants[vmi_info.selected_setting].b;
 	// Convert R to eBE
-	let eBE = scan.accumulated_image.spectra.data.radial_values.map((r) => detachment_wavenumber - (vmi_a * r * r + vmi_b * Math.pow(r, 4)));
+	let ebe = scan.accumulated_image.spectra.data.radial_values.map((r) => detachment_wavenumber - (vmi_a * r * r + vmi_b * Math.pow(r, 4)));
 	// Round eBE values to 2 decimal places make chart easier to read
 	//	adding Number.EPSILON prevents floating point errors
-	eBE = eBE.map((num) => Math.round((num + Number.EPSILON) * 100) / 100);
-	scan.accumulated_image.spectra.data.eBE_values = eBE;
+	ebe = ebe.map((num) => Math.round((num + Number.EPSILON) * 100) / 100);
+	scan.accumulated_image.spectra.data.ebe_values = ebe;
 	// Since we're using eBE, we need to reverse the x axis
 	reverse_pes_x_axis();
 }
@@ -511,7 +557,7 @@ function convert_r_to_ebe() {
 // Reverse the x axis (to account for R -> eBE conversion)
 function reverse_pes_x_axis() {
 	// Reverse eBE array
-	scan.accumulated_image.spectra.data.eBE_values.reverse();
+	scan.accumulated_image.spectra.data.ebe_values.reverse();
 	// Reverse ir_off and ir_on intensities
 	scan.accumulated_image.spectra.data.ir_off_intensity.reverse();
 	// If ir_on is empty, this function still behaves fine, so no need to check
@@ -521,7 +567,7 @@ function reverse_pes_x_axis() {
 // If showing PES eBE plot, apply Jacobian (to account for R -> eKE conversion) and normalize
 function scale_and_normalize_pes() {
 	// If eBE array is empty, we'll just show radial plot, no need to scale
-	if (scan.accumulated_image.spectra.data.eBE_values.length === 0) {
+	if (scan.accumulated_image.spectra.data.ebe_values.length === 0) {
 		return;
 	}
 	// Check if we need to do ir_on too, or just ir_off
@@ -562,18 +608,22 @@ function chart_spectrum_results() {
 	// Used to shorten code
 	const spectrum_data = scan.accumulated_image.spectra.data;
 	// Check if eBE array is empty
-	if (scan.accumulated_image.spectra.data.eBE_values.length === 0) {
+	if (scan.accumulated_image.spectra.data.ebe_values.length === 0) {
 		// eBE was not calculated, show radial plot
 		spectrum_display.data.labels = spectrum_data.radial_values;
-		console.log("Radial values");
 	} else {
 		// Use eBE
-		spectrum_display.data.labels = spectrum_data.eBE_values;
+		spectrum_display.data.labels = spectrum_data.ebe_values;
 	}
+	// Update image ID display text
+	let image_id_string = "Displaying Image: i" + ("0" + spectrum_data.image_id).slice(-2);
+	spectrum_display.options.plugins.title.text = image_id_string;
 	// Update ir_on data
 	spectrum_display.data.datasets[0].data = spectrum_data.ir_on_intensity;
 	// Update ir_off data
 	spectrum_display.data.datasets[1].data = spectrum_data.ir_off_intensity;
+	// Update chart axes displays
+	change_spectrum_x_display_range();
 	// Update chart
 	spectrum_display.update();
 }
@@ -586,8 +636,16 @@ function change_spectrum_x_display_range() {
 	if (!spectrum_display) {
 		return;
 	}
-	spectrum_display.options.scales.x.min = x_range_min;
-	spectrum_display.options.scales.x.max = x_range_max;
+	if (x_range_min) {
+		spectrum_display.options.scales.x.min = x_range_min;
+	} else {
+		spectrum_display.options.scales.x.min = scan.get_min();
+	}
+	if (x_range_max) {
+		spectrum_display.options.scales.x.max = x_range_max;
+	} else {
+		spectrum_display.options.scales.x.max = scan.get_max();
+	}
 	spectrum_display.update();
 }
 

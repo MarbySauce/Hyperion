@@ -8,6 +8,28 @@ const Chart = require("chart.js");
 
 let settings; // Global variable, to be filled in on startup
 
+// Class used to make inputs only execute a function if nothing has been typed for 1s
+// Create new class instance using "let new_input_delay = new input_delay(fn_to_execute, args_to_pass);"
+//	fn_to_execute is the name of the function to execute on input
+//	args_to_pass is a list of arguments to give fn_to_execute
+class input_delay {
+	constructor(fn_to_execute, args_to_pass) {
+		this.timeout = null;
+		this.args_to_pass = args_to_pass || [];
+		this.fn_to_execute = fn_to_execute;
+	}
+	start_timer() {
+		clearTimeout(this.timeout);
+		this.timeout = setTimeout(() => {
+			this.execute();
+		}, 1000 /* ms */);
+	}
+	execute() {
+		console.log("Executing");
+		this.fn_to_execute(...this.args_to_pass);
+	}
+}
+
 // Process and track info relating to electron count
 const electrons = {
 	// Average electron counts over time
@@ -168,7 +190,7 @@ const scan = {
 			data: {
 				image_id: 1,
 				radial_values: [],
-				eBE_values: [],
+				ebe_values: [],
 				ir_off_intensity: [],
 				ir_off_anisotropy: [],
 				ir_on_intensity: [],
@@ -181,6 +203,12 @@ const scan = {
 				y_range_lower: 0,
 				y_range_upper: 0,
 				// Add more here for depletion parameters
+			},
+			extrema: {
+				r_min: 0,
+				r_max: 0,
+				ebe_min: 0,
+				ebe_max: 0,
 			},
 		},
 		// Method for distinguishing IR off from IR on
@@ -258,6 +286,37 @@ const scan = {
 			this.accumulated_image.images.ir_off = Array.from(Array(image_height), () => new Array(image_width).fill(0));
 			this.accumulated_image.images.ir_on = Array.from(Array(image_height), () => new Array(image_width).fill(0));
 			this.accumulated_image.images.difference = Array.from(Array(image_height), () => new Array(image_width).fill(0));
+		}
+	},
+	// Calculate min/max values of spectra x-axes
+	calculate_extrema: function () {
+		if (this.accumulated_image.spectra.data.radial_values.length > 0) {
+			let r_min = Math.min(...this.accumulated_image.spectra.data.radial_values);
+			let r_max = Math.max(...this.accumulated_image.spectra.data.radial_values);
+			this.accumulated_image.spectra.extrema.r_min = r_min;
+			this.accumulated_image.spectra.extrema.r_max = r_max;
+		}
+		if (this.accumulated_image.spectra.data.ebe_values.length > 0) {
+			let ebe_min = Math.min(...this.accumulated_image.spectra.data.ebe_values);
+			let ebe_max = Math.max(...this.accumulated_image.spectra.data.ebe_values);
+			this.accumulated_image.spectra.extrema.ebe_min = ebe_min;
+			this.accumulated_image.spectra.extrema.ebe_max = ebe_max;
+		}
+	},
+	// Return minimum of spectra x-axis (return ebe_min, else return r_min)
+	get_min: function () {
+		if (this.accumulated_image.spectra.data.ebe_values.length > 0) {
+			return this.accumulated_image.spectra.extrema.ebe_min;
+		} else {
+			return this.accumulated_image.spectra.extrema.r_min;
+		}
+	},
+	// Return maximum of spectra x-axis (return ebe_max, else return r_max)
+	get_max: function () {
+		if (this.accumulated_image.spectra.data.ebe_values.length > 0) {
+			return this.accumulated_image.spectra.extrema.ebe_max;
+		} else {
+			return this.accumulated_image.spectra.extrema.r_max;
 		}
 	},
 };
