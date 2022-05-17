@@ -110,7 +110,7 @@ body {
 	grid-template-areas:
 		"CurrentImageTitle blank1 ImageCounterTitle ImageCounterTitle ImageCounterTitle"
 		"CurrentImageFile blank2 ImageCounterDown ImageCounter ImageCounterUp"
-		"CurrentImageFileIROn blank3 blank3 blank3 blank3"
+		"CurrentImageFileIR blank3 blank3 blank3 blank3"
 		"VMILabel VMILabel VMIMode VMIMode blank4";
 }
 #CurrentImageTitle {
@@ -131,8 +131,8 @@ body {
 #ImageCounterUp {
 	grid-area: ImageCounterUp;
 }
-#CurrentImageFileIROn {
-	grid-area: CurrentImageFileIROn;
+#CurrentImageFileIR {
+	grid-area: CurrentImageFileIR;
 }
 #VMILabel {
 	grid-area: VMILabel;

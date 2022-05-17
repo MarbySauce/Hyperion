@@ -12,12 +12,20 @@ let settings; // Global variable, to be filled in on startup
 // Create new class instance using "let new_input_delay = new input_delay(fn_to_execute, args_to_pass);"
 //	fn_to_execute is the name of the function to execute on input
 //	args_to_pass is a list of arguments to give fn_to_execute
+/**
+ * Class used to make inputs only execute a function if nothing has been typed for 1s.
+ * @param {function} fn_to_execute - Function to execute when input is received
+ * @param {array} args_to_pass - List of arguments to give the function to execute upon input
+ */
 class input_delay {
 	constructor(fn_to_execute, args_to_pass) {
 		this.timeout = null;
 		this.args_to_pass = args_to_pass || [];
 		this.fn_to_execute = fn_to_execute;
 	}
+	/**
+	 * Start 1s timer and execute if not interrupted by more inputs
+	 */
 	start_timer() {
 		clearTimeout(this.timeout);
 		this.timeout = setTimeout(() => {
@@ -25,7 +33,6 @@ class input_delay {
 		}, 1000 /* ms */);
 	}
 	execute() {
-		console.log("Executing");
 		this.fn_to_execute(...this.args_to_pass);
 	}
 }
@@ -207,8 +214,13 @@ const scan = {
 	saving: {
 		file_name: "",
 		file_name_ir: "",
+		image_id: 1,
 		autosave: false,
 		autosave_timer: 100000, // in ms, time between autosaves
+		/**
+		 * Generate ir_off and ir_on file names to save
+		 */
+		get_file_names: () => scan_saving_get_file_names(),
 	},
 	accumulated_image: {
 		params: {
@@ -299,6 +311,22 @@ const scan = {
 /*
 		Specific functions for scan
 */
+
+// Generate file names for ir_off and ir_on images
+function scan_saving_get_file_names() {
+	// Get the current date formatted as MMDDYY
+	console.time("Date");
+	let today = new Date();
+	let day = ("0" + today.getDate()).slice(-2);
+	let month = ("0" + (today.getMonth() + 1)).slice(-2);
+	let year = today.getFullYear().toString().slice(-2);
+	let formatted_date = month + day + year;
+	console.timeEnd("Date");
+	// Slice here makes sure 0 is not included if ionCounter > 9
+	let increment = ("0" + scan.saving.image_id).slice(-2);
+	scan.saving.file_name = `${formatted_date}i${increment}_1024.i0N`;
+	scan.saving.file_name_ir = `${formatted_date}i${increment}_IR_1024.i0N`;
+}
 
 // Update accumulated images with new electrons
 function scan_accumulated_image_update(centroid_results) {
@@ -464,6 +492,7 @@ const laser = {
 		return Math.pow(10, 7) / energy;
 	},
 };
+
 /*
 	Specific functions used for laser
 */

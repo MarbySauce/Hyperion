@@ -108,6 +108,13 @@ label {
 .sevi-mode .sevi-mode-hide {
 	display: none;
 }
+/* While a scan is being taken, only show file names that will be saved */
+.always-show-file {
+	display: block !important;
+}
+.do-not-show-file {
+	display: none !important;
+}
 
 .square-button {
 	height: 50%;
