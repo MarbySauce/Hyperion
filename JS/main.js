@@ -42,6 +42,7 @@ const settings = {
 			full_dir: "",
 			full_dir_short: "",
 			full_scan_dir: "",
+			autosave: false,
 		},
 		windows: {
 			main_window: {

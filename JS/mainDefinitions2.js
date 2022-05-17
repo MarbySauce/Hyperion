@@ -114,8 +114,9 @@ const electrons = {
 		},
 		/**
 		 * Reset total counts (e.g. total electrons, total frames)
+		 * @param {bool} was_running - Whether scan was being taken when function was called
 		 */
-		reset: () => electrons_total_reset(),
+		reset: (was_running) => electrons_total_reset(was_running),
 	},
 	/**
 	 * Update electron counts with results from centroiding
@@ -216,11 +217,20 @@ const scan = {
 		file_name_ir: "",
 		image_id: 1,
 		autosave: false,
-		autosave_timer: 100000, // in ms, time between autosaves
+		autosave_delay: 100000, // in ms, time between autosaves
 		/**
 		 * Generate ir_off and ir_on file names to save
 		 */
 		get_file_names: () => scan_saving_get_file_names(),
+		/**
+		 * Start autosave timer if scan is running
+		 * @param {boolean} was_running - Whether scan was running upon execution
+		 */
+		start_timer: (was_running) => scan_saving_start_timer(was_running),
+		/**
+		 * Autosave timer
+		 */
+		autosave_timer: () => scan_saving_autosave_timer(),
 	},
 	accumulated_image: {
 		params: {
@@ -275,6 +285,10 @@ const scan = {
 				 */
 				get_max: () => scan_accumulated_image_spectra_extrema_get_max(),
 			},
+			/**
+			 * Save worked up spectra to file
+			 */
+			save: () => scan_accumulated_image_spectra_save(),
 		},
 		// Method for distinguishing IR off from IR on
 		binning: {
@@ -286,6 +300,10 @@ const scan = {
 		 * @param {object} centroid_results - Object containing electron centroids, computation time, and LED bool
 		 */
 		update: (centroid_results) => scan_accumulated_image_update(centroid_results),
+		/**
+		 * Save accumulated images to file
+		 */
+		save: () => scan_accumulated_image_save(),
 		/**
 		 * Reset accumulated images
 		 * @param {boolean} was_running - Whether a scan was running when function was called
@@ -315,17 +333,49 @@ const scan = {
 // Generate file names for ir_off and ir_on images
 function scan_saving_get_file_names() {
 	// Get the current date formatted as MMDDYY
-	console.time("Date");
 	let today = new Date();
 	let day = ("0" + today.getDate()).slice(-2);
 	let month = ("0" + (today.getMonth() + 1)).slice(-2);
 	let year = today.getFullYear().toString().slice(-2);
 	let formatted_date = month + day + year;
-	console.timeEnd("Date");
 	// Slice here makes sure 0 is not included if ionCounter > 9
 	let increment = ("0" + scan.saving.image_id).slice(-2);
 	scan.saving.file_name = `${formatted_date}i${increment}_1024.i0N`;
 	scan.saving.file_name_ir = `${formatted_date}i${increment}_IR_1024.i0N`;
+}
+
+// Start autosave timer if a scan is running (can be paused)
+function scan_saving_start_timer(was_running) {
+	// Only start timer if scan just started
+	if (!was_running) {
+		// Start autosave timer
+		scan.saving.autosave_timer();
+	}
+}
+
+// Autosave timer loop
+function scan_saving_autosave_timer() {
+	// Set a loop with a delay of scan.saving.autosave_delay
+	setTimeout(() => {
+		// Make sure autosaving is still turned on
+		if (!scan.saving.autosave) {
+			return;
+		}
+		// Make sure a scan is currently running
+		if (!scan.status.running) {
+			return;
+		}
+		// Start the timer over again
+		scan.saving.autosave_timer();
+		// If the scan is paused, don't save (but still stay in autosave loop)
+		if (scan.status.paused) {
+			return;
+		}
+		// Save images to file
+		scan.accumulated_image.save();
+		// Save melexir results to file
+		scan.accumulated_image.spectra.save();
+	}, scan.saving.autosave_delay);
 }
 
 // Update accumulated images with new electrons
@@ -376,6 +426,74 @@ function scan_accumulated_image_update(centroid_results) {
 	}
 }
 
+// Save accumulated images to file
+function scan_accumulated_image_save() {
+	// Images are first saved to a temp location,
+	// 	so that if the app crashes while writing to file, the old image still exists
+	let file_name = settings.save_directory.full_dir + "/" + scan.saving.file_name;
+	let file_name_ir = settings.save_directory.full_dir + "/" + scan.saving.file_name_ir;
+	let temp_file_name = settings.save_directory.full_dir + "/temp.txt";
+	let temp_file_name_ir = settings.save_directory.full_dir + "/temp_IR.txt";
+	if (scan.status.method === "sevi") {
+		// Need to save ir_off + ir_on image
+		// Add images together and convert the final image to a string
+		let image_str = "";
+		let pix_value;
+		for (let Y = 0; Y < scan.accumulated_image.params.accumulation_height; Y++) {
+			for (let X = 0; X < scan.accumulated_image.params.accumulation_width; X++) {
+				pix_value = scan.accumulated_image.images.ir_off[Y][X];
+				pix_value += scan.accumulated_image.images.ir_on[Y][X];
+				image_str += pix_value.toString() + " ";
+			}
+			image_str += "\n";
+		}
+		// Save the image to a temp file, then rename upon completion
+		fs.writeFile(temp_file_name, image_str, (error) => {
+			if (error) {
+				console.log("Couldn't save image:", error);
+			} else {
+				// Rename file to correct file name
+				fs.rename(temp_file_name, file_name, (error) => {
+					if (error) {
+						console.log("Couldn't rename temp file:", error);
+					}
+				});
+			}
+		});
+	} else if (scan.status.method === "ir-sevi") {
+		// Need to save ir_off and ir_on images separately
+		// Convert images to strings
+		let ir_off_image_str = scan.accumulated_image.images.ir_off.map((row) => row.join(" ")).join("\n");
+		let ir_on_image_str = scan.accumulated_image.images.ir_on.map((row) => row.join(" ")).join("\n");
+		// Save the ir_off image to a temp file, then rename upon completion
+		fs.writeFile(temp_file_name, ir_off_image_str, (error) => {
+			if (error) {
+				console.log("Couldn't save image:", error);
+			} else {
+				// Rename file to correct file name
+				fs.rename(temp_file_name, file_name, (error) => {
+					if (error) {
+						console.log("Couldn't rename temp file:", error);
+					}
+				});
+			}
+		});
+		// Save the ir_on image to a temp file, then rename upon completion
+		fs.writeFile(temp_file_name_ir, ir_on_image_str, (error) => {
+			if (error) {
+				console.log("Couldn't save image:", error);
+			} else {
+				// Rename file to correct file name
+				fs.rename(temp_file_name_ir, file_name_ir, (error) => {
+					if (error) {
+						console.log("Couldn't rename temp file:", error);
+					}
+				});
+			}
+		});
+	}
+}
+
 // Reset accumulated images if a new scan was started
 function scan_accumulated_image_reset(was_running) {
 	if (!was_running) {
@@ -385,6 +503,11 @@ function scan_accumulated_image_reset(was_running) {
 		scan.accumulated_image.images.ir_on = Array.from(Array(image_height), () => new Array(image_width).fill(0));
 		scan.accumulated_image.images.difference = Array.from(Array(image_height), () => new Array(image_width).fill(0));
 	}
+}
+
+// Save worked up spectra to file
+function scan_accumulated_image_spectra_save() {
+	console.log("Still need to add options to save...");
 }
 
 // Calculate min/max values of spectra x-axes
