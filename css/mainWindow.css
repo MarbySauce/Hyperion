@@ -341,12 +341,16 @@ Right Side
 #IRImageDisplay:focus-visible {
 	outline: none;
 }
-.accumulated-image {
+#DisplayWrapper {
 	height: 50vh;
 	aspect-ratio: 1 / 1;
-	background: black;
-	border-radius: 10px;
 	justify-self: center;
+	border-radius: 10px;
+}
+.accumulated-image {
+	height: inherit;
+	width: inherit;
+	background: black;
 }
 .accumulated-image:hover {
 	transform: scale(2);
