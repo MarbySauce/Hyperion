@@ -52,18 +52,41 @@ document.getElementById("ImageCounterUp").onclick = function () {
 	uptick_image_counter();
 };
 
+// File naming buttons
+document.getElementById("VMIMode").oninput = function () {
+	vmi_mode_selection_fn();
+};
+
+// Laser control buttons
+document.getElementById("WavelengthMode").oninput = function () {
+	detachment_mode_selection_fn();
+};
+// Using input delay class to make sure function only executes if there is no input update for 1s
+const detachment_wavelength_input_delay = new input_delay(detachment_energy_input_fn);
+document.getElementById("DetachmentWavelength").oninput = function () {
+	detachment_wavelength_input_delay.start_timer();
+};
+document.getElementById("IRWavelengthMode").oninput = function () {
+	excitation_mode_selection_fn();
+};
+// Using input delay class to make sure function only executes if there is no input update for 1s
+const excitation_wavelength_input_delay = new input_delay(excitation_energy_input_fn);
+document.getElementById("IRWavelength").oninput = function () {
+	excitation_wavelength_input_delay.start_timer();
+};
+
 // PE Spectrum control buttons
 document.getElementById("CalculateSpectrumButton").onclick = function () {
 	run_melexir();
 };
+// Using input delay class to make sure function only executes if there is no input update for 1s
 const spectrum_x_lower_input_delay = new input_delay(change_spectrum_x_display_range);
 document.getElementById("SpectrumXLower").oninput = function () {
-	//change_spectrum_x_display_range();
 	spectrum_x_lower_input_delay.start_timer();
 };
+// Using input delay class to make sure function only executes if there is no input update for 1s
 const spectrum_x_upper_input_delay = new input_delay(change_spectrum_x_display_range);
 document.getElementById("SpectrumXUpper").oninput = function () {
-	//change_spectrum_x_display_range();
 	spectrum_x_upper_input_delay.start_timer();
 };
 
@@ -108,6 +131,10 @@ document.getElementById("SaveSettingsButton").onclick = function () {
 function startup() {
 	// Go to Sevi Mode tab (ID = 0)
 	switch_tabs(0);
+
+	// Generate image file names and display
+	scan.saving.get_file_names();
+	display_file_names();
 }
 
 /*		Tabs		*/
@@ -224,41 +251,6 @@ function switch_pages(page_index) {
 
 /* Sevi and IR-Sevi Modes */
 
-// Update electron counter displays
-function update_counter_displays() {
-	const total_frames = document.getElementById("TotalFrames");
-	const total_frames_ir = document.getElementById("TotalFramesIROn");
-	const total_e_count = document.getElementById("TotalECount");
-	const total_e_count_ir = document.getElementById("TotalECountIROn");
-	const avg_e_count = document.getElementById("AvgECount");
-	const avg_e_count_ir = document.getElementById("AvgECountIROn");
-
-	let frame_count_off = electrons.total.frame_count.ir_off;
-	let frame_count_on = electrons.total.frame_count.ir_on;
-	let e_count_off = electrons.total.e_count.ir_off;
-	let e_count_on = electrons.total.e_count.ir_on;
-	let avg_off = electrons.average.mode.ir_off_value;
-	let avg_on = electrons.average.mode.ir_on_value;
-
-	// If on Sevi mode tab, total values = ir_off + ir_on
-	if (page_info.current_tab === 0) {
-		total_frames.value = frame_count_off + frame_count_on;
-		total_e_count.value = e_count_off + e_count_on;
-		avg_e_count.value = ((avg_off + avg_on) / 2).toFixed(2);
-	} else {
-		total_frames.value = frame_count_off;
-		total_frames_ir.value = frame_count_on;
-		total_e_count.value = e_count_off;
-		total_e_count_ir.value = e_count_on;
-		avg_e_count.value = avg_off.toFixed(2);
-		avg_e_count_ir.value = avg_on.toFixed(2);
-	}
-
-	// NOTE TO MARTY: Change this to add ir_on and ir_off based on tab, not scan status
-	// The displayed file name should change based on status tho (so you can see which mode it's running in)
-	// if it's possible it would be cool to have the IR file name displayed even when on Sevi tab
-}
-
 // Functionality for Sevi Mode Start/Save button
 function sevi_start_save_button() {
 	// Since the scan running status gets changed in the process, we need a constant value
@@ -266,6 +258,7 @@ function sevi_start_save_button() {
 	let was_running = scan.status.running;
 	// Change button text appropriately
 	update_start_save_button(was_running);
+	update_file_name_display(was_running);
 	// Start or stop the scan (and save if stopped)
 	update_scan_running_status(was_running, true);
 	// Reset electron and frame counts if new scan started
@@ -292,6 +285,49 @@ function update_start_save_button(was_running) {
 	}
 }
 
+function update_file_name_display(was_running) {
+	const ir_on_file = document.getElementById("CurrentImageFileIR");
+	if (scan.status.method === "sevi") {
+		if (!was_running) {
+			// Sevi mode scan just started, add CSS class to ir_on file name s.t. it doesn't show even on IR-Sevi tab
+			ir_on_file.classList.add("do-not-show-file");
+		} else {
+			// Sevi mode scan just ended, take away above CSS class
+			ir_on_file.classList.remove("do-not-show-file");
+		}
+	} else if (scan.status.method === "ir-sevi") {
+		if (!was_running) {
+			// IR-Sevi mode scan just started, add CSS class to ir_on file name s.t. it always shows even on Sevi tab
+			ir_on_file.classList.add("always-show-file");
+		} else {
+			// IR-Sevi mode scan just ended, take away above CSS class
+			ir_on_file.classList.remove("always-show-file");
+		}
+	}
+}
+
+// Update the scan "running" status
+// was_running is bool that says whether a scan was running when button pressed
+// if_save is bool that tells whether to save image/spectra to file
+function update_scan_running_status(was_running, if_save) {
+	// First check if we need to save (i.e. if a scan just finished)
+	if (was_running && if_save) {
+		console.log("File saved!");
+	}
+	// Change running status
+	scan.status.running = !was_running;
+}
+
+/**
+ * Display the image file names for ir_off and ir_on
+ */
+function display_file_names() {
+	const ir_off_file = document.getElementById("CurrentImageFile");
+	const ir_on_file = document.getElementById("CurrentImageFileIR");
+	ir_off_file.value = scan.saving.file_name;
+	ir_on_file.value = scan.saving.file_name_ir;
+}
+
 // Increment the image counter up by one
 function uptick_image_counter() {
 	const image_counter = document.getElementById("ImageCounter");
@@ -312,25 +348,146 @@ function downtick_image_counter() {
 	image_counter.value = current_counter_val;
 }
 
-// Update the scan "running" status
-// was_running is bool that says whether a scan was running when button pressed
-// if_save is bool that tells whether to save image/spectra to file
-function update_scan_running_status(was_running, if_save) {
-	// First check if we need to save (i.e. if a scan just finished)
-	if (was_running && if_save) {
-		console.log("File saved!");
-	}
-	// Change running status
-	scan.status.running = !was_running;
-}
-
-// Update the ID used for PE Spectrum display
+// Update the ID used for scan saving and PE Spectrum display
 function update_scan_id(was_running) {
 	const image_counter = document.getElementById("ImageCounter");
-	// Only update if a new scan has started
-	if (!was_running) {
-		let image_id = parseInt(image_counter.value);
+	let image_id = parseInt(image_counter.value);
+	if (was_running) {
+		// Image was just saved, update the scan saving ID
+		scan.saving.image_id = image_id;
+	} else {
+		// A new image just started, update the PE Spectrum ID
 		scan.accumulated_image.spectra.data.image_id = image_id;
+	}
+}
+
+/**
+ * Update the selected VMI mode in vmi_info
+ */
+function vmi_mode_selection_fn() {
+	const vmi_mode = document.getElementById("VMIMode");
+	// The VMI modes are [V1, V2, V3, V4], which is one above the selected index value
+	vmi_setting = "V" + (vmi_mode.selectedIndex + 1);
+	vmi_info.selected_setting = vmi_setting;
+}
+
+/**
+ * Update detachment laser wavelengths based on user input
+ */
+function detachment_energy_input_fn() {
+	const wavelength_input = document.getElementById("DetachmentWavelength");
+	// Get wavelength as number and round to 3 decimal places
+	let input_wl = decimal_round(parseFloat(wavelength_input.value), 3);
+	// Save in laser object and get conversions
+	laser.detachment.wavelength.input = input_wl;
+	laser.detachment.convert();
+	// Display appropriate wavelength
+	display_detachment_energies();
+}
+
+/**
+ * Update detachment laser setup mode based on selection
+ */
+function detachment_mode_selection_fn() {
+	const detachment_mode = document.getElementById("WavelengthMode");
+	switch (detachment_mode.selectedIndex) {
+		case 0:
+			// Standard mode
+			laser.detachment.mode = "standard";
+			break;
+		case 1:
+			// Doubled mode
+			laser.detachment.mode = "doubled";
+			break;
+		case 2:
+			// Raman shifter mode
+			laser.detachment.mode = "raman";
+			break;
+		case 3:
+			// IR-DFG mode
+			laser.detachment.mode = "irdfg";
+			break;
+		default:
+			// Use standard mode as default
+			laser.detachment.mode = "standard";
+			break;
+	}
+	// Update displays
+	display_detachment_energies();
+}
+
+/**
+ * Update displays for detachment energies based on chosen setup
+ */
+function display_detachment_energies() {
+	const converted_wavelength = document.getElementById("ConvertedWavelength");
+	const converted_wavenumber = document.getElementById("DetachmentWavenumber");
+	// Display selected mode's converted values
+	converted_wavelength.value = laser.detachment.wavelength[laser.detachment.mode].toFixed(3);
+	converted_wavenumber.value = laser.detachment.wavenumber[laser.detachment.mode].toFixed(3);
+	// If standard mode was chosen, shouldn't show converted wavelength
+	if (laser.detachment.mode === "standard") {
+		converted_wavelength.value = "";
+	}
+}
+
+/**
+ * Update excitation laser wavelengths based on user input
+ */
+function excitation_energy_input_fn() {
+	const wavelength_input = document.getElementById("IRWavelength");
+	// Get wavelength as number and round to 3 decimal places
+	let input_wl = decimal_round(parseFloat(wavelength_input.value), 3);
+	// Save in laser object and get conversions
+	laser.excitation.wavelength.input = input_wl;
+	laser.excitation.convert();
+	// Display appropriate wavelength
+	display_excitation_energies();
+}
+
+/**
+ * Update excitation laser setup mode based on selection
+ */
+function excitation_mode_selection_fn() {
+	const excitation_mode = document.getElementById("IRWavelengthMode");
+	switch (excitation_mode.selectedIndex) {
+		case 0:
+			// nIR mode
+			laser.excitation.mode = "nir";
+			break;
+		case 1:
+			// iIR mode
+			laser.excitation.mode = "iir";
+			break;
+		case 2:
+			// mIR mode
+			laser.excitation.mode = "mir";
+			break;
+		case 3:
+			// fIR mode
+			laser.excitation.mode = "fir";
+			break;
+		default:
+			// Use nIR mode as default
+			laser.excitation.mode = "nir";
+			break;
+	}
+	// Update displays
+	display_excitation_energies();
+}
+
+/**
+ * Update displays for excitation energies based on chosen setup
+ */
+function display_excitation_energies() {
+	const converted_wavelength = document.getElementById("IRConvertedWavelength");
+	const converted_wavenumber = document.getElementById("IRWavenumber");
+	// Display selected mode's converted values
+	converted_wavelength.value = laser.excitation.wavelength[laser.excitation.mode].toFixed(3);
+	converted_wavenumber.value = laser.excitation.wavenumber[laser.excitation.mode].toFixed(3);
+	// If nIR mode was chosen, shouldn't show converted wavelength
+	if (laser.excitation.mode === "nir") {
+		converted_wavelength.value = "";
 	}
 }
 
@@ -441,6 +598,41 @@ function update_accumulated_image_display() {
 	createImageBitmap(image_data).then(function (bitmap_img) {
 		ctx.drawImage(bitmap_img, 0, 0, image_width, image_height, 0, 0, image_display.width, image_display.height);
 	});
+}
+
+// Update electron counter displays
+function update_counter_displays() {
+	const total_frames = document.getElementById("TotalFrames");
+	const total_frames_ir = document.getElementById("TotalFramesIROn");
+	const total_e_count = document.getElementById("TotalECount");
+	const total_e_count_ir = document.getElementById("TotalECountIROn");
+	const avg_e_count = document.getElementById("AvgECount");
+	const avg_e_count_ir = document.getElementById("AvgECountIROn");
+
+	let frame_count_off = electrons.total.frame_count.ir_off;
+	let frame_count_on = electrons.total.frame_count.ir_on;
+	let e_count_off = electrons.total.e_count.ir_off;
+	let e_count_on = electrons.total.e_count.ir_on;
+	let avg_off = electrons.average.mode.ir_off_value;
+	let avg_on = electrons.average.mode.ir_on_value;
+
+	// If on Sevi mode tab, total values = ir_off + ir_on
+	if (page_info.current_tab === 0) {
+		total_frames.value = frame_count_off + frame_count_on;
+		total_e_count.value = e_count_off + e_count_on;
+		avg_e_count.value = ((avg_off + avg_on) / 2).toFixed(2);
+	} else {
+		total_frames.value = frame_count_off;
+		total_frames_ir.value = frame_count_on;
+		total_e_count.value = e_count_off;
+		total_e_count_ir.value = e_count_on;
+		avg_e_count.value = avg_off.toFixed(2);
+		avg_e_count_ir.value = avg_on.toFixed(2);
+	}
+
+	// NOTE TO MARTY: Change this to add ir_on and ir_off based on tab, not scan status
+	// The displayed file name should change based on status tho (so you can see which mode it's running in)
+	// if it's possible it would be cool to have the IR file name displayed even when on Sevi tab
 }
 
 // Create chart to plot PE Spectrum
