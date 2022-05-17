@@ -43,7 +43,7 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 	// Simulated values
 	int numberOfSpots = (rand() % 10) + 15;
 	//std::vector<float> Radii = {30, 50, 90, 120, 170};
-	std::vector<float> Radii = {50, 50, 90, 90, 90, 90, 170, 170, 170};
+	std::vector<float> Radii = {50, 50, 90, 90, 90, 90, 170, 170, 170, 300};
 
 	// First clear the image (i.e. fill with 0's)
 	// 		(Unnecessary if adding noise)
@@ -74,7 +74,7 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 
 	if (isIROn) {
 		isIROn = false;
-		Radii = {50, 50, 90, 90, 90, 120, 120, 170, 170}; 
+		Radii = {50, 50, 90, 90, 90, 120, 120, 170, 170, 300}; 
 		//return;
 	} else {
 		isIROn = true;

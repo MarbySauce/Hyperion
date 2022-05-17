@@ -348,6 +348,9 @@ Right Side
 	border-radius: 10px;
 	justify-self: center;
 }
+.accumulated-image:hover {
+	transform: scale(2);
+}
 #ImageDisplay h3 {
 	padding-right: 10%;
 	text-align: right;
