@@ -108,9 +108,6 @@ document.getElementById("SaveSettingsButton").onclick = function () {
 function startup() {
 	// Go to Sevi Mode tab (ID = 0)
 	switch_tabs(0);
-
-	// Color the accumulated image display black
-	//fill_image_display();
 }
 
 /*		Tabs		*/
@@ -272,9 +269,9 @@ function sevi_start_save_button() {
 	// Start or stop the scan (and save if stopped)
 	update_scan_running_status(was_running, true);
 	// Reset electron and frame counts if new scan started
-	electrons.reset(was_running);
+	electrons.total.reset(was_running);
 	// Reset accumulated image if new scan started
-	scan.reset_images(was_running);
+	scan.accumulated_image.reset(was_running);
 	// Update ID for PES spectrum (if starting new scan)
 	update_scan_id(was_running);
 }
@@ -492,7 +489,7 @@ function run_melexir() {
 		// Scale by Jacobian and normalize
 		scale_and_normalize_pes();
 		// Calculate extrema of horizontal axis
-		scan.calculate_extrema();
+		scan.accumulated_image.spectra.extrema.calculate();
 		// Display results on spectrum
 		chart_spectrum_results();
 		// Terminate worker
@@ -534,21 +531,24 @@ function convert_r_to_ebe() {
 		detachment_wavenumber = laser.convert_wn_wl(detachment_wavelength);
 	} else {
 		// No measured wavelength, just use radial plot
+		scan.accumulated_image.spectra.data.use_ebe = false;
 		return;
 	}
 	// Get VMI calibration constants
 	// Make sure they aren't zero (is this necessary?)
 	if (vmi_info.calibration_constants[vmi_info.selected_setting].a === 0) {
 		// Just use radial plot
+		scan.accumulated_image.spectra.data.use_ebe = false;
 		return;
 	}
 	let vmi_a = vmi_info.calibration_constants[vmi_info.selected_setting].a;
 	let vmi_b = vmi_info.calibration_constants[vmi_info.selected_setting].b;
+	// Tell functions to use eBE plot
+	scan.accumulated_image.spectra.data.use_ebe = true;
 	// Convert R to eBE
 	let ebe = scan.accumulated_image.spectra.data.radial_values.map((r) => detachment_wavenumber - (vmi_a * r * r + vmi_b * Math.pow(r, 4)));
 	// Round eBE values to 2 decimal places make chart easier to read
-	//	adding Number.EPSILON prevents floating point errors
-	ebe = ebe.map((num) => Math.round((num + Number.EPSILON) * 100) / 100);
+	ebe = ebe.map((num) => decimal_round(num, 2));
 	scan.accumulated_image.spectra.data.ebe_values = ebe;
 	// Since we're using eBE, we need to reverse the x axis
 	reverse_pes_x_axis();
@@ -567,7 +567,7 @@ function reverse_pes_x_axis() {
 // If showing PES eBE plot, apply Jacobian (to account for R -> eKE conversion) and normalize
 function scale_and_normalize_pes() {
 	// If eBE array is empty, we'll just show radial plot, no need to scale
-	if (scan.accumulated_image.spectra.data.ebe_values.length === 0) {
+	if (!scan.accumulated_image.spectra.data.use_ebe) {
 		return;
 	}
 	// Check if we need to do ir_on too, or just ir_off
@@ -607,13 +607,13 @@ function chart_spectrum_results() {
 	}
 	// Used to shorten code
 	const spectrum_data = scan.accumulated_image.spectra.data;
-	// Check if eBE array is empty
-	if (scan.accumulated_image.spectra.data.ebe_values.length === 0) {
+	// Check if eBE should be used
+	if (scan.accumulated_image.spectra.data.use_ebe) {
+		// Use eBE plot
+		spectrum_display.data.labels = spectrum_data.ebe_values;
+	} else {
 		// eBE was not calculated, show radial plot
 		spectrum_display.data.labels = spectrum_data.radial_values;
-	} else {
-		// Use eBE
-		spectrum_display.data.labels = spectrum_data.ebe_values;
 	}
 	// Update image ID display text
 	let image_id_string = "Displaying Image: i" + ("0" + spectrum_data.image_id).slice(-2);
@@ -639,12 +639,12 @@ function change_spectrum_x_display_range() {
 	if (x_range_min) {
 		spectrum_display.options.scales.x.min = x_range_min;
 	} else {
-		spectrum_display.options.scales.x.min = scan.get_min();
+		spectrum_display.options.scales.x.min = scan.accumulated_image.spectra.extrema.get_min();
 	}
 	if (x_range_max) {
 		spectrum_display.options.scales.x.max = x_range_max;
 	} else {
-		spectrum_display.options.scales.x.max = scan.get_max();
+		spectrum_display.options.scales.x.max = scan.accumulated_image.spectra.extrema.get_max();
 	}
 	spectrum_display.update();
 }
@@ -678,7 +678,7 @@ ipc.on("new-camera-frame", (event, centroid_results) => {
 	electrons.update(centroid_results);
 	update_counter_displays();
 	// Add electrons to accumulated image and update display
-	scan.update_images(centroid_results);
+	scan.accumulated_image.update(centroid_results);
 	update_accumulated_image_display();
 });
 
@@ -691,6 +691,19 @@ ipc.on("new-camera-frame", (event, centroid_results) => {
 
 
 */
+
+/**
+ * Round value to specified decimal place
+ * @param {number} num - value to round
+ * @param {number} d - number of decimal places (default is 3)
+ * @returns {number} rounded value
+ */
+function decimal_round(num, d) {
+	let d_val = d || 3;
+	let decimal_val = Math.pow(10, d_val);
+	// Adding Number.EPSILON prevents floating point errors
+	return Math.round((num + Number.EPSILON) * decimal_val) / decimal_val;
+}
 
 /* Should move functions to the most related section */
 

@@ -30,6 +30,12 @@ class input_delay {
 	}
 }
 
+/*****************************************************************************
+
+							ELECTRON INFORMATION
+
+*****************************************************************************/
+
 // Process and track info relating to electron count
 const electrons = {
 	// Average electron counts over time
@@ -54,6 +60,18 @@ const electrons = {
 			update_counter: 0,
 			update_frequency: 10,
 		},
+		/**
+		 * Adds element to array while keeping array at counters.update_frequency elements
+		 * @param {array} arr - Array to append to
+		 * @param {number} el - Element to append
+		 */
+		add: (arr, el) => electrons_average_add(arr, el),
+		/**
+		 * Get average value of array
+		 * @param {array} arr - Array to average
+		 * @returns {number} Average value
+		 */
+		get_average: (arr) => electrons_average_get_average(arr),
 	},
 	// Used for plotting electron counts on a graph
 	charting: {
@@ -87,8 +105,15 @@ const electrons = {
 			ir_on: 0,
 			ir_off: 0,
 		},
+		/**
+		 * Reset total counts (e.g. total electrons, total frames)
+		 */
+		reset: () => electrons_total_reset(),
 	},
-	// Update values with results from invisible window
+	/**
+	 * Update electron counts with results from centroiding
+	 * @param {object} centroid_results - Object containing electron centroids, computation time, and LED bool
+	 */
 	update: function (centroid_results) {
 		let ccl_count = centroid_results.ccl_centers.length;
 		let hybrid_count = centroid_results.hybrid_centers.length;
@@ -110,23 +135,23 @@ const electrons = {
 		}
 
 		// Add values to average arrays
-		this.add(this.average.method.ccl, ccl_count);
-		this.add(this.average.method.hybrid, hybrid_count);
+		this.average.add(this.average.method.ccl, ccl_count);
+		this.average.add(this.average.method.hybrid, hybrid_count);
 		// Check if IR LED is on
 		if (centroid_results.is_led_on) {
-			this.add(this.average.mode.ir_on, total_count);
+			this.average.add(this.average.mode.ir_on, total_count);
 		} else {
-			this.add(this.average.mode.ir_off, total_count);
+			this.average.add(this.average.mode.ir_off, total_count);
 		}
-		this.add(this.average.stats.computation_time, comp_time);
+		this.average.add(this.average.stats.computation_time, comp_time);
 		this.average.counters.update_counter++;
 		this.charting.counters.frame_count++;
 		// Update average values
 		if (this.average.counters.update_counter >= this.average.counters.update_frequency) {
-			this.average.method.ccl_value = this.get_average(this.average.method.ccl);
-			this.average.method.hybrid_value = this.get_average(this.average.method.hybrid);
-			this.average.mode.ir_on_value = this.get_average(this.average.mode.ir_on);
-			this.average.mode.ir_off_value = this.get_average(this.average.mode.ir_off);
+			this.average.method.ccl_value = this.average.get_average(this.average.method.ccl);
+			this.average.method.hybrid_value = this.average.get_average(this.average.method.hybrid);
+			this.average.mode.ir_on_value = this.average.get_average(this.average.mode.ir_on);
+			this.average.mode.ir_off_value = this.average.get_average(this.average.mode.ir_off);
 			// Reset update counter
 			this.average.counters.update_counter = 0;
 		} else {
@@ -134,30 +159,43 @@ const electrons = {
 			this.average.counters.update_counter++;
 		}
 	},
-	// Adds element el to array arr and keeps arr at a certain number of elements
-	add: function (arr, el) {
-		arr.push(el);
-		while (arr.length > this.average.counters.update_frequency) {
-			arr.shift();
-		}
-	},
-	// Calculates the average value of the arrays
-	get_average: function (arr) {
-		const sum = arr.reduce((accumulator, current_value) => {
-			return accumulator + current_value;
-		});
-		return sum / arr.length;
-	},
-	// Reset total values (if scan just started)
-	reset: function (was_running) {
-		if (!was_running) {
-			this.total.e_count.ir_off = 0;
-			this.total.e_count.ir_on = 0;
-			this.total.frame_count.ir_off = 0;
-			this.total.frame_count.ir_on = 0;
-		}
-	},
 };
+
+/*	
+		Specific funtions used for electrons	
+*/
+
+// Adds element el to array arr and keeps arr at a certain number of elements
+function electrons_average_add(arr, el) {
+	arr.push(el);
+	while (arr.length > electrons.average.counters.update_frequency) {
+		arr.shift();
+	}
+}
+
+// Calculates the average value of the arrays
+function electrons_average_get_average(arr) {
+	const sum = arr.reduce((accumulator, current_value) => {
+		return accumulator + current_value;
+	});
+	return sum / arr.length;
+}
+
+// Reset total values (if scan just started)
+function electrons_total_reset(was_running) {
+	if (!was_running) {
+		electrons.total.e_count.ir_off = 0;
+		electrons.total.e_count.ir_on = 0;
+		electrons.total.frame_count.ir_off = 0;
+		electrons.total.frame_count.ir_on = 0;
+	}
+}
+
+/*****************************************************************************
+
+							SCAN INFORMATION
+
+*****************************************************************************/
 
 // Track info relating to scan parameters
 const scan = {
@@ -189,6 +227,7 @@ const scan = {
 		spectra: {
 			data: {
 				image_id: 1,
+				use_ebe: false,
 				radial_values: [],
 				ebe_values: [],
 				ir_off_intensity: [],
@@ -209,6 +248,20 @@ const scan = {
 				r_max: 0,
 				ebe_min: 0,
 				ebe_max: 0,
+				/**
+				 * Calculate maximum and minimum of PE spectrum x-axis (either radius or eBE)
+				 */
+				calculate: () => scan_accumulated_image_spectra_extrema_calculate(),
+				/**
+				 * Get minimum value for PE spectrum x-axis (either radius or eBE)
+				 * @returns {number} Minimum value of array
+				 */
+				get_min: () => scan_accumulated_image_spectra_extrema_get_min(),
+				/**
+				 * Get maximum value for PE spectrum x-axis (either radius or eBE)
+				 * @returns {number} Maximum value of array
+				 */
+				get_max: () => scan_accumulated_image_spectra_extrema_get_max(),
 			},
 		},
 		// Method for distinguishing IR off from IR on
@@ -216,6 +269,16 @@ const scan = {
 			use_led: true, // If false, uses parity binning
 			is_ir_on: false, // Only used if use_led is false
 		},
+		/**
+		 * Update accumulated images with new electron centroids
+		 * @param {object} centroid_results - Object containing electron centroids, computation time, and LED bool
+		 */
+		update: (centroid_results) => scan_accumulated_image_update(centroid_results),
+		/**
+		 * Reset accumulated images
+		 * @param {boolean} was_running - Whether a scan was running when function was called
+		 */
+		reset: (was_running) => scan_accumulated_image_reset(was_running),
 	},
 	single_shot: {
 		saving: {
@@ -231,95 +294,110 @@ const scan = {
 		all: [], // Array of all scans taken in a day
 		last: undefined, // Most recent scan taken
 	},
-	// Update images with new electrons
-	update_images: function (centroid_results) {
-		let image_to_update; // Will be either ir_off or ir_on
-		let difference_image = this.accumulated_image.images.difference;
-		let difference_increment; // Will be +1 for ir_on and -1 for ir_off
-		let X; // Filled with centroid values
-		let Y;
-		// If a scan is not running (or paused), don't update
-		if (!scan.status.running || scan.status.paused) {
-			return;
-		}
-		// Update to ir_off or ir_on based on IR LED
-		if (centroid_results.is_led_on) {
-			image_to_update = this.accumulated_image.images.ir_on;
-			difference_increment = 1;
-		} else {
-			image_to_update = this.accumulated_image.images.ir_off;
-			difference_increment = -1;
-		}
-		// Update image with electrons
-		// CCL centroids first
-		for (let i = 0; i < centroid_results.ccl_centers.length; i++) {
-			// make sure centroid is not blank (i.e. [0, 0])
-			if (centroid_results.ccl_centers[i][0] !== 0) {
-				X = centroid_results.ccl_centers[i][0];
-				Y = centroid_results.ccl_centers[i][1];
-				// Need to account for accumulated image size and round to ints
-				X = Math.round((X * this.accumulated_image.params.accumulation_width) / this.accumulated_image.params.aoi_width);
-				Y = Math.round((Y * this.accumulated_image.params.accumulation_height) / this.accumulated_image.params.aoi_height);
-				image_to_update[Y][X]++;
-				difference_image[Y][X] += difference_increment;
-			}
-		}
-		// Hybrid centroids now
-		for (let i = 0; i < centroid_results.hybrid_centers.length; i++) {
-			// make sure centroid is not blank (i.e. [0, 0])
-			if (centroid_results.hybrid_centers[i][0] !== 0) {
-				X = centroid_results.hybrid_centers[i][0];
-				Y = centroid_results.hybrid_centers[i][1];
-				// Need to account for accumulated image size and round to ints
-				X = Math.round((X * this.accumulated_image.params.accumulation_width) / this.accumulated_image.params.aoi_width);
-				Y = Math.round((Y * this.accumulated_image.params.accumulation_height) / this.accumulated_image.params.aoi_height);
-				image_to_update[Y][X]++;
-				difference_image[Y][X] += difference_increment;
-			}
-		}
-	},
-	// Reset images if a new scan was started
-	reset_images: function (was_running) {
-		if (!was_running) {
-			let image_height = this.accumulated_image.params.accumulation_height;
-			let image_width = this.accumulated_image.params.accumulation_width;
-			this.accumulated_image.images.ir_off = Array.from(Array(image_height), () => new Array(image_width).fill(0));
-			this.accumulated_image.images.ir_on = Array.from(Array(image_height), () => new Array(image_width).fill(0));
-			this.accumulated_image.images.difference = Array.from(Array(image_height), () => new Array(image_width).fill(0));
-		}
-	},
-	// Calculate min/max values of spectra x-axes
-	calculate_extrema: function () {
-		if (this.accumulated_image.spectra.data.radial_values.length > 0) {
-			let r_min = Math.min(...this.accumulated_image.spectra.data.radial_values);
-			let r_max = Math.max(...this.accumulated_image.spectra.data.radial_values);
-			this.accumulated_image.spectra.extrema.r_min = r_min;
-			this.accumulated_image.spectra.extrema.r_max = r_max;
-		}
-		if (this.accumulated_image.spectra.data.ebe_values.length > 0) {
-			let ebe_min = Math.min(...this.accumulated_image.spectra.data.ebe_values);
-			let ebe_max = Math.max(...this.accumulated_image.spectra.data.ebe_values);
-			this.accumulated_image.spectra.extrema.ebe_min = ebe_min;
-			this.accumulated_image.spectra.extrema.ebe_max = ebe_max;
-		}
-	},
-	// Return minimum of spectra x-axis (return ebe_min, else return r_min)
-	get_min: function () {
-		if (this.accumulated_image.spectra.data.ebe_values.length > 0) {
-			return this.accumulated_image.spectra.extrema.ebe_min;
-		} else {
-			return this.accumulated_image.spectra.extrema.r_min;
-		}
-	},
-	// Return maximum of spectra x-axis (return ebe_max, else return r_max)
-	get_max: function () {
-		if (this.accumulated_image.spectra.data.ebe_values.length > 0) {
-			return this.accumulated_image.spectra.extrema.ebe_max;
-		} else {
-			return this.accumulated_image.spectra.extrema.r_max;
-		}
-	},
 };
+
+/*
+		Specific functions for scan
+*/
+
+// Update accumulated images with new electrons
+function scan_accumulated_image_update(centroid_results) {
+	let image_to_update; // Will be either ir_off or ir_on
+	let difference_image = scan.accumulated_image.images.difference;
+	let difference_increment; // Will be +1 for ir_on and -1 for ir_off
+	let X; // Filled with centroid values
+	let Y;
+	// If a scan is not running (or paused), don't update
+	if (!scan.status.running || scan.status.paused) {
+		return;
+	}
+	// Update to ir_off or ir_on based on IR LED
+	if (centroid_results.is_led_on) {
+		image_to_update = scan.accumulated_image.images.ir_on;
+		difference_increment = 1;
+	} else {
+		image_to_update = scan.accumulated_image.images.ir_off;
+		difference_increment = -1;
+	}
+	// Update image with electrons
+	// CCL centroids first
+	for (let i = 0; i < centroid_results.ccl_centers.length; i++) {
+		// make sure centroid is not blank (i.e. [0, 0])
+		if (centroid_results.ccl_centers[i][0] !== 0) {
+			X = centroid_results.ccl_centers[i][0];
+			Y = centroid_results.ccl_centers[i][1];
+			// Need to account for accumulated image size and round to ints
+			X = Math.round((X * scan.accumulated_image.params.accumulation_width) / scan.accumulated_image.params.aoi_width);
+			Y = Math.round((Y * scan.accumulated_image.params.accumulation_height) / scan.accumulated_image.params.aoi_height);
+			image_to_update[Y][X]++;
+			difference_image[Y][X] += difference_increment;
+		}
+	}
+	// Hybrid centroids now
+	for (let i = 0; i < centroid_results.hybrid_centers.length; i++) {
+		// make sure centroid is not blank (i.e. [0, 0])
+		if (centroid_results.hybrid_centers[i][0] !== 0) {
+			X = centroid_results.hybrid_centers[i][0];
+			Y = centroid_results.hybrid_centers[i][1];
+			// Need to account for accumulated image size and round to ints
+			X = Math.round((X * scan.accumulated_image.params.accumulation_width) / scan.accumulated_image.params.aoi_width);
+			Y = Math.round((Y * scan.accumulated_image.params.accumulation_height) / scan.accumulated_image.params.aoi_height);
+			image_to_update[Y][X]++;
+			difference_image[Y][X] += difference_increment;
+		}
+	}
+}
+
+// Reset accumulated images if a new scan was started
+function scan_accumulated_image_reset(was_running) {
+	if (!was_running) {
+		let image_height = scan.accumulated_image.params.accumulation_height;
+		let image_width = scan.accumulated_image.params.accumulation_width;
+		scan.accumulated_image.images.ir_off = Array.from(Array(image_height), () => new Array(image_width).fill(0));
+		scan.accumulated_image.images.ir_on = Array.from(Array(image_height), () => new Array(image_width).fill(0));
+		scan.accumulated_image.images.difference = Array.from(Array(image_height), () => new Array(image_width).fill(0));
+	}
+}
+
+// Calculate min/max values of spectra x-axes
+function scan_accumulated_image_spectra_extrema_calculate() {
+	if (scan.accumulated_image.spectra.data.radial_values.length > 0) {
+		let r_min = Math.min(...scan.accumulated_image.spectra.data.radial_values);
+		let r_max = Math.max(...scan.accumulated_image.spectra.data.radial_values);
+		scan.accumulated_image.spectra.extrema.r_min = r_min;
+		scan.accumulated_image.spectra.extrema.r_max = r_max;
+	}
+	if (scan.accumulated_image.spectra.data.ebe_values.length > 0) {
+		let ebe_min = Math.min(...scan.accumulated_image.spectra.data.ebe_values);
+		let ebe_max = Math.max(...scan.accumulated_image.spectra.data.ebe_values);
+		scan.accumulated_image.spectra.extrema.ebe_min = ebe_min;
+		scan.accumulated_image.spectra.extrema.ebe_max = ebe_max;
+	}
+}
+
+// Return minimum of spectra x-axis (return ebe_min, else return r_min)
+function scan_accumulated_image_spectra_extrema_get_min() {
+	if (scan.accumulated_image.spectra.data.use_ebe) {
+		return scan.accumulated_image.spectra.extrema.ebe_min;
+	} else {
+		return scan.accumulated_image.spectra.extrema.r_min;
+	}
+}
+
+// Return maximum of spectra x-axis (return ebe_max, else return r_max)
+function scan_accumulated_image_spectra_extrema_get_max() {
+	if (scan.accumulated_image.spectra.data.use_ebe) {
+		return scan.accumulated_image.spectra.extrema.ebe_max;
+	} else {
+		return scan.accumulated_image.spectra.extrema.r_max;
+	}
+}
+
+/*****************************************************************************
+
+							LASER INFORMATION
+
+*****************************************************************************/
 
 // Process and track info relating to lasers
 const laser = {
@@ -340,12 +418,17 @@ const laser = {
 			raman: 0,
 			irdfg: 0,
 		},
+		/**
+		 * Convert detachment laser energies
+		 */
+		convert: () => laser_detachment_convert(),
 	},
 	excitation: {
 		mode: "nir", // Can be "nir", "iir", "mir", or "fir"
 		wavelength: {
 			yag_fundamental: 1064.5, // Nd:YAG fundamental wavelength
-			nir: 0, // User entered (or measured) wavelength
+			input: 0, // User entered (or measured) wavelength
+			nir: 0,
 			iir: 0,
 			mir: 0,
 			fir: 0,
@@ -363,8 +446,16 @@ const laser = {
 			current_nir_motor: 0,
 			desired_ir: 0,
 		},
+		/**
+		 * Convert OPO/A laser energies
+		 */
+		convert: () => laser_excitation_convert(),
 	},
-	// Convert between wavelength (nm) and wavenumbers (cm^-1)
+	/**
+	 * Convert between wavelength (nm) and wavenumbers (cm^-1)
+	 * @param {number} energy - Energy to convert
+	 * @returns Converted energy
+	 */
 	convert_wn_wl: function (energy) {
 		if (!energy) {
 			// Energy is 0 or undefined
@@ -373,6 +464,72 @@ const laser = {
 		return Math.pow(10, 7) / energy;
 	},
 };
+/*
+	Specific functions used for laser
+*/
+
+// Convert detachment laser energies
+function laser_detachment_convert() {
+	const h2_wn = 4055.201; // H2 frequency in cm^-1, for Raman shifter
+	let input_wl = laser.detachment.wavelength.input; // Input energy (nm)
+	let input_wn = decimal_round(laser.convert_wn_wl(input_wl), 3); // Input energy (cm^-1)
+	let yag_wl = laser.detachment.wavelength.yag_fundamental; // YAG fundamental (nm)
+	let yag_wn = decimal_round(laser.convert_wn_wl(yag_wl), 3); // YAG fundamental (cm^-1)
+	// Make sure YAG fundamental in cm^-1 is defined
+	laser.detachment.wavenumber.yag_fundamental = yag_wn;
+	// Standard setup, will be the same as input value
+	laser.detachment.wavelength.standard = input_wl;
+	laser.detachment.wavenumber.standard = input_wn;
+	// Doubled setup, energies are doubled
+	let doubled_wn = 2 * input_wn; // Doubled (cm^-1)
+	let doubled_wl = laser.convert_wn_wl(doubled_wn); // Doubled (nm)
+	laser.detachment.wavelength.doubled = decimal_round(doubled_wl, 3);
+	laser.detachment.wavenumber.doubled = decimal_round(doubled_wn, 3);
+	// Raman shifter setup, subtract off H2 Raman frequency
+	let raman_wn = input_wn - h2_wn; // Raman shifter (cm^-1)
+	let raman_wl = laser.convert_wn_wl(raman_wn); // Raman shifter (nm)
+	laser.detachment.wavelength.raman = decimal_round(raman_wl, 3);
+	laser.detachment.wavenumber.raman = decimal_round(raman_wn, 3);
+	// IR-DFG setup, subtract off YAG fundamental frequency
+	let irdfg_wn = input_wn - yag_wn; // IR-DFG (cm^-1)
+	let irdfg_wl = laser.convert_wn_wl(irdfg_wn); // IR-DFG (nm)
+	laser.detachment.wavelength.irdfg = decimal_round(irdfg_wl, 3);
+	laser.detachment.wavenumber.irdfg = decimal_round(irdfg_wn, 3);
+}
+
+// Convert OPO/A laser energies
+function laser_excitation_convert() {
+	let input_wl = laser.excitation.wavelength.input; // Input energy (nm)
+	let input_wn = decimal_round(laser.convert_wn_wl(input_wl), 3); // Input energy (cm^-1)
+	let yag_wl = laser.excitation.wavelength.yag_fundamental; // YAG fundamental (nm)
+	let yag_wn = decimal_round(laser.convert_wn_wl(yag_wl), 3); // YAG fundamental (cm^-1)
+	// Make sure YAG fundamental in cm^-1 is defined
+	laser.excitation.wavenumber.yag_fundamental = yag_wn;
+	// Near-IR, will be the same as input value
+	laser.excitation.wavelength.nir = input_wl;
+	laser.excitation.wavenumber.nir = input_wn;
+	// Intermediate-IR, 2 * YAG - nIR (cm^-1)
+	let iir_wn = 2 * yag_wn - input_wn; // iIR (cm^-1)
+	let iir_wl = laser.convert_wn_wl(iir_wn); // iIR (nm)
+	laser.excitation.wavelength.iir = decimal_round(iir_wl, 3);
+	laser.excitation.wavenumber.iir = decimal_round(iir_wn, 3);
+	// Mid-IR, YAG - iIR (cm^-1)
+	let mir_wn = yag_wn - iir_wn; // mIR (cm^-1)
+	let mir_wl = laser.convert_wn_wl(mir_wn); // mIR (nm)
+	laser.excitation.wavelength.mir = decimal_round(mir_wl, 3);
+	laser.excitation.wavenumber.mir = decimal_round(mir_wn, 3);
+	// Far-IR, iIR - mIR (cm^-1)
+	let fir_wn = iir_wn - mir_wn; // fIR (cm^-1)
+	let fir_wl = laser.convert_wn_wl(fir_wn); // fIR (nm)
+	laser.excitation.wavelength.fir = decimal_round(fir_wl, 3);
+	laser.excitation.wavenumber.fir = decimal_round(fir_wn, 3);
+}
+
+/*****************************************************************************
+
+							VMI INFORMATION
+
+*****************************************************************************/
 
 const vmi_info = {
 	selected_setting: "V1", // "V1", "V2", "V3", or "V4"
@@ -398,9 +555,21 @@ const vmi_info = {
 	},
 };
 
+/*****************************************************************************
+
+							PAGE INFORMATION
+
+*****************************************************************************/
+
 const page_info = {
 	current_tab: 0,
 };
+
+/*****************************************************************************
+
+							PE SPECTRUM CONFIGURATION
+
+*****************************************************************************/
 
 let spectrum_display; // Will be filled in with chart for PE Spectrum
 
