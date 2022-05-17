@@ -215,6 +215,8 @@ const scan = {
 	saving: {
 		file_name: "",
 		file_name_ir: "",
+		pes_file_name: "",
+		pes_file_name_ir: "",
 		image_id: 1,
 		autosave: false,
 		autosave_delay: 100000, // in ms, time between autosaves
@@ -342,6 +344,8 @@ function scan_saving_get_file_names() {
 	let increment = ("0" + scan.saving.image_id).slice(-2);
 	scan.saving.file_name = `${formatted_date}i${increment}_1024.i0N`;
 	scan.saving.file_name_ir = `${formatted_date}i${increment}_IR_1024.i0N`;
+	scan.saving.pes_file_name = `${formatted_date}i${increment}_1024_pes.dat`;
+	scan.saving.pes_file_name_ir = `${formatted_date}i${increment}_IR_1024_pes.dat`;
 }
 
 // Start autosave timer if a scan is running (can be paused)
@@ -373,8 +377,6 @@ function scan_saving_autosave_timer() {
 		}
 		// Save images to file
 		scan.accumulated_image.save();
-		// Save melexir results to file
-		scan.accumulated_image.spectra.save();
 	}, scan.saving.autosave_delay);
 }
 
@@ -507,7 +509,54 @@ function scan_accumulated_image_reset(was_running) {
 
 // Save worked up spectra to file
 function scan_accumulated_image_spectra_save() {
-	console.log("Still need to add options to save...");
+	let file_name = settings.save_directory.full_dir + "/" + scan.saving.pes_file_name;
+	let file_name_ir = settings.save_directory.full_dir + "/" + scan.saving.pes_file_name_ir;
+	let save_ir_off = false;
+	let save_ir_on = false;
+	let ir_off_string = "";
+	let ir_on_string = "";
+	// Used to shorten code
+	const spectrum_data = scan.accumulated_image.spectra.data;
+	if (spectrum_data.ir_off_intensity.length > 0) {
+		// ir_off image was worked up, save to file
+		save_ir_off = true;
+	}
+	if (spectrum_data.ir_on_intensity.length > 0) {
+		// ir_on image was worked up, save to file
+		save_ir_on = true;
+	}
+	if (!save_ir_off && !save_ir_on) {
+		// Neither image has been worked up, return
+		return;
+	}
+	// Convert spectra into write-able string with 3 columns: radius, intensity, anisotropy
+	for (let i = 0; i < spectrum_data.radial_values.length; i++) {
+		if (save_ir_off) {
+			ir_off_string += spectrum_data.radial_values[i].toExponential(6) + " ";
+			ir_off_string += spectrum_data.ir_off_intensity[i].toExponential(6) + " ";
+			ir_off_string += spectrum_data.ir_off_anisotropy[i].toExponential(6) + " \n";
+		}
+		if (save_ir_on) {
+			ir_on_string += spectrum_data.radial_values[i].toExponential(6) + " ";
+			ir_on_string += spectrum_data.ir_on_intensity[i].toExponential(6) + " ";
+			ir_on_string += spectrum_data.ir_on_anisotropy[i].toExponential(6) + " \n";
+		}
+	}
+	// Save to file
+	if (save_ir_off) {
+		fs.writeFile(file_name, ir_off_string, (error) => {
+			if (error) {
+				console.log("Could not save spectrum:", error);
+			}
+		});
+	}
+	if (save_ir_on) {
+		fs.writeFile(file_name_ir, ir_on_string, (error) => {
+			if (error) {
+				console.log("Could not save spectrum:", error);
+			}
+		});
+	}
 }
 
 // Calculate min/max values of spectra x-axes

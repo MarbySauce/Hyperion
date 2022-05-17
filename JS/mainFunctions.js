@@ -728,6 +728,8 @@ function run_melexir() {
 		scan.accumulated_image.spectra.data.ir_off_anisotropy = returned_results.ir_off.spectrum[2];
 		scan.accumulated_image.spectra.data.ir_on_intensity = returned_results.ir_on.spectrum[1];
 		scan.accumulated_image.spectra.data.ir_on_anisotropy = returned_results.ir_on.spectrum[2];
+		// Save results to file
+		scan.accumulated_image.spectra.save();
 		// Calculate eBE
 		convert_r_to_ebe();
 		// Scale by Jacobian and normalize
@@ -873,7 +875,6 @@ function chart_spectrum_results() {
 }
 
 // Update x display range of PES Spectrum
-// NOTE TO MARTY: This fucks up for eBE plots
 function change_spectrum_x_display_range() {
 	const x_range_min = parseFloat(document.getElementById("SpectrumXLower").value);
 	const x_range_max = parseFloat(document.getElementById("SpectrumXUpper").value);
