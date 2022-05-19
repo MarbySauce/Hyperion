@@ -83,6 +83,9 @@ document.getElementById("IRWavelength").oninput = function () {
 };
 
 // PE Spectrum control buttons
+document.getElementById("SpectrumSwitch").oninput = function () {
+	switch_pes_spectra();
+};
 document.getElementById("CalculateSpectrumButton").onclick = function () {
 	run_melexir();
 };
@@ -409,7 +412,7 @@ function update_scan_id(was_running) {
 		scan.saving.get_file_names();
 	} else {
 		// A new image just started, update the PE Spectrum ID
-		scan.accumulated_image.spectra.data.image_id = image_id;
+		scan.accumulated_image.spectra.params.image_id = image_id;
 	}
 }
 
@@ -691,6 +694,7 @@ function update_counter_displays() {
 function create_spectrum_plot() {
 	const spectrum_display_ctx = document.getElementById("PESpectrum").getContext("2d");
 	spectrum_display = new Chart(spectrum_display_ctx, spectrum_config);
+	process_melexir_results();
 }
 
 // Destroy PE Spectrum chart
@@ -698,6 +702,27 @@ function destroy_spectrum_plot() {
 	spectrum_display.destroy();
 	spectrum_display = null;
 }
+
+/**
+ * Switch PES display between IR on/off and difference spectra
+ */
+function switch_pes_spectra() {
+	const spectrum_switch = document.getElementById("SpectrumSwitch");
+	if (spectrum_switch.selectedIndex === 0) {
+		// Display IR on/off
+		scan.accumulated_image.spectra.params.show_difference = false;
+	} else {
+		// Display difference
+		scan.accumulated_image.spectra.params.show_difference = true;
+	}
+	// Update the display
+	chart_spectrum_results();
+}
+
+// NOTE TO MARTY: Spectrum is currently doing something weird when you go up and down a page after running it
+//	It's for sure reversing ebe
+//	OH DUH! Everytime it processes, it's recalculating eBE, so it actually does need to be reversed
+//	Since values aren't rescaled, they don't need to be reversed again
 
 // Run Melexir in Web Worker
 function run_melexir() {
@@ -723,6 +748,9 @@ function run_melexir() {
 	// Store results
 	melexir_worker.onmessage = function (event) {
 		let returned_results = event.data;
+		// Reset PE Spectra data
+		scan.accumulated_image.spectra.reset();
+		// Update PE Spectra values
 		scan.accumulated_image.spectra.data.radial_values = returned_results.ir_off.spectrum[0];
 		scan.accumulated_image.spectra.data.ir_off_intensity = returned_results.ir_off.spectrum[1];
 		scan.accumulated_image.spectra.data.ir_off_anisotropy = returned_results.ir_off.spectrum[2];
@@ -730,20 +758,30 @@ function run_melexir() {
 		scan.accumulated_image.spectra.data.ir_on_anisotropy = returned_results.ir_on.spectrum[2];
 		// Save results to file
 		scan.accumulated_image.spectra.save();
-		// Calculate eBE
-		convert_r_to_ebe();
-		// Scale by Jacobian and normalize
-		scale_and_normalize_pes();
-		// Calculate extrema of horizontal axis
-		scan.accumulated_image.spectra.extrema.calculate();
-		// Display results on spectrum
-		chart_spectrum_results();
+		// Process the results (including scaling and normalization)
+		process_melexir_results(true);
 		// Terminate worker
 		melexir_worker.terminate();
 		melexir_worker = null;
 		// Re-enable calculate button
 		change_pes_calculate_text(false);
 	};
+}
+
+/**
+ * Process the PES results from Melexir
+ */
+function process_melexir_results() {
+	// Calculate eBE
+	convert_r_to_ebe();
+	// Scale by Jacobian and normalize
+	scale_and_normalize_pes();
+	// Calculate difference spectrum
+	scan.accumulated_image.spectra.calculate_difference();
+	// Calculate extrema of horizontal axis
+	scan.accumulated_image.spectra.extrema.calculate();
+	// Display results on spectrum
+	chart_spectrum_results();
 }
 
 // Change PES Calculate button display while calculating
@@ -777,20 +815,20 @@ function convert_r_to_ebe() {
 		detachment_wavenumber = laser.convert_wn_wl(detachment_wavelength);
 	} else {
 		// No measured wavelength, just use radial plot
-		scan.accumulated_image.spectra.data.use_ebe = false;
+		scan.accumulated_image.spectra.params.use_ebe = false;
 		return;
 	}
 	// Get VMI calibration constants
 	// Make sure they aren't zero (is this necessary?)
 	if (vmi_info.calibration_constants[vmi_info.selected_setting].a === 0) {
 		// Just use radial plot
-		scan.accumulated_image.spectra.data.use_ebe = false;
+		scan.accumulated_image.spectra.params.use_ebe = false;
 		return;
 	}
 	let vmi_a = vmi_info.calibration_constants[vmi_info.selected_setting].a;
 	let vmi_b = vmi_info.calibration_constants[vmi_info.selected_setting].b;
 	// Tell functions to use eBE plot
-	scan.accumulated_image.spectra.data.use_ebe = true;
+	scan.accumulated_image.spectra.params.use_ebe = true;
 	// Convert R to eBE
 	let ebe = scan.accumulated_image.spectra.data.radial_values.map((r) => detachment_wavenumber - (vmi_a * r * r + vmi_b * Math.pow(r, 4)));
 	// Round eBE values to 2 decimal places make chart easier to read
@@ -804,6 +842,10 @@ function convert_r_to_ebe() {
 function reverse_pes_x_axis() {
 	// Reverse eBE array
 	scan.accumulated_image.spectra.data.ebe_values.reverse();
+	// If the intensity values were already scaled, that means intensity arrays were already reversed
+	if (scan.accumulated_image.spectra.params.was_scaled) {
+		return;
+	}
 	// Reverse ir_off and ir_on intensities
 	scan.accumulated_image.spectra.data.ir_off_intensity.reverse();
 	// If ir_on is empty, this function still behaves fine, so no need to check
@@ -813,7 +855,11 @@ function reverse_pes_x_axis() {
 // If showing PES eBE plot, apply Jacobian (to account for R -> eKE conversion) and normalize
 function scale_and_normalize_pes() {
 	// If eBE array is empty, we'll just show radial plot, no need to scale
-	if (!scan.accumulated_image.spectra.data.use_ebe) {
+	if (!scan.accumulated_image.spectra.params.use_ebe) {
+		return;
+	}
+	// If the intensities were already scaled, no need to re-scale
+	if (scan.accumulated_image.spectra.params.was_scaled) {
 		return;
 	}
 	// Check if we need to do ir_on too, or just ir_off
@@ -843,6 +889,8 @@ function scale_and_normalize_pes() {
 			scan.accumulated_image.spectra.data.ir_on_intensity[i] /= max_intensity;
 		}
 	}
+	// Make sure spectra won't be scaled again
+	scan.accumulated_image.spectra.params.was_scaled = true;
 }
 
 // Display PE Spectrum on chart
@@ -852,26 +900,52 @@ function chart_spectrum_results() {
 		return;
 	}
 	// Used to shorten code
-	const spectrum_data = scan.accumulated_image.spectra.data;
+	const pes_spectra = scan.accumulated_image.spectra;
 	// Check if eBE should be used
-	if (scan.accumulated_image.spectra.data.use_ebe) {
+	if (scan.accumulated_image.spectra.params.use_ebe) {
 		// Use eBE plot
-		spectrum_display.data.labels = spectrum_data.ebe_values;
+		spectrum_display.data.labels = pes_spectra.data.ebe_values;
+		// Update x-axis label
+		spectrum_display.options.scales.x.title.text = "eBE ( cm\u207B\u00B9 )";
+		// "\u207B" is unicode for superscript "-", and "\u00B9" is for superscript "1"
 	} else {
 		// eBE was not calculated, show radial plot
-		spectrum_display.data.labels = spectrum_data.radial_values;
+		spectrum_display.data.labels = pes_spectra.data.radial_values;
+		// Update x-axis label
+		spectrum_display.options.scales.x.title.text = "R (px)";
 	}
 	// Update image ID display text
-	let image_id_string = "Displaying Image: i" + ("0" + spectrum_data.image_id).slice(-2);
+	let image_id_string = "Displaying Image: i" + ("0" + pes_spectra.params.image_id).slice(-2);
 	spectrum_display.options.plugins.title.text = image_id_string;
-	// Update ir_on data
-	spectrum_display.data.datasets[0].data = spectrum_data.ir_on_intensity;
-	// Update ir_off data
-	spectrum_display.data.datasets[1].data = spectrum_data.ir_off_intensity;
+	if (scan.accumulated_image.spectra.params.show_difference) {
+		// Show the difference spectrum
+		spectrum_display.data.datasets[0].data = pes_spectra.data.difference;
+		// Update ir_off data
+		spectrum_display.data.datasets[1].data = pes_spectra.data.zeroes;
+		// Update legend display
+		spectrum_display.data.datasets[0].label = "Difference";
+		spectrum_display.data.datasets[0].borderColor = "black";
+		spectrum_display.data.datasets[1].label = "Zero-line";
+		spectrum_display.data.datasets[1].borderColor = "gray";
+	} else {
+		// Show IR on/off
+		// Update ir_on data
+		spectrum_display.data.datasets[0].data = pes_spectra.data.ir_on_intensity;
+		// Update ir_off data
+		spectrum_display.data.datasets[1].data = pes_spectra.data.ir_off_intensity;
+		// Update legend display
+		spectrum_display.data.datasets[0].label = "IR On";
+		spectrum_display.data.datasets[0].borderColor = "red";
+		spectrum_display.data.datasets[1].label = "IR Off";
+		spectrum_display.data.datasets[1].borderColor = "black";
+	}
 	// Update chart axes displays
 	change_spectrum_x_display_range();
 	// Update chart
 	spectrum_display.update();
+	console.log(pes_spectra.data.ir_off_intensity);
+	console.log(pes_spectra.data.ebe_values);
+	console.log(" ");
 }
 
 // Update x display range of PES Spectrum

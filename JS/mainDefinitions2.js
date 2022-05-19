@@ -250,8 +250,6 @@ const scan = {
 		},
 		spectra: {
 			data: {
-				image_id: 1,
-				use_ebe: false,
 				radial_values: [],
 				ebe_values: [],
 				ir_off_intensity: [],
@@ -259,8 +257,13 @@ const scan = {
 				ir_on_intensity: [],
 				ir_on_anisotropy: [],
 				difference: [],
+				zeroes: [],
 			},
 			params: {
+				image_id: 1,
+				use_ebe: false, // Whether to use eBE or radial values
+				was_scaled: false, // Whether the intensities have been scaled yet
+				show_difference: false, // Whether to show IR on/off or difference spectra
 				x_range_lower: 0,
 				x_range_upper: 0,
 				y_range_lower: 0,
@@ -291,6 +294,14 @@ const scan = {
 			 * Save worked up spectra to file
 			 */
 			save: () => scan_accumulated_image_spectra_save(),
+			/**
+			 * Calculate difference spectrum
+			 */
+			calculate_difference: () => scan_accumulated_image_spectra_calculate_difference(),
+			/**
+			 * Reset spectra arrays and boolean values
+			 */
+			reset: () => scan_accumulated_image_spectra_reset(),
 		},
 		// Method for distinguishing IR off from IR on
 		binning: {
@@ -559,6 +570,34 @@ function scan_accumulated_image_spectra_save() {
 	}
 }
 
+// Calculate difference spectrum (ir_on - ir_off)
+function scan_accumulated_image_spectra_calculate_difference() {
+	const spectrum_data = scan.accumulated_image.spectra.data;
+	const pes_length = spectrum_data.ir_off_intensity.length;
+	for (let i = 0; i < pes_length; i++) {
+		spectrum_data.difference[i] = spectrum_data.ir_on_intensity[i] - spectrum_data.ir_off_intensity[i];
+		// Create plot for zero-line
+		spectrum_data.zeroes[i] = 0;
+	}
+}
+
+// Reset PE Spectra data values
+function scan_accumulated_image_spectra_reset() {
+	const pes_spectra = scan.accumulated_image.spectra;
+	// Reset arrays
+	pes_spectra.data.radial_values = [];
+	pes_spectra.data.ebe_values = [];
+	pes_spectra.data.ir_off_intensity = [];
+	pes_spectra.data.ir_off_anisotropy = [];
+	pes_spectra.data.ir_on_intensity = [];
+	pes_spectra.data.ir_on_anisotropy = [];
+	pes_spectra.data.difference = [];
+	pes_spectra.data.zeroes = [];
+	// Reset logical arguments
+	pes_spectra.params.use_ebe = false;
+	pes_spectra.params.was_scaled = false;
+}
+
 // Calculate min/max values of spectra x-axes
 function scan_accumulated_image_spectra_extrema_calculate() {
 	if (scan.accumulated_image.spectra.data.radial_values.length > 0) {
@@ -577,7 +616,7 @@ function scan_accumulated_image_spectra_extrema_calculate() {
 
 // Return minimum of spectra x-axis (return ebe_min, else return r_min)
 function scan_accumulated_image_spectra_extrema_get_min() {
-	if (scan.accumulated_image.spectra.data.use_ebe) {
+	if (scan.accumulated_image.spectra.params.use_ebe) {
 		return scan.accumulated_image.spectra.extrema.ebe_min;
 	} else {
 		return scan.accumulated_image.spectra.extrema.r_min;
@@ -586,7 +625,7 @@ function scan_accumulated_image_spectra_extrema_get_min() {
 
 // Return maximum of spectra x-axis (return ebe_max, else return r_max)
 function scan_accumulated_image_spectra_extrema_get_max() {
-	if (scan.accumulated_image.spectra.data.use_ebe) {
+	if (scan.accumulated_image.spectra.params.use_ebe) {
 		return scan.accumulated_image.spectra.extrema.ebe_max;
 	} else {
 		return scan.accumulated_image.spectra.extrema.r_max;
