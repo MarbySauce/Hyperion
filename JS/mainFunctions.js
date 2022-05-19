@@ -943,9 +943,6 @@ function chart_spectrum_results() {
 	change_spectrum_x_display_range();
 	// Update chart
 	spectrum_display.update();
-	console.log(pes_spectra.data.ir_off_intensity);
-	console.log(pes_spectra.data.ebe_values);
-	console.log(" ");
 }
 
 // Update x display range of PES Spectrum
