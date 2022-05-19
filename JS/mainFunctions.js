@@ -674,13 +674,16 @@ function update_counter_displays() {
 	// If on Sevi mode tab, total values = ir_off + ir_on
 	if (page_info.current_tab === 0) {
 		total_frames.value = frame_count_off + frame_count_on;
-		total_e_count.value = e_count_off + e_count_on;
+		//total_e_count.value = e_count_off + e_count_on;
+		total_e_count.value = electrons.total.e_count.get_count("total");
 		avg_e_count.value = ((avg_off + avg_on) / 2).toFixed(2);
 	} else {
 		total_frames.value = frame_count_off;
 		total_frames_ir.value = frame_count_on;
-		total_e_count.value = e_count_off;
-		total_e_count_ir.value = e_count_on;
+		//total_e_count.value = e_count_off;
+		//total_e_count_ir.value = e_count_on;
+		total_e_count.value = electrons.total.e_count.get_count("ir_off");
+		total_e_count_ir.value = electrons.total.e_count.get_count("ir_on");
 		avg_e_count.value = avg_off.toFixed(2);
 		avg_e_count_ir.value = avg_on.toFixed(2);
 	}

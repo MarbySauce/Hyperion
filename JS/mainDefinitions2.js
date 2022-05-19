@@ -107,6 +107,12 @@ const electrons = {
 		e_count: {
 			ir_on: 0,
 			ir_off: 0,
+			/**
+			 * Get the total electron count as a formatted string
+			 * @param {string} image - can be "total", "ir_off", or "ir_on"
+			 * @returns {string} total ir_on electron count
+			 */
+			get_count: (image) => electrons_total_e_count_get_count(image),
 		},
 		frame_count: {
 			ir_on: 0,
@@ -197,6 +203,27 @@ function electrons_total_reset(was_running) {
 		electrons.total.frame_count.ir_off = 0;
 		electrons.total.frame_count.ir_on = 0;
 	}
+}
+
+// Get formatted string (X.XXXeN) of electron count
+//	image can be "total", "ir_off", or "ir_on"
+function electrons_total_e_count_get_count(image) {
+	let total_count;
+	if (image === "total") {
+		total_count = electrons.total.e_count.ir_off + electrons.total.e_count.ir_on;
+	} else if (image === "ir_off") {
+		total_count = electrons.total.e_count.ir_off;
+	} else if (image === "ir_on") {
+		total_count = electrons.total.e_count.ir_on;
+	} else {
+		return "";
+	}
+	if (total_count < 10000) {
+		// Just return the number
+		return total_count.toString();
+	}
+	// Return formatted string
+	return total_count.toExponential(3);
 }
 
 /*****************************************************************************
