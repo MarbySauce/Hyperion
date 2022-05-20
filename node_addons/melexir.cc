@@ -202,7 +202,6 @@ void Test(const Napi::CallbackInfo& info) {
 // Parameter should be the image (as a 2D array)
 // Returns PES
 Napi::Object Process(const Napi::CallbackInfo& info) {
-    Timer overall_time;
     Napi::Env env = info.Env(); // Napi local environment
     
     // Get image from JS call
@@ -216,7 +215,6 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
     // Convert Napi image into a column-major 1D array
     // Napi has a hard time with 2D arrays, so you have to unpack each row
     //  in order to get the elements of the image
-    Timer flatten_time;
     double* flat_image = new double[image_height*image_width];
     for (int row = 0; row < image_height; row++) {
         Napi::Array napi_row = napi_image.Get(Napi::Number::New(env, row)).As<Napi::Array>(); // Unpack the row
@@ -224,10 +222,9 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
             flat_image[image_height*col + row] = (double)napi_row.Get(Napi::Number::New(env, col)).ToNumber().DoubleValue();
         }
     } 
-    flatten_time.endPrint("Time to flatten");
     
     // Give options string to Melexir
-    char options_string[] = "-LP2";
+    char options_string[] = "-H1 -LP2";
     setoptions_(options_string, sizeof(options_string));
     // Need to end the string with a null character since Fortran doesn't (but C++ requires it)
     options_string[sizeof(options_string)-1] = '\0';
@@ -307,8 +304,6 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
     // Add result arrays to object
     results["spectrum"] = spectrum;
     results["residuals"] = residuals;
-
-    overall_time.endPrint("Time to complete");
 
     return results;
 }
