@@ -2,13 +2,27 @@ const ipc = require("electron").ipcRenderer;
 const Chart = require("chart.js");
 
 ////
-let DOIT = true;
+let DOIT = false;
 ////
+
+let settings;
+
+// Startup
+//window.onload = function () {
+//	Startup();
+//};
 
 // Startup
 window.onload = function () {
-	Startup();
+	// Send message to main process that the window is ready
+	ipc.send("live-view-window-ready", null);
 };
+
+// Recieve setting information and go through startup procedure
+ipc.on("settings-information", (event, settings_information) => {
+	settings = settings_information;
+	Startup();
+});
 
 function Startup() {
 	const LiveViewContext = document.getElementById("LiveVideoView").getContext("2d");

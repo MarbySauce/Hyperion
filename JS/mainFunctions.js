@@ -853,6 +853,8 @@ function reverse_pes_x_axis() {
 	scan.accumulated_image.spectra.data.ir_off_intensity.reverse();
 	// If ir_on is empty, this function still behaves fine, so no need to check
 	scan.accumulated_image.spectra.data.ir_on_intensity.reverse();
+	// Reverse the radial values too (for Jacobian) (Should just redo this whole thing)
+	scan.accumulated_image.spectra.data.radial_values.reverse();
 }
 
 // If showing PES eBE plot, apply Jacobian (to account for R -> eKE conversion) and normalize

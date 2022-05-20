@@ -8,13 +8,21 @@ const camera = require("bindings")("camera");
 /*			Event Listeners				*/
 //
 
+//window.onload = function () {
+//	startup();
+//};
+
+// Startup
 window.onload = function () {
-	startup();
+	// Send message to main process that the window is ready
+	ipc.send("invisible-window-ready", null);
 };
 
 //
 /*			Centroid variables			*/
 //
+
+let settings;
 
 let check_messages = false;
 let buffer;
@@ -97,6 +105,12 @@ function close_camera() {
 //
 /*			Messengers				*/
 //
+
+// Recieve setting information and go through startup procedure
+ipc.on("settings-information", (event, settings_information) => {
+	settings = settings_information;
+	startup();
+});
 
 // Turn on / off hybrid method
 ipc.on("hybrid-method", function (event, message) {
