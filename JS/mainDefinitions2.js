@@ -285,11 +285,14 @@ const scan = {
 				ir_on_anisotropy: [],
 				difference: [],
 				zeroes: [],
+				normalized: {
+					ir_off_intensity: [],
+					ir_on_intensity: [],
+				},
 			},
 			params: {
 				image_id: 1,
 				use_ebe: false, // Whether to use eBE or radial values
-				was_scaled: false, // Whether the intensities have been scaled yet
 				show_difference: false, // Whether to show IR on/off or difference spectra
 				x_range_lower: 0,
 				x_range_upper: 0,
@@ -323,6 +326,7 @@ const scan = {
 			save: () => scan_accumulated_image_spectra_save(),
 			/**
 			 * Calculate difference spectrum
+			 * @returns {array} Difference spectrum
 			 */
 			calculate_difference: () => scan_accumulated_image_spectra_calculate_difference(),
 			/**
@@ -379,11 +383,12 @@ function scan_saving_get_file_names() {
 	let year = today.getFullYear().toString().slice(-2);
 	let formatted_date = month + day + year;
 	// Slice here makes sure 0 is not included if ionCounter > 9
-	let increment = ("0" + scan.saving.image_id).slice(-2);
-	scan.saving.file_name = `${formatted_date}i${increment}_1024.i0N`;
-	scan.saving.file_name_ir = `${formatted_date}i${increment}_IR_1024.i0N`;
-	scan.saving.pes_file_name = `${formatted_date}i${increment}_1024_pes.dat`;
-	scan.saving.pes_file_name_ir = `${formatted_date}i${increment}_IR_1024_pes.dat`;
+	let id = ("0" + scan.saving.image_id).slice(-2);
+	let pes_id = ("0" + scan.accumulated_image.spectra.params.image_id).slice(-2);
+	scan.saving.file_name = `${formatted_date}i${id}_1024.i0N`;
+	scan.saving.file_name_ir = `${formatted_date}i${id}_IR_1024.i0N`;
+	scan.saving.pes_file_name = `${formatted_date}i${pes_id}_1024_pes.dat`;
+	scan.saving.pes_file_name_ir = `${formatted_date}i${pes_id}_IR_1024_pes.dat`;
 }
 
 // Start autosave timer if a scan is running (can be paused)
@@ -597,15 +602,27 @@ function scan_accumulated_image_spectra_save() {
 	}
 }
 
-// Calculate difference spectrum (ir_on - ir_off)
+// Calculate difference spectrum (ir_on - ir_off) and return
 function scan_accumulated_image_spectra_calculate_difference() {
 	const spectrum_data = scan.accumulated_image.spectra.data;
-	const pes_length = spectrum_data.ir_off_intensity.length;
-	for (let i = 0; i < pes_length; i++) {
-		spectrum_data.difference[i] = spectrum_data.ir_on_intensity[i] - spectrum_data.ir_off_intensity[i];
-		// Create plot for zero-line
-		spectrum_data.zeroes[i] = 0;
+	const pes_length = spectrum_data.normalized.ir_off_intensity.length;
+	let difference = [];
+	if (scan.accumulated_image.spectra.params.use_ebe) {
+		// Calculate difference of scaled intensity(eBE)
+		for (let i = 0; i < pes_length; i++) {
+			difference[i] = spectrum_data.normalized.ir_on_intensity[i] - spectrum_data.normalized.ir_off_intensity[i];
+			// Create plot for zero-line
+			spectrum_data.zeroes[i] = 0;
+		}
+	} else {
+		// Calculate difference of raw intensity(R)
+		for (let i = 0; i < pes_length; i++) {
+			difference[i] = spectrum_data.ir_on_intensity[i] - spectrum_data.ir_off_intensity[i];
+			// Create plot for zero-line
+			spectrum_data.zeroes[i] = 0;
+		}
 	}
+	return difference;
 }
 
 // Reset PE Spectra data values
@@ -620,9 +637,10 @@ function scan_accumulated_image_spectra_reset() {
 	pes_spectra.data.ir_on_anisotropy = [];
 	pes_spectra.data.difference = [];
 	pes_spectra.data.zeroes = [];
+	pes_spectra.data.normalized.ir_off_intensity = [];
+	pes_spectra.data.normalized.ir_on_intensity = [];
 	// Reset logical arguments
 	pes_spectra.params.use_ebe = false;
-	pes_spectra.params.was_scaled = false;
 }
 
 // Calculate min/max values of spectra x-axes

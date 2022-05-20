@@ -431,8 +431,13 @@ function vmi_mode_selection() {
  */
 function detachment_energy_input_fn() {
 	const wavelength_input = document.getElementById("DetachmentWavelength");
+	let input_wl;
 	// Get wavelength as number and round to 3 decimal places
-	let input_wl = decimal_round(parseFloat(wavelength_input.value), 3);
+	if (wavelength_input.value) {
+		input_wl = decimal_round(parseFloat(wavelength_input.value), 3);
+	} else {
+		input_wl = 0;
+	}
 	// Save in laser object and get conversions
 	laser.detachment.wavelength.input = input_wl;
 	laser.detachment.convert();
@@ -478,11 +483,16 @@ function display_detachment_energies() {
 	const converted_wavelength = document.getElementById("ConvertedWavelength");
 	const converted_wavenumber = document.getElementById("DetachmentWavenumber");
 	// Display selected mode's converted values
-	converted_wavelength.value = laser.detachment.wavelength[laser.detachment.mode].toFixed(3);
-	converted_wavenumber.value = laser.detachment.wavenumber[laser.detachment.mode].toFixed(3);
-	// If standard mode was chosen, shouldn't show converted wavelength
-	if (laser.detachment.mode === "standard") {
+	if (laser.detachment.wavelength[laser.detachment.mode] !== 0) {
+		converted_wavelength.value = laser.detachment.wavelength[laser.detachment.mode].toFixed(3);
+		converted_wavenumber.value = laser.detachment.wavenumber[laser.detachment.mode].toFixed(3);
+		// If standard mode was chosen, shouldn't show converted wavelength
+		if (laser.detachment.mode === "standard") {
+			converted_wavelength.value = "";
+		}
+	} else {
 		converted_wavelength.value = "";
+		converted_wavenumber.value = "";
 	}
 }
 
@@ -761,8 +771,8 @@ function run_melexir() {
 		scan.accumulated_image.spectra.data.ir_on_anisotropy = returned_results.ir_on.spectrum[2];
 		// Save results to file
 		scan.accumulated_image.spectra.save();
-		// Process the results (including scaling and normalization)
-		process_melexir_results(true);
+		// Process the results
+		process_melexir_results();
 		// Terminate worker
 		melexir_worker.terminate();
 		melexir_worker = null;
@@ -775,12 +785,12 @@ function run_melexir() {
  * Process the PES results from Melexir
  */
 function process_melexir_results() {
-	// Calculate eBE
-	convert_r_to_ebe();
+	// Figure out if eBE should be calculated (i.e. if detachment energy and vmi info is given)
+	determine_ebe_calculation();
 	// Scale by Jacobian and normalize
 	scale_and_normalize_pes();
-	// Calculate difference spectrum
-	scan.accumulated_image.spectra.calculate_difference();
+	// Calculate eBE
+	convert_r_to_ebe();
 	// Calculate extrema of horizontal axis
 	scan.accumulated_image.spectra.extrema.calculate();
 	// Display results on spectrum
@@ -803,35 +813,85 @@ function change_pes_calculate_text(is_still_calculating) {
 	}
 }
 
+/**
+ * Determine whether eBE should be used for PE spectrum or just radial plot
+ */
+function determine_ebe_calculation() {
+	// Check if detachment wavelength is given
+	if (laser.detachment.wavelength[laser.detachment.mode] === 0) {
+		// No measured wavelength, just use radial plot
+		scan.accumulated_image.spectra.params.use_ebe = false;
+		return;
+	}
+	// Make sure VMI calibration constants aren't zero
+	if (vmi_info.calibration_constants[vmi_info.selected_setting].a === 0) {
+		// Just use radial plot
+		scan.accumulated_image.spectra.params.use_ebe = false;
+		return;
+	}
+	// Tell functions to use eBE plot
+	scan.accumulated_image.spectra.params.use_ebe = true;
+}
+
+// If showing PES eBE plot, apply Jacobian (to account for R -> eKE conversion) and normalize
+function scale_and_normalize_pes() {
+	// If eBE array is empty, we'll just show radial plot, no need to scale
+	if (!scan.accumulated_image.spectra.params.use_ebe) {
+		return;
+	}
+
+	const spectra_data = scan.accumulated_image.spectra.data;
+
+	// Check if we need to do ir_on too, or just ir_off
+	let scale_ir_on = false;
+	if (spectra_data.ir_on_intensity.length > 0) {
+		scale_ir_on = true;
+	}
+	let vmi_a = vmi_info.calibration_constants[vmi_info.selected_setting].a;
+	let vmi_b = vmi_info.calibration_constants[vmi_info.selected_setting].b;
+	// Copy data to ...data.normalized.(intensity plot) and scale
+	// In order to conserve areas of peaks (i.e. Intensity(R)dR == Intensity(eKE)deKE)
+	// 	need to divide intensity by deKE/dR = 2 a R + 4 b R^3
+	let r;
+	let jacobian;
+	for (let i = 0; i < spectra_data.ir_off_intensity.length; i++) {
+		r = spectra_data.radial_values[i];
+		jacobian = 2 * vmi_a * r + 4 * vmi_b * Math.pow(r, 3);
+		spectra_data.normalized.ir_off_intensity[i] = spectra_data.ir_off_intensity[i] / jacobian;
+		if (scale_ir_on) {
+			spectra_data.normalized.ir_on_intensity[i] = spectra_data.ir_on_intensity[i] / jacobian;
+		}
+	}
+	// Now normalize ir_off (and ir_on) by maximum value of ir_off
+	let max_intensity = Math.max(...spectra_data.normalized.ir_off_intensity); // "..." turns array into list of arguments
+	for (let i = 0; i < spectra_data.normalized.ir_off_intensity.length; i++) {
+		spectra_data.normalized.ir_off_intensity[i] /= max_intensity;
+		if (scale_ir_on) {
+			spectra_data.normalized.ir_on_intensity[i] /= max_intensity;
+		}
+	}
+}
+
 // Convert PES radial plot to eBE plot
 function convert_r_to_ebe() {
 	// Make sure radial array is not empty
 	if (scan.accumulated_image.spectra.data.radial_values.length === 0) {
 		return;
 	}
+	// Make sure we should use eBE
+	if (!scan.accumulated_image.spectra.params.use_ebe) {
+		return;
+	}
+
 	// Get detachment laser wavelength
-	let detachment_wavelength;
-	let detachment_wavenumber;
-	if (laser.detachment.wavelength[laser.detachment.mode] !== 0) {
-		detachment_wavelength = laser.detachment.wavelength[laser.detachment.mode];
-		// Convert wavelength to wavenumbers
-		detachment_wavenumber = laser.convert_wn_wl(detachment_wavelength);
-	} else {
-		// No measured wavelength, just use radial plot
-		scan.accumulated_image.spectra.params.use_ebe = false;
-		return;
-	}
+	let detachment_wavelength = laser.detachment.wavelength[laser.detachment.mode];
+	// Convert to wavenumbers
+	let detachment_wavenumber = laser.convert_wn_wl(detachment_wavelength);
+
 	// Get VMI calibration constants
-	// Make sure they aren't zero (is this necessary?)
-	if (vmi_info.calibration_constants[vmi_info.selected_setting].a === 0) {
-		// Just use radial plot
-		scan.accumulated_image.spectra.params.use_ebe = false;
-		return;
-	}
 	let vmi_a = vmi_info.calibration_constants[vmi_info.selected_setting].a;
 	let vmi_b = vmi_info.calibration_constants[vmi_info.selected_setting].b;
-	// Tell functions to use eBE plot
-	scan.accumulated_image.spectra.params.use_ebe = true;
+
 	// Convert R to eBE
 	let ebe = scan.accumulated_image.spectra.data.radial_values.map((r) => detachment_wavenumber - (vmi_a * r * r + vmi_b * Math.pow(r, 4)));
 	// Round eBE values to 2 decimal places make chart easier to read
@@ -845,57 +905,10 @@ function convert_r_to_ebe() {
 function reverse_pes_x_axis() {
 	// Reverse eBE array
 	scan.accumulated_image.spectra.data.ebe_values.reverse();
-	// If the intensity values were already scaled, that means intensity arrays were already reversed
-	if (scan.accumulated_image.spectra.params.was_scaled) {
-		return;
-	}
 	// Reverse ir_off and ir_on intensities
-	scan.accumulated_image.spectra.data.ir_off_intensity.reverse();
+	scan.accumulated_image.spectra.data.normalized.ir_off_intensity.reverse();
 	// If ir_on is empty, this function still behaves fine, so no need to check
-	scan.accumulated_image.spectra.data.ir_on_intensity.reverse();
-	// Reverse the radial values too (for Jacobian) (Should just redo this whole thing)
-	scan.accumulated_image.spectra.data.radial_values.reverse();
-}
-
-// If showing PES eBE plot, apply Jacobian (to account for R -> eKE conversion) and normalize
-function scale_and_normalize_pes() {
-	// If eBE array is empty, we'll just show radial plot, no need to scale
-	if (!scan.accumulated_image.spectra.params.use_ebe) {
-		return;
-	}
-	// If the intensities were already scaled, no need to re-scale
-	if (scan.accumulated_image.spectra.params.was_scaled) {
-		return;
-	}
-	// Check if we need to do ir_on too, or just ir_off
-	let scale_ir_on = false;
-	if (scan.accumulated_image.spectra.data.ir_on_intensity.length > 0) {
-		scale_ir_on = true;
-	}
-	let vmi_a = vmi_info.calibration_constants[vmi_info.selected_setting].a;
-	let vmi_b = vmi_info.calibration_constants[vmi_info.selected_setting].b;
-	// In order to conserve areas of peaks (i.e. Intensity(R)dR == Intensity(eKE)deKE)
-	// 	need to divide intensity by deKE/dR = 2 a R + 4 b R^3
-	let r;
-	let jacobian;
-	for (let i = 0; i < scan.accumulated_image.spectra.data.ir_off_intensity.length; i++) {
-		r = scan.accumulated_image.spectra.data.radial_values[i];
-		jacobian = 2 * vmi_a * r + 4 * vmi_b * Math.pow(r, 3);
-		scan.accumulated_image.spectra.data.ir_off_intensity[i] /= jacobian;
-		if (scale_ir_on) {
-			scan.accumulated_image.spectra.data.ir_on_intensity[i] /= jacobian;
-		}
-	}
-	// Now normalize ir_off (and ir_on) by maximum value of ir_off
-	let max_intensity = Math.max(...scan.accumulated_image.spectra.data.ir_off_intensity); // "..." turns array into list of arguments
-	for (let i = 0; i < scan.accumulated_image.spectra.data.ir_off_intensity.length; i++) {
-		scan.accumulated_image.spectra.data.ir_off_intensity[i] /= max_intensity;
-		if (scale_ir_on) {
-			scan.accumulated_image.spectra.data.ir_on_intensity[i] /= max_intensity;
-		}
-	}
-	// Make sure spectra won't be scaled again
-	scan.accumulated_image.spectra.params.was_scaled = true;
+	scan.accumulated_image.spectra.data.normalized.ir_on_intensity.reverse();
 }
 
 // Display PE Spectrum on chart
@@ -904,10 +917,12 @@ function chart_spectrum_results() {
 	if (!spectrum_display) {
 		return;
 	}
+
 	// Used to shorten code
 	const pes_spectra = scan.accumulated_image.spectra;
+
 	// Check if eBE should be used
-	if (scan.accumulated_image.spectra.params.use_ebe) {
+	if (pes_spectra.params.use_ebe) {
 		// Use eBE plot
 		spectrum_display.data.labels = pes_spectra.data.ebe_values;
 		// Update x-axis label
@@ -919,12 +934,14 @@ function chart_spectrum_results() {
 		// Update x-axis label
 		spectrum_display.options.scales.x.title.text = "R (px)";
 	}
+
 	// Update image ID display text
 	let image_id_string = "Displaying Image: i" + ("0" + pes_spectra.params.image_id).slice(-2);
 	spectrum_display.options.plugins.title.text = image_id_string;
-	if (scan.accumulated_image.spectra.params.show_difference) {
+
+	if (pes_spectra.params.show_difference) {
 		// Show the difference spectrum
-		spectrum_display.data.datasets[0].data = pes_spectra.data.difference;
+		spectrum_display.data.datasets[0].data = pes_spectra.calculate_difference();
 		// Update ir_off data
 		spectrum_display.data.datasets[1].data = pes_spectra.data.zeroes;
 		// Update legend display
@@ -934,16 +951,26 @@ function chart_spectrum_results() {
 		spectrum_display.data.datasets[1].borderColor = "gray";
 	} else {
 		// Show IR on/off
-		// Update ir_on data
-		spectrum_display.data.datasets[0].data = pes_spectra.data.ir_on_intensity;
-		// Update ir_off data
-		spectrum_display.data.datasets[1].data = pes_spectra.data.ir_off_intensity;
+		if (pes_spectra.params.use_ebe) {
+			// Display normalized intensities
+			// Update ir_on data
+			spectrum_display.data.datasets[0].data = pes_spectra.data.normalized.ir_on_intensity;
+			// Update ir_off data
+			spectrum_display.data.datasets[1].data = pes_spectra.data.normalized.ir_off_intensity;
+		} else {
+			// Display raw data
+			// Update ir_on data
+			spectrum_display.data.datasets[0].data = pes_spectra.data.ir_on_intensity;
+			// Update ir_off data
+			spectrum_display.data.datasets[1].data = pes_spectra.data.ir_off_intensity;
+		}
 		// Update legend display
 		spectrum_display.data.datasets[0].label = "IR On";
 		spectrum_display.data.datasets[0].borderColor = "red";
 		spectrum_display.data.datasets[1].label = "IR Off";
 		spectrum_display.data.datasets[1].borderColor = "black";
 	}
+
 	// Update chart axes displays
 	change_spectrum_x_display_range();
 	// Update chart
