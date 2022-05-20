@@ -204,8 +204,8 @@ app.whenReady().then(function () {
 	nativeTheme.themeSource = "dark";
 
 	main_window = create_main_window();
-	//invisible_window = create_invisible_window();
-	//live_view_window = create_live_view_window();
+	invisible_window = create_invisible_window();
+	live_view_window = create_live_view_window();
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) {
@@ -227,7 +227,7 @@ app.whenReady().then(function () {
 		});
 	}
 
-	/*if (live_view_window) {
+	if (live_view_window) {
 		live_view_window.setSize(settings.information.windows.live_view_window.width, settings.information.windows.live_view_window.height);
 
 		// Get rid of Live View menu bar
@@ -237,7 +237,7 @@ app.whenReady().then(function () {
 		live_view_window.on("closed", function (event) {
 			live_view_window = null;
 		});
-	}*/
+	}
 
 	// Check if there is a folder for today's year and date, and if not create it
 	create_folders();
@@ -262,7 +262,7 @@ function send_settings(to_window) {
 		if (live_view_window) {
 			live_view_window.webContents.send("settings-information", settings.information);
 		}
-	} 
+	}
 }
 
 // Close camera connection and quit the app
@@ -342,31 +342,18 @@ function get_folder_names() {
 
 // Message received from main window
 // Main window is loaded, send the settings info
-//	then load invisible window
 ipcMain.on("main-window-ready", function (event, arg) {
 	send_settings("main");
-	invisible_window = create_invisible_window();
 });
 
 // Message received from invisible window
 // Invisible window is loaded, send settings info
-//	then load live view window
 ipcMain.on("invisible-window-ready", function (event, arg) {
 	send_settings("invisible");
-	live_view_window = create_live_view_window();
-	// Resize window
-	live_view_window.setSize(settings.information.windows.live_view_window.width, settings.information.windows.live_view_window.height);
-	// Get rid of Live View menu bar
-	live_view_window.removeMenu();
-	// Delete window reference if window is closed
-	live_view_window.on("closed", function (event) {
-		live_view_window = null;
-	});
 });
 
 // Message received from live view window
 // Main window is loaded, send the settings info
-//	then load invisible window
 ipcMain.on("live-view-window-ready", function (event, arg) {
 	send_settings("live-view");
 });
