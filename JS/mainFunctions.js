@@ -285,6 +285,10 @@ function sevi_start_save_button() {
 	update_scan_running_status(was_running, true);
 	// Change button text appropriately
 	update_start_save_button(was_running);
+	if (!was_running) {
+		// Make sure pause button says "pause" if a scan is started
+		update_pause_resume_button("resume");
+	}
 	update_file_name_display(was_running);
 	// Reset electron and frame counts if new scan started
 	electrons.total.reset(was_running);
