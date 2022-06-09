@@ -441,22 +441,23 @@ function draw_pause_icon() {
 
 	// There's probably a cleaner way to do this using loops but idgaf
 	// Left side of pause icon
-	ctx.moveTo(canvas_center.x - (box_width + box_shift), canvas_center.y - box_height / 2);
-	ctx.lineTo(canvas_center.x - box_shift, canvas_center.y - box_height / 2);
-	ctx.lineTo(canvas_center.x - box_shift, canvas_center.y + box_height / 2);
-	ctx.lineTo(canvas_center.x - (box_width + box_shift), canvas_center.y + box_height / 2);
-	ctx.lineTo(canvas_center.x - (box_width + box_shift), canvas_center.y - box_height / 2);
-	ctx.arc(canvas_center.x - (box_width / 2 + box_shift), canvas_center.y - box_height / 2, box_width / 2, Math.PI, 0);
-	ctx.arc(canvas_center.x - (box_width / 2 + box_shift), canvas_center.y + box_height / 2, box_width / 2, 0, Math.PI);
+	// First draw a rectangle, then add half circles at top at bottom
+	ctx.moveTo(canvas_center.x - (box_width + box_shift), canvas_center.y - box_height / 2); // Move to upper left corner
+	ctx.lineTo(canvas_center.x - box_shift, canvas_center.y - box_height / 2); // Draw line to upper right corner
+	ctx.lineTo(canvas_center.x - box_shift, canvas_center.y + box_height / 2); // Draw line to lower right corner
+	ctx.lineTo(canvas_center.x - (box_width + box_shift), canvas_center.y + box_height / 2); // Draw line to lower left corner
+	ctx.lineTo(canvas_center.x - (box_width + box_shift), canvas_center.y - box_height / 2); // Draw line to upper left corner
+	ctx.arc(canvas_center.x - (box_width / 2 + box_shift), canvas_center.y - box_height / 2, box_width / 2, Math.PI, 0); // Draw half circle above rectangle
+	ctx.arc(canvas_center.x - (box_width / 2 + box_shift), canvas_center.y + box_height / 2, box_width / 2, 0, Math.PI); // Draw half circle below rectangle
 	// Right side of pause icon
-	ctx.moveTo(canvas_center.x + box_shift, canvas_center.y - box_height / 2);
-	ctx.lineTo(canvas_center.x + box_width + box_shift, canvas_center.y - box_height / 2);
-	ctx.lineTo(canvas_center.x + box_width + box_shift, canvas_center.y + box_height / 2);
-	ctx.lineTo(canvas_center.x + box_shift, canvas_center.y + box_height / 2);
-	ctx.lineTo(canvas_center.x + box_shift, canvas_center.y - box_height / 2);
-	ctx.arc(canvas_center.x + box_width / 2 + box_shift, canvas_center.y - box_height / 2, box_width / 2, Math.PI, 0);
-	ctx.arc(canvas_center.x + box_width / 2 + box_shift, canvas_center.y + box_height / 2, box_width / 2, 0, Math.PI);
-	ctx.fill();
+	ctx.moveTo(canvas_center.x + box_shift, canvas_center.y - box_height / 2); // Move to upper left corner
+	ctx.lineTo(canvas_center.x + box_width + box_shift, canvas_center.y - box_height / 2); // Draw line to upper right corner
+	ctx.lineTo(canvas_center.x + box_width + box_shift, canvas_center.y + box_height / 2); // Draw line to lower right corner
+	ctx.lineTo(canvas_center.x + box_shift, canvas_center.y + box_height / 2); // Draw line to lower left corner
+	ctx.lineTo(canvas_center.x + box_shift, canvas_center.y - box_height / 2); // Draw line to upper left corner
+	ctx.arc(canvas_center.x + box_width / 2 + box_shift, canvas_center.y - box_height / 2, box_width / 2, Math.PI, 0); // Draw half circle above rectangle
+	ctx.arc(canvas_center.x + box_width / 2 + box_shift, canvas_center.y + box_height / 2, box_width / 2, 0, Math.PI); // Draw half circle below rectangle
+	ctx.fill(); // Fill in shapes with color
 }
 
 /**
