@@ -475,6 +475,10 @@ function single_shot_button() {
 	}, 500 /* ms */);
 }
 
+/**
+ * Disable or enable single shot button
+ * @param {bool} to_disable - whether to disable (true) or enable (false) button
+ */
 function disable_single_shot_button(to_disable) {
 	const single_shot_button = document.getElementById("ScanSingleShot");
 	single_shot_button.disabled = to_disable;
