@@ -114,6 +114,13 @@ const electrons = {
 			ir_on: 0,
 			ir_off: 0,
 		},
+		auto_stop: {
+			method: "none", // Can be "none", "electrons", or "frames"
+			electrons: 0,
+			frames: 0,
+			update: (value) => electrons_auto_stop_update(value),
+			check: () => electrons_auto_stop_check(),
+		},
 		/**
 		 * Reset total counts (e.g. total electrons, total frames)
 		 * @param {bool} was_running - Whether scan was being taken when function was called
@@ -222,6 +229,66 @@ function electrons_total_e_count_get_count(image) {
 	return total_count.toExponential(3);
 }
 
+// Update the auto-stop values
+function electrons_auto_stop_update(value) {
+	if (electrons.total.auto_stop.method === "electrons") {
+		electrons.total.auto_stop.electrons = value;
+	} else if (electrons.total.auto_stop.method === "frames") {
+		electrons.total.auto_stop.frames = value;
+	}
+}
+
+// Check if auto stop criteria have been met
+function electrons_auto_stop_check() {
+	// Make sure a scan is running and not paused
+	if (!scan.status.running || scan.status.paused) {
+		return;
+	}
+	let ir_off_count;
+	let ir_on_count;
+	let requirement;
+	let to_save = false;
+
+	if (electrons.total.auto_stop.method === "none") {
+		return;
+	} else if (electrons.total.auto_stop.method === "electrons") {
+		// Make sure there is a value to stop at
+		if (electrons.total.auto_stop.electrons > 0) {
+			ir_off_count = electrons.total.e_count.ir_off;
+			ir_on_count = electrons.total.e_count.ir_on;
+			requirement = electrons.total.auto_stop.electrons * Math.pow(10, 5);
+		} else {
+			return;
+		}
+	} else if (electrons.total.auto_stop.method === "frames") {
+		if (electrons.total.auto_stop.frames > 0) {
+			ir_off_count = electrons.total.frame_count.ir_off;
+			ir_on_count = electrons.total.frame_count.ir_on;
+			requirement = electrons.total.auto_stop.frames * 1000;
+		} else {
+			return;
+		}
+	}
+
+	// Check if it's normal sevi or ir sevi
+	if (scan.status.method === "sevi") {
+		// Check if total count surpasses requirement
+		if (ir_off_count + ir_on_count >= requirement) {
+			to_save = true;
+		}
+	} else if (scan.status.method === "ir-sevi") {
+		// Check if both ir_off and ir_on surpass requirement
+		if (ir_off_count >= requirement && ir_on_count >= requirement) {
+			to_save = true;
+		}
+	}
+
+	if (to_save) {
+		// Save image (essentially pressing save button)
+		sevi_start_save_button();
+	}
+}
+
 /*****************************************************************************
 
 							SCAN INFORMATION
@@ -233,7 +300,7 @@ const scan = {
 	status: {
 		running: false,
 		paused: false,
-		method: "sevi",
+		method: "sevi", // Can be "sevi" or "ir-sevi"
 	},
 	saving: {
 		file_name: "",

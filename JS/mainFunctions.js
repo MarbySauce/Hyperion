@@ -86,6 +86,14 @@ document.getElementById("IRWavelength").oninput = function () {
 	excitation_wavelength_input_delay.start_timer();
 };
 
+// Electron Counters
+document.getElementById("AutomaticStop").oninput = function () {
+	sevi_automatic_stop_input();
+};
+document.getElementById("AutomaticStopUnit").oninput = function () {
+	sevi_automatic_stop_selection();
+};
+
 // PE Spectrum control buttons
 document.getElementById("SpectrumSwitch").oninput = function () {
 	switch_pes_spectra();
@@ -418,6 +426,8 @@ function draw_pause_icon() {
 	let box_shift = 150; // Shift left/right of center
 
 	ctx.fillStyle = "gray";
+
+	// There's probably a cleaner way to do this using loops but idgaf
 	// Left side of pause icon
 	ctx.moveTo(canvas_center.x - (box_width + box_shift), canvas_center.y - box_height / 2);
 	ctx.lineTo(canvas_center.x - box_shift, canvas_center.y - box_height / 2);
@@ -848,10 +858,39 @@ function update_counter_displays() {
 		avg_e_count.value = avg_off.toFixed(2);
 		avg_e_count_ir.value = avg_on.toFixed(2);
 	}
+}
 
-	// NOTE TO MARTY: Change this to add ir_on and ir_off based on tab, not scan status
-	// The displayed file name should change based on status tho (so you can see which mode it's running in)
-	// if it's possible it would be cool to have the IR file name displayed even when on Sevi tab
+function sevi_automatic_stop_input() {
+	const auto_stop = document.getElementById("AutomaticStop");
+	let value = parseFloat(auto_stop.value);
+	electrons.total.auto_stop.update(value);
+}
+
+function sevi_automatic_stop_selection() {
+	const auto_stop = document.getElementById("AutomaticStop");
+	const auto_stop_unit = document.getElementById("AutomaticStopUnit");
+	switch (auto_stop_unit.selectedIndex) {
+		case 0:
+			// None
+			electrons.total.auto_stop.method = "none";
+			auto_stop.value = "";
+			break;
+		case 1:
+			// Electrons (x1e5)
+			electrons.total.auto_stop.method = "electrons";
+			auto_stop.value = electrons.total.auto_stop.electrons || "";
+			break;
+		case 2:
+			// Frames (x1000)
+			electrons.total.auto_stop.method = "frames";
+			auto_stop.value = electrons.total.auto_stop.frames || "";
+			break;
+		default:
+			// None
+			electrons.total.auto_stop.method = "none";
+			auto_stop.value = "";
+			break;
+	}
 }
 
 // Create chart to plot PE Spectrum
@@ -1178,6 +1217,8 @@ ipc.on("new-camera-frame", (event, centroid_results) => {
 	update_accumulated_image_display();
 	// Check if camera frame should be saved to file
 	scan.single_shot.check(centroid_results);
+	// Check if auto-stop is triggered
+	electrons.total.auto_stop.check();
 });
 
 /*
