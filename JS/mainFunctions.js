@@ -48,11 +48,16 @@ document.getElementById("ScanStartSave").onclick = function () {
 document.getElementById("ScanPauseResume").onclick = function () {
 	sevi_pause_resume_button();
 };
-document.getElementById("ScanCancel").onclick = function () {};
+document.getElementById("ScanCancel").onclick = function () {
+	// Save functions as hitting save button but without saving
+	sevi_start_save_button(true);
+};
 document.getElementById("ScanAutosave").onclick = function () {
 	autosave_button();
 };
-document.getElementById("ScanReset").onclick = function () {};
+document.getElementById("ScanReset").onclick = function () {
+	sevi_scan_reset();
+};
 document.getElementById("ScanSingleShot").onclick = function () {
 	single_shot_button();
 };
@@ -276,13 +281,16 @@ function switch_pages(page_index) {
 
 /* Sevi and IR-Sevi Modes */
 
-// Functionality for Sevi Mode Start/Save button
-function sevi_start_save_button() {
+/**
+ * Functionality for Sevi Mode Start/Save button
+ * @param {bool} dont_save - If true, stops scan as if saving but without saving
+ */
+function sevi_start_save_button(dont_save) {
 	// Since the scan running status gets changed in the process, we need a constant value
 	//	that tells whether the scan was just started or ended
 	let was_running = scan.status.running;
 	// Start or stop the scan (and save if stopped)
-	update_scan_running_status(was_running, true);
+	update_scan_running_status(was_running, !dont_save);
 	// Change button text appropriately
 	update_start_save_button(was_running);
 	if (!was_running) {
@@ -475,6 +483,14 @@ function update_autosave_button_text() {
 		// Autosaving is now turned off
 		autosave_on_off_text.innerText = "Off";
 	}
+}
+
+/**
+ * Reset accumulated image and electron counters
+ */
+function sevi_scan_reset() {
+	electrons.total.reset();
+	scan.accumulated_image.reset();
 }
 
 /**
