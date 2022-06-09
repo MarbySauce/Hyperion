@@ -8,10 +8,6 @@ const Chart = require("chart.js");
 
 let settings; // Global variable, to be filled in on startup
 
-// Class used to make inputs only execute a function if nothing has been typed for 1s
-// Create new class instance using "let new_input_delay = new input_delay(fn_to_execute, args_to_pass);"
-//	fn_to_execute is the name of the function to execute on input
-//	args_to_pass is a list of arguments to give fn_to_execute
 /**
  * Class used to make inputs only execute a function if nothing has been typed for 1s.
  * @param {function} fn_to_execute - Function to execute when input is received
@@ -373,12 +369,22 @@ const scan = {
 	single_shot: {
 		saving: {
 			to_save: false,
-			file_name: "",
+			file_name: "singleShot.txt",
+			centroids_file_name: "ssCentroids.txt",
 		},
 		data: {
 			image_buffer: [],
 			image_centroids: [],
 		},
+		/**
+		 * Check if single shot should be saved
+		 * @param {object} centroid_results - Object containing electron centroids, computation time, and LED bool
+		 */
+		check: (centroid_results) => scan_single_shot_check(centroid_results),
+		/**
+		 * Save single shot data to file
+		 */
+		save: () => scan_single_shot_save(),
 	},
 	previous: {
 		all: [], // Array of all scans taken in a day
@@ -717,6 +723,72 @@ function scan_accumulated_image_spectra_extrema_get_max() {
 	} else {
 		return scan.accumulated_image.spectra.extrema.r_max;
 	}
+}
+
+// Check if single shot should be saved
+function scan_single_shot_check(centroid_results) {
+	if (scan.single_shot.saving.to_save) {
+		// Create copy of image buffer and centroids
+		scan.single_shot.data.image_buffer = [...centroid_results.image_buffer];
+		scan.single_shot.data.image_centroids = [centroid_results.ccl_centers, centroid_results.hybrid_centers];
+		// Save to file
+		scan.single_shot.save();
+		// Reset single shot save boolean
+		scan.single_shot.saving.to_save = false;
+	}
+}
+
+// Save single shot and centroids to file
+function scan_single_shot_save() {
+	let save_dir = settings.save_directory.full_dir + "/";
+	// Save image to file
+	fs.writeFile(save_dir + scan.single_shot.saving.file_name, convert_ss_image_to_string(), (err) => {
+		if (err) {
+			console.log(err);
+		}
+	});
+	// Save centroids to file
+	fs.writeFile(save_dir + scan.single_shot.saving.centroids_file_name, convert_ss_centroids_to_string(), (err) => {
+		if (err) {
+			console.log(err);
+		}
+	});
+}
+
+// Convert camera frame buffer to saveable string
+function convert_ss_image_to_string() {
+	const height = scan.accumulated_image.params.camera_height;
+	const width = scan.accumulated_image.params.camera_width;
+	let ss_string = "";
+	let alpha_index;
+	let intensity;
+	// Convert to string where elements of each row are space separated
+	// Since image is RGBA, need to only grab alpha values
+	for (let Y = 0; Y < height; Y++) {
+		for (let X = 0; X < width; X++) {
+			alpha_index = 4 * (width * Y + X) + 3;
+			intensity = 255 - scan.single_shot.data.image_buffer[alpha_index];
+			ss_string += intensity.toString() + " ";
+		}
+		if (Y < height - 1) {
+			ss_string += "\n";
+		}
+	}
+	return ss_string;
+}
+
+// Convert centroids from single shot to saveable string
+function convert_ss_centroids_to_string() {
+	const headers = ["CCL Centroids", "Hybrid Centroids"];
+	let centroids_string = "";
+	for (let i = 0; i < 2; i++) {
+		centroids_string += headers[i];
+		centroids_string += scan.single_shot.data.image_centroids[i].map((row) => row.join(" ")).join("\n");
+		if (i == 0) {
+			centroids_string += "\n";
+		}
+	}
+	return centroids_string;
 }
 
 /*****************************************************************************

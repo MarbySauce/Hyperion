@@ -53,7 +53,9 @@ document.getElementById("ScanAutosave").onclick = function () {
 	autosave_button();
 };
 document.getElementById("ScanReset").onclick = function () {};
-document.getElementById("ScanSingleShot").onclick = function () {};
+document.getElementById("ScanSingleShot").onclick = function () {
+	single_shot_button();
+};
 
 // File naming buttons
 document.getElementById("ImageCounterDown").onclick = function () {
@@ -313,6 +315,20 @@ function update_start_save_button(was_running) {
 }
 
 /**
+ * Update the scan "running" status
+ * @param {bool} was_running - whether a scan was running when button pressed
+ * @param {bool} if_save - whether to save image/spectra to file
+ */
+function update_scan_running_status(was_running, if_save) {
+	// First check if we need to save (i.e. if a scan just finished)
+	if (was_running && if_save) {
+		scan.accumulated_image.save();
+	}
+	// Change running status
+	scan.status.running = !was_running;
+}
+
+/**
  * Pause if a scan is currently being taken, resume if a scan was paused or saved
  */
 function sevi_pause_resume_button() {
@@ -448,6 +464,23 @@ function update_autosave_button_text() {
 }
 
 /**
+ * Save the next camera frame (and centroids) to file
+ */
+function single_shot_button() {
+	scan.single_shot.saving.to_save = true;
+	// Disable button for 0.5s to make it clear it saved
+	disable_single_shot_button(true);
+	setTimeout(() => {
+		disable_single_shot_button(false);
+	}, 500 /* ms */);
+}
+
+function disable_single_shot_button(to_disable) {
+	const single_shot_button = document.getElementById("ScanSingleShot");
+	single_shot_button.disabled = to_disable;
+}
+
+/**
  * If a scan is running, continuously show the filename(s) that will be saved (only for Sevi and IR-Sevi)
  * @param {boolean} was_running - Whether a scan was running when function executed
  */
@@ -470,18 +503,6 @@ function update_file_name_display(was_running) {
 			ir_on_file.classList.remove("always-show-file");
 		}
 	}
-}
-
-// Update the scan "running" status
-// was_running is bool that says whether a scan was running when button pressed
-// if_save is bool that tells whether to save image/spectra to file
-function update_scan_running_status(was_running, if_save) {
-	// First check if we need to save (i.e. if a scan just finished)
-	if (was_running && if_save) {
-		scan.accumulated_image.save();
-	}
-	// Change running status
-	scan.status.running = !was_running;
 }
 
 /**
@@ -1151,6 +1172,8 @@ ipc.on("new-camera-frame", (event, centroid_results) => {
 	// Add electrons to accumulated image and update display
 	scan.accumulated_image.update(centroid_results);
 	update_accumulated_image_display();
+	// Check if camera frame should be saved to file
+	scan.single_shot.check(centroid_results);
 });
 
 /*
