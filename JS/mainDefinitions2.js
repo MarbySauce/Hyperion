@@ -288,6 +288,7 @@ const scan = {
 				normalized: {
 					ir_off_intensity: [],
 					ir_on_intensity: [],
+					normalization_factor: 1,
 				},
 			},
 			params: {
@@ -324,6 +325,21 @@ const scan = {
 			 * Save worked up spectra to file
 			 */
 			save: () => scan_accumulated_image_spectra_save(),
+			/**
+			 * Get the IR Off spectrum, normalized if applicable
+			 * @returns {array} IR Off spectrum
+			 */
+			get_ir_off: () => scan_accumulated_image_spectra_get_ir_off(),
+			/**
+			 * Get the IR On spectrum, normalized if applicable
+			 * @returns {array} IR On spectrum
+			 */
+			get_ir_on: () => scan_accumulated_image_spectra_get_ir_on(),
+			/**
+			 * Get the eBE array if possible, or radial array otherwise
+			 * @returns {array} eBE or radial array
+			 */
+			get_x_axis: () => scan_accumulated_image_spectra_get_x_axis(),
 			/**
 			 * Calculate difference spectrum
 			 * @returns {array} Difference spectrum
@@ -599,6 +615,32 @@ function scan_accumulated_image_spectra_save() {
 				console.log("Could not save spectrum:", error);
 			}
 		});
+	}
+}
+
+// Return the ir_off spectrum (after normalization if applicable)
+function scan_accumulated_image_spectra_get_ir_off() {
+	// If showing radial plot, just return ir_off array
+	if (!scan.accumulated_image.spectra.params.use_ebe) {
+		return scan.accumulated_image.spectra.data.ir_off_intensity;
+	}
+	const spectra_data = scan.accumulated_image.spectra.data;
+	// Showing eBE plot
+	// In order to conserve areas of peaks (i.e. Intensity(R)dR == Intensity(eKE)deKE)
+	// 	need to divide intensity by deKE/dR = 2 a R + 4 b R^3
+	let vmi_a = vmi_info.calibration_constants[vmi_info.selected_setting].a;
+	let vmi_b = vmi_info.calibration_constants[vmi_info.selected_setting].b;
+	let r;
+	let jacobian;
+	for (let i = 0; i < spectra_data.ir_off_intensity.length; i++) {
+		r = spectra_data.radial_values[i];
+		jacobian = 2 * vmi_a * r + 4 * vmi_b * Math.pow(r, 3);
+		spectra_data.normalized.ir_off_intensity[i] = spectra_data.ir_off_intensity[i] / jacobian;
+	}
+	// Now normalize ir_off (and ir_on) by maximum value of ir_off
+	spectra_data.normalized.normalization_factor = Math.max(...spectra_data.normalized.ir_off_intensity); // "..." turns array into list of arguments
+	for (let i = 0; i < spectra_data.normalized.ir_off_intensity.length; i++) {
+		spectra_data.normalized.ir_off_intensity[i] /= spectra_data.normalized.normalization_factor;
 	}
 }
 

@@ -45,7 +45,9 @@ document.getElementById("Settings").onclick = function () {
 document.getElementById("ScanStartSave").onclick = function () {
 	sevi_start_save_button();
 };
-document.getElementById("ScanPauseResume").onclick = function () {};
+document.getElementById("ScanPauseResume").onclick = function () {
+	sevi_pause_resume_button();
+};
 document.getElementById("ScanCancel").onclick = function () {};
 document.getElementById("ScanAutosave").onclick = function () {
 	autosave_button();
@@ -295,9 +297,128 @@ function update_start_save_button(was_running) {
 		start_button_text.innerText = "Start";
 		// Since we just saved an image, increase the image counter as well
 		uptick_image_counter();
+		// Change Pause button to say Resume to give user option to resume the scan that was saved
+		update_pause_resume_button("pause");
+		// If scan was paused while saved, update pause status
+		if (scan.status.paused) {
+			// Remove gray-out display
+			update_pause_screen_overlay("resume");
+			// Update display again to get rid of pause icon
+			update_accumulated_image_display(true);
+			scan.status.paused = false;
+		}
 	} else {
 		start_button_text.innerText = "Save";
 	}
+}
+
+/**
+ * Pause if a scan is currently being taken, resume if a scan was paused or saved
+ */
+function sevi_pause_resume_button() {
+	// Check if a scan is currently being taken
+	if (scan.status.running) {
+		// Scan is running. Pause if not already, otherwise un-pause
+		if (scan.status.paused) {
+			// Update button text
+			update_pause_resume_button("resume");
+			update_pause_screen_overlay("resume");
+			// Resume scan
+			scan.status.paused = false;
+		} else {
+			// Update button text
+			update_pause_resume_button("pause");
+			update_pause_screen_overlay("pause");
+			// Pause scan
+			scan.status.paused = true;
+		}
+	} else {
+		// A scan was not running. If an earlier scan is in memory, resume it
+		if (scan.accumulated_image.images.ir_off.length > 0 && electrons.total.e_count.ir_off > 0) {
+			// Update button text
+			update_start_save_button(false);
+			update_pause_resume_button("resume");
+			// Downtick counter to match earlier image
+			downtick_image_counter();
+			// Start autosave timer if new scan started
+			scan.saving.start_timer(false);
+			// Update scan ID's
+			update_scan_id(false);
+			// Change running status
+			scan.status.running = true;
+		}
+		// If there is not an earlier scan in memory, do nothing
+	}
+}
+
+/**
+ * Change Pause button text
+ * @param {string} action - Either "pause" if scan was just paused or "resume" if just resumed
+ * (Button text will be changed to the opposite of action)
+ */
+function update_pause_resume_button(action) {
+	const pause_button_text = document.getElementById("ScanPauseResumeText");
+
+	if (action === "pause") {
+		// The scan was paused, change text to "Resume"
+		pause_button_text.innerHTML = "Resume";
+	} else if (action === "resume") {
+		// Scan was resumed, change text to "Pause"
+		pause_button_text.innerHTML = "Pause";
+	}
+}
+
+/**
+ * Gray out display if paused
+ * @param {string} action - Either "pause" if scan was just paused or "resume" if just resumed
+ * (Will gray out for "pause" and remove for "resume")
+ */
+function update_pause_screen_overlay(action) {
+	const sevi_content = document.getElementById("SeviModeContent");
+
+	if (action === "pause") {
+		// Scan was paused, gray out display to make this clear
+		sevi_content.classList.add("paused");
+		// Add pause icon
+		draw_pause_icon();
+	} else if (action === "resume") {
+		// Scan was resumed, take away gray-out
+		sevi_content.classList.remove("paused");
+	}
+}
+
+/**
+ * Draw a pause icon on the canvas
+ */
+function draw_pause_icon() {
+	const image_display = document.getElementById("Display");
+	const ctx = image_display.getContext("2d");
+
+	const canvas_center = { x: 1000, y: 1000 };
+
+	// Dimensions of rectangle for each side of pause sign
+	let box_height = 800;
+	let box_width = 200;
+	let box_shift = 150; // Shift left/right of center
+
+	ctx.fillStyle = "gray";
+	// Left side of pause icon
+	ctx.moveTo(canvas_center.x - (box_width + box_shift), canvas_center.y - box_height / 2);
+	ctx.lineTo(canvas_center.x - box_shift, canvas_center.y - box_height / 2);
+	ctx.lineTo(canvas_center.x - box_shift, canvas_center.y + box_height / 2);
+	ctx.lineTo(canvas_center.x - (box_width + box_shift), canvas_center.y + box_height / 2);
+	ctx.lineTo(canvas_center.x - (box_width + box_shift), canvas_center.y - box_height / 2);
+	ctx.arc(canvas_center.x - (box_width / 2 + box_shift), canvas_center.y - box_height / 2, box_width / 2, Math.PI, 0);
+	ctx.arc(canvas_center.x - (box_width / 2 + box_shift), canvas_center.y + box_height / 2, box_width / 2, 0, Math.PI);
+	// Right side of pause icon
+	ctx.moveTo(canvas_center.x + box_shift, canvas_center.y - box_height / 2);
+	ctx.lineTo(canvas_center.x + box_width + box_shift, canvas_center.y - box_height / 2);
+	ctx.lineTo(canvas_center.x + box_width + box_shift, canvas_center.y + box_height / 2);
+	ctx.lineTo(canvas_center.x + box_shift, canvas_center.y + box_height / 2);
+	ctx.lineTo(canvas_center.x + box_shift, canvas_center.y - box_height / 2);
+	ctx.arc(canvas_center.x + box_width / 2 + box_shift, canvas_center.y - box_height / 2, box_width / 2, Math.PI, 0);
+	ctx.arc(canvas_center.x + box_width / 2 + box_shift, canvas_center.y + box_height / 2, box_width / 2, 0, Math.PI);
+	ctx.fill();
 }
 
 /**
@@ -556,12 +677,17 @@ function display_excitation_energies() {
 	}
 }
 
-// Update the accumulated image display
-function update_accumulated_image_display() {
-	// First check if a scan is currently being taken
-	if (!scan.status.running || scan.status.paused) {
-		// Don't update the images
-		return;
+/**
+ * Update the accumulated image display
+ * @param {bool} override - if true, update display regardless of scan status
+ * */
+function update_accumulated_image_display(override) {
+	if (!override) {
+		// First check if a scan is currently being taken
+		if (!scan.status.running || scan.status.paused) {
+			// Don't update the images
+			return;
+		}
 	}
 	const image_select = document.getElementById("ImageDisplaySelect");
 	const image_display = document.getElementById("Display");
@@ -732,10 +858,7 @@ function switch_pes_spectra() {
 	chart_spectrum_results();
 }
 
-// NOTE TO MARTY: Spectrum is currently doing something weird when you go up and down a page after running it
-//	It's for sure reversing ebe
-//	OH DUH! Everytime it processes, it's recalculating eBE, so it actually does need to be reversed
-//	Since values aren't rescaled, they don't need to be reversed again
+// NOTE TO MARTY: Maybe have the scaling done in a fn in scan that returns the arrays to plot
 
 // Run Melexir in Web Worker
 function run_melexir() {
