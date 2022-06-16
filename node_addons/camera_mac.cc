@@ -41,9 +41,10 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 	srand(randSeed); // Setting up random number generator
 
 	// Simulated values
-	int numberOfSpots = (rand() % 10) + 15;
+	int numberOfSpots = (rand() % 10) + 55;
 	//std::vector<float> Radii = {30, 50, 90, 120, 170};
-	std::vector<float> Radii = {50, 50, 90, 90, 90, 90, 170, 170, 170, 300};
+	std::vector<float> Radii = {50, 90, 170, 300};
+	std::vector<float> PeakHeights = {2, 4, 3, 1}; // Sum = 10 
 
 	// First clear the image (i.e. fill with 0's)
 	// 		(Unnecessary if adding noise)
@@ -74,17 +75,27 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 
 	if (isIROn) {
 		isIROn = false;
-		Radii = {50, 50, 90, 90, 90, 120, 120, 170, 170, 300}; 
+		Radii = {50, 90, 120, 170, 300}; 
+		PeakHeights = {2, 3, 2, 2, 1}; // Sum = 10
 		//return;
 	} else {
 		isIROn = true;
+	}
+
+	int PeakHeightSum = 0;
+	for (int i = 0; i < PeakHeights.size(); i++) {
+		PeakHeightSum += PeakHeights[i];
 	}
 
 	// Add spots
 	int spotNumber = 0;
 	while (spotNumber < numberOfSpots)
 	{
-		float radius = Radii[rand() % Radii.size()];
+		int radiusIndex = rand() % Radii.size();
+		float radius = Radii[radiusIndex];
+		if (((rand() % 1000) / 1000.0) > (PeakHeights[radiusIndex] / PeakHeightSum)) {
+			continue;
+		}
 		
 		// Using the physics def. of spherical coords
 		float phi = 2 * pi * ((rand() % 1000) / 1000.0);		 // (0,2pi)

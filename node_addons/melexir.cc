@@ -7,7 +7,6 @@
 #include <math.h>
 #include <napi.h>
 #include "timer.h"
-#include "mlxr.h"
 
 using namespace std;
 

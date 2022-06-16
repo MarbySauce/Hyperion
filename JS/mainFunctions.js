@@ -157,7 +157,8 @@ document.getElementById("SaveSettingsButton").onclick = function () {
 // Execute various functions on application startup
 function startup() {
 	// Go to Sevi Mode tab (ID = 0)
-	switch_tabs(0);
+	//switch_tabs(0);
+	switch_tabs(2);
 
 	// Update Autosave button On/Off text
 	update_autosave_button_text();
@@ -169,8 +170,12 @@ function startup() {
 
 /*		Tabs		*/
 
-// Depress all of the buttons (to behave like a radio button)
-// and then activate the tab 'Tab'
+/**
+ * Depress all of the buttons (to behave like a radio button) and then activate the tab 'tab'
+ * @param {int} tab - 0 => SEVI mode, 1 => IR-SEVI Mode, 2 => IR Action Mode,
+ * 					3 => blank, 4 => blank, 5 => blank, 6 => blank, 7 => blank,
+ * 					8 => Settings section
+ */
 function switch_tabs(tab) {
 	// Tab name should be an integer corresponding to the index of tabList
 	// 		Some tabs are left empty and can be filled in if a new tab is added in the future
@@ -280,6 +285,8 @@ function switch_pages(page_index) {
 }
 
 /* Sevi and IR-Sevi Modes */
+
+// NOTE TO MARTY: Change scan button functions so that it's small, simple functions (not this gross mess)
 
 /**
  * Functionality for Sevi Mode Start/Save button
@@ -1311,3 +1318,14 @@ function checkCurrentFile() {
 }
 
 // ----------------------------------------------- //
+
+function get_depletion() {
+	let ir_off_sum = 0;
+	let ir_on_sum = 0;
+	for (let i = 117; i < 123; i++) {
+		ir_off_sum += scan.accumulated_image.spectra.data.ir_off_intensity[i];
+		ir_on_sum += scan.accumulated_image.spectra.data.ir_on_intensity[i];
+	}
+	let depletion = (100 * (ir_off_sum - ir_on_sum)) / ir_off_sum;
+	console.log(`Depletion: ${depletion.toFixed(2)}%`);
+}
