@@ -215,10 +215,10 @@ Left Side
 */
 
 /* Title Section */
-#TitleSection {
+.title-section {
 	align-items: center;
 }
-#TitleSection h1 {
+.title {
 	text-align: center;
 	font-size: 3.7vw;
 	font-family: "Libre Baskerville";
@@ -229,7 +229,7 @@ Left Side
 }
 
 /* Scan Controls */
-#ScanControls {
+.scan-controls {
 	padding: 3%;
 	grid-gap: 3%;
 	justify-items: center;
@@ -399,28 +399,10 @@ Right Side
 
 /* Pause "animation" */
 /* NOTE TO MARTY: .paused can obviously be one thing */
-#PauseScreenSaveControls {
+.pause-screen {
 	display: none;
 }
-.paused #PauseScreenSaveControls {
-	display: block;
-	z-index: 1;
-	background: hsla(225, 20%, 55%, 0.6);
-	border-radius: 7px;
-}
-#PauseScreenDisplay {
-	display: none;
-}
-.paused #PauseScreenDisplay {
-	display: block;
-	z-index: 1;
-	background: hsla(225, 20%, 55%, 0.6);
-	border-radius: 7px;
-}
-#PauseScreenCounters {
-	display: none;
-}
-.paused #PauseScreenCounters {
+.paused .pause-screen {
 	display: block;
 	z-index: 1;
 	background: hsla(225, 20%, 55%, 0.6);

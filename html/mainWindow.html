@@ -20,11 +20,11 @@
 			<!-- SEVI Mode - First Page -->
 			<div class="first-page page grid" id="SeviFirstPage">
 				<!-- SEVI Mode - First Page - Title Section -->
-				<div class="grid background-lighter-blue" id="TitleSection">
-					<h1 class="white-text">Hyperion</h1>
+				<div class="grid background-lighter-blue title-section" id="TitleSection">
+					<h1 class="white-text title">Hyperion</h1>
 				</div>
 				<!-- SEVI Mode - First Page - Scan Controls -->
-				<div class="grid background-lighter-blue" id="ScanControls">
+				<div class="grid background-lighter-blue scan-controls" id="ScanControls">
 					<button class="scan-control-button square-button white-text" id="ScanStartSave">
 						<span class="scan-button-text" id="ScanStartSaveText">Start</span>
 					</button>
@@ -147,7 +147,7 @@
 					<input class="input-read e-counter-box sevi-mode-hide" id="AvgECountIROn" type="number" value="0" readonly />
 					<div class="divider-line" id="ECountersDivLine"></div>
 					<label class="white-text text-box-label" id="AutomaticStopLabel">Stop Scan After:</label>
-					<input class="input-change" id="AutomaticStop" placeholder="-" />
+					<input class="input-change e-counter-box" id="AutomaticStop" placeholder="-" />
 					<select class="white-text square-button drop-down" name="AutomaticStopUnit" id="AutomaticStopUnit">
 						<option value="None">None</option>
 						<option value="Electrons">x1e5 Electrons</option>
@@ -200,7 +200,31 @@
 		<!-- IR Action Mode -->
 		<div id="IRActionModeContent">
 			<div class="first-page page grid" id="IRActionFirstPage">
-				<div class="grid background-lighter-blue" id="IRActionControls"></div>
+				<!-- IR Action Mode - First Page - Title Section -->
+				<div class="grid background-lighter-blue title-section" id="IRActionTitleSection">
+					<h1 class="white-text title">Hyperion</h1>
+				</div>
+				<!-- IR Action Mode - First Page - Scan Controls -->
+				<div class="grid background-lighter-blue scan-controls" id="IRActionControls">
+					<button class="scan-control-button square-button white-text" id="IRActionStartSave">
+						<span class="scan-button-text" id="IRActionStartSaveText">Start</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionPauseResume">
+						<span class="scan-button-text" id="IRActionPauseResumeText">Pause</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionCancel">
+						<span class="scan-button-text" id="IRActionCancelText">Cancel</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionPreviousWavelength">
+						<span class="scan-button-text" id="IRActionPreviousWavelengthText">Previous λ</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionNextWavelength">
+						<span class="scan-button-text" id="IRActionNextWavelengthText">Next λ</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionTurnAround">
+						<span class="scan-button-text" id="IRActionTurnAroundText">Turn Around</span>
+					</button>
+				</div>
 				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionOptions"></div>
 				<div class="grid background-lighter-blue" id="IRAbsorptionPlot"></div>
 				<div class="grid background-lighter-blue" id="IRNextWavelength"></div>

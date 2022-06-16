@@ -442,11 +442,13 @@ body {
 	grid-area: Content;
 }
 
+/* 1 2 3 1 3  -> 10 */
+/* 1 2 5  1 1  -> 5 */
 #IRActionFirstPage {
-	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 30px;
+	grid-template-rows: 1fr 2fr 3fr 2fr 2fr 30px;
 	grid-template-columns: 1fr 1fr;
 	grid-template-areas:
-		"IRActionControls IRAbsorptionPlot"
+		"IRActionTitleSection IRAbsorptionPlot"
 		"IRActionControls IRAbsorptionPlot"
 		"IRActionOptions IRAbsorptionPlot"
 		"IRActionOptions IRNextWavelength"
@@ -454,8 +456,36 @@ body {
 		"IRActionPageDown IRActionPageDown";
 }
 
+#IRActionTitleSection {
+	grid-area: IRActionTitleSection;
+}
+
+/* IR Action Scan Controls */
 #IRActionControls {
 	grid-area: IRActionControls;
+	grid-template-rows: 1fr 1fr;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-areas:
+		"IRActionStartSave IRActionPauseResume IRActionCancel"
+		"IRActionPreviousWavelength IRActionNextWavelength IRActionTurnAround";
+}
+#IRActionStartSave {
+	grid-area: IRActionStartSave;
+}
+#IRActionPauseResume {
+	grid-area: IRActionPauseResume;
+}
+#IRActionCancel {
+	grid-area: IRActionCancel;
+}
+#IRActionPreviousWavelength {
+	grid-area: IRActionPreviousWavelength;
+}
+#IRActionNextWavelength {
+	grid-area: IRActionNextWavelength;
+}
+#IRActionTurnAround {
+	grid-area: IRActionTurnAround;
 }
 
 #IRActionOptions {
