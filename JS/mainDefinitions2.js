@@ -1041,7 +1041,8 @@ let spectrum_display; // Will be filled in with chart for PE Spectrum
 
 // Configuration for PE Spectra
 const spectrum_config = {
-	type: "scatter",
+	//type: "scatter",
+	type: "line",
 	data: {
 		labels: [],
 		datasets: [
@@ -1050,16 +1051,19 @@ const spectrum_config = {
 				label: "IR On",
 				borderColor: "red",
 				showLine: true,
+				pointHitRadius: 10,
 			},
 			{
 				data: [],
 				label: "IR Off",
 				borderColor: "black",
 				showLine: true,
+				pointHitRadius: 10,
 			},
 		],
 	},
 	options: {
+		responsive: true,
 		scales: {
 			y: {
 				beginAtZero: true,
@@ -1092,6 +1096,24 @@ const spectrum_config = {
 				align: "end",
 				text: "Displaying Image: i01",
 				padding: 0,
+			},
+			tooltip: {
+				enabled: true,
+				callbacks: {
+					label: function (context) {
+						// Show intensity when hovering mouse
+						let label = [];
+						let intensity_label = "Intensity: " + context.parsed.y.toFixed(2);
+						label.push(intensity_label);
+						// If showing eBE plot, also show R on the label
+						if (context.label != context.dataIndex + 0.5) {
+							let radius = scan.accumulated_image.spectra.data.radial_values.length - context.dataIndex + 0.5;
+							let radius_label = "Radius: " + radius;
+							label.push(radius_label);
+						}
+						return label;
+					},
+				},
 			},
 		},
 	},
