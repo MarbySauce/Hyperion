@@ -1051,14 +1051,14 @@ const spectrum_config = {
 				label: "IR On",
 				borderColor: "red",
 				showLine: true,
-				pointHitRadius: 10,
+				pointHitRadius: 20,
 			},
 			{
 				data: [],
 				label: "IR Off",
 				borderColor: "black",
 				showLine: true,
-				pointHitRadius: 10,
+				pointHitRadius: 20,
 			},
 		],
 	},
@@ -1106,12 +1106,30 @@ const spectrum_config = {
 						let intensity_label = "Intensity: " + context.parsed.y.toFixed(2);
 						label.push(intensity_label);
 						// If showing eBE plot, also show R on the label
+						// Check if not showing R plot
 						if (context.label != context.dataIndex + 0.5) {
 							let radius = scan.accumulated_image.spectra.data.radial_values.length - context.dataIndex + 0.5;
 							let radius_label = "Radius: " + radius;
 							label.push(radius_label);
 						}
 						return label;
+					},
+					title: function ([context]) {
+						let x_value; // Display x value of point
+						// Check if showing R plot
+						if (context.label == context.dataIndex + 0.5) {
+							// Showing R plot
+							x_value = "R: ";
+							//x_value += context.parsed.x.toFixed(1);
+							x_value += context.label;
+							x_value += " px";
+						} else {
+							// Showing eBE plot
+							x_value = "eBE: ";
+							x_value += context.parsed.x.toFixed(2);
+							x_value += " cm-1";
+						}
+						return x_value;
 					},
 				},
 			},
@@ -1120,3 +1138,60 @@ const spectrum_config = {
 };
 
 let melexir_worker; // Filled in with Web Worker for Melexir
+
+/*****************************************************************************
+
+							IR ABSORPTION CONFIGURATION
+
+*****************************************************************************/
+
+let absorption_display; // Will be filled in with chart for IR Absorption Profile
+
+// Configuration for Absorption Profile
+const absorption_config = {
+	type: "scatter",
+	data: {
+		labels: [],
+		datasets: [
+			{
+				data: [],
+				//label: "Absorption",
+				borderColor: "black",
+				//showLine: true,
+				pointHitRadius: 20,
+			},
+		],
+	},
+	options: {
+		responsive: true,
+		//aspectRatio: 1,
+		maintainAspectRatio: false,
+		scales: {
+			y: {
+				beginAtZero: true,
+				title: {
+					text: "Absorption",
+					color: "black",
+					display: true,
+				},
+			},
+			x: {
+				title: {
+					text: "IR Energy ( cm\u207B\u00B9 )", // \u207B is unicode for superscript "-", and \u00B9 is for superscript "1"
+					color: "black",
+					display: true,
+				},
+			},
+		},
+		/*elements: {
+			point: {
+				radius: 0,
+			},
+		},*/
+		plugins: {
+			legend: {
+				display: false,
+			},
+		},
+	},
+};

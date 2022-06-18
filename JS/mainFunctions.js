@@ -130,9 +130,11 @@ document.getElementById("SeviPageUp").onclick = function () {
 
 document.getElementById("IRActionPageDown").onclick = function () {
 	switch_pages(1); // Switch to second page
+	destroy_absorption_plot();
 };
 document.getElementById("IRActionPageUp").onclick = function () {
 	switch_pages(0); // Switch to first page
+	create_absorption_plot(); // Create plot for Absorption profile
 };
 
 /*		Settings		*/
@@ -244,6 +246,13 @@ function switch_tabs(tab) {
 		content_list[tab].classList.add(sevi_methods[tab] + "-mode");
 	}
 
+	// If moving to IR Action tab, create Absorption chart, otherwise destroy it if it exists
+	if (tab === 2) {
+		create_absorption_plot();
+	} else {
+		destroy_absorption_plot();
+	}
+
 	// Lastly, make sure we switch to the first page (if there are two)
 	switch_pages(0);
 }
@@ -274,9 +283,7 @@ function switch_pages(page_index) {
 
 		// PE Spectrum is on second page, and needs to be destroyed if moving to first page
 		//	(if it exists)
-		if (spectrum_display) {
-			destroy_spectrum_plot();
-		}
+		destroy_spectrum_plot();
 	} else if (page_index === 1) {
 		// Display second page
 		first_page.style.display = "none";
@@ -930,8 +937,10 @@ function create_spectrum_plot() {
 
 // Destroy PE Spectrum chart
 function destroy_spectrum_plot() {
-	spectrum_display.destroy();
-	spectrum_display = null;
+	if (spectrum_display) {
+		spectrum_display.destroy();
+		spectrum_display = null;
+	}
 }
 
 /**
@@ -1212,6 +1221,24 @@ function change_spectrum_x_display_range() {
 	spectrum_display.update();
 }
 
+/**
+ * Create chart to plot IR Absorption Profile
+ */
+function create_absorption_plot() {
+	const absorption_display_ctx = document.getElementById("IRAbsorptionPlot").getContext("2d");
+	absorption_display = new Chart(absorption_display_ctx, absorption_config);
+}
+
+/**
+ * Destroy IR Absorption chart
+ */
+function destroy_absorption_plot() {
+	if (absorption_display) {
+		absorption_display.destroy();
+		absorption_display = null;
+	}
+}
+
 /*
 
 
@@ -1319,13 +1346,47 @@ function checkCurrentFile() {
 
 // ----------------------------------------------- //
 
-function get_depletion() {
-	let ir_off_sum = 0;
-	let ir_on_sum = 0;
-	for (let i = 117; i < 123; i++) {
-		ir_off_sum += scan.accumulated_image.spectra.data.ir_off_intensity[i];
-		ir_on_sum += scan.accumulated_image.spectra.data.ir_on_intensity[i];
-	}
-	let depletion = (100 * (ir_off_sum - ir_on_sum)) / ir_off_sum;
-	console.log(`Depletion: ${depletion.toFixed(2)}%`);
+function add_wl() {
+	const current_energy = document.getElementById("IRActionCurrentEnergy");
+	const next_energy = document.getElementById("IRActionNextEnergy");
+
+	// \u207B is unicode for superscript "-", and \u00B9 is for superscript "1"
+	const wn_unit_label = " cm\u207B\u00B9";
+
+	current_energy.innerText = "1877.00" + wn_unit_label;
+	next_energy.innerText = "1878.50" + wn_unit_label;
+
+	add_progress();
 }
+
+function add_progress() {
+	const current_image = document.getElementById("ProgressTextCurrentImage");
+	const total_images = document.getElementById("ProgressTextTotalImages");
+
+	current_image.innerText = "11";
+	total_images.innerText = "20";
+}
+
+async function run_progress_bar() {
+	const progress_bar = document.getElementById("ProgressBar");
+
+	for (let i = 0; i <= 100; i += 10) {
+		await new Promise((resolve) => {
+			setTimeout(() => {
+				if (i === 10) {
+					progress_bar.style.display = "block";
+				}
+				progress_bar.style.width = i.toString() + "%";
+				resolve();
+			}, 500);
+		});
+	}
+}
+/*function run_progress_bar() {
+	const progress_bar = document.getElementById("ProgressBar");
+	progress_bar.style.width = "100%";
+
+	for (let i = 0; i <= 100; i += 10) {
+
+	}
+}*/

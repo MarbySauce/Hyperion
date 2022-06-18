@@ -199,6 +199,7 @@
 		</div>
 		<!-- IR Action Mode -->
 		<div id="IRActionModeContent">
+			<!-- IR Action Mode - First Page -->
 			<div class="first-page page grid" id="IRActionFirstPage">
 				<!-- IR Action Mode - First Page - Title Section -->
 				<div class="grid background-lighter-blue title-section" id="IRActionTitleSection">
@@ -225,12 +226,71 @@
 						<span class="scan-button-text" id="IRActionTurnAroundText">Turn Around</span>
 					</button>
 				</div>
-				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionOptions"></div>
-				<div class="grid background-lighter-blue" id="IRAbsorptionPlot"></div>
-				<div class="grid background-lighter-blue" id="IRNextWavelength"></div>
-				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionProgress"></div>
+				<!-- IR Action Mode - First Page - Scan Options -->
+				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionOptions">
+					<!-- IR Energy Range Selection -->
+					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsRange">
+						<h3 class="white-text text-box-label" id="IRActionRangeLabel">Range:</h3>
+						<input class="input-change hv-display" id="IRActionRangeStart" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="IRActionWNLabel1">cm<sup>-1</sup></label>
+						<h3 class="white-text text-box-label" id="IRActionRangeToLabel">to</h3>
+						<input class="input-change hv-display" id="IRActionRangeEnd" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="IRActionWNLabel2">cm<sup>-1</sup></label>
+					</div>
+					<!-- IR Energy Increment -->
+					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsIncrement">
+						<h3 class="white-text text-box-label" id="IRActionIncrementLabel">Increment:</h3>
+						<input class="input-change hv-display" id="IRActionIncrement" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="IRActionWNLabel3">cm<sup>-1</sup></label>
+					</div>
+					<!-- Image Collection Length -->
+					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsCollectionLength">
+						<h4 class="white-text">Stand-in: (e- / frames) per image</h4>
+					</div>
+					<!-- Absorption Calculation Method -->
+					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsMeasurementMethod">
+						<h4 class="white-text">Stand-in: depletion or peak height</h4>
+					</div>
+					<!-- Absorption Peak Radial Values -->
+					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsRadialValues">
+						<!-- Should have two inputs: one for the origin, and one that appears for second peak 
+								if the drop-down selection is rel. peak height -->
+						<h3 class="white-text text-box-label" id="IRActionOriginRadiusLabel">Origin Radius:</h3>
+						<input class="input-change hv-display" id="IRActionRadius" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="IRActionPxLabel">px</label>
+					</div>
+				</div>
+				<!-- IR Action Mode - First Page - Absorption Plot -->
+				<div class="grid background-lighter-blue" id="IRAbsorptionPlotSection">
+					<canvas id="IRAbsorptionPlot"></canvas>
+				</div>
+				<!-- IR Action Mode - First Page - Next Wavelength -->
+				<div class="grid background-lighter-blue" id="IRNextWavelength">
+					<div class="grid text-background" id="CurrentEnergyBackground">
+						<h3 class="white-text next-wavelength next-wavelength-label" id="IRActionCurrentEnergyLabel">Current Energy:</h3>
+						<h3 class="white-text next-wavelength" id="IRActionCurrentEnergy"></h3>
+					</div>
+					<div class="grid text-background" id="NextEnergyBackground">
+						<h3 class="white-text next-wavelength next-wavelength-label" id="IRActionNextEnergyLabel">Next Energy:</h3>
+						<h3 class="white-text next-wavelength" id="IRActionNextEnergy"></h3>
+					</div>
+				</div>
+				<!-- IR Action Mode - First Page - Progress -->
+				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionProgress">
+					<div class="grid text-background" id="ProgressTextBackground">
+						<h3 class="white-text progress-text" id="ProgressTextProgress">Progress:</h3>
+						<h3 class="white-text progress-text" id="ProgressTextCurrentImage"></h3>
+						<h3 class="white-text progress-text" id="ProgressTextOf">of</h3>
+						<h3 class="white-text progress-text" id="ProgressTextTotalImages"></h3>
+					</div>
+					<div class="grid text-background" id="ProgressBarBackground">
+						<div id="ProgressBarOuter"></div>
+						<div id="ProgressBar"></div>
+					</div>
+				</div>
 				<button class="page-down page-button" id="IRActionPageDown"><i class="arrow arrow-down"></i></button>
 			</div>
+			<!-- IR Action Mode - Second Page -->
 			<div class="second-page page grid" id="IRActionSecondPage">
 				<button class="page-up page-button" id="IRActionPageUp"><i class="arrow arrow-up"></i></button>
 				<div class="grid background-lighter-blue negative-top-margin" id="IRActionInfo"></div>

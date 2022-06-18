@@ -204,8 +204,8 @@ app.whenReady().then(function () {
 	nativeTheme.themeSource = "dark";
 
 	main_window = create_main_window();
-	invisible_window = create_invisible_window();
-	live_view_window = create_live_view_window();
+	//invisible_window = create_invisible_window();
+	//live_view_window = create_live_view_window();
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) {

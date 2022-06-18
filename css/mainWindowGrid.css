@@ -442,15 +442,15 @@ body {
 	grid-area: Content;
 }
 
-/* 1 2 3 1 3  -> 10 */
-/* 1 2 5  1 1  -> 5 */
+/* IR Action Mode - First Page */
+
 #IRActionFirstPage {
 	grid-template-rows: 1fr 2fr 3fr 2fr 2fr 30px;
 	grid-template-columns: 1fr 1fr;
 	grid-template-areas:
-		"IRActionTitleSection IRAbsorptionPlot"
-		"IRActionControls IRAbsorptionPlot"
-		"IRActionOptions IRAbsorptionPlot"
+		"IRActionTitleSection IRAbsorptionPlotSection"
+		"IRActionControls IRAbsorptionPlotSection"
+		"IRActionOptions IRAbsorptionPlotSection"
 		"IRActionOptions IRNextWavelength"
 		"IRActionOptions IRActionProgress"
 		"IRActionPageDown IRActionPageDown";
@@ -460,7 +460,7 @@ body {
 	grid-area: IRActionTitleSection;
 }
 
-/* IR Action Scan Controls */
+/* IR Action Mode - First Page - Scan Controls */
 #IRActionControls {
 	grid-area: IRActionControls;
 	grid-template-rows: 1fr 1fr;
@@ -488,25 +488,160 @@ body {
 	grid-area: IRActionTurnAround;
 }
 
+/* IR Action Mode - First Page - Scan Options */
 #IRActionOptions {
 	grid-area: IRActionOptions;
+	grid-template-rows: repeat(5, 1fr);
+	grid-template-areas:
+		"Range"
+		"Increment"
+		"CollectionLength"
+		"MeasurementMethod"
+		"RadialValues";
 }
 
-#IRAbsorptionPlot {
-	grid-area: IRAbsorptionPlot;
+/* IR Action Mode - First Page - Scan Options - Range Selection */
+#IRActionOptionsRange {
+	grid-area: Range;
+	grid-template-columns: 2fr 2fr 1fr 1fr 2fr 1fr;
+	grid-template-areas: "RangeLabel RangeStart WNLabel1 RangeToLabel RangeEnd WNLabel2";
+}
+#IRActionRangeLabel {
+	grid-area: RangeLabel;
+}
+#IRActionRangeStart {
+	grid-area: RangeStart;
+}
+#IRActionWNLabel1 {
+	grid-area: WNLabel1;
+}
+#IRActionRangeToLabel {
+	grid-area: RangeToLabel;
+}
+#IRActionRangeEnd {
+	grid-area: RangeEnd;
+}
+#IRActionWNLabel2 {
+	grid-area: WNLabel2;
 }
 
+/* IR Action Mode - First Page - Scan Options - Increment */
+#IRActionOptionsIncrement {
+	grid-area: Increment;
+	grid-template-columns: 1fr 2fr 2fr 1fr 3fr;
+	grid-template-areas: "blank1 IncrementLabel Increment WNLabel3 blank2";
+}
+#IRActionIncrementLabel {
+	grid-area: IncrementLabel;
+}
+#IRActionIncrement {
+	grid-area: Increment;
+}
+#IRActionWNLabel3 {
+	grid-area: WNLabel3;
+}
+
+/* IR Action Mode - First Page - Scan Options - Collection Length */
+#IRActionOptionsCollectionLength {
+	grid-area: CollectionLength;
+}
+/* IR Action Mode - First Page - Scan Options - Absorption Calculation Method */
+#IRActionOptionsMeasurementMethod {
+	grid-area: MeasurementMethod;
+}
+/* IR Action Mode - First Page - Scan Options - Absorption Radial Values */
+#IRActionOptionsRadialValues {
+	grid-area: RadialValues;
+	grid-template-columns: 3fr 2fr 1fr 3fr;
+	grid-template-areas: "OriginRadius Radius PxLabel blank";
+}
+#IRActionOriginRadius {
+	grid-area: OriginRadius;
+}
+#IRActionRadius {
+	grid-area: Radius;
+}
+#IRActionPxLabel {
+	grid-area: PxLabel;
+}
+
+/* IR Action Mode - First Page - Absorption Plot */
+#IRAbsorptionPlotSection {
+	grid-area: IRAbsorptionPlotSection;
+}
+
+/* IR Action Mode - First Page - Next Wavelength */
 #IRNextWavelength {
 	grid-area: IRNextWavelength;
+	grid-template-rows: 1fr 1fr;
+	grid-template-areas:
+		"CurrentEnergyBackground"
+		"NextEnergyBackground";
+}
+#CurrentEnergyBackground {
+	grid-area: CurrentEnergyBackground;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas: "CurrentEnergyLabel CurrentEnergy";
+}
+#IRActionCurrentEnergyLabel {
+	grid-area: CurrentEnergyLabel;
+}
+#IRActionCurrentEnergy {
+	grid-area: CurrentEnergy;
+}
+#NextEnergyBackground {
+	grid-area: NextEnergyBackground;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas: "NextEnergyLabel NextEnergy";
+}
+#IRActionNextEnergyLabel {
+	grid-area: NextEnergyLabel;
+}
+#IRActionNextEnergy {
+	grid-area: NextEnergy;
 }
 
+/* IR Action Mode - First Page - Progress */
 #IRActionProgress {
 	grid-area: IRActionProgress;
+	grid-template-rows: 1fr 1fr;
+	grid-template-areas:
+		"Text"
+		"Bar";
+}
+#ProgressTextBackground {
+	grid-area: Text;
+	grid-template-columns: 3fr 1fr 2fr 1fr 2fr;
+	grid-template-areas: "Progress blank CurrentImage Of TotalImages";
+}
+#ProgressTextProgress {
+	grid-area: Progress;
+}
+#ProgressTextCurrentImage {
+	grid-area: CurrentImage;
+}
+#ProgressTextOf {
+	grid-area: Of;
+}
+#ProgressTextTotalImages {
+	grid-area: TotalImages;
+}
+#ProgressBarBackground {
+	grid-area: Bar;
+	grid-template-areas: "BarInner";
+}
+#ProgressBarOuter {
+	grid-area: BarInner;
+}
+#ProgressBar {
+	grid-area: BarInner;
 }
 
 #IRActionPageDown {
 	grid-area: IRActionPageDown;
 }
+
+/* IR Action Mode - Second Page */
 
 #IRActionSecondPage {
 	grid-template-rows: 30px 1fr 1fr;
