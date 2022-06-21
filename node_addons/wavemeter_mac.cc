@@ -5,33 +5,26 @@
 #include <string>
 #include <napi.h>
 
-/*
-Important Note:
-    Unlike camera_{OS}.cc, functions here all start with Napi
-    to differentiate them from the functions in wlmData.dll with 
-    the same name. Functions in JS are still called in camelCase, with
-    Napi removed from the beginning. 
-    i.e. NapiGetWavelength() would be called from JS as getWavelength()
-*/
+// Global variables
+Napi::FunctionReference macWavelengthFn;
 
-// Get wavelength
-Napi::Number NapiGetWavelength(const Napi::CallbackInfo& info) {
-    Napi::Env env = info.Env(); // Napi local environment
 
-    // Initialize variable to fill with wavelength
-    double lambda = 0.0;
+// Get wavelength (from JS)
+Napi::Value GetWavelength(const Napi::CallbackInfo& info) {
+     // Get wavelength from JS and return back
+	return macWavelengthFn.Call({});
+}
 
-    // Use dummy value
-    lambda = 751.635;
-
-    // Return wavelength
-    return Napi::Number::New(env, lambda);
+// Set up Mac simulation wavelength function
+void SetUpFunction(const Napi::CallbackInfo& info) {
+	macWavelengthFn = Napi::Persistent(info[0].As<Napi::Function>());
 }
 
 // Set up module to export functions to JavaScript
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	// Fill exports object with addon functions
-	exports["getWavelength"] = Napi::Function::New(env, NapiGetWavelength);
+	exports["getWavelength"] = Napi::Function::New(env, GetWavelength);
+	exports["setUpFunction"] = Napi::Function::New(env, SetUpFunction);
 
     return exports;
 }
