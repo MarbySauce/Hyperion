@@ -2,9 +2,10 @@
 const fs = require("fs");
 const ipc = require("electron").ipcRenderer;
 const Chart = require("chart.js");
+// OPO/A is controlled through TCP communication, which is done through JS module Net
+const net = require("net");
 // Addon libraries
-//const wavemeter = require("bindings")("wavemeter");
-//const melexir = require("bindings")("melexir");
+const wavemeter = require("bindings")("wavemeter");
 
 let settings; // Global variable, to be filled in on startup
 
@@ -433,6 +434,39 @@ const scan = {
 		 */
 		reset: (was_running) => scan_accumulated_image_reset(was_running),
 	},
+	action_mode: {
+		params: {
+			energy: {
+				start: 0, // cm-1
+				end: 0, // cm-1
+				increment: 0, // cm-1
+				update: (start, end, increment) => scan_action_mode_params_energy_update(start, end, increment),
+			},
+			peak_radii: {
+				reference: 0, // px
+				interest: 0, // px
+				update: (mode, reference, interest) => scan_action_mode_params_peak_radii_update(mode, reference, interest),
+			},
+		},
+		status: {
+			running: false,
+			paused: false,
+			data_points: {
+				total: 0,
+				current: 0,
+				calculate: () => scan_action_mode_status_data_points_calculate(),
+			},
+		},
+		data: {
+			energies: [],
+			absorption: [],
+			peak_areas: {
+				reference: [],
+				interest: [],
+			},
+			reset: () => scan_action_mode_data_reset(),
+		},
+	},
 	single_shot: {
 		saving: {
 			to_save: false,
@@ -792,6 +826,55 @@ function scan_accumulated_image_spectra_extrema_get_max() {
 	}
 }
 
+// Update action mode scan energy parameters
+function scan_action_mode_params_energy_update(start, end, increment) {
+	// If starting energy > ending energy, make increment negative to go from blue to red
+	if (start > end) {
+		increment *= -1;
+	}
+	// Update values
+	scan.action_mode.params.energy.start = start;
+	scan.action_mode.params.energy.end = end;
+	scan.action_mode.params.energy.increment = increment;
+}
+
+// Update action mode scan absorption parameters
+function scan_action_mode_params_peak_radii_update(mode, reference, interest) {
+	if (mode === "depletion") {
+		// Use the origin for both reference and interest
+		scan.action_mode.params.peak_radii.reference = reference;
+		scan.action_mode.params.peak_radii.interest = reference;
+	} else if (mode === "rel_height") {
+		// Use origin for reference and new IR peak for interest
+		if (!interest) {
+			// No value for new peak height was given, use origin twice
+			scan.action_mode.params.peak_radii.reference = reference;
+			scan.action_mode.params.peak_radii.interest = reference;
+		} else {
+			scan.action_mode.params.peak_radii.reference = reference;
+			scan.action_mode.params.peak_radii.interest = interest;
+		}
+	}
+}
+
+// Calculate total number of data points in action scan
+function scan_action_mode_status_data_points_calculate() {
+	let start = scan.action_mode.params.energy.start;
+	let end = scan.action_mode.params.energy.end;
+	let increment = scan.action_mode.params.energy.increment;
+	let total = Math.ceil((end - start) / increment);
+	scan.action_mode.status.data_points.total = total;
+}
+
+// Reset action mode data arrays
+function scan_action_mode_data_reset() {
+	scan.action_mode.data.energies = [];
+	scan.action_mode.data.absorption = [];
+	scan.action_mode.data.peak_areas.reference = [];
+	scan.action_mode.data.peak_areas.interest = [];
+	scan.action_mode.status.data_points.current = 0;
+}
+
 // Check if single shot should be saved
 function scan_single_shot_check(centroid_results) {
 	if (scan.single_shot.saving.to_save) {
@@ -915,11 +998,17 @@ const laser = {
 		 * Convert OPO/A laser energies
 		 */
 		convert: () => laser_excitation_convert(),
+		/**
+		 * Calculate nIR wavelength based on IR energy (cm^-1)
+		 * @param {number} wavenumber - IR energy (cm^-1)
+		 * @returns {[number, string]} nIR wavelength (nm), selected IR mode ("nir", "iir", "mir", "fir")
+		 */
+		get_nir: (wavenumber) => laser_excitation_get_nir(wavenumber),
 	},
 	/**
 	 * Convert between wavelength (nm) and wavenumbers (cm^-1)
 	 * @param {number} energy - Energy to convert
-	 * @returns Converted energy
+	 * @returns {number} Converted energy
 	 */
 	convert_wn_wl: function (energy) {
 		if (!energy) {
@@ -990,6 +1079,193 @@ function laser_excitation_convert() {
 	laser.excitation.wavelength.fir = decimal_round(fir_wl, 3);
 	laser.excitation.wavenumber.fir = decimal_round(fir_wn, 3);
 }
+
+function laser_excitation_get_nir(wavenumber) {
+	let nir_wl;
+	let nir_wn;
+	let desired_mode;
+	let yag_wl = laser.excitation.wavelength.yag_fundamental; // YAG fundamental (nm)
+	let yag_wn = decimal_round(laser.convert_wn_wl(yag_wl), 3); // YAG fundamental (cm^-1)
+	// Figure out which energy regime wavenumber is in
+	if (11355 < wavenumber && wavenumber < 14080) {
+		// Near IR
+		desired_mode = "nir";
+		nir_wl = decimal_round(laser.convert_wn_wl(wavenumber), 4);
+	} else if (4500 < wavenumber && wavenumber < 7400) {
+		// Intermediate IR
+		desired_mode = "iir";
+		nir_wn = 2 * yag_wn - wavenumber;
+		nir_wl = decimal_round(laser.convert_wn_wl(nir_wn), 4);
+	} else if (2000 < wavenumber && wavenumber <= 4500) {
+		// Mid IR
+		desired_mode = "mir";
+		nir_wn = yag_wn + wavenumber;
+		nir_wl = decimal_round(laser.convert_wn_wl(nir_wn), 4);
+	} else if (625 < wavenumber && wavenumber <= 2000) {
+		// Far IR
+		desired_mode = "fir";
+		nir_wn = (3 * yag_wn - wavenumber) / 2;
+		nir_wl = decimal_round(laser.convert_wn_wl(nir_wn), 4);
+	} else {
+		// Photon energy out of range
+		console.log(`Energy of ${wavenumber} cm^-1 Out of Range`);
+		return [];
+	}
+	return [nir_wl, desired_mode];
+}
+
+/*****************************************************************************
+
+							OPO/A INFORMATION/CONTROL
+
+*****************************************************************************/
+
+const opo = {
+	network: {
+		client: new net.Socket(),
+		config: {
+			host: "localhost",
+			//host: "169.254.170.155",
+			port: 1315,
+		},
+		command: {
+			get_wl: "TELLWL",
+			get_motor_status: "TELLSTAT",
+			move_fast: "SETSPD 3.0", // Move 3 nm/sec
+			move_slow: "SETSPD 0.033", // Move 0.033 nm/sec
+			move: (val) => {
+				return "GOTO " + val.toFixed(3);
+			},
+		},
+		connect: () => {
+			opo.network.client.connect(opo.network.config, () => {});
+		},
+		close: () => {
+			opo.network.client.end();
+		},
+	},
+	status: {
+		motors_moving: false,
+		current_wavelength: 0,
+	},
+	params: {
+		lower_wl_bound: 710,
+		upper_wl_bound: 880,
+		expected_shift: 0, //0.257, // nm
+	},
+	/**
+	 * Get the nIR wavelength recorded by the OPO
+	 */
+	get_wavelength: () => {
+		opo.network.client.write(opo.network.command.get_wl, () => {});
+	},
+	/**
+	 * Update the wavelength stored in opo object
+	 * @param {number} wavelength - nIR wavelength (nm)
+	 */
+	update_wavelength: (wavelength) => opo_update_wavelength(wavelength),
+	/**
+	 * Get status of OPO motors
+	 */
+	get_motor_status: () => {
+		opo.network.client.write(opo.network.command.get_motor_status, () => {});
+	},
+	/**
+	 * Move OPO to specific nIR wavelength
+	 * @param {number} nir_wavelength - nIR wavelength (nm)
+	 */
+	goto_nir: (nir_wavelength) => opo_goto_nir(nir_wavelength),
+	/**
+	 * Set OPO motor speed as 3 nm/sec
+	 */
+	move_fast: () => {
+		opo.network.client.write(opo.network.command.move_fast, () => {});
+	},
+	/**
+	 * Set OPO motor speed as 0.66 nm/sec
+	 */
+	move_slow: () => {
+		opo.network.client.write(opo.network.command.move_slow, () => {});
+	},
+	/**
+	 * Parse error returned by OPO
+	 * @param {number} error_code - code returned by OPO
+	 * @returns
+	 */
+	parse_error: (error_code) => opo_parse_error(error_code),
+};
+
+// Tell OPO to move to nir wavelength
+function opo_goto_nir(nir_wavelength) {
+	// Make sure wavelength is in proper OPO bounds
+	if (nir_wavelength < opo.params.lower_wl_bound || nir_wavelength > opo.params.upper_wl_bound) {
+		console.log(`Wavelength ${wl} nm is out of OPO bounds: ${lower_wl_bound} - ${upper_wl_bound}`);
+		return false;
+	}
+	opo.status.motors_moving = true;
+	opo.network.client.write(opo.network.command.move(nir_wavelength), () => {});
+	return true;
+}
+
+// Update nIR wavelength value given by OPO
+function opo_update_wavelength(wavelength) {
+	console.log("Wavelength:", wavelength);
+	opo.status.current_wavelength = wavelength;
+}
+
+// Parse OPO error
+function opo_parse_error(error_code) {
+	if (!error_code) {
+		// No error code or error_code === 0 => Successfully executed command
+		return;
+	}
+	const opo_errors = [
+		"Successfully Executed Command",
+		"Invalid Command",
+		"Required Window Not Open",
+		"Specified Value Is Out Of Range",
+		"Specified Velocity Is Out Of Safe Values",
+		"A GoTo Operation Is Already Active",
+		"Unable To Change Settings While Motor Movement Active",
+		"No USB Voltmeter Detected",
+	];
+	// Print the error to console
+	console.log(`OPO Error #${error_code}: ${opo_errors[error_code]}`);
+}
+
+// Receive message from OPO computer
+opo.network.client.on("data", (data) => {
+	// Convert to string
+	data = data.toString();
+	// Get rid of newline character "/r/n"
+	data = data.replace("\r\n", "");
+	// Filter motor movement results, which are hexadecimal numbers
+	if (data.startsWith("0x")) {
+		// Note: Don't use triple equals here
+		if (data == 0) {
+			// Motors are done moving
+			opo.status.motors_moving = false;
+			return;
+		}
+		// Motors are still moving
+		opo.status.motors_moving = true;
+		return;
+	}
+	// Make sure it is a number (not an unexpected result)
+	if (isNaN(data)) {
+		console.log("Message from OPO:", data);
+		return;
+	}
+	// Convert data to number
+	data = parseFloat(data);
+	// Check if it's an error code
+	if (data < 10) {
+		opo.parse_error(data);
+		return;
+	}
+	// Only remaining option is it's the OPO's wavelength
+	opo.update_wavelength(data);
+});
 
 /*****************************************************************************
 

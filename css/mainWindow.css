@@ -601,6 +601,9 @@ End right side
 	background-color: hsl(245, 91%, 38%);
 	border: 1px solid hsla(0, 0%, 0%, 0.4);
 	border-radius: 30px;
+	text-align: center;
+	font-size: 2vh;
+	padding-top: 3px;
 	display: none;
 }
 

@@ -128,6 +128,10 @@ document.getElementById("SeviPageUp").onclick = function () {
 
 /*		IR Action Mode		*/
 
+document.getElementById("IRActionStartSave").onclick = function () {
+	action_start_save_button();
+};
+
 document.getElementById("IRActionPageDown").onclick = function () {
 	switch_pages(1); // Switch to second page
 	destroy_absorption_plot();
@@ -168,6 +172,17 @@ function startup() {
 	// Generate image file names and display
 	scan.saving.get_file_names();
 	display_file_names();
+
+	// Connect to OPO
+	opo.network.connect();
+	// Set OPO speed as slow
+	opo.move_slow();
+	// Set up Mac wavemeter simulation function
+	initialize_mac_fn();
+	// Get OPO wavelength
+	setTimeout(() => {
+		opo.get_wavelength();
+	}, 1000);
 }
 
 /*		Tabs		*/
@@ -291,7 +306,11 @@ function switch_pages(page_index) {
 	}
 }
 
-/* Sevi and IR-Sevi Modes */
+/*****************************************************************************
+
+							SEVI/IR-SEVI MODES
+
+*****************************************************************************/
 
 // NOTE TO MARTY: Change scan button functions so that it's small, simple functions (not this gross mess)
 
@@ -896,12 +915,20 @@ function update_counter_displays() {
 }
 
 function sevi_automatic_stop_input() {
+	// Don't update values if an action scan is taking place
+	if (scan.action_mode.status.running) {
+		return;
+	}
 	const auto_stop = document.getElementById("AutomaticStop");
 	let value = parseFloat(auto_stop.value);
 	electrons.total.auto_stop.update(value);
 }
 
 function sevi_automatic_stop_selection() {
+	// Don't update values if an action scan is taking place
+	if (scan.action_mode.status.running) {
+		return;
+	}
 	const auto_stop = document.getElementById("AutomaticStop");
 	const auto_stop_unit = document.getElementById("AutomaticStopUnit");
 	switch (auto_stop_unit.selectedIndex) {
@@ -1221,6 +1248,447 @@ function change_spectrum_x_display_range() {
 	spectrum_display.update();
 }
 
+/*****************************************************************************
+
+							IR ACTION MODE
+
+*****************************************************************************/
+
+/**
+ * Start/Save button for IR Action Mode
+ */
+function action_start_save_button() {
+	// Check whether an action scan is currently being taken
+	if (scan.action_mode.status.running) {
+		// An action scan is running, stop scan after current image and save
+		// Update button text
+		update_action_button_to_start();
+	} else {
+		// An action scan is not running - start one
+		// Get scan parameters
+		if (!get_action_energy_parameters()) {
+			// Energy parameters are invalid, cancel scan
+			return;
+		}
+		if (!get_action_absorption_parameters()) {
+			// Absorption parameters are invalid, cancel scan
+			return;
+		}
+		if (!get_action_autostop_parameter()) {
+			// Autostop parameters are invalid, cancel scan
+			return;
+		}
+		// Calculate number of data points
+		scan.action_mode.status.data_points.calculate();
+		// Update button text
+		update_action_button_to_save();
+		// Start action mode scan
+		start_action_scan();
+	}
+}
+
+/**
+ * Update IR Action Mode Start/Save button to say "Start"
+ */
+function update_action_button_to_start() {
+	const start_save_text = document.getElementById("IRActionStartSaveText");
+	start_save_text.innerText = "Start";
+}
+
+/**
+ * Update IR Action Mode Start/Save button to say "Save"
+ */
+function update_action_button_to_save() {
+	const start_save_text = document.getElementById("IRActionStartSaveText");
+	start_save_text.innerText = "Save";
+}
+
+/**
+ * Get energy parameters (start, end, & increment) for IR Action mode
+ * @returns {boolean} Success of function call
+ */
+function get_action_energy_parameters() {
+	const range_start = document.getElementById("IRActionRangeStart");
+	const range_end = document.getElementById("IRActionRangeEnd");
+	const range_increment = document.getElementById("IRActionIncrement");
+	let starting_energy = parseFloat(range_start.value);
+	let ending_energy = parseFloat(range_end.value);
+	let increment = parseFloat(range_increment.value);
+	// Check that values are in range
+	if (starting_energy > 7400 || ending_energy > 7400) {
+		// Energies are too large
+		alert("Action Energies out of range");
+		return false;
+	}
+	if (starting_energy < 625 || ending_energy < 625) {
+		alert("Action Energies out of range");
+		return false;
+	}
+	if (increment < 1) {
+		alert("Action Increment too small");
+		return false;
+	}
+	// If it got this far, the parameters all look fine
+	// Update values in action_mode object
+	scan.action_mode.params.energy.update(starting_energy, ending_energy, increment);
+	return true;
+}
+
+/**
+ * Get absorption parameters (absorption mode + radii values) for IR Action mode
+ * @returns {boolean} Success of function call
+ */
+function get_action_absorption_parameters() {
+	const origin_radius = document.getElementById("IRActionRadius");
+	// Fill in with drop-down for depletion or rel. peak height
+	//	which would change the "mode" value
+	let mode = "depletion"; // or "rel_height"
+	let origin_value = parseFloat(origin_radius.value);
+	if (origin_value < 0 || isNaN(origin_value)) {
+		alert("Action absorption parameters out of range");
+		return false;
+	}
+	// Update values in action_mode object
+	scan.action_mode.params.peak_radii.update(mode, origin_value);
+	return true;
+}
+
+/**
+ * Get parameters for when to stop image acquisition
+ * @returns {boolean} Success of function call
+ */
+function get_action_autostop_parameter() {
+	// For now, just autostop at 5k frames
+	electrons.total.auto_stop.method = "frames";
+	electrons.total.auto_stop.update(5);
+	return true;
+}
+
+/**
+ * Start an Action Mode scan
+ */
+async function start_action_scan() {
+	// Update scan status
+	scan.action_mode.status.running = true;
+	// Update progress bar (if it shows "complete")
+	hide_progress_bar_complete();
+	// Get energy bounds
+	const energy = scan.action_mode.params.energy;
+	let desired_energy;
+	let desired_wl, desired_mode;
+	let measured_wl, measured_energies, energy_difference;
+	// Loop over each data point
+	for (let point = 0; point <= scan.action_mode.status.data_points.total; point++) {
+		console.log(`Point ${point} of ${scan.action_mode.status.data_points.total}`);
+		desired_energy = energy.start + point * energy.increment;
+		// Update current data point counter
+		scan.action_mode.status.data_points.current = point;
+		// Update progress display
+		update_action_progress();
+		// Calculate nIR wavelength for desired energy
+		[desired_wl, desired_mode] = laser.excitation.get_nir(desired_energy);
+		if (!desired_wl) {
+			// Couldn't get nIR wavelength - move to next energy
+			continue;
+		}
+		// Move OPO to desired energy and measure the wavelength
+		measured_wl = await move_ir_and_measure(desired_wl);
+		if (!measured_wl) {
+			// Couldn't get nIR measurement - move to next energy
+			continue;
+		}
+		// Calculate the excitation IR energy (cm^-1)
+		measured_energies = convert_nir(measured_wl);
+		// Check that the energy is close enough
+		energy_difference = measured_energies[desired_mode].wavenumber - desired_energy;
+		if (Math.abs(energy_difference) > 0.3) {
+			// Too far away, move nIR by difference between desired and measured
+			// -> move_to((desired + difference) = (desired + (desired - measured)) = (2*desired - measured))
+			measured_wl = await move_ir_and_measure(2 * desired_wl - measured_wl);
+			if (!measured_wl) {
+				// Couldn't get nIR measurement - move to next energy
+				continue;
+			}
+			// Calculate the excitation IR energy (cm^-1)
+			measured_energies = convert_nir(measured_wl);
+			// Don't want to iterate movement more than once - move on
+		}
+		// Update current/next IR energy
+		update_action_energy_displays(measured_energies[desired_mode].wavenumber);
+		// TODO: Start IR On/Off scan, wait for it to complete
+		// 		run melexir (and wait)
+		//		Calculate absorption values
+	}
+	// Scan is done
+	scan.action_mode.status.running = false;
+	// Update button text
+	update_action_button_to_start();
+	show_progress_bar_complete();
+}
+
+/**
+ * Update progress display
+ */
+function update_action_progress() {
+	const progress_current = document.getElementById("ProgressTextCurrentImage");
+	const progress_total = document.getElementById("ProgressTextTotalImages");
+	const progress_bar = document.getElementById("ProgressBar");
+	let current = scan.action_mode.status.data_points.current;
+	let total = scan.action_mode.status.data_points.total;
+	let progress_percentage = Math.round((100 * current) / total);
+	// Change text
+	progress_current.innerText = current;
+	progress_total.innerText = total;
+	// Change bar
+	if (progress_percentage === 0) {
+		progress_bar.style.display = "none";
+	} else {
+		progress_bar.style.display = "block";
+		progress_bar.style.width = progress_percentage + "%";
+	}
+}
+
+/**
+ * Update current/next IR energy display
+ * @param {number} - Value of measured IR energy (cm^-1)
+ */
+function update_action_energy_displays(measured_energy) {
+	const current_energy = document.getElementById("IRActionCurrentEnergy");
+	const next_energy = document.getElementById("IRActionNextEnergy");
+	let current_point = scan.action_mode.status.data_points.current;
+	// Update current energy
+	current_energy.innerText = measured_energy.toFixed(2);
+	// Figure out if there will be a next energy
+	if (current_point === scan.action_mode.status.data_points.total) {
+		// This is the last energy, just show "-"
+		next_energy.innerText = "-";
+	} else {
+		// Calculate the next energy
+		let next_energy_val = scan.action_mode.params.energy.start + (current_point + 1) * scan.action_mode.params.energy.increment;
+		next_energy.innerText = next_energy_val.toFixed(2);
+	}
+}
+
+/**
+ * Show "Complete" text on the progress bar
+ */
+function show_progress_bar_complete() {
+	const progress_bar = document.getElementById("ProgressBar");
+	progress_bar.innerText = "Complete";
+}
+
+/**
+ * Erase text on progress bar and hide
+ */
+function hide_progress_bar_complete() {
+	const progress_bar = document.getElementById("ProgressBar");
+	progress_bar.style.display = "none";
+	progress_bar.innerText = "";
+}
+
+/**
+ * (Async function) Return when OPO motors have stopped moving
+ * @returns {true} upon completion
+ */
+async function wait_for_motors() {
+	while (opo.status.motors_moving) {
+		// Check every 500ms if motors are still moving
+		await new Promise((resolve) =>
+			setTimeout(() => {
+				opo.get_motor_status();
+				resolve();
+			}, 500)
+		);
+	}
+	return true;
+}
+
+/**
+ * Move the nIR to desired value and measure wavelength
+ * @param {number} desired_wl - Desired nIR wavelength to move to (nm)
+ * @returns {number} Measured wavelength, or 0 if unable to measure
+ */
+async function move_ir_and_measure(desired_wl) {
+	if (!opo.goto_nir(desired_wl)) {
+		// Could not move to that wavelength - return 0
+		return 0;
+	}
+	// Wait for OPO/A motors to stop moving
+	await wait_for_motors();
+	// Measure wavelength
+	let measured_wl = await measure_wavelength(desired_wl);
+	if (!measured_wl) {
+		// Couldn't measure the wavelength - try once more
+		measured_wl = await measure_wavelength(desired_wl);
+		if (!measured_wl) {
+			// Still couldn't get a measurement - return 0
+			return 0;
+		}
+	}
+	// Return the measured wavelength
+	return measured_wl;
+}
+
+/**
+ * (Async function) Measure wavelengths and find reduced average
+ * @param {number} expected_wl - wavelength to expect during measurements (nm)
+ * @returns {number} wavelength, returns 0 if unable to measure
+ */
+async function measure_wavelength(expected_wl) {
+	const measured_values = [];
+	let measured_value_length = 50; // Number of wavelengths to measure
+	let minimum_stdev = 0.01; // Reduce wavelength array until stdev is below this value
+	let minimum_length = 10; // Minimum number of wavelengths to keep during reduction
+	let too_far_val = 1; // nm, wavelength values too_far_val nm away from expected will be removed (if expected_wl given)
+	let max_iteration_count = 10; // Maximum number of iterations in reduction
+	let fail_count = 0; // Keep track of how many failed measurements there were
+	let bad_measurements = 0;
+	let wl;
+	while (measured_values.length < measured_value_length) {
+		// Get measurement wavelength every IR pulse (100ms / 10Hz)
+		await new Promise((resolve) =>
+			setTimeout(() => {
+				wl = wavemeter.getWavelength();
+				// Make sure there actually was a measurement to get
+				if (wl > 0) {
+					// Make sure we didn't get the same measurement twice by comparing against last measurement
+					if (wl !== measured_values["length"]) {
+						// If an expected wavelength was given, make sure measured value isn't too far away
+						if (expected_wl) {
+							if (Math.abs(wl - expected_wl) < too_far_val) {
+								measured_values.push(wl);
+							} else {
+								// This was a bad measurement
+								bad_measurements++;
+							}
+						} else {
+							// No expected wavelength given, record all values
+							measured_values.push(wl);
+						}
+					}
+				} else {
+					// Wavelength was not measured, uptick failure count
+					fail_count++;
+				}
+				resolve();
+			}, 100)
+		);
+		// Check if there were too many failures
+		if (fail_count > 0.2 * measured_value_length) {
+			console.log(`Wavelength measurement: ${fail_count} failed measurements - Canceled`);
+			return 0;
+		}
+		// Check if there were too many bad measurements
+		if (bad_measurements >= measured_value_length) {
+			console.log(`Wavelength measurement: ${bad_measurements} bad measurements - Canceled`);
+			return 0;
+		}
+	}
+	// Now we have enough measurements - get rid of outliers until standard deviation is low enough
+	let reduced_avg_results = get_reduced_average(measured_values, minimum_stdev, minimum_length, max_iteration_count);
+	return reduced_avg_results.final.average; // Return the average wavelength
+}
+
+/**
+ * Calculate average and filter outliers until standard deviation is small enough
+ * @param {array} values - Array of values to evaluate
+ * @param {number} minimum_stdev - Standard deviation threshold for reduction (i.e. reduces until stdev below this value)
+ * @param {number} minimum_length - Minimum length of final array (i.e. don't reduce too much)
+ * @param {number} max_iteration_count - Maximum number of reduction iterations to complete
+ * @returns {object} statistical values before and after reduction
+ */
+function get_reduced_average(values, minimum_stdev, minimum_length, max_iteration_count) {
+	let iteration_count = 0; // Keep track of how many iterations were used to get reduced average
+
+	let [avg, stdev] = average(values);
+	const reduced_avg_results = {
+		initial: {
+			average: avg,
+			stdev: stdev,
+			values: values,
+		},
+		final: {
+			average: 0,
+			stdev: 0,
+			values: [],
+		},
+		iteration_count: 0,
+	};
+
+	while (stdev > minimum_stdev) {
+		// Filter out values more than 1 stdev away from average
+		values = values.filter((val) => avg - stdev < val && val < avg + stdev);
+		// Uptick reduction iteration counter
+		iteration_count++;
+
+		if (values.length < minimum_length || iteration_count > max_iteration_count) {
+			break;
+		}
+
+		[avg, stdev] = average(values);
+	}
+
+	reduced_avg_results.final = {
+		average: avg,
+		stdev: stdev,
+		values: values,
+	};
+	reduced_avg_results.iteration_count = iteration_count;
+
+	return reduced_avg_results;
+}
+
+/**
+ *  Get the average and standard deviation of an array
+ * @param {array} array
+ * @returns {[number, number]} [average, standard deviation]
+ */
+function average(array) {
+	const len = array.length;
+	const sum = array.reduce((accumulator, current_value) => {
+		return accumulator + current_value;
+	});
+	const average = sum / len;
+	const stdev = Math.sqrt(array.map((x) => Math.pow(x - average, 2)).reduce((a, b) => a + b) / len);
+	return [average, stdev];
+}
+
+/**
+ * Convert nIR wavelength to IR wavelengths/wavenumbers
+ * @param {number} nir_wl - nIR wavelength of OPO
+ * @returns {object} converted values
+ */
+function convert_nir(nir_wl) {
+	const converted_energies = {
+		nir: { wavelength: 0, wavenumber: 0 },
+		iir: { wavelength: 0, wavenumber: 0 },
+		mir: { wavelength: 0, wavenumber: 0 },
+		fir: { wavelength: 0, wavenumber: 0 },
+	};
+	let input_wn = decimal_round(laser.convert_wn_wl(nir_wl), 3); // Input energy (cm^-1)
+	let yag_wl = laser.excitation.wavelength.yag_fundamental; // YAG fundamental (nm)
+	let yag_wn = decimal_round(laser.convert_wn_wl(yag_wl), 3); // YAG fundamental (cm^-1)
+	// Near-IR, will be the same as input value
+	converted_energies.nir.wavelength = nir_wl;
+	converted_energies.nir.wavenumber = input_wn;
+	// Intermediate-IR, 2 * YAG - nIR (cm^-1)
+	let iir_wn = 2 * yag_wn - input_wn; // iIR (cm^-1)
+	let iir_wl = laser.convert_wn_wl(iir_wn); // iIR (nm)
+	converted_energies.iir.wavelength = decimal_round(iir_wl, 3);
+	converted_energies.iir.wavenumber = decimal_round(iir_wn, 3);
+	// Mid-IR, YAG - iIR (cm^-1)
+	let mir_wn = yag_wn - iir_wn; // mIR (cm^-1)
+	let mir_wl = laser.convert_wn_wl(mir_wn); // mIR (nm)
+	converted_energies.mir.wavelength = decimal_round(mir_wl, 3);
+	converted_energies.mir.wavenumber = decimal_round(mir_wn, 3);
+	// Far-IR, iIR - mIR (cm^-1)
+	let fir_wn = iir_wn - mir_wn; // fIR (cm^-1)
+	let fir_wl = laser.convert_wn_wl(fir_wn); // fIR (nm)
+	converted_energies.fir.wavelength = decimal_round(fir_wl, 3);
+	converted_energies.fir.wavenumber = decimal_round(fir_wn, 3);
+	return converted_energies;
+}
+
 /**
  * Create chart to plot IR Absorption Profile
  */
@@ -1342,6 +1810,48 @@ function checkCurrentFile() {
 		currentFile.style.color = "white";
 		currentFile.style.border = "1px solid rgb(62, 71, 95)";
 	}
+}
+
+/* Functions for simulating wavemeter on Mac */
+
+/**
+ * This function is called solely from C++ file (wavemeter_mac.cc)
+ * 	to simulate the wavemeter
+ * Return a wavelength close to OPO's wavelength
+ */
+function mac_wavelength() {
+	// Get the OPO's wavelength
+	let wl = opo.status.current_wavelength;
+	// Add a bias
+	wl -= 0.2565;
+	// Add some noise
+	wl += norm_rand(0, 0.01);
+	// Small chance of wavelength being very far off
+	if (Math.random() < 0.1) {
+		wl -= 20;
+	}
+	return wl;
+}
+
+/**
+ * Initialize JS function on C++ side
+ */
+function initialize_mac_fn() {
+	wavemeter.setUpFunction(mac_wavelength);
+}
+
+/**
+ * Random number with normal distribution
+ * @param {Number} mu - center of normal distribution (mean)
+ * @param {Number} sigma - width of normal distribution (sqrt(variance))
+ * @returns {Number} random number
+ */
+function norm_rand(mu, sigma) {
+	let u = 0,
+		v = 0;
+	while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+	while (v === 0) v = Math.random();
+	return sigma * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) + mu;
 }
 
 // ----------------------------------------------- //
