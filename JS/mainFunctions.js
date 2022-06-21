@@ -163,8 +163,8 @@ document.getElementById("SaveSettingsButton").onclick = function () {
 // Execute various functions on application startup
 function startup() {
 	// Go to Sevi Mode tab (ID = 0)
-	//switch_tabs(0);
-	switch_tabs(2);
+	switch_tabs(0);
+	//switch_tabs(2);
 
 	// Update Autosave button On/Off text
 	update_autosave_button_text();
@@ -183,6 +183,8 @@ function startup() {
 	setTimeout(() => {
 		opo.get_wavelength();
 	}, 1000);
+
+	ipc.send("main-window-loaded", null);
 }
 
 /*		Tabs		*/
@@ -1418,6 +1420,9 @@ async function start_action_scan() {
 		// TODO: Start IR On/Off scan, wait for it to complete
 		// 		run melexir (and wait)
 		//		Calculate absorption values
+		//
+		//		Save energies at the same time as absorption values so they always match
+		//		Store Origin for IR on even with rel. peak heights so that you can monitor effectiveness of both
 	}
 	// Scan is done
 	scan.action_mode.status.running = false;
@@ -1707,15 +1712,11 @@ function destroy_absorption_plot() {
 	}
 }
 
-/*
+/*****************************************************************************
 
+							IPC MESSAGES
 
-*/
-/*			IPC Messages			*/
-/*
-
-
-*/
+*****************************************************************************/
 
 // Recieve setting information and go through startup procedure
 ipc.on("settings-information", (event, settings_information) => {

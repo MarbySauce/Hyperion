@@ -111,6 +111,7 @@ const settings = {
 function create_main_window() {
 	// Create the window
 	let win = new BrowserWindow({
+		show: false,
 		width: 1200,
 		height: 1000,
 		minWidth: 600,
@@ -225,6 +226,13 @@ app.whenReady().then(function () {
 			send_close_camera_msg();
 			main_window = null;
 		});
+
+		/*main_window.once("ready-to-show", () => {
+			main_window.show();
+		});*/
+		/*main_window.webContents.on("did-finish-load", function () {
+			main_window.show();
+		});*/
 	}
 
 	if (live_view_window) {
@@ -344,6 +352,10 @@ function get_folder_names() {
 // Main window is loaded, send the settings info
 ipcMain.on("main-window-ready", function (event, arg) {
 	send_settings("main");
+});
+
+ipcMain.on("main-window-loaded", function (event, arg) {
+	main_window.show();
 });
 
 // Message received from invisible window
