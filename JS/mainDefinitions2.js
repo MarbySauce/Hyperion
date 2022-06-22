@@ -925,6 +925,9 @@ function scan_action_mode_calculate_absorption(origin_off_area, origin_on_area, 
 	} else if (mode === "rel_height") {
 		absorption_value = new_peak_area / origin_off_area;
 	}
+	if (isNaN(absorption_value)) {
+		absorption_value = 0;
+	}
 	return absorption_value;
 }
 
@@ -1210,8 +1213,8 @@ const opo = {
 	network: {
 		client: new net.Socket(),
 		config: {
-			host: "localhost",
-			//host: "169.254.170.155",
+			//host: "localhost",
+			host: "169.254.170.155",
 			port: 1315,
 		},
 		command: {
@@ -1293,6 +1296,7 @@ function opo_goto_nir(nir_wavelength) {
 		return false;
 	}
 	opo.status.motors_moving = true;
+	console.log(`GOTO_NIR: Command sent to OPO: ${opo.network.command.move(nir_wavelength)}`);
 	opo.network.client.write(opo.network.command.move(nir_wavelength), () => {});
 	return true;
 }

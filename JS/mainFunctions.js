@@ -184,6 +184,8 @@ function startup() {
 		opo.get_wavelength();
 	}, 1000);
 
+	disable_action_mode_buttons();
+
 	ipc.send("main-window-loaded", null);
 }
 
@@ -1255,6 +1257,23 @@ function change_spectrum_x_display_range() {
 *****************************************************************************/
 
 /**
+ * Disable unused buttons
+ */
+function disable_action_mode_buttons() {
+	const disabled_buttons = [
+		document.getElementById("IRActionPauseResume"),
+		document.getElementById("IRActionCancel"),
+		document.getElementById("IRActionPreviousWavelength"),
+		document.getElementById("IRActionNextWavelength"),
+		document.getElementById("IRActionTurnAround")
+	];
+	for (let i = 0; i < disabled_buttons.length; i++) {
+		disabled_buttons[i].disabled = true;
+	}
+	
+}
+
+/**
  * Start/Save button for IR Action Mode
  */
 function action_start_save_button() {
@@ -1280,6 +1299,10 @@ function action_start_save_button() {
 		}
 		// Calculate number of data points
 		scan.action_mode.status.data_points.calculate();
+		// Reset data values
+		scan.action_mode.data.reset();
+		// Update Absorption chart
+		update_absorption_plot();
 		// Update button text
 		update_action_button_to_save();
 		// Start action mode scan
@@ -1360,7 +1383,7 @@ function get_action_absorption_parameters() {
 function get_action_autostop_parameter() {
 	// For now, just autostop at 5k frames
 	electrons.total.auto_stop.method = "frames";
-	electrons.total.auto_stop.update(2.5);
+	electrons.total.auto_stop.update(0.5);
 	return true;
 }
 
@@ -1371,7 +1394,7 @@ async function start_action_scan() {
 	console.time("ActionMode");
 	let desired_energy;
 	let desired_wl, desired_mode;
-	let measured_wl, measured_energies, energy_difference;
+	let measured_wl, measured_energies, energy_difference, wl_difference;
 	let origin_off_area, origin_on_area, new_peak_area;
 	let absorption_value;
 	let action_mode_data;
@@ -1417,11 +1440,14 @@ async function start_action_scan() {
 		console.log("Converted energies:", measured_energies);
 		// Check that the energy is close enough
 		energy_difference = measured_energies[desired_mode].wavenumber - desired_energy;
-		/*if (Math.abs(energy_difference) > 0.3) {
+		wl_difference = desired_wl - measured_wl
+		if (Math.abs(energy_difference) > 0.3) {
 			// Too far away, move nIR by difference between desired and measured
 			// -> move_to((desired + difference) = (desired + (desired - measured)) = (2*desired - measured))
 			console.log("Second iteration of moving IR and measuring");
-			measured_wl = await move_ir_and_measure(2 * desired_wl - measured_wl);
+			opo.move_very_slow();
+			//measured_wl = await move_ir_and_measure(2 * desired_wl - measured_wl);
+			measured_wl = await move_ir_and_measure(desired_wl + 0.01 * (2 * (wl_difference > 0) - 1));
 			if (!measured_wl) {
 				// Couldn't get nIR measurement - move to next energy
 				continue;
@@ -1429,7 +1455,8 @@ async function start_action_scan() {
 			// Calculate the excitation IR energy (cm^-1)
 			measured_energies = convert_nir(measured_wl);
 			// Don't want to iterate movement more than once - move on
-		}*/
+			opo.move_slow();
+		}
 		// Update current/next IR energy
 		update_action_energy_displays(measured_energies[desired_mode].wavenumber);
 		// Start taking data
