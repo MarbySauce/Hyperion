@@ -49,7 +49,7 @@ self.onmessage = function (event) {
 	//		method: ("sevi" or "ir-sevi") - decides whether to work up one image (ir_off + ir_on) or two images
 	//		ir_off: 2D array - IR Off image
 	//		ir_on:	2D array - IR On image
-	if (!received_data.method) {
+	/*if (!received_data.method) {
 		// The received data was not properly formatted
 		console.log("Melexir Worker: Improper message received:", received_data);
 		return;
@@ -72,7 +72,25 @@ self.onmessage = function (event) {
 		returned_results.ir_off = melexir.process(received_data.ir_off);
 		// Then ir_on
 		returned_results.ir_on = melexir.process(received_data.ir_on);
+	}*/
+
+	// Pretend to run melexir
+	for (let i = 0; i < 384; i++) {
+		returned_results.ir_off.spectrum[0].push(i + 0.5);
+		returned_results.ir_off.spectrum[1].push(0);
+		returned_results.ir_off.spectrum[2].push(0);
+		returned_results.ir_off.residuals[0].push(i + 0.5);
+		returned_results.ir_off.residuals[1].push(0);
+		returned_results.ir_off.residuals[2].push(0);
+
+		returned_results.ir_on.spectrum[0].push(i + 0.5);
+		returned_results.ir_on.spectrum[1].push(0);
+		returned_results.ir_on.spectrum[2].push(0);
+		returned_results.ir_on.residuals[0].push(i + 0.5);
+		returned_results.ir_on.residuals[1].push(0);
+		returned_results.ir_on.residuals[2].push(0);
 	}
+
 	// Send message back to window with Melexir results
 	self.postMessage(returned_results);
 };
