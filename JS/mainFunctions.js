@@ -1820,12 +1820,13 @@ function update_absorption_plot() {
 function set_absorption_display_range() {
 	let start_energy = scan.action_mode.params.energy.start;
 	let end_energy = scan.action_mode.params.energy.end;
+	let increment = Math.abs(scan.action_mode.params.energy.increment);
 	if (start_energy < end_energy) {
-		absorption_display.options.scales.x.min = start_energy;
-		absorption_display.options.scales.x.max = end_energy;
+		absorption_display.options.scales.x.min = start_energy - increment;
+		absorption_display.options.scales.x.max = end_energy + increment;
 	} else {
-		absorption_display.options.scales.x.min = end_energy;
-		absorption_display.options.scales.x.max = start_energy;
+		absorption_display.options.scales.x.min = end_energy - increment;
+		absorption_display.options.scales.x.max = start_energy + increment;
 	}
 	absorption_display.update();
 }
