@@ -166,6 +166,7 @@ function create_live_view_window() {
 	win = new BrowserWindow({
 		width: 1200,
 		height: 820,
+		show: false,
 		x: settings.information.windows.live_view_window.x,
 		y: settings.information.windows.live_view_window.y,
 		webPreferences: {
@@ -362,6 +363,7 @@ ipcMain.on("main-window-ready", function (event, arg) {
 
 ipcMain.on("main-window-loaded", function (event, arg) {
 	main_window.show();
+	live_view_window.show();
 });
 
 // Message received from invisible window
