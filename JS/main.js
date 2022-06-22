@@ -1,6 +1,6 @@
 const { app, BrowserWindow, dialog, ipcMain, nativeTheme, Menu } = require("electron");
-const path = require("path");
-const fs = require("fs");
+//const path = require("path");
+//const fs = require("fs");
 
 // Declaring variables for each window used
 let main_window; // Main window, for bulk of processing and control
@@ -62,11 +62,13 @@ const settings = {
 	functions: {
 		// Save settings to file
 		save: function () {
+			const fs = require("fs");
 			// Save settings asynchronously (non-blocking)
 			let settings_JSON = JSON.stringify(settings.information, null, "\t");
 			fs.writeFile(settings.file_name, settings_JSON, () => {});
 		},
 		save_sync: function () {
+			const fs = require("fs");
 			// Save settings synchronously (blocking)
 			// Used to save settings on app close
 			let settings_JSON = JSON.stringify(settings.information, null, "\t");
@@ -74,6 +76,7 @@ const settings = {
 		},
 		// Read settings from file
 		read: function () {
+			const fs = require("fs");
 			// Make sure the settings file exists
 			if (fs.existsSync(settings.file_name)) {
 				let data = fs.readFileSync(settings.file_name);
@@ -197,7 +200,8 @@ function create_invisible_window() {
 	return win;
 }
 
-app.whenReady().then(function () {
+//app.whenReady().then(function () {
+app.on("ready", function () {
 	// Read settings from file
 	settings.functions.read();
 
@@ -205,8 +209,8 @@ app.whenReady().then(function () {
 	nativeTheme.themeSource = "dark";
 
 	main_window = create_main_window();
-	//invisible_window = create_invisible_window();
-	//live_view_window = create_live_view_window();
+	invisible_window = create_invisible_window();
+	live_view_window = create_live_view_window();
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) {
@@ -290,6 +294,7 @@ function send_close_camera_msg() {
 
 // Create folders (day, year) to store images and scan information
 function create_folders() {
+	const fs = require("fs");
 	// Check if there is a folder for today's year and date, and if not create it
 	let folder_names = get_folder_names();
 	// Update save directory in settings
@@ -314,6 +319,7 @@ function create_folders() {
 
 // Delete the data folder made on startup if no images were saved
 function delete_empty_folder() {
+	const fs = require("fs");
 	// Check for today's folder
 	fs.readdir(settings.information.save_directory.full_dir, (error, files) => {
 		if (!error && !files.length) {

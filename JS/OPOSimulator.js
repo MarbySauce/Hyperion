@@ -15,7 +15,7 @@ const opo = {
 	current_wavelength: 750,
 	connection: undefined,
 	send_msg: (msg) => {
-		//console.log(`Sending message: '${msg}'`);
+		console.log(`Sending message: '${msg}'`);
 		opo.connection.write(msg + end_cmd);
 	},
 };
@@ -55,15 +55,17 @@ function parse_data(data) {
 		send_error(1);
 	}
 	let [cmd, val] = passed_data;
-	console.log(`Command '${cmd}' recieved`);
 	switch (cmd) {
 		case "GOTO":
+			console.log(`Command '${cmd} ${val}' recieved`);
 			go_to(val);
 			break;
 		case "SETSPD":
+			console.log(`Command '${cmd} ${val}' recieved`);
 			set_speed(val);
 			break;
 		case "TELLWL":
+			console.log(`Command '${cmd}' recieved`);
 			tell_wl();
 			break;
 		case "TELLSTAT":
@@ -141,7 +143,7 @@ function set_speed(val) {
 		return;
 	}
 	// Check that the number is within bounds
-	if (val < 0.01 || val > 5) {
+	if (val < 0.00001 || val > 5) {
 		send_error(4);
 		return;
 	}
@@ -151,6 +153,7 @@ function set_speed(val) {
 }
 
 function tell_wl() {
+	console.log("Sending wavelength!", opo.current_wavelength, opo.current_wavelength.toFixed(5));
 	opo.send_msg(opo.current_wavelength.toFixed(5));
 }
 

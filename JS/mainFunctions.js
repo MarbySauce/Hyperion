@@ -176,7 +176,7 @@ function startup() {
 	// Connect to OPO
 	opo.network.connect();
 	// Set OPO speed as slow
-	opo.move_slow();
+	//opo.move_slow();
 	// Set up Mac wavemeter simulation function
 	initialize_mac_fn();
 	// Get OPO wavelength
@@ -893,8 +893,6 @@ function update_counter_displays() {
 
 	let frame_count_off = electrons.total.frame_count.ir_off;
 	let frame_count_on = electrons.total.frame_count.ir_on;
-	let e_count_off = electrons.total.e_count.ir_off;
-	let e_count_on = electrons.total.e_count.ir_on;
 	let avg_off = electrons.average.mode.ir_off_value;
 	let avg_on = electrons.average.mode.ir_on_value;
 
@@ -1362,7 +1360,7 @@ function get_action_absorption_parameters() {
 function get_action_autostop_parameter() {
 	// For now, just autostop at 5k frames
 	electrons.total.auto_stop.method = "frames";
-	electrons.total.auto_stop.update(5);
+	electrons.total.auto_stop.update(2.5);
 	return true;
 }
 
@@ -1370,15 +1368,28 @@ function get_action_autostop_parameter() {
  * Start an Action Mode scan
  */
 async function start_action_scan() {
-	// Update scan status
-	scan.action_mode.status.running = true;
-	// Update progress bar (if it shows "complete")
-	hide_progress_bar_complete();
-	// Get energy bounds
-	const energy = scan.action_mode.params.energy;
+	console.time("ActionMode");
 	let desired_energy;
 	let desired_wl, desired_mode;
 	let measured_wl, measured_energies, energy_difference;
+	let origin_off_area, origin_on_area, new_peak_area;
+	let absorption_value;
+	let action_mode_data;
+	// Update scan status
+	scan.action_mode.status.running = true;
+	scan.status.method = "ir-sevi";
+	// Update progress bar (if it shows "complete")
+	hide_progress_bar_complete();
+	// Set Absorption plot energy display range
+	set_absorption_display_range();
+	// Get energy bounds
+	const energy = scan.action_mode.params.energy;
+	// Move to starting wavelength with fast OPO speed
+	opo.move_fast();
+	[desired_wl, desired_mode] = laser.excitation.get_nir(energy.start);
+	await move_ir_and_measure(desired_wl);
+	// Switch to moving slowly
+	opo.move_slow();
 	// Loop over each data point
 	for (let point = 0; point <= scan.action_mode.status.data_points.total; point++) {
 		console.log(`Point ${point} of ${scan.action_mode.status.data_points.total}`);
@@ -1393,7 +1404,9 @@ async function start_action_scan() {
 			// Couldn't get nIR wavelength - move to next energy
 			continue;
 		}
+		console.log(`Desired energy: ${desired_energy} cm-1 -> nIR: ${desired_wl} nm`);
 		// Move OPO to desired energy and measure the wavelength
+		console.log("Moving IR, measuring wavelength");
 		measured_wl = await move_ir_and_measure(desired_wl);
 		if (!measured_wl) {
 			// Couldn't get nIR measurement - move to next energy
@@ -1401,11 +1414,13 @@ async function start_action_scan() {
 		}
 		// Calculate the excitation IR energy (cm^-1)
 		measured_energies = convert_nir(measured_wl);
+		console.log("Converted energies:", measured_energies);
 		// Check that the energy is close enough
 		energy_difference = measured_energies[desired_mode].wavenumber - desired_energy;
-		if (Math.abs(energy_difference) > 0.3) {
+		/*if (Math.abs(energy_difference) > 0.3) {
 			// Too far away, move nIR by difference between desired and measured
 			// -> move_to((desired + difference) = (desired + (desired - measured)) = (2*desired - measured))
+			console.log("Second iteration of moving IR and measuring");
 			measured_wl = await move_ir_and_measure(2 * desired_wl - measured_wl);
 			if (!measured_wl) {
 				// Couldn't get nIR measurement - move to next energy
@@ -1414,21 +1429,58 @@ async function start_action_scan() {
 			// Calculate the excitation IR energy (cm^-1)
 			measured_energies = convert_nir(measured_wl);
 			// Don't want to iterate movement more than once - move on
-		}
+		}*/
 		// Update current/next IR energy
 		update_action_energy_displays(measured_energies[desired_mode].wavenumber);
-		// TODO: Start IR On/Off scan, wait for it to complete
-		// 		run melexir (and wait)
-		//		Calculate absorption values
-		//
-		//		Save energies at the same time as absorption values so they always match
-		//		Store Origin for IR on even with rel. peak heights so that you can monitor effectiveness of both
+		// Start taking data
+		// NOTE TO MARTY: Should make this fn also used by SEVI mode
+		start_sevi_scan();
+		// Save image ID's for file naming later
+		if (point === 0) {
+			scan.action_mode.status.first_image = scan.saving.image_id;
+		}
+		scan.action_mode.status.last_image = scan.saving.image_id;
+		// Wait for scan to finish
+		console.log("Waiting for SEVI scan to complete");
+		await wait_for_sevi_scan();
+		// When images are auto-stopped, they are also saved
+		// Run MELEXIR and wait for results
+		run_melexir();
+		console.log("Waiting for Melexir to complete");
+		await wait_for_melexir();
+		// Calculate peak areas and absorption value
+		[origin_off_area, origin_on_area, new_peak_area] = scan.action_mode.data.peak_areas.calculate();
+		absorption_value = scan.action_mode.calculate_absorption(origin_off_area, origin_on_area, new_peak_area);
+		// Store values
+		action_mode_data = {
+			energy: measured_energies[desired_mode].wavenumber,
+			absorption: absorption_value,
+			origin_off: origin_off_area,
+			origin_on: origin_on_area,
+			new_peak: new_peak_area,
+		};
+		scan.action_mode.data.update(action_mode_data);
+		// Update Absorption Plot display
+		update_absorption_plot();
 	}
 	// Scan is done
 	scan.action_mode.status.running = false;
+	// Save data to file
+	scan.action_mode.save();
 	// Update button text
 	update_action_button_to_start();
 	show_progress_bar_complete();
+	console.timeEnd("ActionMode");
+}
+
+// Start a sevi scan
+function start_sevi_scan() {
+	// NOTE TO MARTY: Change these to not take true/false as the args
+	update_scan_running_status(false);
+	update_file_name_display(false);
+	electrons.total.reset(false);
+	scan.accumulated_image.reset(false);
+	update_scan_id(false);
 }
 
 /**
@@ -1461,8 +1513,10 @@ function update_action_energy_displays(measured_energy) {
 	const current_energy = document.getElementById("IRActionCurrentEnergy");
 	const next_energy = document.getElementById("IRActionNextEnergy");
 	let current_point = scan.action_mode.status.data_points.current;
+	// \u207B is unicode for superscript "-", and \u00B9 is for superscript "1"
+	const wn_unit_label = " cm\u207B\u00B9";
 	// Update current energy
-	current_energy.innerText = measured_energy.toFixed(2);
+	current_energy.innerText = measured_energy.toFixed(2) + wn_unit_label;
 	// Figure out if there will be a next energy
 	if (current_point === scan.action_mode.status.data_points.total) {
 		// This is the last energy, just show "-"
@@ -1470,7 +1524,7 @@ function update_action_energy_displays(measured_energy) {
 	} else {
 		// Calculate the next energy
 		let next_energy_val = scan.action_mode.params.energy.start + (current_point + 1) * scan.action_mode.params.energy.increment;
-		next_energy.innerText = next_energy_val.toFixed(2);
+		next_energy.innerText = next_energy_val.toFixed(2) + wn_unit_label;
 	}
 }
 
@@ -1492,6 +1546,37 @@ function hide_progress_bar_complete() {
 }
 
 /**
+ * Move the nIR to desired value and measure wavelength
+ * @param {number} desired_wl - Desired nIR wavelength to move to (nm)
+ * @returns {number} Measured wavelength, or 0 if unable to measure
+ */
+async function move_ir_and_measure(desired_wl) {
+	if (!opo.goto_nir(desired_wl)) {
+		// Could not move to that wavelength - return 0
+		return 0;
+	}
+	// Wait for OPO/A motors to stop moving
+	await wait_for_motors();
+	// Get wavelength from OPO
+	opo.get_wavelength();
+	console.log("Getting wavelength from OPO");
+	// Measure wavelength
+	let measured_wl = await measure_wavelength(desired_wl);
+	console.log(`Measured nIR: ${measured_wl} nm`);
+	if (!measured_wl) {
+		// Couldn't measure the wavelength - try once more
+		measured_wl = await measure_wavelength(desired_wl);
+		console.log(`Measured nIR: ${measured_wl} nm`);
+		if (!measured_wl) {
+			// Still couldn't get a measurement - return 0
+			return 0;
+		}
+	}
+	// Return the measured wavelength
+	return measured_wl;
+}
+
+/**
  * (Async function) Return when OPO motors have stopped moving
  * @returns {true} upon completion
  */
@@ -1506,32 +1591,6 @@ async function wait_for_motors() {
 		);
 	}
 	return true;
-}
-
-/**
- * Move the nIR to desired value and measure wavelength
- * @param {number} desired_wl - Desired nIR wavelength to move to (nm)
- * @returns {number} Measured wavelength, or 0 if unable to measure
- */
-async function move_ir_and_measure(desired_wl) {
-	if (!opo.goto_nir(desired_wl)) {
-		// Could not move to that wavelength - return 0
-		return 0;
-	}
-	// Wait for OPO/A motors to stop moving
-	await wait_for_motors();
-	// Measure wavelength
-	let measured_wl = await measure_wavelength(desired_wl);
-	if (!measured_wl) {
-		// Couldn't measure the wavelength - try once more
-		measured_wl = await measure_wavelength(desired_wl);
-		if (!measured_wl) {
-			// Still couldn't get a measurement - return 0
-			return 0;
-		}
-	}
-	// Return the measured wavelength
-	return measured_wl;
 }
 
 /**
@@ -1695,11 +1754,43 @@ function convert_nir(nir_wl) {
 }
 
 /**
+ * (Async function) wait for SEVI scan to complete
+ */
+async function wait_for_sevi_scan() {
+	while (scan.status.running) {
+		// Check every 500ms if scan is still being taken
+		await new Promise((resolve) =>
+			setTimeout(() => {
+				resolve();
+			}, 500)
+		);
+	}
+	return true;
+}
+
+/**
+ * (Async function) wait for MELEXIR worker to complete computation
+ */
+async function wait_for_melexir() {
+	// When Melexir worker is done processing, it will be set to null
+	while (melexir_worker) {
+		// Check every 100ms if it's still working
+		await new Promise((resolve) =>
+			setTimeout(() => {
+				resolve();
+			}, 100)
+		);
+	}
+	return true;
+}
+
+/**
  * Create chart to plot IR Absorption Profile
  */
 function create_absorption_plot() {
 	const absorption_display_ctx = document.getElementById("IRAbsorptionPlot").getContext("2d");
 	absorption_display = new Chart(absorption_display_ctx, absorption_config);
+	update_absorption_plot();
 }
 
 /**
@@ -1710,6 +1801,33 @@ function destroy_absorption_plot() {
 		absorption_display.destroy();
 		absorption_display = null;
 	}
+}
+
+/**
+ * Update IR Absorption chart
+ */
+function update_absorption_plot() {
+	if (absorption_display) {
+		absorption_display.data.labels = scan.action_mode.data.energies;
+		absorption_display.data.datasets[0].data = scan.action_mode.data.absorption;
+		absorption_display.update();
+	}
+}
+
+/**
+ * Set the IR Absorption energy display range
+ */
+function set_absorption_display_range() {
+	let start_energy = scan.action_mode.params.energy.start;
+	let end_energy = scan.action_mode.params.energy.end;
+	if (start_energy < end_energy) {
+		absorption_display.options.scales.x.min = start_energy;
+		absorption_display.options.scales.x.max = end_energy;
+	} else {
+		absorption_display.options.scales.x.min = end_energy;
+		absorption_display.options.scales.x.max = start_energy;
+	}
+	absorption_display.update();
 }
 
 /*****************************************************************************
@@ -1824,9 +1942,9 @@ function mac_wavelength() {
 	// Get the OPO's wavelength
 	let wl = opo.status.current_wavelength;
 	// Add a bias
-	wl -= 0.2565;
+	//wl -= 0.2565;
 	// Add some noise
-	wl += norm_rand(0, 0.01);
+	wl += norm_rand(0, 0.001);
 	// Small chance of wavelength being very far off
 	if (Math.random() < 0.1) {
 		wl -= 20;

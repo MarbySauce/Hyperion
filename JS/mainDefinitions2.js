@@ -443,9 +443,10 @@ const scan = {
 				update: (start, end, increment) => scan_action_mode_params_energy_update(start, end, increment),
 			},
 			peak_radii: {
-				reference: 0, // px
-				interest: 0, // px
-				update: (mode, reference, interest) => scan_action_mode_params_peak_radii_update(mode, reference, interest),
+				mode: "depletion", // or "rel_height"
+				origin: 0, // px
+				new_peak: 0, // px
+				update: (mode, origin, new_peak) => scan_action_mode_params_peak_radii_update(mode, origin, new_peak),
 			},
 		},
 		status: {
@@ -456,16 +457,24 @@ const scan = {
 				current: 0,
 				calculate: () => scan_action_mode_status_data_points_calculate(),
 			},
+			first_image: 0,
+			last_image: 0,
 		},
 		data: {
 			energies: [],
 			absorption: [],
 			peak_areas: {
-				reference: [],
-				interest: [],
+				origin_off: [],
+				origin_on: [],
+				new_peak: [],
+				calculate: () => scan_action_mode_data_peak_areas_calculate(),
 			},
+			update: (data) => scan_action_mode_data_update(data),
 			reset: () => scan_action_mode_data_reset(),
 		},
+		calculate_absorption: (origin_off_area, origin_on_area, new_peak_area) =>
+			scan_action_mode_calculate_absorption(origin_off_area, origin_on_area, new_peak_area),
+		save: () => scan_action_mode_save(),
 	},
 	single_shot: {
 		saving: {
@@ -839,21 +848,17 @@ function scan_action_mode_params_energy_update(start, end, increment) {
 }
 
 // Update action mode scan absorption parameters
-function scan_action_mode_params_peak_radii_update(mode, reference, interest) {
-	if (mode === "depletion") {
-		// Use the origin for both reference and interest
-		scan.action_mode.params.peak_radii.reference = reference;
-		scan.action_mode.params.peak_radii.interest = reference;
-	} else if (mode === "rel_height") {
-		// Use origin for reference and new IR peak for interest
-		if (!interest) {
-			// No value for new peak height was given, use origin twice
-			scan.action_mode.params.peak_radii.reference = reference;
-			scan.action_mode.params.peak_radii.interest = reference;
-		} else {
-			scan.action_mode.params.peak_radii.reference = reference;
-			scan.action_mode.params.peak_radii.interest = interest;
-		}
+function scan_action_mode_params_peak_radii_update(mode, origin, new_peak) {
+	if (mode === "depletion" || mode === "rel_height") {
+		scan.action_mode.params.peak_radii.mode = mode;
+	}
+	scan.action_mode.params.peak_radii.origin = origin;
+	if (!new_peak) {
+		// No value was given for new peak radius
+		scan.action_mode.params.peak_radii.mode = "depletion";
+		scan.action_mode.params.peak_radii.new_peak = 0;
+	} else {
+		scan.action_mode.params.peak_radii.new_peak = new_peak;
 	}
 }
 
@@ -866,13 +871,94 @@ function scan_action_mode_status_data_points_calculate() {
 	scan.action_mode.status.data_points.total = total;
 }
 
+// Calculate peak areas from PE Spectra
+function scan_action_mode_data_peak_areas_calculate() {
+	// NOTE TO MARTY: This should be replaced with a Gaussian fitting procedure
+	//	but for now, just add points center±2 px together
+	// First get radii for origin and new peak
+	// Use floor() to get rid of .5 ending of radial values
+	let origin_radius = Math.floor(scan.action_mode.params.peak_radii.origin);
+	let new_peak_radius = Math.floor(scan.action_mode.params.peak_radii.new_peak);
+	let origin_off = 0,
+		origin_on = 0,
+		new_peak = 0;
+	// Calculate area of origin
+	for (r = origin_radius - 2; r <= origin_radius + 2; r++) {
+		origin_off += scan.accumulated_image.spectra.data.ir_off_intensity[r];
+		origin_on += scan.accumulated_image.spectra.data.ir_on_intensity[r];
+	}
+	// Calculate area of new peak
+	if (new_peak_radius !== 0) {
+		for (r = new_peak_radius - 2; r <= new_peak_radius + 2; r++) {
+			new_peak += scan.accumulated_image.spectra.data.ir_on_intensity[r];
+		}
+	}
+	// Return values
+	return [origin_off, origin_on, new_peak];
+}
+
+// Update action mode data arrays
+function scan_action_mode_data_update(data) {
+	scan.action_mode.data.energies.push(data.energy);
+	scan.action_mode.data.absorption.push(data.absorption);
+	scan.action_mode.data.peak_areas.origin_off.push(data.origin_off);
+	scan.action_mode.data.peak_areas.origin_on.push(data.origin_on);
+	scan.action_mode.data.peak_areas.new_peak.push(data.new_peak);
+}
+
 // Reset action mode data arrays
 function scan_action_mode_data_reset() {
 	scan.action_mode.data.energies = [];
 	scan.action_mode.data.absorption = [];
-	scan.action_mode.data.peak_areas.reference = [];
-	scan.action_mode.data.peak_areas.interest = [];
+	scan.action_mode.data.peak_areas.origin_off = [];
+	scan.action_mode.data.peak_areas.origin_on = [];
+	scan.action_mode.data.peak_areas.new_peak = [];
 	scan.action_mode.status.data_points.current = 0;
+}
+
+// Calculate absorption values from plot
+function scan_action_mode_calculate_absorption(origin_off_area, origin_on_area, new_peak_area) {
+	let mode = scan.action_mode.params.peak_radii.mode;
+	let absorption_value = 0;
+	if (mode === "depletion") {
+		absorption_value = 1 - origin_on_area / origin_off_area;
+	} else if (mode === "rel_height") {
+		absorption_value = new_peak_area / origin_off_area;
+	}
+	return absorption_value;
+}
+
+// Save action mode data to file
+function scan_action_mode_save() {
+	// Data is saved in columns of: energy, absorption, origin_off_area, origin_on_area, new_peak_area
+	//	with a header that shows absorption mode, energy range, increment, peak radii
+	let first_image = ("0" + scan.action_mode.status.first_image).slice(-2);
+	let last_image = ("0" + scan.action_mode.status.last_image).slice(-2);
+	let file_name = settings.save_directory.full_dir + `/action_spectrum_i${first_image}_i${last_image}.txt`;
+	let params = scan.action_mode.params;
+	let data = scan.action_mode.data;
+	let save_string = "";
+	// First add header
+	save_string += "Information:\n";
+	save_string += `Absorption mode: ${params.peak_radii.mode}\n`;
+	save_string += `Starting energy: ${params.energy.start} cm-1\n`;
+	save_string += `Ending energy: ${params.energy.end} cm-1\n`;
+	save_string += `Increment: ${params.energy.increment} cm-1\n`;
+	save_string += `Origin radius: ${params.peak_radii.origin} px\n`;
+	save_string += `New peak radius: ${params.peak_radii.new_peak || "None"}\n\n`; // Saves as "None" if no radius was specified
+	// Next add data
+	save_string += "Data:\n";
+	for (let i = 0; i < data.energies.length; i++) {
+		save_string += data.energies[i] + " " + data.absorption[i] + " ";
+		save_string += data.peak_areas.origin_off[i] + " " + data.peak_areas.origin_on[i] + " ";
+		save_string += data.peak_areas.new_peak[i] + "\n";
+	}
+	// Write to file
+	fs.writeFile(file_name, save_string, (error) => {
+		if (error) {
+			console.log("Could not save action mode data:", error);
+		}
+	});
 }
 
 // Check if single shot should be saved
@@ -1131,8 +1217,9 @@ const opo = {
 		command: {
 			get_wl: "TELLWL",
 			get_motor_status: "TELLSTAT",
-			move_fast: "SETSPD 3.0", // Move 3 nm/sec
-			move_slow: "SETSPD 0.033", // Move 0.033 nm/sec
+			move_fast: "SETSPD 1.0", //"SETSPD 3.0", // Move 3 nm/sec
+			move_slow: "SETSPD 0.01", //"SETSPD 0.033", // Move 0.033 nm/sec
+			move_very_slow: "SETSPD 0.001",
 			move: (val) => {
 				return "GOTO " + val.toFixed(3);
 			},
@@ -1187,6 +1274,9 @@ const opo = {
 	move_slow: () => {
 		opo.network.client.write(opo.network.command.move_slow, () => {});
 	},
+	move_very_slow: () => {
+		opo.network.client.write(opo.network.command.move_very_slow, () => {});
+	},
 	/**
 	 * Parse error returned by OPO
 	 * @param {number} error_code - code returned by OPO
@@ -1237,6 +1327,17 @@ function opo_parse_error(error_code) {
 opo.network.client.on("data", (data) => {
 	// Convert to string
 	data = data.toString();
+	// Split data up (in case two things came at the same time)
+	data = data.split("\r\n");
+	// Process message(s)
+	data.forEach((msg) => {
+		if (msg) {
+			process_opo_data(msg);
+		}
+	});
+});
+
+function process_opo_data(data) {
 	// Get rid of newline character "/r/n"
 	data = data.replace("\r\n", "");
 	// Filter motor movement results, which are hexadecimal numbers
@@ -1265,7 +1366,7 @@ opo.network.client.on("data", (data) => {
 	}
 	// Only remaining option is it's the OPO's wavelength
 	opo.update_wavelength(data);
-});
+}
 
 /*****************************************************************************
 
