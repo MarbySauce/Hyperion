@@ -951,6 +951,7 @@ function scan_action_mode_save() {
 	save_string += `New peak radius: ${params.peak_radii.new_peak || "None"}\n\n`; // Saves as "None" if no radius was specified
 	// Next add data
 	save_string += "Data:\n";
+	save_string += "Energy (cm-1) - Absorption - Origin Area (Off) - Origin Area (On) - New Peak Area\n";
 	for (let i = 0; i < data.energies.length; i++) {
 		save_string += data.energies[i] + " " + data.absorption[i] + " ";
 		save_string += data.peak_areas.origin_off[i] + " " + data.peak_areas.origin_on[i] + " ";
@@ -1213,8 +1214,8 @@ const opo = {
 	network: {
 		client: new net.Socket(),
 		config: {
-			//host: "localhost",
-			host: "169.254.170.155",
+			host: "localhost",
+			//host: "169.254.170.155",
 			port: 1315,
 		},
 		command: {
@@ -1228,7 +1229,9 @@ const opo = {
 			},
 		},
 		connect: () => {
-			opo.network.client.connect(opo.network.config, () => {});
+			opo.network.client.connect(opo.network.config, (err) => {
+				console.log(`Could not connect to OPO: ${err}`);
+			});
 		},
 		close: () => {
 			opo.network.client.end();

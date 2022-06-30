@@ -1265,12 +1265,11 @@ function disable_action_mode_buttons() {
 		document.getElementById("IRActionCancel"),
 		document.getElementById("IRActionPreviousWavelength"),
 		document.getElementById("IRActionNextWavelength"),
-		document.getElementById("IRActionTurnAround")
+		document.getElementById("IRActionTurnAround"),
 	];
 	for (let i = 0; i < disabled_buttons.length; i++) {
 		disabled_buttons[i].disabled = true;
 	}
-	
 }
 
 /**
@@ -1382,8 +1381,10 @@ function get_action_absorption_parameters() {
  */
 function get_action_autostop_parameter() {
 	// For now, just autostop at 5k frames
-	electrons.total.auto_stop.method = "frames";
-	electrons.total.auto_stop.update(0.5);
+	//electrons.total.auto_stop.method = "frames";
+	//electrons.total.auto_stop.update(0.5);
+	electrons.total.auto_stop.method = "electrons";
+	electrons.total.auto_stop.update(1);
 	return true;
 }
 
@@ -1440,7 +1441,7 @@ async function start_action_scan() {
 		console.log("Converted energies:", measured_energies);
 		// Check that the energy is close enough
 		energy_difference = measured_energies[desired_mode].wavenumber - desired_energy;
-		wl_difference = desired_wl - measured_wl
+		wl_difference = desired_wl - measured_wl;
 		if (Math.abs(energy_difference) > 0.3) {
 			// Too far away, move nIR by difference between desired and measured
 			// -> move_to((desired + difference) = (desired + (desired - measured)) = (2*desired - measured))
