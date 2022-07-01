@@ -4,15 +4,13 @@
 	For some reason it's necessary to wrap .onclick and .oninput functions with function(){}
 */
 
-/*
+/*****************************************************************************
 
 
-*/
-/*			Event Listeners			*/
-/*
+							EVENT LISTENERS
 
 
-*/
+*****************************************************************************/
 
 // Startup
 window.onload = function () {
@@ -49,8 +47,7 @@ document.getElementById("ScanPauseResume").onclick = function () {
 	sevi_pause_resume_button();
 };
 document.getElementById("ScanCancel").onclick = function () {
-	// Save functions as hitting save button but without saving
-	sevi_start_save_button(true);
+	sevi_cancel_button();
 };
 document.getElementById("ScanAutosave").onclick = function () {
 	autosave_button();
@@ -65,9 +62,11 @@ document.getElementById("ScanSingleShot").onclick = function () {
 // File naming buttons
 document.getElementById("ImageCounterDown").onclick = function () {
 	downtick_image_counter();
+	update_scan_id();
 };
 document.getElementById("ImageCounterUp").onclick = function () {
 	uptick_image_counter();
+	update_scan_id();
 };
 document.getElementById("VMIMode").oninput = function () {
 	vmi_mode_selection();
@@ -148,19 +147,19 @@ document.getElementById("SaveSettingsButton").onclick = function () {
 	SaveSettings();
 };
 
-/*
+/*****************************************************************************
 
 
-*/
-/*			Event Listener Functions			*/
-/*
+						FUNCTIONS FOR EVENT LISTENERS
 
 
-*/
+*****************************************************************************/
 
 /*		Startup		*/
 
-// Execute various functions on application startup
+/**
+ * Application startup procedure
+ */
 function startup() {
 	// Go to Sevi Mode tab (ID = 0)
 	switch_tabs(0);
@@ -200,9 +199,6 @@ function startup() {
 function switch_tabs(tab) {
 	// Tab name should be an integer corresponding to the index of tabList
 	// 		Some tabs are left empty and can be filled in if a new tab is added in the future
-	// 0 => SEVI mode, 1 => IR-SEVI Mode, 2 => IR Action Mode,
-	// 3 => blank, 4 => blank, 5 => blank, 6 => blank, 7 => blank,
-	// 8 => Settings section
 	//
 	// If you only want to hide all tabs and show nothing,
 	// call the function with no parameters
@@ -250,14 +246,9 @@ function switch_tabs(tab) {
 	tab_list[tab].classList.add("pressed-tab");
 	content_list[tab].style.display = "grid";
 
-	// If a scan is not currently being taken, switch the scan method (if relevant)
-	let sevi_methods = ["sevi", "ir-sevi", "ir-action"];
-	if (!scan.status.running && sevi_methods[tab]) {
-		scan.status.method = sevi_methods[tab];
-	}
-
 	// If chosen tab is Sevi or IR-Sevi mode, we have to do a bit more
 	// since IR-SEVI is just Sevi with a few more elements shown
+	let sevi_methods = ["sevi", "ir-sevi"];
 	if (tab <= 1) {
 		// Remove class of the tab not chosen (e.g. remove "sevi-mode" if ir-sevi chosen)
 		content_list[tab].classList.remove(sevi_methods[(tab + 1) % 2] + "-mode");
@@ -276,9 +267,11 @@ function switch_tabs(tab) {
 	switch_pages(0);
 }
 
-// Switch between first and second page
+/**
+ * Switch between first and second page
+ * @param {int} page_index - 0 to switch to first page, 1 to switch to second
+ */
 function switch_pages(page_index) {
-	// page_index = 0 to switch to first page, 1 to switch to second
 	let page_prefix;
 	if (page_info.current_tab <= 1) {
 		// Currently on Sevi or IR-Sevi tab
@@ -316,152 +309,162 @@ function switch_pages(page_index) {
 
 *****************************************************************************/
 
-// NOTE TO MARTY: Change scan button functions so that it's small, simple functions (not this gross mess)
-
 /**
- * Functionality for Sevi Mode Start/Save button
- * @param {bool} dont_save - If true, stops scan as if saving but without saving
+ * Functionality for SEVI/IR-SEVI Mode Start/Save button
  */
-function sevi_start_save_button(dont_save) {
-	// Since the scan running status gets changed in the process, we need a constant value
-	//	that tells whether the scan was just started or ended
-	let was_running = scan.status.running;
-	// Start or stop the scan (and save if stopped)
-	update_scan_running_status(was_running, !dont_save);
-	// Change button text appropriately
-	update_start_save_button(was_running);
-	if (!was_running) {
-		// Make sure pause button says "pause" if a scan is started
-		update_pause_resume_button("resume");
-	}
-	update_file_name_display(was_running);
-	// Reset electron and frame counts if new scan started
-	electrons.total.reset(was_running);
-	// Reset accumulated image if new scan started
-	scan.accumulated_image.reset(was_running);
-	// Start autosave timer if new scan started
-	scan.saving.start_timer(was_running);
-	// Update scan ID's
-	update_scan_id(was_running);
-}
-
-// Update Start/Save button on press
-// was_running is bool that says whether a scan was running when button pressed
-function update_start_save_button(was_running) {
-	const start_button_text = document.getElementById("ScanStartSaveText");
-
-	// If a scan has not been started, change text to "Save"
-	//	otherwise change to "Start"
-	if (was_running) {
-		start_button_text.innerText = "Start";
-		// Since we just saved an image, increase the image counter as well
-		uptick_image_counter();
-		// Change Pause button to say Resume to give user option to resume the scan that was saved
-		update_pause_resume_button("pause");
+function sevi_start_save_button() {
+	// Check whether a scan is running
+	if (scan.status.running) {
+		// Scan is running, stop scan and save
+		stop_sevi_scan(true);
+		// Update button text
+		change_sevi_start_button_to_start();
+		change_sevi_pause_button_to_resume();
 		// If scan was paused while saved, update pause status
 		if (scan.status.paused) {
 			// Remove gray-out display
-			update_pause_screen_overlay("resume");
+			remove_pause_screen_overlay();
 			// Update display again to get rid of pause icon
 			update_accumulated_image_display(true);
 			scan.status.paused = false;
 		}
+		// Increase image ID counter
+		uptick_image_counter();
+		// Run Melexir
 	} else {
-		start_button_text.innerText = "Save";
+		// Scan was not running, start new scan
+		// Check whether it should be SEVI or IR-SEVI scan (based on current tab)
+		let sevi_methods = ["sevi", "ir-sevi"];
+		scan.status.method = sevi_methods[page_info.current_tab];
+		// Start the scan
+		start_sevi_scan();
+		// Update button text
+		change_sevi_start_button_to_save();
+		change_sevi_pause_button_to_pause();
 	}
 }
 
 /**
- * Update the scan "running" status
- * @param {bool} was_running - whether a scan was running when button pressed
- * @param {bool} if_save - whether to save image/spectra to file
+ * Start a SEVI or IR-SEVI scan
  */
-function update_scan_running_status(was_running, if_save) {
-	// First check if we need to save (i.e. if a scan just finished)
-	if (was_running && if_save) {
+function start_sevi_scan() {
+	// Reset counters, accumulated image, and autosave timer
+	electrons.total.reset();
+	scan.accumulated_image.reset();
+	scan.saving.start_timer();
+	// Save image ID for scan
+	update_scan_id();
+	update_pes_id();
+	// Update scan running status
+	scan.status.running = true;
+	scan.status.paused = false;
+}
+
+/**
+ * Stop SEVI or IR-SEVI scan
+ * @param {bool} save_image - Whether to save image to file
+ */
+function stop_sevi_scan(save_image) {
+	// Update scan running status
+	scan.status.running = false;
+	scan.status.paused = false;
+	// Save image to file (if selected)
+	if (save_image) {
 		scan.accumulated_image.save();
 	}
-	// Change running status
-	scan.status.running = !was_running;
 }
 
 /**
- * Pause if a scan is currently being taken, resume if a scan was paused or saved
+ * Change SEVI Mode Start button text to say Start
  */
+function change_sevi_start_button_to_start() {
+	const start_button_text = document.getElementById("ScanStartSaveText");
+	start_button_text.innerText = "Start";
+}
+
+/**
+ * Change SEVI Mode Start button text to say Save
+ */
+function change_sevi_start_button_to_save() {
+	const start_button_text = document.getElementById("ScanStartSaveText");
+	start_button_text.innerText = "Save";
+}
+
 function sevi_pause_resume_button() {
-	// Check if a scan is currently being taken
+	// Check if a scan is running
 	if (scan.status.running) {
-		// Scan is running. Pause if not already, otherwise un-pause
+		// Scan is running, pause if not already, otherwise resume scan
 		if (scan.status.paused) {
-			// Update button text
-			update_pause_resume_button("resume");
-			update_pause_screen_overlay("resume");
 			// Resume scan
 			scan.status.paused = false;
+			// Update button text and remove pause overlay
+			change_sevi_pause_button_to_pause();
+			remove_pause_screen_overlay();
 		} else {
-			// Update button text
-			update_pause_resume_button("pause");
-			update_pause_screen_overlay("pause");
 			// Pause scan
 			scan.status.paused = true;
+			// Update button text and add pause overlay
+			change_sevi_pause_button_to_resume();
+			add_pause_screen_overlay();
 		}
 	} else {
-		// A scan was not running. If an earlier scan is in memory, resume it
+		// Scan was not running
+		// If an earlier scan is still in memory, give option to resume that scan
+		// Otherwise do nothing
 		if (scan.accumulated_image.images.ir_off.length > 0 && electrons.total.e_count.ir_off > 0) {
 			// Update button text
-			update_start_save_button(false);
-			update_pause_resume_button("resume");
+			change_sevi_start_button_to_save();
+			change_sevi_pause_button_to_pause();
 			// Downtick counter to match earlier image
 			downtick_image_counter();
-			// Start autosave timer if new scan started
-			scan.saving.start_timer(false);
-			// Update scan ID's
-			update_scan_id(false);
-			// Change running status
+			// Start autosave timer
+			scan.saving.start_timer();
+			// Update scan ID
+			update_scan_id();
+			// Resume scan
 			scan.status.running = true;
+			scan.status.paused = false;
 		}
-		// If there is not an earlier scan in memory, do nothing
 	}
 }
 
 /**
- * Change Pause button text
- * @param {string} action - Either "pause" if scan was just paused or "resume" if just resumed
- * (Button text will be changed to the opposite of action)
+ * Change SEVI Mode Pause button text to say Pause
  */
-function update_pause_resume_button(action) {
+function change_sevi_pause_button_to_pause() {
 	const pause_button_text = document.getElementById("ScanPauseResumeText");
-
-	if (action === "pause") {
-		// The scan was paused, change text to "Resume"
-		pause_button_text.innerHTML = "Resume";
-	} else if (action === "resume") {
-		// Scan was resumed, change text to "Pause"
-		pause_button_text.innerHTML = "Pause";
-	}
+	pause_button_text.innerText = "Pause";
 }
 
 /**
- * Gray out display if paused
- * @param {string} action - Either "pause" if scan was just paused or "resume" if just resumed
- * (Will gray out for "pause" and remove for "resume")
+ * Change SEVI Mode Pause button text to say Resume
  */
-function update_pause_screen_overlay(action) {
-	const sevi_content = document.getElementById("SeviModeContent");
-
-	if (action === "pause") {
-		// Scan was paused, gray out display to make this clear
-		sevi_content.classList.add("paused");
-		// Add pause icon
-		draw_pause_icon();
-	} else if (action === "resume") {
-		// Scan was resumed, take away gray-out
-		sevi_content.classList.remove("paused");
-	}
+function change_sevi_pause_button_to_resume() {
+	const pause_button_text = document.getElementById("ScanPauseResumeText");
+	pause_button_text.innerText = "Resume";
 }
 
 /**
- * Draw a pause icon on the canvas
+ * Gray out display to show scan is paused
+ */
+function add_pause_screen_overlay() {
+	const sevi_content = document.getElementById("SeviModeContent");
+	// Gray out sections
+	sevi_content.classList.add("paused");
+	// Add pause icon on accumulated image display
+	draw_pause_icon();
+}
+
+/**
+ * Remove pause screen display
+ */
+function remove_pause_screen_overlay() {
+	const sevi_content = document.getElementById("SeviModeContent");
+	sevi_content.classList.remove("paused");
+}
+
+/**
+ * Draw a pause icon on the accumulated image display
  */
 function draw_pause_icon() {
 	const image_display = document.getElementById("Display");
@@ -495,6 +498,21 @@ function draw_pause_icon() {
 	ctx.arc(canvas_center.x + box_width / 2 + box_shift, canvas_center.y - box_height / 2, box_width / 2, Math.PI, 0); // Draw half circle above rectangle
 	ctx.arc(canvas_center.x + box_width / 2 + box_shift, canvas_center.y + box_height / 2, box_width / 2, 0, Math.PI); // Draw half circle below rectangle
 	ctx.fill(); // Fill in shapes with color
+}
+
+/**
+ * Cancel SEVI scan
+ */
+function sevi_cancel_button() {
+	// If a scan isn't running, do nothing
+	if (!scan.status.running) {
+		return;
+	}
+	// Stop scan
+	stop_sevi_scan();
+	// Update button text
+	change_sevi_start_button_to_start();
+	change_sevi_pause_button_to_resume();
 }
 
 /**
@@ -587,19 +605,22 @@ function display_file_names() {
 	ir_on_file.value = scan.saving.file_name_ir;
 }
 
-// Increment the image counter up by one
+/**
+ * Increment the image counter by one
+ */
 function uptick_image_counter() {
 	const image_counter = document.getElementById("ImageCounter");
 	let current_counter_val = parseInt(image_counter.value);
 	current_counter_val++;
 	image_counter.value = current_counter_val;
-	// Update the image ID in scan.saving
-	update_scan_id(true);
 	// Update file names
+	update_scan_id();
 	display_file_names();
 }
 
-// Decrement the image counter by one
+/**
+ * Decrement the image counter by one
+ */
 function downtick_image_counter() {
 	const image_counter = document.getElementById("ImageCounter");
 	let current_counter_val = parseInt(image_counter.value);
@@ -609,25 +630,30 @@ function downtick_image_counter() {
 	}
 	current_counter_val--;
 	image_counter.value = current_counter_val;
-	// Update the image ID in scan.saving
-	update_scan_id(true);
 	// Update file names
+	update_scan_id();
 	display_file_names();
 }
 
-// Update the ID used for scan saving and PE Spectrum display
-function update_scan_id(was_running) {
+/**
+ * Update the ID used for scan saving
+ */
+function update_scan_id() {
 	const image_counter = document.getElementById("ImageCounter");
 	let image_id = parseInt(image_counter.value);
-	if (was_running) {
-		// Image was just saved, update the scan saving ID
-		scan.saving.image_id = image_id;
-		// Also update file names in scan.saving
-		scan.saving.get_file_names();
-	} else {
-		// A new image just started, update the PE Spectrum ID
-		scan.accumulated_image.spectra.params.image_id = image_id;
-	}
+	// Update the scan saving ID
+	scan.saving.image_id = image_id;
+	// Update file names in scan.saving
+	scan.saving.get_file_names();
+}
+
+/**
+ * Update the ID used for PE Spectrum display
+ */
+function update_pes_id() {
+	const image_counter = document.getElementById("ImageCounter");
+	let image_id = parseInt(image_counter.value);
+	scan.accumulated_image.spectra.params.image_id = image_id;
 }
 
 /**
@@ -884,7 +910,9 @@ function update_accumulated_image_display(override) {
 	});
 }
 
-// Update electron counter displays
+/**
+ * Update electron counter displays
+ */
 function update_counter_displays() {
 	const total_frames = document.getElementById("TotalFrames");
 	const total_frames_ir = document.getElementById("TotalFramesIROn");
@@ -901,14 +929,11 @@ function update_counter_displays() {
 	// If on Sevi mode tab, total values = ir_off + ir_on
 	if (page_info.current_tab === 0) {
 		total_frames.value = frame_count_off + frame_count_on;
-		//total_e_count.value = e_count_off + e_count_on;
 		total_e_count.value = electrons.total.e_count.get_count("total");
 		avg_e_count.value = ((avg_off + avg_on) / 2).toFixed(2);
 	} else {
 		total_frames.value = frame_count_off;
 		total_frames_ir.value = frame_count_on;
-		//total_e_count.value = e_count_off;
-		//total_e_count_ir.value = e_count_on;
 		total_e_count.value = electrons.total.e_count.get_count("ir_off");
 		total_e_count_ir.value = electrons.total.e_count.get_count("ir_on");
 		avg_e_count.value = avg_off.toFixed(2);
@@ -916,6 +941,9 @@ function update_counter_displays() {
 	}
 }
 
+/**
+ * Input value for automatic image stopping/saving
+ */
 function sevi_automatic_stop_input() {
 	// Don't update values if an action scan is taking place
 	if (scan.action_mode.status.running) {
@@ -926,6 +954,9 @@ function sevi_automatic_stop_input() {
 	electrons.total.auto_stop.update(value);
 }
 
+/**
+ * Selection of unit (None, Frames, Electrons) for automatic image stopping/saving
+ */
 function sevi_automatic_stop_selection() {
 	// Don't update values if an action scan is taking place
 	if (scan.action_mode.status.running) {
@@ -957,14 +988,18 @@ function sevi_automatic_stop_selection() {
 	}
 }
 
-// Create chart to plot PE Spectrum
+/**
+ *  Create chart to plot PE Spectrum
+ */
 function create_spectrum_plot() {
 	const spectrum_display_ctx = document.getElementById("PESpectrum").getContext("2d");
 	spectrum_display = new Chart(spectrum_display_ctx, spectrum_config);
 	process_melexir_results();
 }
 
-// Destroy PE Spectrum chart
+/**
+ * Destroy PE Spectrum chart
+ */
 function destroy_spectrum_plot() {
 	if (spectrum_display) {
 		spectrum_display.destroy();
@@ -988,9 +1023,9 @@ function switch_pes_spectra() {
 	chart_spectrum_results();
 }
 
-// NOTE TO MARTY: Maybe have the scaling done in a fn in scan that returns the arrays to plot
-
-// Run Melexir in Web Worker
+/**
+ * Run MELEXIR in a Web Worker
+ */
 function run_melexir() {
 	// If the worker was already created, it must still be running, so just return
 	if (melexir_worker) {
@@ -1002,7 +1037,7 @@ function run_melexir() {
 	}
 	melexir_worker = new Worker("../JS/worker.js");
 	// Disable calculate button
-	change_pes_calculate_text(true);
+	disable_pes_calculate_button();
 	// Prepare data to send
 	let sent_data = {
 		ir_off: scan.accumulated_image.images.ir_off,
@@ -1030,7 +1065,7 @@ function run_melexir() {
 		melexir_worker.terminate();
 		melexir_worker = null;
 		// Re-enable calculate button
-		change_pes_calculate_text(false);
+		enable_pes_calculate_button();
 	};
 }
 
@@ -1050,20 +1085,22 @@ function process_melexir_results() {
 	chart_spectrum_results();
 }
 
-// Change PES Calculate button display while calculating
-function change_pes_calculate_text(is_still_calculating) {
+/**
+ * Disable PES calculate button while Melexir is running
+ */
+function disable_pes_calculate_button() {
 	const calculate_button = document.getElementById("CalculateSpectrumButton");
-	if (is_still_calculating) {
-		// Calculation is running
-		calculate_button.innerText = "Calculating...";
-		// Disable button
-		calculate_button.disabled = true;
-	} else {
-		// Calculation is finished
-		calculate_button.innerText = "Calculate";
-		// Enable button
-		calculate_button.disabled = false;
-	}
+	calculate_button.innerText = "Calculating...";
+	calculate_button.disabled = true;
+}
+
+/**
+ * Enable PES calculate button
+ */
+function enable_pes_calculate_button() {
+	const calculate_button = document.getElementById("CalculateSpectrumButton");
+	calculate_button.innerText = "Calculate";
+	calculate_button.disabled = false;
 }
 
 /**
@@ -1086,7 +1123,9 @@ function determine_ebe_calculation() {
 	scan.accumulated_image.spectra.params.use_ebe = true;
 }
 
-// If showing PES eBE plot, apply Jacobian (to account for R -> eKE conversion) and normalize
+/**
+ * If showing PES eBE plot, apply Jacobian (to account for R -> eKE conversion) and normalize
+ */
 function scale_and_normalize_pes() {
 	// If eBE array is empty, we'll just show radial plot, no need to scale
 	if (!scan.accumulated_image.spectra.params.use_ebe) {
@@ -1125,7 +1164,9 @@ function scale_and_normalize_pes() {
 	}
 }
 
-// Convert PES radial plot to eBE plot
+/**
+ * Convert PES radial plot to eBE plot
+ */
 function convert_r_to_ebe() {
 	// Make sure radial array is not empty
 	if (scan.accumulated_image.spectra.data.radial_values.length === 0) {
@@ -1154,7 +1195,9 @@ function convert_r_to_ebe() {
 	reverse_pes_x_axis();
 }
 
-// Reverse the x axis (to account for R -> eBE conversion)
+/**
+ * Reverse x axis on PE chart (to account for R -> eBE conversion)
+ */
 function reverse_pes_x_axis() {
 	// Reverse eBE array
 	scan.accumulated_image.spectra.data.ebe_values.reverse();
@@ -1164,7 +1207,9 @@ function reverse_pes_x_axis() {
 	scan.accumulated_image.spectra.data.normalized.ir_on_intensity.reverse();
 }
 
-// Display PE Spectrum on chart
+/**
+ * Display PE Spectrum
+ */
 function chart_spectrum_results() {
 	// Check if the chart exists
 	if (!spectrum_display) {
@@ -1230,7 +1275,9 @@ function chart_spectrum_results() {
 	spectrum_display.update();
 }
 
-// Update x display range of PES Spectrum
+/**
+ * Update horizontal display range of PES Spectrum
+ */
 function change_spectrum_x_display_range() {
 	const x_range_min = parseFloat(document.getElementById("SpectrumXLower").value);
 	const x_range_max = parseFloat(document.getElementById("SpectrumXUpper").value);
@@ -1499,16 +1546,6 @@ async function start_action_scan() {
 	update_action_button_to_start();
 	show_progress_bar_complete();
 	console.timeEnd("ActionMode");
-}
-
-// Start a sevi scan
-function start_sevi_scan() {
-	// NOTE TO MARTY: Change these to not take true/false as the args
-	update_scan_running_status(false);
-	update_file_name_display(false);
-	electrons.total.reset(false);
-	scan.accumulated_image.reset(false);
-	update_scan_id(false);
 }
 
 /**
@@ -1861,7 +1898,9 @@ function set_absorption_display_range() {
 
 /*****************************************************************************
 
+
 							IPC MESSAGES
+
 
 *****************************************************************************/
 
@@ -1892,15 +1931,13 @@ ipc.on("new-camera-frame", (event, centroid_results) => {
 	electrons.total.auto_stop.check();
 });
 
-/*
+/*****************************************************************************
 
 
-*/
-/*			Various Functions			*/
-/*
+							VARIOUS FUNCTIONS 
 
 
-*/
+*****************************************************************************/
 
 /**
  * Round value to specified decimal place
@@ -1916,33 +1953,6 @@ function decimal_round(num, d) {
 }
 
 /* Should move functions to the most related section */
-
-// Format current date as MMDDYY
-function getFormattedDate() {
-	let today = new Date();
-	let formattedDay = ("0" + today.getDate()).slice(-2);
-	let formattedMonth = ("0" + (today.getMonth() + 1)).slice(-2);
-	let formattedYear = today.getFullYear().toString().slice(-2);
-	return formattedMonth + formattedDay + formattedYear;
-}
-
-// Format file name as MMDDYY_iXX_1024.i0N
-function getCurrentFileName(ionCounter) {
-	let todaysDate = getFormattedDate();
-	// Slice here makes sure 0 is not included if ionCounter > 9
-	let increment = ("0" + ionCounter).slice(-2);
-	let fileString = `${todaysDate}i${increment}_1024.i0N`;
-	let fileStringIR = `${todaysDate}i${increment}_IR_1024.i0N`;
-
-	// Update file name in scan information
-	scanInfo.fileName = fileString;
-	scanInfo.fileNameIR = fileStringIR;
-
-	// Check if that image already exists
-	checkCurrentFile();
-
-	return fileString;
-}
 
 // Check if file in Current File exists
 function checkCurrentFile() {

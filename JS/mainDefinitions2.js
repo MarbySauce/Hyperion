@@ -124,9 +124,8 @@ const electrons = {
 		},
 		/**
 		 * Reset total counts (e.g. total electrons, total frames)
-		 * @param {bool} was_running - Whether scan was being taken when function was called
 		 */
-		reset: (was_running) => electrons_total_reset(was_running),
+		reset: () => electrons_total_reset(),
 	},
 	/**
 	 * Update electron counts with results from centroiding
@@ -199,14 +198,12 @@ function electrons_average_get_average(arr) {
 	return sum / arr.length;
 }
 
-// Reset total values (if scan just started)
-function electrons_total_reset(was_running) {
-	if (!was_running) {
-		electrons.total.e_count.ir_off = 0;
-		electrons.total.e_count.ir_on = 0;
-		electrons.total.frame_count.ir_off = 0;
-		electrons.total.frame_count.ir_on = 0;
-	}
+// Reset total values
+function electrons_total_reset() {
+	electrons.total.e_count.ir_off = 0;
+	electrons.total.e_count.ir_on = 0;
+	electrons.total.frame_count.ir_off = 0;
+	electrons.total.frame_count.ir_on = 0;
 }
 
 // Get formatted string (X.XXXeN) of electron count
@@ -317,9 +314,8 @@ const scan = {
 		get_file_names: () => scan_saving_get_file_names(),
 		/**
 		 * Start autosave timer if scan is running
-		 * @param {boolean} was_running - Whether scan was running upon execution
 		 */
-		start_timer: (was_running) => scan_saving_start_timer(was_running),
+		start_timer: () => scan_saving_start_timer(),
 		/**
 		 * Autosave timer
 		 */
@@ -430,9 +426,8 @@ const scan = {
 		save: () => scan_accumulated_image_save(),
 		/**
 		 * Reset accumulated images
-		 * @param {boolean} was_running - Whether a scan was running when function was called
 		 */
-		reset: (was_running) => scan_accumulated_image_reset(was_running),
+		reset: () => scan_accumulated_image_reset(),
 	},
 	action_mode: {
 		params: {
@@ -523,13 +518,9 @@ function scan_saving_get_file_names() {
 	scan.saving.pes_file_name_ir = `${formatted_date}i${pes_id}_IR_1024_pes.dat`;
 }
 
-// Start autosave timer if a scan is running (can be paused)
-function scan_saving_start_timer(was_running) {
-	// Only start timer if scan just started
-	if (!was_running) {
-		// Start autosave timer
-		scan.saving.autosave_timer();
-	}
+// Start autosave timer
+function scan_saving_start_timer() {
+	scan.saving.autosave_timer();
 }
 
 // Autosave timer loop
@@ -671,15 +662,13 @@ function scan_accumulated_image_save() {
 	}
 }
 
-// Reset accumulated images if a new scan was started
-function scan_accumulated_image_reset(was_running) {
-	if (!was_running) {
-		let image_height = scan.accumulated_image.params.accumulation_height;
-		let image_width = scan.accumulated_image.params.accumulation_width;
-		scan.accumulated_image.images.ir_off = Array.from(Array(image_height), () => new Array(image_width).fill(0));
-		scan.accumulated_image.images.ir_on = Array.from(Array(image_height), () => new Array(image_width).fill(0));
-		scan.accumulated_image.images.difference = Array.from(Array(image_height), () => new Array(image_width).fill(0));
-	}
+// Reset accumulated images
+function scan_accumulated_image_reset() {
+	let image_height = scan.accumulated_image.params.accumulation_height;
+	let image_width = scan.accumulated_image.params.accumulation_width;
+	scan.accumulated_image.images.ir_off = Array.from(Array(image_height), () => new Array(image_width).fill(0));
+	scan.accumulated_image.images.ir_on = Array.from(Array(image_height), () => new Array(image_width).fill(0));
+	scan.accumulated_image.images.difference = Array.from(Array(image_height), () => new Array(image_width).fill(0));
 }
 
 // Save worked up spectra to file
@@ -1230,7 +1219,9 @@ const opo = {
 		},
 		connect: () => {
 			opo.network.client.connect(opo.network.config, (err) => {
-				console.log(`Could not connect to OPO: ${err}`);
+				if (err) {
+					console.log(`Could not connect to OPO: ${err}`);
+				}
 			});
 		},
 		close: () => {
@@ -1492,7 +1483,7 @@ const spectrum_config = {
 						// If showing eBE plot, also show R on the label
 						// Check if not showing R plot
 						if (context.label != context.dataIndex + 0.5) {
-							let radius = scan.accumulated_image.spectra.data.radial_values.length - context.dataIndex + 0.5;
+							let radius = scan.accumulated_image.spectra.data.radial_values.length - context.dataIndex - 0.5;
 							let radius_label = "Radius: " + radius;
 							label.push(radius_label);
 						}

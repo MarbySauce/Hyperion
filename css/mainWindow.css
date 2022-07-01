@@ -53,6 +53,9 @@ label {
 .tab:hover {
 	color: white;
 }
+.tab:focus-visible {
+	outline: none;
+}
 
 .pressed-tab {
 	color: white;
