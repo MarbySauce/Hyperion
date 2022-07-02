@@ -1218,9 +1218,9 @@ const opo = {
 			},
 		},
 		connect: () => {
-			opo.network.client.connect(opo.network.config, (err) => {
-				if (err) {
-					console.log(`Could not connect to OPO: ${err}`);
+			opo.network.client.connect(opo.network.config, (error) => {
+				if (error) {
+					console.log(`Could not connect to OPO: ${error}`);
 				}
 			});
 		},

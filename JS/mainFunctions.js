@@ -316,21 +316,18 @@ function sevi_start_save_button() {
 	// Check whether a scan is running
 	if (scan.status.running) {
 		// Scan is running, stop scan and save
-		stop_sevi_scan(true);
+		stop_sevi_scan(true); // 'true' argument means image will be saved to file
 		// Update button text
 		change_sevi_start_button_to_start();
 		change_sevi_pause_button_to_resume();
 		// If scan was paused while saved, update pause status
-		if (scan.status.paused) {
-			// Remove gray-out display
-			remove_pause_screen_overlay();
-			// Update display again to get rid of pause icon
-			update_accumulated_image_display(true);
-			scan.status.paused = false;
-		}
+		remove_pause_screen_overlay(); // Remove gray-out display
+		// Update display again to get rid of pause icon
+		update_accumulated_image_display(true);
 		// Increase image ID counter
 		uptick_image_counter();
 		// Run Melexir
+		run_melexir();
 	} else {
 		// Scan was not running, start new scan
 		// Check whether it should be SEVI or IR-SEVI scan (based on current tab)
@@ -342,6 +339,7 @@ function sevi_start_save_button() {
 		change_sevi_start_button_to_save();
 		change_sevi_pause_button_to_pause();
 	}
+	update_file_name_display();
 }
 
 /**
@@ -354,7 +352,7 @@ function start_sevi_scan() {
 	scan.saving.start_timer();
 	// Save image ID for scan
 	update_scan_id();
-	update_pes_id();
+	//update_pes_id();
 	// Update scan running status
 	scan.status.running = true;
 	scan.status.paused = false;
@@ -508,11 +506,15 @@ function sevi_cancel_button() {
 	if (!scan.status.running) {
 		return;
 	}
+	// If the scan was paused, remove pause overlay
+	remove_pause_screen_overlay();
+	update_accumulated_image_display(true); // Get rid of pause icon
 	// Stop scan
 	stop_sevi_scan();
 	// Update button text
 	change_sevi_start_button_to_start();
 	change_sevi_pause_button_to_resume();
+	update_file_name_display();
 }
 
 /**
@@ -571,13 +573,13 @@ function disable_single_shot_button(to_disable) {
 }
 
 /**
- * If a scan is running, continuously show the filename(s) that will be saved (only for Sevi and IR-Sevi)
- * @param {boolean} was_running - Whether a scan was running when function executed
+ * If a scan is running, only show the file names that will be saved even when switching tabs (SEVI and IR-SEVI only)
+ * (i.e. if SEVI scan is being taken, only show one file name while on IR-SEVI tab)
  */
-function update_file_name_display(was_running) {
+function update_file_name_display() {
 	const ir_on_file = document.getElementById("CurrentImageFileIR");
 	if (scan.status.method === "sevi") {
-		if (!was_running) {
+		if (scan.status.running) {
 			// Sevi mode scan just started, add CSS class to ir_on file name s.t. it doesn't show even on IR-Sevi tab
 			ir_on_file.classList.add("do-not-show-file");
 		} else {
@@ -585,7 +587,7 @@ function update_file_name_display(was_running) {
 			ir_on_file.classList.remove("do-not-show-file");
 		}
 	} else if (scan.status.method === "ir-sevi") {
-		if (!was_running) {
+		if (scan.status.running) {
 			// IR-Sevi mode scan just started, add CSS class to ir_on file name s.t. it always shows even on Sevi tab
 			ir_on_file.classList.add("always-show-file");
 		} else {
@@ -653,7 +655,11 @@ function update_scan_id() {
 function update_pes_id() {
 	const image_counter = document.getElementById("ImageCounter");
 	let image_id = parseInt(image_counter.value);
-	scan.accumulated_image.spectra.params.image_id = image_id;
+	if (scan.status.running) {
+		scan.accumulated_image.spectra.params.image_id = image_id;
+	} else {
+		scan.accumulated_image.spectra.params.image_id = image_id - 1;
+	}
 }
 
 /**
@@ -1059,6 +1065,7 @@ function run_melexir() {
 		scan.accumulated_image.spectra.data.ir_on_anisotropy = returned_results.ir_on.spectrum[2];
 		// Save results to file
 		scan.accumulated_image.spectra.save();
+		update_pes_id();
 		// Process the results
 		process_melexir_results();
 		// Terminate worker
