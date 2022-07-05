@@ -170,12 +170,9 @@ function startup() {
 
 	// Generate image file names and display
 	scan.saving.get_file_names();
+	scan.previous.read();
 	display_file_names();
 
-	// Connect to OPO
-	opo.network.connect();
-	// Set OPO speed as slow
-	//opo.move_slow();
 	// Set up Mac wavemeter simulation function
 	initialize_mac_fn();
 	// Get OPO wavelength
@@ -259,6 +256,8 @@ function switch_tabs(tab) {
 	// If moving to IR Action tab, create Absorption chart, otherwise destroy it if it exists
 	if (tab === 2) {
 		create_absorption_plot();
+		// Connect to OPO
+		opo.network.connect();
 	} else {
 		destroy_absorption_plot();
 	}
@@ -368,6 +367,7 @@ function stop_sevi_scan(save_image) {
 	scan.status.paused = false;
 	// Save image to file (if selected)
 	if (save_image) {
+		scan.previous.add_scan();
 		scan.accumulated_image.save();
 	}
 }
@@ -749,6 +749,9 @@ function excitation_energy_input_fn() {
 	const wavelength_input = document.getElementById("IRWavelength");
 	// Get wavelength as number and round to 3 decimal places
 	let input_wl = decimal_round(parseFloat(wavelength_input.value), 3);
+	if (isNaN(input_wl)) {
+		input_wl = 0;
+	}
 	// Save in laser object and get conversions
 	laser.excitation.wavelength.input = input_wl;
 	laser.excitation.convert();
@@ -794,11 +797,16 @@ function display_excitation_energies() {
 	const converted_wavelength = document.getElementById("IRConvertedWavelength");
 	const converted_wavenumber = document.getElementById("IRWavenumber");
 	// Display selected mode's converted values
-	converted_wavelength.value = laser.excitation.wavelength[laser.excitation.mode].toFixed(3);
-	converted_wavenumber.value = laser.excitation.wavenumber[laser.excitation.mode].toFixed(3);
-	// If nIR mode was chosen, shouldn't show converted wavelength
-	if (laser.excitation.mode === "nir") {
+	if (laser.excitation.wavelength[laser.excitation.mode] !== 0) {
+		converted_wavelength.value = laser.excitation.wavelength[laser.excitation.mode].toFixed(3);
+		converted_wavenumber.value = laser.excitation.wavenumber[laser.excitation.mode].toFixed(3);
+		// If nIR mode was chosen, shouldn't show converted wavelength
+		if (laser.excitation.mode === "nir") {
+			converted_wavelength.value = "";
+		}
+	} else {
 		converted_wavelength.value = "";
+		converted_wavenumber.value = "";
 	}
 }
 
@@ -1304,6 +1312,112 @@ function change_spectrum_x_display_range() {
 	spectrum_display.update();
 }
 
+/**
+ * Add scan information to recent scans section
+ * @param {object} scan_information - object containing information about the scan (e.g. from scan_information.json)
+ */
+function display_scan_information(scan_information) {
+	const recent_scans_section = document.getElementById("RecentScansSection");
+	let vals_to_add = [];
+	let tag, text_node;
+	let frame_count, e_count;
+	let wavelength, wavenumber;
+	// Figure out whether scan was SEVI or IR-SEVI
+	let scan_mode = scan_information.image.mode;
+	// Get formatted frame and electron counts
+	frame_count = scan_information.image.frames_off;
+	e_count = scan_information.image.electrons_off;
+	if (scan_mode === "sevi") {
+		frame_count += scan_information.image.frames_on;
+		e_count += scan_information.image.electrons_on;
+	}
+	if (frame_count > 1000) {
+		frame_count = Math.floor(frame_count / 1000) + "k";
+	}
+	if (e_count > 10000) {
+		e_count = e_count.toExponential(3);
+	}
+	// Get laser energy information (making sure a value was input) and format
+	wavelength = scan_information.laser.detachment.wavelength[scan_information.laser.detachment.mode];
+	wavenumber = scan_information.laser.detachment.wavenumber[scan_information.laser.detachment.mode];
+	if (wavelength > 0) {
+		wavelength = wavelength.toFixed(3);
+		wavenumber = wavenumber.toFixed(3);
+	} else {
+		// No value for wavelength was given, leave area blank
+		wavelength = "";
+		wavenumber = "";
+	}
+	// Add IR off information
+	vals_to_add.push(scan_information.image.file_name);
+	vals_to_add.push(wavelength);
+	vals_to_add.push(wavenumber);
+	vals_to_add.push(frame_count);
+	vals_to_add.push(e_count);
+	// If mode == IR-SEVI, also add IR excitation information
+	if (scan_mode === "ir-sevi") {
+		// Get formatted frame and electron counts
+		frame_count = scan_information.image.frames_on;
+		e_count = scan_information.image.electrons_on;
+		if (frame_count > 1000) {
+			frame_count = Math.floor(frame_count / 1000) + "k";
+		}
+		if (e_count > 10000) {
+			e_count = e_count.toExponential(3);
+		}
+		// Get IR laser energy information (making sure a value was input) and format
+		wavelength = scan_information.laser.excitation.wavelength[scan_information.laser.excitation.mode];
+		wavenumber = scan_information.laser.excitation.wavenumber[scan_information.laser.excitation.mode];
+		if (wavelength > 0) {
+			wavelength = wavelength.toFixed(3);
+			wavenumber = wavenumber.toFixed(3);
+		} else {
+			// No value for wavelength was given, leave area blank
+			wavelength = "";
+			wavenumber = "";
+		}
+		// Add IR on information
+		vals_to_add.push(scan_information.image.file_name_ir);
+		vals_to_add.push(wavelength);
+		vals_to_add.push(wavenumber);
+		vals_to_add.push(frame_count);
+		vals_to_add.push(e_count);
+	}
+	// Add information to recent scans section as <p> elements
+	for (let i = 0; i < vals_to_add.length; i++) {
+		tag = document.createElement("p");
+		text_node = document.createTextNode(vals_to_add[i]);
+		tag.appendChild(text_node);
+		recent_scans_section.appendChild(tag);
+	}
+}
+
+/**
+ * Remove all entries from the recent scans display
+ */
+function clear_recent_scan_display() {
+	const recent_scans_section = document.getElementById("RecentScansSection");
+	const display_length = recent_scans_section.children.length;
+	for (let i = 0; i < display_length; i++) {
+		// Remove the first child from section
+		recent_scans_section.removeChild(recent_scans_section.children[0]);
+	}
+}
+
+/**
+ * Add information from all scans saved in scan.previous.all to the recent scans section
+ */
+function fill_recent_scan_display() {
+	// Clear display first
+	clear_recent_scan_display();
+	const previous_scans_length = scan.previous.all.length;
+	// Sort scans by file name first
+	scan.previous.sort_scans();
+	for (let i = 0; i < previous_scans_length; i++) {
+		display_scan_information(scan.previous.all[i]);
+	}
+}
+
 /*****************************************************************************
 
 							IR ACTION MODE
@@ -1438,7 +1552,7 @@ function get_action_autostop_parameter() {
 	//electrons.total.auto_stop.method = "frames";
 	//electrons.total.auto_stop.update(0.5);
 	electrons.total.auto_stop.method = "electrons";
-	electrons.total.auto_stop.update(1);
+	electrons.total.auto_stop.update(0.1);
 	return true;
 }
 
@@ -1455,6 +1569,7 @@ async function start_action_scan() {
 	let action_mode_data;
 	// Update scan status
 	scan.action_mode.status.running = true;
+	scan.status.action_image = true;
 	scan.status.method = "ir-sevi";
 	// Update progress bar (if it shows "complete")
 	hide_progress_bar_complete();
@@ -1515,7 +1630,6 @@ async function start_action_scan() {
 		// Update current/next IR energy
 		update_action_energy_displays(measured_energies[desired_mode].wavenumber);
 		// Start taking data
-		// NOTE TO MARTY: Should make this fn also used by SEVI mode
 		start_sevi_scan();
 		// Save image ID's for file naming later
 		if (point === 0) {
@@ -1547,6 +1661,7 @@ async function start_action_scan() {
 	}
 	// Scan is done
 	scan.action_mode.status.running = false;
+	scan.status.action_image = false;
 	// Save data to file
 	scan.action_mode.save();
 	// Update button text

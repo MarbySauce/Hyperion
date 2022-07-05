@@ -119,7 +119,17 @@ const electrons = {
 			method: "none", // Can be "none", "electrons", or "frames"
 			electrons: 0,
 			frames: 0,
+			/**
+			 * Update the auto-stop value for the selected method
+			 * (number * 1e5 if method == "electrons")
+			 * (number * 1000 if method == "frames")
+			 * @param {number} value
+			 */
 			update: (value) => electrons_auto_stop_update(value),
+			/**
+			 * Checks whether the current image meets the auto-stop criterion
+			 * (i.e. enough frames or electrons)
+			 */
 			check: () => electrons_auto_stop_check(),
 		},
 		/**
@@ -299,6 +309,7 @@ const scan = {
 		running: false,
 		paused: false,
 		method: "sevi", // Can be "sevi" or "ir-sevi"
+		action_image: false, // Whether current image is used in action scan
 	},
 	saving: {
 		file_name: "",
@@ -435,12 +446,25 @@ const scan = {
 				start: 0, // cm-1
 				end: 0, // cm-1
 				increment: 0, // cm-1
+				/**
+				 * Update the IR excitation energy parameters used for the action scan
+				 * @param {number} start - starting energy (cm^-1)
+				 * @param {number} end - final energy (cm^-1)
+				 * @param {number} increment - step-size (cm^-1) (will be negative if start > end)
+				 */
 				update: (start, end, increment) => scan_action_mode_params_energy_update(start, end, increment),
 			},
 			peak_radii: {
 				mode: "depletion", // or "rel_height"
 				origin: 0, // px
 				new_peak: 0, // px
+				/**
+				 * Update the radial positions of origin and new peak to analyze for absorption calculation
+				 * as well as the mode used for calculation
+				 * @param {string} mode - "depletion" (1 - origin_on / origin_off) or "rel_height" (new_peak / origin_off)
+				 * @param {number} origin - radial position (px) of the origin
+				 * @param {number} new_peak - radial position (px) of the new peak that appears in IR_on images
+				 */
 				update: (mode, origin, new_peak) => scan_action_mode_params_peak_radii_update(mode, origin, new_peak),
 			},
 		},
@@ -450,6 +474,9 @@ const scan = {
 			data_points: {
 				total: 0,
 				current: 0,
+				/**
+				 * Calculate the total number of data points in action scan
+				 */
 				calculate: () => scan_action_mode_status_data_points_calculate(),
 			},
 			first_image: 0,
@@ -462,13 +489,33 @@ const scan = {
 				origin_off: [],
 				origin_on: [],
 				new_peak: [],
+				/**
+				 * Calculate areas of peaks from PE spectrum
+				 */
 				calculate: () => scan_action_mode_data_peak_areas_calculate(),
 			},
+			/**
+			 * Update arrays in scan.action_mode.data
+			 * @param {object} data - Object containing: energy, absorption,
+			 * origin_off (area), origin_on (area), new_peak (area)
+			 */
 			update: (data) => scan_action_mode_data_update(data),
+			/**
+			 * Reset absorption and peak area arrays
+			 */
 			reset: () => scan_action_mode_data_reset(),
 		},
+		/**
+		 * Calculate the absorption given peak areas (and absorption mode)
+		 * @param {number} origin_off_area - area of origin in IR_off image
+		 * @param {number} origin_on_area - area of origin in IR_on image
+		 * @param {number} new_peak_area - area of new peak in IR_on image
+		 */
 		calculate_absorption: (origin_off_area, origin_on_area, new_peak_area) =>
 			scan_action_mode_calculate_absorption(origin_off_area, origin_on_area, new_peak_area),
+		/**
+		 * Save action spectrum information and data to file
+		 */
 		save: () => scan_action_mode_save(),
 	},
 	single_shot: {
@@ -493,7 +540,22 @@ const scan = {
 	},
 	previous: {
 		all: [], // Array of all scans taken in a day
-		last: undefined, // Most recent scan taken
+		/**
+		 * Add the most recent scan to previous scans list
+		 */
+		add_scan: () => scan_previous_add_scan(),
+		/**
+		 * Save previous scans to file
+		 */
+		save: () => scan_previous_save(),
+		/**
+		 * Read today's previous scans from file
+		 */
+		read: () => scan_previous_read(),
+		/**
+		 * Sort previous.all by filename (increasing)
+		 */
+		sort_scans: () => scan_previous_sort_scans(),
 	},
 };
 
@@ -1020,6 +1082,106 @@ function convert_ss_centroids_to_string() {
 	return centroids_string;
 }
 
+// Add most recent scan to previous scans list (previous.all)
+function scan_previous_add_scan() {
+	// Create object which lists all important information about scan
+	let scan_info = {
+		image: {
+			file_name: scan.saving.file_name,
+			pes_file_name: scan.saving.pes_file_name,
+			file_name_ir: scan.saving.file_name_ir,
+			pes_file_name_ir: scan.saving.pes_file_name_ir,
+			mode: scan.status.method,
+			is_action_image: scan.status.action_image,
+			electrons_off: electrons.total.e_count.ir_off,
+			electrons_on: electrons.total.e_count.ir_on,
+			frames_off: electrons.total.frame_count.ir_off,
+			frames_on: electrons.total.frame_count.ir_on,
+		},
+		laser: {
+			detachment: {
+				mode: laser.detachment.mode,
+				wavelength: { ...laser.detachment.wavelength },
+				wavenumber: { ...laser.detachment.wavenumber },
+			},
+			excitation: {
+				mode: laser.excitation.mode,
+				wavelength: { ...laser.excitation.wavelength },
+				wavenumber: { ...laser.excitation.wavenumber },
+			},
+		},
+		vmi: {
+			setting: vmi_info.selected_setting,
+			calibration_constants: vmi_info.calibration_constants[vmi_info.selected_setting],
+		},
+	};
+	// Check if filename is used before (i.e. if file was overwritten)
+	let repeated_image_index = scan.previous.all.findIndex((previous_scan_info) => {
+		return previous_scan_info.image.file_name === scan_info.image.file_name;
+	});
+	// findIndex returns -1 if it cannot find item with same file name
+	if (repeated_image_index !== -1) {
+		// previous scan was found with same file name, remove old info (to overwrite)
+		scan.previous.all.splice(repeated_image_index);
+	}
+	// Add new scan to list of today's scans
+	scan.previous.all.push(scan_info);
+	// Update recent scans display
+	fill_recent_scan_display();
+	// Save scan information to file
+	scan.previous.save();
+}
+
+// Save today's scans to a .json file
+function scan_previous_save() {
+	let save_dir = settings.save_directory.full_dir;
+	let file_name = save_dir + "/scan_information.json";
+	let json_string = JSON.stringify(scan.previous.all, null, "\t");
+	fs.writeFile(file_name, json_string, (err) => {
+		if (err) {
+			console.log(err);
+		}
+	});
+}
+
+// Read today's scans from .json file
+function scan_previous_read() {
+	let save_dir = settings.save_directory.full_dir;
+	let file_name = save_dir + "/scan_information.json";
+	let json_data;
+	fs.readFile(file_name, (error, data) => {
+		if (error) {
+			console.log(error);
+		}
+		if (data) {
+			json_data = JSON.parse(data);
+			scan.previous.all = json_data;
+			for (let i = 0; i < json_data.length; i++) {
+				// Increase image counter to account for previous images
+				uptick_image_counter();
+			}
+			// Set recent scan to last scan in file
+			scan.previous.last = scan.previous.all["length"];
+			// NOTE TO MARTY: Add parts to update laser and VMI info to last scan's
+			// Display scan information
+			fill_recent_scan_display();
+		}
+	});
+}
+
+// Sort previous scans by filename (ascending order)
+function scan_previous_sort_scans() {
+	scan.previous.all.sort((a, b) => {
+		if (a.image.file_name > b.image.file_name) {
+			return 1;
+		} else if (a.image.file_name < b.image.file_name) {
+			return -1;
+		} else {
+			return 0;
+		}
+	});
+}
+
 /*****************************************************************************
 
 							LASER INFORMATION
@@ -1106,6 +1268,18 @@ const laser = {
 function laser_detachment_convert() {
 	const h2_wn = 4055.201; // H2 frequency in cm^-1, for Raman shifter
 	let input_wl = laser.detachment.wavelength.input; // Input energy (nm)
+	// Check that a value was actually given for input_wl (i.e. it's not 0)
+	if (input_wl <= 0) {
+		laser.detachment.wavelength.standard = 0;
+		laser.detachment.wavenumber.standard = 0;
+		laser.detachment.wavelength.doubled = 0;
+		laser.detachment.wavenumber.doubled = 0;
+		laser.detachment.wavelength.raman = 0;
+		laser.detachment.wavenumber.raman = 0;
+		laser.detachment.wavelength.irdfg = 0;
+		laser.detachment.wavenumber.irdfg = 0;
+		return;
+	}
 	let input_wn = decimal_round(laser.convert_wn_wl(input_wl), 3); // Input energy (cm^-1)
 	let yag_wl = laser.detachment.wavelength.yag_fundamental; // YAG fundamental (nm)
 	let yag_wn = decimal_round(laser.convert_wn_wl(yag_wl), 3); // YAG fundamental (cm^-1)
@@ -1134,6 +1308,18 @@ function laser_detachment_convert() {
 // Convert OPO/A laser energies
 function laser_excitation_convert() {
 	let input_wl = laser.excitation.wavelength.input; // Input energy (nm)
+	// Check that a value was actually given for input_wl (i.e. it's not 0)
+	if (input_wl <= 0) {
+		laser.excitation.wavelength.nir = 0;
+		laser.excitation.wavenumber.nir = 0;
+		laser.excitation.wavelength.iir = 0;
+		laser.excitation.wavenumber.iir = 0;
+		laser.excitation.wavelength.mir = 0;
+		laser.excitation.wavenumber.mir = 0;
+		laser.excitation.wavelength.fir = 0;
+		laser.excitation.wavenumber.fir = 0;
+		return;
+	}
 	let input_wn = decimal_round(laser.convert_wn_wl(input_wl), 3); // Input energy (cm^-1)
 	let yag_wl = laser.excitation.wavelength.yag_fundamental; // YAG fundamental (nm)
 	let yag_wn = decimal_round(laser.convert_wn_wl(yag_wl), 3); // YAG fundamental (cm^-1)
@@ -1218,17 +1404,25 @@ const opo = {
 			},
 		},
 		connect: () => {
+			if (opo.status.connected) {
+				// Already connected
+				return;
+			}
 			opo.network.client.connect(opo.network.config, (error) => {
 				if (error) {
 					console.log(`Could not connect to OPO: ${error}`);
+				} else {
+					opo.status.connected = true;
 				}
 			});
 		},
 		close: () => {
 			opo.network.client.end();
+			opo.status.connected = false;
 		},
 	},
 	status: {
+		connected: false,
 		motors_moving: false,
 		current_wavelength: 0,
 	},
@@ -1333,6 +1527,12 @@ opo.network.client.on("data", (data) => {
 			process_opo_data(msg);
 		}
 	});
+});
+
+// Receive error message (e.g. cannot connect to server)
+opo.network.client.on("error", (error) => {
+	console.log(`OPO Connection ${error}`);
+	opo.status.connected = false;
 });
 
 function process_opo_data(data) {
