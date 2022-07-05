@@ -38,10 +38,8 @@ const settings = {
 			base_dir_short: "./Images",
 			year_dir: "",
 			day_dir: "",
-			scan_dir: "Hyperion Scan Information",
 			full_dir: "",
 			full_dir_short: "",
-			full_scan_dir: "",
 			autosave: false,
 		},
 		windows: {
@@ -100,13 +98,6 @@ const settings = {
 				settings.information.save_directory.year_dir +
 				"/" +
 				settings.information.save_directory.day_dir;
-			// Create scan information save directory
-			settings.information.save_directory.full_scan_dir =
-				settings.information.save_directory.base_dir_short +
-				"/" +
-				settings.information.save_directory.year_dir +
-				"/" +
-				settings.information.save_directory.scan_dir;
 		},
 	},
 };
@@ -311,10 +302,6 @@ function create_folders() {
 		// Try to make the day's folder
 		let day_save_dir = settings.information.save_directory.full_dir;
 		fs.mkdir(day_save_dir, (error) => {});
-
-		// Try to make scan info folder
-		let scan_save_dir = settings.information.save_directory.full_scan_dir;
-		fs.mkdir(scan_save_dir, (error) => {});
 	});
 }
 
@@ -330,13 +317,6 @@ function delete_empty_folder() {
 			});
 			// Could do this without reading the directory first, but I don't want to risk
 			// 	accidentally deleting data
-		}
-	});
-	// Check for scan information folder (same process)
-	fs.readdir(settings.information.save_directory.full_scan_dir, (error, files) => {
-		if (!error && !files.length) {
-			// The folder is empty but does exists, so we need to delete it
-			fs.rmdir(settings.information.save_directory.full_scan_dir, (error) => {});
 		}
 	});
 }
