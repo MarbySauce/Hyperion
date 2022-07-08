@@ -1,6 +1,4 @@
 const { app, BrowserWindow, dialog, ipcMain, nativeTheme, Menu } = require("electron");
-//const path = require("path");
-//const fs = require("fs");
 
 // Declaring variables for each window used
 let main_window; // Main window, for bulk of processing and control
@@ -65,6 +63,7 @@ const settings = {
 			let settings_JSON = JSON.stringify(settings.information, null, "\t");
 			fs.writeFile(settings.file_name, settings_JSON, () => {});
 		},
+		// Save settings synchronously
 		save_sync: function () {
 			const fs = require("fs");
 			// Save settings synchronously (blocking)
@@ -74,6 +73,18 @@ const settings = {
 		},
 		// Read settings from file
 		read: function () {
+			const fs = require("fs");
+			fs.readFile(settings.file_name, (error, data) => {
+				if (error) {
+					console.log("Could not find settings file at ", settings.file_name);
+				} else {
+					let saved_settings = JSON.parse(data);
+					settings.information = saved_settings;
+				}
+			});
+		},
+		// Read settings synchronously
+		read_sync: function () {
 			const fs = require("fs");
 			// Make sure the settings file exists
 			if (fs.existsSync(settings.file_name)) {
@@ -106,12 +117,8 @@ function create_main_window() {
 	// Create the window
 	let win = new BrowserWindow({
 		show: false,
-		width: 1200,
-		height: 1000,
 		minWidth: 600,
 		minHeight: 600,
-		x: settings.information.windows.main_window.x,
-		y: settings.information.windows.main_window.y,
 		webPreferences: {
 			nodeIntegration: true,
 			nodeIntegrationInWorker: true,
@@ -155,11 +162,7 @@ function create_main_window() {
 function create_live_view_window() {
 	// Create the window
 	win = new BrowserWindow({
-		width: 1200,
-		height: 820,
 		show: false,
-		x: settings.information.windows.live_view_window.x,
-		y: settings.information.windows.live_view_window.y,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
@@ -212,28 +215,15 @@ app.on("ready", function () {
 		}
 	});
 
-	// If one monitor is too small, Electron doesn't size windows well
-	// Fixed by rechanging the size after creation
 	if (main_window) {
-		main_window.setSize(settings.information.windows.main_window.width, settings.information.windows.main_window.height);
-
 		// Close app when main window is closed
 		main_window.on("closed", function (event) {
 			send_close_camera_msg();
 			main_window = null;
 		});
-
-		/*main_window.once("ready-to-show", () => {
-			main_window.show();
-		});*/
-		/*main_window.webContents.on("did-finish-load", function () {
-			main_window.show();
-		});*/
 	}
 
 	if (live_view_window) {
-		live_view_window.setSize(settings.information.windows.live_view_window.width, settings.information.windows.live_view_window.height);
-
 		// Get rid of Live View menu bar
 		live_view_window.removeMenu();
 
@@ -342,8 +332,17 @@ ipcMain.on("main-window-ready", function (event, arg) {
 });
 
 ipcMain.on("main-window-loaded", function (event, arg) {
-	main_window.show();
-	live_view_window.show();
+	// Change window sizes and positions based on saved settings and show windows
+	if (main_window) {
+		main_window.setPosition(settings.information.windows.main_window.x, settings.information.windows.main_window.y);
+		main_window.setSize(settings.information.windows.main_window.width, settings.information.windows.main_window.height);
+		main_window.show();
+	}
+	if (live_view_window) {
+		live_view_window.setPosition(settings.information.windows.live_view_window.x, settings.information.windows.live_view_window.y);
+		live_view_window.setSize(settings.information.windows.live_view_window.width, settings.information.windows.live_view_window.height);
+		live_view_window.show();
+	}
 });
 
 // Message received from invisible window
