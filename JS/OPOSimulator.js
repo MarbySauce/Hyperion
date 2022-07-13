@@ -15,7 +15,7 @@ const opo = {
 	current_wavelength: 750,
 	connection: undefined,
 	send_msg: (msg) => {
-		console.log(`Sending message: '${msg}'`);
+		//console.log(`Sending message: '${msg}'`);
 		opo.connection.write(msg + end_cmd);
 	},
 };
@@ -153,7 +153,7 @@ function set_speed(val) {
 }
 
 function tell_wl() {
-	console.log("Sending wavelength!", opo.current_wavelength, opo.current_wavelength.toFixed(5));
+	//console.log("Sending wavelength!", opo.current_wavelength, opo.current_wavelength.toFixed(5));
 	opo.send_msg(opo.current_wavelength.toFixed(5));
 }
 

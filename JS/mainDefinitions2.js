@@ -1,4 +1,5 @@
 // Libraries
+const { performance } = require("perf_hooks");
 const fs = require("fs");
 const ipc = require("electron").ipcRenderer;
 const Chart = require("chart.js");
@@ -460,6 +461,15 @@ const scan = {
 			first_image: 0,
 			last_image: 0,
 		},
+		timer: {
+			start_time: 0,
+			end_time: 0,
+			duration: 0,
+			duration_converted: [],
+			start: () => scan_action_mode_timer_start(),
+			end: () => scan_action_mode_timer_end(),
+			convert: (time) => scan_action_mode_timer_convert(time),
+		},
 		data: {
 			energies: [],
 			absorption: [],
@@ -871,6 +881,30 @@ function scan_action_mode_status_data_points_calculate() {
 	scan.action_mode.status.data_points.total = total;
 }
 
+// Start timer
+function scan_action_mode_timer_start() {
+	scan.action_mode.timer.start_time = performance.now();
+}
+
+// End timer, calculate duration, and convert to [ms, s, min, hrs]
+function scan_action_mode_timer_end() {
+	const timer = scan.action_mode.timer;
+	timer.end_time = performance.now();
+	timer.duration = timer.end_time - timer.start_time;
+	timer.duration_converted = timer.convert(timer.duration);
+}
+
+// Convert time from ms to [ms, s, min, hrs]
+function scan_action_mode_timer_convert(time) {
+	let hours = Math.floor(time / (60 * 60 * 1000));
+	let hours_remainder = time % (60 * 60 * 1000);
+	let minutes = Math.floor(hours_remainder / (60 * 1000));
+	let minutes_remainder = hours_remainder % (60 * 1000);
+	let seconds = Math.floor(minutes_remainder / 1000);
+	let ms = minutes_remainder % 1000;
+	return [ms, seconds, minutes, hours];
+} 
+
 // Calculate peak areas from PE Spectra
 function scan_action_mode_data_peak_areas_calculate() {
 	// NOTE TO MARTY: This should be replaced with a Gaussian fitting procedure
@@ -939,10 +973,12 @@ function scan_action_mode_save() {
 	let last_image = ("0" + scan.action_mode.status.last_image).slice(-2);
 	let file_name = settings.save_directory.full_dir + `/action_spectrum_i${first_image}_i${last_image}.txt`;
 	let params = scan.action_mode.params;
+	let [ms, s, min, hrs] = scan.action_mode.timer.duration_converted;
 	let data = scan.action_mode.data;
 	let save_string = "";
 	// First add header
 	save_string += "Information:\n";
+	save_string += `Time to complete: ${hrs} hours ${min} minutes ${s}.${Math.round(ms)} seconds\n`;
 	save_string += `Absorption mode: ${params.peak_radii.mode}\n`;
 	save_string += `Starting energy: ${params.energy.start} cm-1\n`;
 	save_string += `Ending energy: ${params.energy.end} cm-1\n`;
@@ -1213,8 +1249,8 @@ const opo = {
 	network: {
 		client: new net.Socket(),
 		config: {
-			//host: "localhost",
-			host: "169.254.170.155",
+			host: "localhost",
+			//host: "169.254.170.155",
 			port: 1315,
 		},
 		command: {

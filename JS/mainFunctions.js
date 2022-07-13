@@ -1372,7 +1372,7 @@ function get_action_absorption_parameters() {
 		return false;
 	}
 	// Update values in action_mode object
-	scan.action_mode.params.peak_radii.update(mode, origin_value);
+	scan.action_mode.params.peak_radii.update(mode, origin_value, 159.5);
 	return true;
 }
 
@@ -1382,8 +1382,10 @@ function get_action_absorption_parameters() {
  */
 function get_action_autostop_parameter() {
 	// For now, just autostop at 5k frames
-	electrons.total.auto_stop.method = "frames";
-	electrons.total.auto_stop.update(0.5);
+	// electrons.total.auto_stop.method = "frames";
+	// electrons.total.auto_stop.update(0.5);
+	electrons.total.auto_stop.method = "electrons";
+	electrons.total.auto_stop.update(5);
 	return true;
 }
 
@@ -1391,7 +1393,8 @@ function get_action_autostop_parameter() {
  * Start an Action Mode scan
  */
 async function start_action_scan() {
-	console.time("ActionMode");
+	//console.time("ActionMode");
+	scan.action_mode.timer.start();
 	let desired_energy;
 	let desired_wl, desired_mode;
 	let measured_wl, measured_energies, energy_difference, wl_difference;
@@ -1492,12 +1495,13 @@ async function start_action_scan() {
 	}
 	// Scan is done
 	scan.action_mode.status.running = false;
+	scan.action_mode.timer.end();
 	// Save data to file
 	scan.action_mode.save();
 	// Update button text
 	update_action_button_to_start();
 	show_progress_bar_complete();
-	console.timeEnd("ActionMode");
+	//console.timeEnd("ActionMode");
 }
 
 // Start a sevi scan
