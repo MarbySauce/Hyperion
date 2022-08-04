@@ -15,7 +15,8 @@
     "node-addon-api": "^4.2.0"
   },
   "dependencies": {
-    "chart.js": "^3.5.0"
+    "chart.js": "^3.5.0",
+    "node-gyp": "^9.0.0"
   },
   "gypfile": true,
   "repository": {
