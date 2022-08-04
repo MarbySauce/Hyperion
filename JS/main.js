@@ -94,7 +94,7 @@ const settings = {
 			}
 		},
 		// Generate full save directory names
-		get_full_dir: function () {
+		get_full_dir_mac: function () {
 			// Create full save directory location
 			settings.information.save_directory.full_dir =
 				settings.information.save_directory.base_dir +
@@ -109,6 +109,23 @@ const settings = {
 				settings.information.save_directory.year_dir +
 				"/" +
 				settings.information.save_directory.day_dir;
+		},
+		get_full_dir: function () {
+			// Create full save directory location
+			settings.information.save_directory.full_dir =
+				settings.information.save_directory.base_dir +
+				"\\" +
+				settings.information.save_directory.year_dir +
+				"\\" +
+				settings.information.save_directory.day_dir;
+			// Create shorter version of save directory location (for displaying)
+			settings.information.save_directory.full_dir_short =
+				settings.information.save_directory.base_dir_short +
+				"\\" +
+				settings.information.save_directory.year_dir +
+				"\\" +
+				settings.information.save_directory.day_dir;
+			console.log(settings.information.save_directory);
 		},
 	},
 };
@@ -198,10 +215,14 @@ function create_invisible_window() {
 //app.whenReady().then(function () {
 app.on("ready", function () {
 	// Read settings from file
-	settings.functions.read();
+	// NOTE TO MARTY: Need to make sure settings are read before making folders,
+	//		and folders are made before sending settings to windows
+	settings.functions.read_sync();
 
 	// Set dark mode
 	nativeTheme.themeSource = "dark";
+
+	create_folders();
 
 	main_window = create_main_window();
 	invisible_window = create_invisible_window();
@@ -234,7 +255,7 @@ app.on("ready", function () {
 	}
 
 	// Check if there is a folder for today's year and date, and if not create it
-	create_folders();
+	//create_folders();
 });
 
 app.on("window-all-closed", function () {
@@ -282,16 +303,21 @@ function create_folders() {
 	// Update save directory in settings
 	settings.information.save_directory.year_dir = folder_names[0];
 	settings.information.save_directory.day_dir = folder_names[1];
+	console.log(folder_names);
 	settings.functions.get_full_dir();
 	// Try to make the year's folder first
-	let year_save_dir = settings.information.save_directory.base_dir + "/" + folder_names[0];
+	let year_save_dir = settings.information.save_directory.base_dir + "\\" + folder_names[0];
 	fs.mkdir(year_save_dir, (error) => {
 		// Error will be filled if the folder already exists, otherwise it'll make the folder
 		// In either case we don't care about the error message, so move on
 
 		// Try to make the day's folder
 		let day_save_dir = settings.information.save_directory.full_dir;
-		fs.mkdir(day_save_dir, (error) => {});
+		fs.mkdir(day_save_dir, (error) => {
+			if (error) {
+				console.log("Day dir", error);
+			}
+		});
 	});
 }
 
