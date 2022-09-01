@@ -1,6 +1,7 @@
 // Libraries
 const { performance } = require("perf_hooks");
 const fs = require("fs");
+const path = require("path");
 const ipc = require("electron").ipcRenderer;
 const Chart = require("chart.js");
 // OPO/A is controlled through TCP communication, which is done through JS module Net
@@ -670,10 +671,10 @@ function scan_accumulated_image_update(centroid_results) {
 function scan_accumulated_image_save() {
 	// Images are first saved to a temp location,
 	// 	so that if the app crashes while writing to file, the old image still exists
-	let file_name = settings.save_directory.full_dir + "/" + scan.saving.file_name;
-	let file_name_ir = settings.save_directory.full_dir + "/" + scan.saving.file_name_ir;
-	let temp_file_name = settings.save_directory.full_dir + "/temp.txt";
-	let temp_file_name_ir = settings.save_directory.full_dir + "/temp_IR.txt";
+	let file_name = path.join(settings.save_directory.full_dir, scan.saving.file_name);
+	let file_name_ir = path.join(settings.save_directory.full_dir, scan.saving.file_name_ir);
+	let temp_file_name = path.join(settings.save_directory.full_dir, "temp.txt");
+	let temp_file_name_ir = path.join(settings.save_directory.full_dir, "temp_IR.txt");
 	if (scan.status.method === "sevi") {
 		// Need to save ir_off + ir_on image
 		// Add images together and convert the final image to a string
@@ -745,8 +746,8 @@ function scan_accumulated_image_reset() {
 
 // Save worked up spectra to file
 function scan_accumulated_image_spectra_save() {
-	let file_name = settings.save_directory.full_dir + "/" + scan.saving.pes_file_name;
-	let file_name_ir = settings.save_directory.full_dir + "/" + scan.saving.pes_file_name_ir;
+	let file_name = path.join(settings.save_directory.full_dir, scan.saving.pes_file_name);
+	let file_name_ir = path.join(settings.save_directory.full_dir, scan.saving.pes_file_name_ir);
 	let save_ir_off = false;
 	let save_ir_on = false;
 	let ir_off_string = "";
@@ -1022,7 +1023,7 @@ function scan_action_mode_save() {
 	//	with a header that shows absorption mode, energy range, increment, peak radii
 	let first_image = ("0" + scan.action_mode.status.first_image).slice(-2);
 	let last_image = ("0" + scan.action_mode.status.last_image).slice(-2);
-	let file_name = settings.save_directory.full_dir + `/action_spectrum_i${first_image}_i${last_image}.txt`;
+	let file_name = path.join(settings.save_directory.full_dir, `action_spectrum_i${first_image}_i${last_image}.txt`);
 	let params = scan.action_mode.params;
 	let [ms, s, min, hrs] = scan.action_mode.timer.duration_converted;
 	let data = scan.action_mode.data;
@@ -1067,15 +1068,15 @@ function scan_single_shot_check(centroid_results) {
 
 // Save single shot and centroids to file
 function scan_single_shot_save() {
-	let save_dir = settings.save_directory.full_dir + "/";
+	let save_dir = settings.save_directory.full_dir;
 	// Save image to file
-	fs.writeFile(save_dir + scan.single_shot.saving.file_name, convert_ss_image_to_string(), (err) => {
+	fs.writeFile(path.join(save_dir, scan.single_shot.saving.file_name), convert_ss_image_to_string(), (err) => {
 		if (err) {
 			console.log(err);
 		}
 	});
 	// Save centroids to file
-	fs.writeFile(save_dir + scan.single_shot.saving.centroids_file_name, convert_ss_centroids_to_string(), (err) => {
+	fs.writeFile(path.join(save_dir, scan.single_shot.saving.centroids_file_name), convert_ss_centroids_to_string(), (err) => {
 		if (err) {
 			console.log(err);
 		}
@@ -1171,7 +1172,7 @@ function scan_previous_add_scan() {
 // Save today's scans to a .json file
 function scan_previous_save() {
 	let save_dir = settings.save_directory.full_dir;
-	let file_name = save_dir + "/scan_information.json";
+	let file_name = path.join(save_dir, "scan_information.json");
 	let json_string = JSON.stringify(scan.previous.all, null, "\t");
 	fs.writeFile(file_name, json_string, (err) => {
 		if (err) {
@@ -1183,7 +1184,7 @@ function scan_previous_save() {
 // Read today's scans from .json file
 function scan_previous_read() {
 	let save_dir = settings.save_directory.full_dir;
-	let file_name = save_dir + "/scan_information.json";
+	let file_name = path.join(save_dir, "scan_information.json");
 	let json_data;
 	fs.readFile(file_name, (error, data) => {
 		if (error) {

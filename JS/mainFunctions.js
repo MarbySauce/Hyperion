@@ -1049,7 +1049,8 @@ function run_melexir() {
 	if (scan.accumulated_image.images.ir_off.length === 0) {
 		return;
 	}
-	melexir_worker = new Worker("../JS/worker.js");
+	//melexir_worker = new Worker("../JS/worker.js");
+	melexir_worker = new Worker(path.join("..", "JS", "worker.js"));
 	// Disable calculate button
 	disable_pes_calculate_button();
 	// Prepare data to send
@@ -2072,24 +2073,6 @@ function decimal_round(num, d) {
 	let decimal_val = Math.pow(10, d_val);
 	// Adding Number.EPSILON prevents floating point errors
 	return Math.round((num + Number.EPSILON) * decimal_val) / decimal_val;
-}
-
-/* Should move functions to the most related section */
-
-// Check if file in Current File exists
-function checkCurrentFile() {
-	const currentFile = document.getElementById("CurrentFile");
-	let fileName = settings.saveDirectory.currentScan + "/" + scanInfo.fileName;
-	let fileNameIR = settings.saveDirectory.currentScan + "/" + scanInfo.fileNameIR;
-	if (fs.existsSync(fileName) || fs.existsSync(fileNameIR)) {
-		currentFile.title = "File already exists!";
-		currentFile.style.color = "red";
-		currentFile.style.border = "1pt solid red";
-	} else {
-		currentFile.title = null;
-		currentFile.style.color = "white";
-		currentFile.style.border = "1px solid rgb(62, 71, 95)";
-	}
 }
 
 /* Functions for simulating wavemeter on Mac */
