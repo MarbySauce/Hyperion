@@ -1,4 +1,5 @@
 const { app, BrowserWindow, dialog, ipcMain, nativeTheme, Menu } = require("electron");
+const path = require("path");
 
 // Declaring variables for each window used
 let main_window; // Main window, for bulk of processing and control
@@ -80,6 +81,8 @@ const settings = {
 				} else {
 					let saved_settings = JSON.parse(data);
 					settings.information = saved_settings;
+					// Create folder to store data
+					create_folders();
 				}
 			});
 		},
@@ -93,38 +96,19 @@ const settings = {
 				settings.information = saved_settings;
 			}
 		},
-		// Generate full save directory names
-		get_full_dir_mac: function () {
-			// Create full save directory location
-			settings.information.save_directory.full_dir =
-				settings.information.save_directory.base_dir +
-				"/" +
-				settings.information.save_directory.year_dir +
-				"/" +
-				settings.information.save_directory.day_dir;
-			// Create shorter version of save directory location (for displaying)
-			settings.information.save_directory.full_dir_short =
-				settings.information.save_directory.base_dir_short +
-				"/" +
-				settings.information.save_directory.year_dir +
-				"/" +
-				settings.information.save_directory.day_dir;
-		},
 		get_full_dir: function () {
 			// Create full save directory location
-			settings.information.save_directory.full_dir =
-				settings.information.save_directory.base_dir +
-				"\\" +
-				settings.information.save_directory.year_dir +
-				"\\" +
-				settings.information.save_directory.day_dir;
+			settings.information.save_directory.full_dir = path.join(
+				settings.information.save_directory.base_dir,
+				settings.information.save_directory.year_dir,
+				settings.information.save_directory.day_dir
+			);
 			// Create shorter version of save directory location (for displaying)
-			settings.information.save_directory.full_dir_short =
-				settings.information.save_directory.base_dir_short +
-				"\\" +
-				settings.information.save_directory.year_dir +
-				"\\" +
-				settings.information.save_directory.day_dir;
+			settings.information.save_directory.full_dir_short = path.join(
+				settings.information.save_directory.base_dir_short,
+				settings.information.save_directory.year_dir,
+				settings.information.save_directory.day_dir
+			);
 			console.log(settings.information.save_directory);
 		},
 	},
@@ -217,12 +201,13 @@ app.on("ready", function () {
 	// Read settings from file
 	// NOTE TO MARTY: Need to make sure settings are read before making folders,
 	//		and folders are made before sending settings to windows
-	settings.functions.read_sync();
+	settings.functions.read();
+	//settings.functions.read_sync();
 
 	// Set dark mode
 	nativeTheme.themeSource = "dark";
 
-	create_folders();
+	//create_folders();
 
 	main_window = create_main_window();
 	invisible_window = create_invisible_window();
