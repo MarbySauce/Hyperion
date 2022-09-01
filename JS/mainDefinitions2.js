@@ -586,8 +586,8 @@ function scan_saving_get_file_names() {
 	let pes_id = ("0" + scan.accumulated_image.spectra.params.image_id).slice(-2);
 	scan.saving.file_name = `${formatted_date}i${id}_1024.i0N`;
 	scan.saving.file_name_ir = `${formatted_date}i${id}_IR_1024.i0N`;
-	scan.saving.pes_file_name = `${formatted_date}i${pes_id}_1024_pes.dat`;
-	scan.saving.pes_file_name_ir = `${formatted_date}i${pes_id}_IR_1024_pes.dat`;
+	scan.saving.pes_file_name = `${formatted_date}m${pes_id}_1024_pes.dat`;
+	scan.saving.pes_file_name_ir = `${formatted_date}m${pes_id}_IR_1024_pes.dat`;
 }
 
 // Start autosave timer
