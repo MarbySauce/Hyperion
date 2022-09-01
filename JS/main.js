@@ -109,7 +109,6 @@ const settings = {
 				settings.information.save_directory.year_dir,
 				settings.information.save_directory.day_dir
 			);
-			console.log(settings.information.save_directory);
 		},
 	},
 };
@@ -288,7 +287,6 @@ function create_folders() {
 	// Update save directory in settings
 	settings.information.save_directory.year_dir = folder_names[0];
 	settings.information.save_directory.day_dir = folder_names[1];
-	console.log(folder_names);
 	settings.functions.get_full_dir();
 	// Try to make the year's folder first
 	let year_save_dir = settings.information.save_directory.base_dir + "\\" + folder_names[0];
@@ -298,11 +296,7 @@ function create_folders() {
 
 		// Try to make the day's folder
 		let day_save_dir = settings.information.save_directory.full_dir;
-		fs.mkdir(day_save_dir, (error) => {
-			if (error) {
-				console.log("Day dir", error);
-			}
-		});
+		fs.mkdir(day_save_dir, (error) => {});
 	});
 }
 
