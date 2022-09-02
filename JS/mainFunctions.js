@@ -2030,6 +2030,12 @@ function set_absorption_display_range() {
 // Recieve setting information and go through startup procedure
 ipc.on("settings-information", (event, settings_information) => {
 	settings = settings_information;
+
+	// Process settings (should make its own function)
+	if (settings.opo.host) {
+		opo.network.config.host = settings.opo.host;
+	}
+
 	startup();
 });
 

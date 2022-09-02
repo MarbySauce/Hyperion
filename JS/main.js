@@ -7,7 +7,7 @@ let live_view_window; // Auxilliary window for displaying incoming camera images
 let invisible_window; // Hidden window used to communicate with camera and centroid images
 
 const settings = {
-	file_name: "./Settings/Settings.JSON",
+	file_name: path.join(".", "Settings", "Settings.JSON"),
 	information: {
 		camera: {
 			x_AoI: 0,
@@ -19,6 +19,9 @@ const settings = {
 			gain_boost: false,
 			trigger: "Rising Edge",
 			trigger_delay: 0,
+		},
+		opo: {
+			host: "localhost",
 		},
 		centroid: {
 			accumulation: "Centroid",
@@ -289,7 +292,7 @@ function create_folders() {
 	settings.information.save_directory.day_dir = folder_names[1];
 	settings.functions.get_full_dir();
 	// Try to make the year's folder first
-	let year_save_dir = settings.information.save_directory.base_dir + "\\" + folder_names[0];
+	let year_save_dir = path.join(settings.information.save_directory.base_dir, folder_names[0]);
 	fs.mkdir(year_save_dir, (error) => {
 		// Error will be filled if the folder already exists, otherwise it'll make the folder
 		// In either case we don't care about the error message, so move on
