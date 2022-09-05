@@ -177,6 +177,9 @@ function startup() {
 	switch_tabs(0);
 	//switch_tabs(2);
 
+	// Start wavemeter application
+	wavemeter.startApplication();
+
 	// Update Autosave button On/Off text
 	update_autosave_button_text();
 
@@ -1953,6 +1956,10 @@ async function measure_wavelength(expected_wl) {
 	let fail_count = 0; // Keep track of how many failed measurements there were
 	let bad_measurements = 0;
 	let wl;
+
+	// Start wavemeter measurement
+	wavemeter.startMeasurement();
+
 	while (measured_values.length < measured_value_length) {
 		// Get measurement wavelength every IR pulse (100ms / 10Hz)
 		await new Promise((resolve) =>
@@ -1984,15 +1991,21 @@ async function measure_wavelength(expected_wl) {
 		);
 		// Check if there were too many failures
 		if (fail_count > 0.2 * measured_value_length) {
+			// Stop wavemeter measurement
+			wavemeter.stopMeasurement();
 			console.log(`Wavelength measurement: ${fail_count} failed measurements - Canceled`);
 			return 0;
 		}
 		// Check if there were too many bad measurements
 		if (bad_measurements >= 4 * measured_value_length) {
+			// Stop wavemeter measurement
+			wavemeter.stopMeasurement();
 			console.log(`Wavelength measurement: ${bad_measurements} bad measurements - Canceled`);
 			return 0;
 		}
 	}
+	// Stop wavemeter measurement
+	wavemeter.stopMeasurement();
 	// Now we have enough measurements - get rid of outliers until standard deviation is low enough
 	let reduced_avg_results = get_reduced_average(measured_values, minimum_stdev, minimum_length, max_iteration_count);
 	return reduced_avg_results.final.average; // Return the average wavelength
