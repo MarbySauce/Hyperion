@@ -89,6 +89,18 @@ const excitation_wavelength_input_delay = new input_delay(excitation_energy_inpu
 document.getElementById("IRWavelength").oninput = function () {
 	excitation_wavelength_input_delay.start_timer();
 };
+document.getElementById("DesiredEnergy").oninput = function () {
+	desired_ir_energy_input();
+};
+document.getElementById("DesiredEnergyUnit").oninput = function () {
+	desired_ir_energy_unit_input();
+};
+document.getElementById("MoveIRButton").onclick = function () {
+	move_ir_button();
+};
+document.getElementById("MeasureDetachmentWavelength").onclick = function () {
+	measure_laser_wavelengths();
+};
 
 // Electron Counters
 document.getElementById("AutomaticStop").oninput = function () {
@@ -808,6 +820,133 @@ function display_excitation_energies() {
 		converted_wavelength.value = "";
 		converted_wavenumber.value = "";
 	}
+}
+
+/**
+ * IR Energy input for moving OPO IR energy
+ */
+function desired_ir_energy_input() {
+	// Energy unit function does necessary calculations for us
+	// 	just need to tell it to use user input
+	desired_ir_energy_unit_input(true);
+}
+
+/**
+ * IR Energy Unit input for moving OPO IR energy
+ */
+function desired_ir_energy_unit_input(use_user_input) {
+	const ir_energy = document.getElementById("DesiredEnergy");
+	const ir_energy_unit = document.getElementById("DesiredEnergyUnit");
+
+	let input_value = decimal_round(parseFloat(ir_energy.value), 3);
+	// Make sure input value is real, positive number
+	if (input_value <= 0 || isNaN(input_value)) {
+		use_user_input = false;
+	}
+
+	switch (ir_energy_unit.selectedIndex) {
+		case 0:
+			// cm-1
+			if (use_user_input) {
+				// Update stored desired IR value using input value
+				laser.excitation.control.desired_ir = input_value;
+			} else {
+				// Update display using stored IR value
+				ir_energy.value = laser.excitation.control.desired_ir;
+			}
+			break;
+		case 1:
+			// um
+			if (use_user_input) {
+				// First, convert to cm-1
+				input_value = decimal_round(Math.pow(10, 4) / input_value, 3);
+				// Update stored desired IR value using input value
+				laser.excitation.control.desired_ir = input_value;
+			} else {
+				// Update display using stored IR value after converting to um
+				ir_energy.value = decimal_round(Math.pow(10, 4) / laser.excitation.control.desired_ir, 3);
+			}
+			break;
+		case 2:
+			// nm
+			if (use_user_input) {
+				// First, convert to cm-1
+				input_value = decimal_round(Math.pow(10, 7) / input_value, 3);
+				// Update stored desired IR value using input value
+				laser.excitation.control.desired_ir = input_value;
+			} else {
+				// Update display using stored IR value after converting to nm
+				ir_energy.value = decimal_round(Math.pow(10, 7) / laser.excitation.control.desired_ir, 3);
+			}
+			break;
+	}
+}
+
+/**
+ * Move OPO to desired IR energy
+ */
+async function move_ir_button() {
+	const ir_button = document.getElementById("MoveIRButton");
+	const ir_input = document.getElementById("IRWavelength");
+	const ir_mode = document.getElementById("IRWavelengthMode");
+	let measured_energies;
+	let nir_wl;
+	// Make sure there is a stored IR value to go to
+	if (laser.excitation.control.desired_ir <= 0) {
+		return;
+	}
+	// Connect to the OPO
+	opo.network.connect();
+	// Disable IR button so it can't be reclicked
+	ir_button.disabled = true;
+	// Move to IR
+	measured_energies = await move_to_ir(laser.excitation.control.desired_ir);
+	// Update displayed IR values
+	nir_wl = decimal_round(measured_energies.nir.wavelength, 3);
+	laser.excitation.wavelength.input = nir_wl;
+	laser.excitation.convert();
+	ir_input.value = nir_wl;
+	switch (measured_energies.desired_mode) {
+		case "nir":
+			ir_mode.selectedIndex = 0;
+			break;
+		case "iir":
+			ir_mode.selectedIndex = 1;
+			break;
+		case "mir":
+			ir_mode.selectedIndex = 2;
+			break;
+		case "fir":
+			ir_mode.selectedIndex = 3;
+			break;
+	}
+	excitation_mode_selection();
+	// Re-enable IR button
+	ir_button.disabled = false;
+}
+
+/**
+ * Measure wavelengths of detachment and IR laser
+ * 	(Currently only measures IR)
+ */
+async function measure_laser_wavelengths() {
+	const measure_button = document.getElementById("MeasureDetachmentWavelength");
+	const ir_input = document.getElementById("IRWavelength");
+	// Disable button
+	measure_button.disabled = true;
+	// Measure wavelength
+	let measured_wl = await measure_wavelength();
+	if (measured_wl) {
+		measured_wl = decimal_round(measured_wl, 3);
+		ir_input.value = measured_wl;
+		laser.excitation.wavelength.input = measured_wl;
+		laser.excitation.convert();
+		excitation_mode_selection();
+	} else {
+		console.log("Could not measure wavelengths");
+	}
+	// Re-enable button
+	measure_button.disabled = false;
 }
 
 /**
@@ -1564,7 +1703,7 @@ async function start_action_scan() {
 	console.time("ActionMode");
 	let desired_energy;
 	let desired_wl, desired_mode;
-	let measured_wl, measured_energies, energy_difference, wl_difference;
+	let measured_energies;
 	let origin_off_area, origin_on_area, new_peak_area;
 	let absorption_value;
 	let action_mode_data;
@@ -1592,42 +1731,8 @@ async function start_action_scan() {
 		scan.action_mode.status.data_points.current = point;
 		// Update progress display
 		update_action_progress();
-		// Calculate nIR wavelength for desired energy
-		[desired_wl, desired_mode] = laser.excitation.get_nir(desired_energy);
-		if (!desired_wl) {
-			// Couldn't get nIR wavelength - move to next energy
-			continue;
-		}
-		console.log(`Desired energy: ${desired_energy} cm-1 -> nIR: ${desired_wl} nm`);
-		// Move OPO to desired energy and measure the wavelength
-		console.log("Moving IR, measuring wavelength");
-		measured_wl = await move_ir_and_measure(desired_wl);
-		if (!measured_wl) {
-			// Couldn't get nIR measurement - move to next energy
-			continue;
-		}
-		// Calculate the excitation IR energy (cm^-1)
-		measured_energies = convert_nir(measured_wl);
-		console.log("Converted energies:", measured_energies);
-		// Check that the energy is close enough
-		energy_difference = measured_energies[desired_mode].wavenumber - desired_energy;
-		wl_difference = desired_wl - measured_wl;
-		if (Math.abs(energy_difference) > 0.3) {
-			// Too far away, move nIR by difference between desired and measured
-			// -> move_to((desired + difference) = (desired + (desired - measured)) = (2*desired - measured))
-			console.log("Second iteration of moving IR and measuring");
-			opo.move_very_slow();
-			//measured_wl = await move_ir_and_measure(2 * desired_wl - measured_wl);
-			measured_wl = await move_ir_and_measure(desired_wl + 0.01 * (2 * (wl_difference > 0) - 1));
-			if (!measured_wl) {
-				// Couldn't get nIR measurement - move to next energy
-				continue;
-			}
-			// Calculate the excitation IR energy (cm^-1)
-			measured_energies = convert_nir(measured_wl);
-			// Don't want to iterate movement more than once - move on
-			opo.move_slow();
-		}
+		// Move nIR wavelength to get desired energy
+		measured_energies = await move_to_ir(desired_energy);
 		// Update current/next IR energy
 		update_action_energy_displays(measured_energies[desired_mode].wavenumber);
 		// Start taking data
@@ -1734,6 +1839,58 @@ function hide_progress_bar_complete() {
 }
 
 /**
+ * Move OPO to desired energy including iterations to maximize accuracy
+ * @param {number} desired_energy - Desired IR energy in wavenumbers (cm-1)
+ * @returns {object} - Object containing desired IR mode and IR energies converted from measured nIR
+ */
+async function move_to_ir(desired_energy) {
+	let desired_wl, desired_mode;
+	let measured_wl, measured_energies, energy_difference, wl_difference;
+
+	// Calculate nIR wavelength for desired energy
+	[desired_wl, desired_mode] = laser.excitation.get_nir(desired_energy);
+	if (!desired_wl) {
+		// Couldn't get nIR wavelength - move to next energy
+		return false;
+	}
+	console.log(`Desired energy: ${desired_energy} cm-1 -> nIR: ${desired_wl} nm`);
+	// Move OPO to desired energy and measure the wavelength
+	console.log("Moving IR, measuring wavelength");
+	measured_wl = await move_ir_and_measure(desired_wl);
+	if (!measured_wl) {
+		// Couldn't get nIR measurement - move to next energy
+		return false;
+	}
+	// Calculate the excitation IR energy (cm^-1)
+	measured_energies = convert_nir(measured_wl);
+	console.log("Converted energies:", measured_energies);
+	// Check that the energy is close enough
+	energy_difference = measured_energies[desired_mode].wavenumber - desired_energy;
+	wl_difference = desired_wl - measured_wl;
+	if (Math.abs(energy_difference) > 0.3) {
+		// Too far away, move nIR by difference between desired and measured
+		// -> move_to((desired + difference) = (desired + (desired - measured)) = (2*desired - measured))
+		console.log("Second iteration of moving IR and measuring");
+		opo.move_very_slow();
+		measured_wl = await move_ir_and_measure(2 * desired_wl - measured_wl);
+		//measured_wl = await move_ir_and_measure(desired_wl + 0.01 * (2 * (wl_difference > 0) - 1));
+		if (!measured_wl) {
+			// Couldn't get nIR measurement - move to next energy
+			return false;
+		}
+		// Calculate the excitation IR energy (cm^-1)
+		measured_energies = convert_nir(measured_wl);
+		// Don't want to iterate movement more than once - move on
+		opo.move_slow();
+	}
+
+	// Add desired mode to measured_energies
+	measured_energies.desired_mode = desired_mode;
+
+	return measured_energies;
+}
+
+/**
  * Move the nIR to desired value and measure wavelength
  * @param {number} desired_wl - Desired nIR wavelength to move to (nm)
  * @returns {number} Measured wavelength, or 0 if unable to measure
@@ -1831,7 +1988,7 @@ async function measure_wavelength(expected_wl) {
 			return 0;
 		}
 		// Check if there were too many bad measurements
-		if (bad_measurements >= measured_value_length) {
+		if (bad_measurements >= 4 * measured_value_length) {
 			console.log(`Wavelength measurement: ${bad_measurements} bad measurements - Canceled`);
 			return 0;
 		}

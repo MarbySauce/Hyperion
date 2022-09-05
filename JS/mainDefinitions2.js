@@ -1270,7 +1270,7 @@ const laser = {
 			nir_lower_bound: 710,
 			nir_upper_bound: 880,
 			current_nir_motor: 0,
-			desired_ir: 0,
+			desired_ir: 0, // cm-1
 		},
 		/**
 		 * Convert OPO/A laser energies
