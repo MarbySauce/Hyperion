@@ -8,6 +8,27 @@
 // Global variables
 Napi::FunctionReference macWavelengthFn;
 
+// Start a wavelength measurement
+Napi::Number NapiStartMeasurement(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Error return value
+	long retVal = 0; // No error
+
+	// Return error value
+	return Napi::Number::New(env, retVal);
+}
+
+// End wavelength measurement
+Napi::Number NapiStopMeasurement(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Error return value
+	long retVal = 0; // No error
+
+	// Return error value
+	return Napi::Number::New(env, retVal);
+}
 
 // Get wavelength (from JS)
 Napi::Value GetWavelength(const Napi::CallbackInfo& info) {
@@ -23,6 +44,8 @@ void SetUpFunction(const Napi::CallbackInfo& info) {
 // Set up module to export functions to JavaScript
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	// Fill exports object with addon functions
+	exports["startMeasurement"] = Napi::Function::New(env, NapiStartMeasurement);
+	exports["stopMeasurement"] = Napi::Function::New(env, NapiStopMeasurement);
 	exports["getWavelength"] = Napi::Function::New(env, GetWavelength);
 	exports["setUpFunction"] = Napi::Function::New(env, SetUpFunction);
 
