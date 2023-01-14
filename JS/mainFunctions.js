@@ -16,25 +16,26 @@
 window.onload = function () {
 	// Send message to main process that the window is ready
 	ipc.send("main-window-ready", null);
+	switch_tabs();
 };
 
 /*		Tabs		*/
 
 document.getElementById("SeviMode").onclick = function () {
 	// SEVI mode tab
-	switch_tabs(0);
+	switch_tabs("SEVI");
 };
 document.getElementById("IRSeviMode").onclick = function () {
 	// IR SEVI mode tab
-	switch_tabs(1);
+	switch_tabs("IRSEVI");
 };
 document.getElementById("IRActionMode").onclick = function () {
 	// IR Action mode tab
-	switch_tabs(2);
+	switch_tabs("IRACTION");
 };
 document.getElementById("Settings").onclick = function () {
 	// Settings tab
-	switch_tabs(8);
+	switch_tabs("SETTINGS");
 };
 
 /*		Sevi and IR-Sevi Mode		*/
@@ -62,11 +63,11 @@ document.getElementById("ScanSingleShot").onclick = function () {
 // File naming buttons
 document.getElementById("ImageCounterDown").onclick = function () {
 	downtick_image_counter();
-	update_scan_id();
+	//update_scan_id();
 };
 document.getElementById("ImageCounterUp").onclick = function () {
 	uptick_image_counter();
-	update_scan_id();
+	//update_scan_id();
 };
 document.getElementById("VMIMode").oninput = function () {
 	vmi_mode_selection();
@@ -77,7 +78,7 @@ document.getElementById("WavelengthMode").oninput = function () {
 	detachment_mode_selection();
 };
 // Using input delay class to make sure function only executes if there is no input update for 1s
-const detachment_wavelength_input_delay = new input_delay(detachment_energy_input_fn);
+const detachment_wavelength_input_delay = new Input_delay(detachment_energy_input_fn);
 document.getElementById("DetachmentWavelength").oninput = function () {
 	detachment_wavelength_input_delay.start_timer();
 };
@@ -85,7 +86,7 @@ document.getElementById("IRWavelengthMode").oninput = function () {
 	excitation_mode_selection();
 };
 // Using input delay class to make sure function only executes if there is no input update for 1s
-const excitation_wavelength_input_delay = new input_delay(excitation_energy_input_fn);
+const excitation_wavelength_input_delay = new Input_delay(excitation_energy_input_fn);
 document.getElementById("IRWavelength").oninput = function () {
 	excitation_wavelength_input_delay.start_timer();
 };
@@ -103,8 +104,10 @@ document.getElementById("MeasureDetachmentWavelength").onclick = function () {
 };
 
 // Electron Counters
+// Using input delay class to make sure function only executes if there is no input update for 1s
+const sevi_automatic_stop_input_delay = new Input_delay(sevi_automatic_stop_input);
 document.getElementById("AutomaticStop").oninput = function () {
-	sevi_automatic_stop_input();
+	sevi_automatic_stop_input_delay.start_timer();
 };
 document.getElementById("AutomaticStopUnit").oninput = function () {
 	sevi_automatic_stop_selection();
@@ -118,12 +121,12 @@ document.getElementById("CalculateSpectrumButton").onclick = function () {
 	run_melexir();
 };
 // Using input delay class to make sure function only executes if there is no input update for 1s
-const spectrum_x_lower_input_delay = new input_delay(change_spectrum_x_display_range);
+const spectrum_x_lower_input_delay = new Input_delay(change_spectrum_x_display_range);
 document.getElementById("SpectrumXLower").oninput = function () {
 	spectrum_x_lower_input_delay.start_timer();
 };
 // Using input delay class to make sure function only executes if there is no input update for 1s
-const spectrum_x_upper_input_delay = new input_delay(change_spectrum_x_display_range);
+const spectrum_x_upper_input_delay = new Input_delay(change_spectrum_x_display_range);
 document.getElementById("SpectrumXUpper").oninput = function () {
 	spectrum_x_upper_input_delay.start_timer();
 };
@@ -139,18 +142,23 @@ document.getElementById("SeviPageUp").onclick = function () {
 
 /*		IR Action Mode		*/
 
-document.getElementById("IRActionStartSave").onclick = function () {
-	action_start_save_button();
-};
-
-document.getElementById("IRActionPageDown").onclick = function () {
-	switch_pages(1); // Switch to second page
-	destroy_absorption_plot();
-};
-document.getElementById("IRActionPageUp").onclick = function () {
-	switch_pages(0); // Switch to first page
-	create_absorption_plot(); // Create plot for Absorption profile
-};
+if (document.getElementById("IRActionStartSave")) {
+	document.getElementById("IRActionStartSave").onclick = function () {
+		action_start_save_button();
+	};
+}
+if (document.getElementById("IRActionPageDown")) {
+	document.getElementById("IRActionPageDown").onclick = function () {
+		switch_pages(1); // Switch to second page
+		destroy_absorption_plot();
+	};
+}
+if (document.getElementById("IRActionPageUp")) {
+	document.getElementById("IRActionPageUp").onclick = function () {
+		switch_pages(0); // Switch to first page
+		create_absorption_plot(); // Create plot for Absorption profile
+	};
+}
 
 /*		Settings		*/
 
@@ -173,9 +181,8 @@ document.getElementById("SaveSettingsButton").onclick = function () {
  * Application startup procedure
  */
 function startup() {
-	// Go to Sevi Mode tab (ID = 0)
-	switch_tabs(0);
-	//switch_tabs(2);
+	// Go to Sevi Mode tab
+	switch_tabs("SEVI");
 
 	// Start wavemeter application
 	wavemeter.startApplication();
@@ -188,6 +195,8 @@ function startup() {
 	scan.previous.read();
 	display_file_names();
 
+	Images.reset();
+
 	// Set up Mac wavemeter simulation function
 	initialize_mac_fn();
 	// Get OPO wavelength
@@ -198,78 +207,52 @@ function startup() {
 	disable_action_mode_buttons();
 
 	ipc.send("main-window-loaded", null);
+
+	// Start messenger display loop
+	messenger.display_loop();
 }
 
 /*		Tabs		*/
 
 /**
  * Depress all of the buttons (to behave like a radio button) and then activate the tab 'tab'
- * @param {int} tab - 0 => SEVI mode, 1 => IR-SEVI Mode, 2 => IR Action Mode,
- * 					3 => blank, 4 => blank, 5 => blank, 6 => blank, 7 => blank,
- * 					8 => Settings section
+ * @param {string} tab - Should be tab in Tab_List (e.g. 'SEVI', 'IRSEVI')
  */
 function switch_tabs(tab) {
-	// Tab name should be an integer corresponding to the index of tabList
-	// 		Some tabs are left empty and can be filled in if a new tab is added in the future
-	//
-	// If you only want to hide all tabs and show nothing,
-	// call the function with no parameters
-
-	// List of each tab section
-	const tab_list = [
-		document.getElementById("SeviMode"),
-		document.getElementById("IRSeviMode"),
-		document.getElementById("IRActionMode"),
-		null,
-		null,
-		null,
-		null,
-		null,
-		document.getElementById("Settings"),
-	];
-
-	// Content corresponding to each tab
-	const content_list = [
-		document.getElementById("SeviModeContent"),
-		document.getElementById("SeviModeContent"),
-		document.getElementById("IRActionModeContent"),
-		null,
-		null,
-		null,
-		null,
-		null,
-		document.getElementById("SettingsContent"),
-	];
-
 	// Depress the current tab and hide content
-	tab_list[page_info.current_tab].classList.remove("pressed-tab");
-	content_list[page_info.current_tab].style.display = "none";
+	let current_tab = document.getElementById(page_info.current_tab);
+	let current_page = document.getElementById(page_info.current_page);
+	if (current_tab) current_tab.classList.remove("pressed-tab");
+	if (current_page) current_page.style.display = "none";
 
 	// Make sure the tab argument passed is an integer corresponding to a real tab
-	if (!tab_list[tab]) {
-		console.log("Returned");
+	if (!Tab_List[tab] || !Content_List[tab]) {
 		return;
 	}
 
 	// Store the current tab info
-	page_info.current_tab = tab;
+	page_info.current_tab = Tab_List[tab];
+	page_info.current_page = Content_List[tab];
 
 	// Activate selected tab and show content
-	tab_list[tab].classList.add("pressed-tab");
-	content_list[tab].style.display = "grid";
-
-	// If chosen tab is Sevi or IR-Sevi mode, we have to do a bit more
-	// since IR-SEVI is just Sevi with a few more elements shown
-	let sevi_methods = ["sevi", "ir-sevi"];
-	if (tab <= 1) {
-		// Remove class of the tab not chosen (e.g. remove "sevi-mode" if ir-sevi chosen)
-		content_list[tab].classList.remove(sevi_methods[(tab + 1) % 2] + "-mode");
-		// Add class of the chosen tab
-		content_list[tab].classList.add(sevi_methods[tab] + "-mode");
+	let new_tab = document.getElementById(Tab_List[tab]);
+	let new_page = document.getElementById(Content_List[tab]);
+	if (new_tab) new_tab.classList.add("pressed-tab");
+	if (new_page) {
+		new_page.style.display = "grid";
+		// If chosen tab is Sevi or IR-Sevi mode, we have to do a bit more
+		// since IR-SEVI is just Sevi with a few more elements shown
+		if (tab === "SEVI") {
+			new_page.classList.remove("ir-sevi-mode");
+			new_page.classList.add("sevi-mode");
+		} else if (tab === "IRSEVI") {
+			new_page.classList.remove("sevi-mode");
+			new_page.classList.add("ir-sevi-mode");
+		}
 	}
 
 	// If moving to IR Action tab, create Absorption chart, otherwise destroy it if it exists
-	if (tab === 2) {
+	if (tab === "IRACTION") {
 		create_absorption_plot();
 		// Connect to OPO
 		opo.network.connect();
@@ -287,11 +270,9 @@ function switch_tabs(tab) {
  */
 function switch_pages(page_index) {
 	let page_prefix;
-	if (page_info.current_tab <= 1) {
-		// Currently on Sevi or IR-Sevi tab
+	if (page_info.current_tab === Tab_List.SEVI || page_info.current_tab === Tab_List.IRSEVI) {
 		page_prefix = "Sevi";
-	} else if (page_info.current_tab == 2) {
-		// Currently on IR Action tab
+	} else if (page_info.current_tab === Tab_List.IRACTION) {
 		page_prefix = "IRAction";
 	} else {
 		// Currently on a tab without pages, just return
@@ -302,7 +283,7 @@ function switch_pages(page_index) {
 	const first_page = document.getElementById(page_prefix + "FirstPage");
 	const second_page = document.getElementById(page_prefix + "SecondPage");
 
-	if (page_index === 0) {
+	if (page_index === 0 && first_page && second_page) {
 		// Display first page
 		first_page.style.display = "grid";
 		second_page.style.display = "none";
@@ -310,7 +291,7 @@ function switch_pages(page_index) {
 		// PE Spectrum is on second page, and needs to be destroyed if moving to first page
 		//	(if it exists)
 		destroy_spectrum_plot();
-	} else if (page_index === 1) {
+	} else if (page_index === 1 && first_page && second_page) {
 		// Display second page
 		first_page.style.display = "none";
 		second_page.style.display = "grid";
@@ -328,7 +309,7 @@ function switch_pages(page_index) {
  */
 function sevi_start_save_button() {
 	// Check whether a scan is running
-	if (scan.status.running) {
+	if (Images.current) {
 		// Scan is running, stop scan and save
 		stop_sevi_scan(true); // 'true' argument means image will be saved to file
 		// Update button text
@@ -344,10 +325,6 @@ function sevi_start_save_button() {
 		run_melexir();
 	} else {
 		// Scan was not running, start new scan
-		// Check whether it should be SEVI or IR-SEVI scan (based on current tab)
-		let sevi_methods = ["sevi", "ir-sevi"];
-		scan.status.method = sevi_methods[page_info.current_tab];
-		// Start the scan
 		start_sevi_scan();
 		// Update button text
 		change_sevi_start_button_to_save();
@@ -361,15 +338,31 @@ function sevi_start_save_button() {
  */
 function start_sevi_scan() {
 	// Reset counters, accumulated image, and autosave timer
-	electrons.total.reset();
+	//electrons.total.reset();
 	scan.accumulated_image.reset();
 	scan.saving.start_timer();
 	// Save image ID for scan
-	update_scan_id();
+	////update_scan_id();
 	//update_pes_id();
 	// Update scan running status
 	scan.status.running = true;
 	scan.status.paused = false;
+
+	const image_counter = document.getElementById("ImageCounter");
+	let image_id = parseInt(image_counter.value);
+	if (page_info.current_tab === Tab_List.SEVI) {
+		Spectra.new(image_id, Scanning_Mode.SEVI);
+		Images.new(image_id, Scanning_Mode.SEVI);
+		// Add message that scan was started
+		messenger.add("SEVI scan started!");
+	} else {
+		Spectra.new(image_id, Scanning_Mode.IRSEVI);
+		Images.new(image_id, Scanning_Mode.IRSEVI);
+		// Add message that scan was started
+		messenger.add("IR-SEVI scan started!");
+	}
+
+	Images.reset();
 }
 
 /**
@@ -380,10 +373,25 @@ function stop_sevi_scan(save_image) {
 	// Update scan running status
 	scan.status.running = false;
 	scan.status.paused = false;
-	// Save image to file (if selected)
+	/*// Save image to file (if selected)
 	if (save_image) {
 		scan.previous.add_scan();
 		scan.accumulated_image.save();
+		// Add message that scan was saved
+		messenger.add("(IR)SEVI scan saved!");
+	} else {
+		// Add message that scan was canceled
+		messenger.add("(IR)SEVI scan canceled!");
+	}*/
+
+	// Move "current" image & spectrum to "latest" position
+	Images.update_latest(Images.current);
+	Images.clear_current();
+	Spectra.update_latest(Spectra.current);
+	Spectra.clear_current();
+	// Save image to file (if selected)
+	if (save_image) {
+		Images.save();
 	}
 }
 
@@ -392,7 +400,7 @@ function stop_sevi_scan(save_image) {
  */
 function change_sevi_start_button_to_start() {
 	const start_button_text = document.getElementById("ScanStartSaveText");
-	start_button_text.innerText = "Start";
+	if (start_button_text) start_button_text.innerText = "Start";
 }
 
 /**
@@ -400,43 +408,42 @@ function change_sevi_start_button_to_start() {
  */
 function change_sevi_start_button_to_save() {
 	const start_button_text = document.getElementById("ScanStartSaveText");
-	start_button_text.innerText = "Save";
+	if (start_button_text) start_button_text.innerText = "Save";
 }
 
 function sevi_pause_resume_button() {
-	// Check if a scan is running
-	if (scan.status.running) {
-		// Scan is running, pause if not already, otherwise resume scan
-		if (scan.status.paused) {
-			// Resume scan
-			scan.status.paused = false;
+	if (Images.current) {
+		// Scan is currently being taken
+		if (Images.current.paused) {
+			// Current scan is paused, resume scan
+			Images.current.paused = false;
 			// Update button text and remove pause overlay
 			change_sevi_pause_button_to_pause();
 			remove_pause_screen_overlay();
+			// Add message that scan was resumed
+			messenger.add("(IR)SEVI scan resumed!");
 		} else {
-			// Pause scan
-			scan.status.paused = true;
+			// Pause current scan
+			Images.current.paused = true;
 			// Update button text and add pause overlay
 			change_sevi_pause_button_to_resume();
 			add_pause_screen_overlay();
+			// Add message that scan was paused
+			messenger.add("(IR)SEVI scan paused!");
 		}
 	} else {
-		// Scan was not running
-		// If an earlier scan is still in memory, give option to resume that scan
-		// Otherwise do nothing
-		if (scan.accumulated_image.images.ir_off.length > 0 && electrons.total.e_count.ir_off > 0) {
+		// Check if there was an image previously taken
+		if (Images.latest) {
 			// Update button text
 			change_sevi_start_button_to_save();
 			change_sevi_pause_button_to_pause();
-			// Downtick counter to match earlier image
-			downtick_image_counter();
 			// Start autosave timer
-			scan.saving.start_timer();
-			// Update scan ID
-			update_scan_id();
-			// Resume scan
-			scan.status.running = true;
-			scan.status.paused = false;
+			scan.saving.start_timer(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Change
+			// Move "latest" to "current"
+			Images.current = Images.latest;
+			display_file_names();
+			// Add message that scan was resumed
+			messenger.add("Previous (IR)SEVI scan resumed!");
 		}
 	}
 }
@@ -446,7 +453,7 @@ function sevi_pause_resume_button() {
  */
 function change_sevi_pause_button_to_pause() {
 	const pause_button_text = document.getElementById("ScanPauseResumeText");
-	pause_button_text.innerText = "Pause";
+	if (pause_button_text) pause_button_text.innerText = "Pause";
 }
 
 /**
@@ -454,7 +461,7 @@ function change_sevi_pause_button_to_pause() {
  */
 function change_sevi_pause_button_to_resume() {
 	const pause_button_text = document.getElementById("ScanPauseResumeText");
-	pause_button_text.innerText = "Resume";
+	if (pause_button_text) pause_button_text.innerText = "Resume";
 }
 
 /**
@@ -463,7 +470,7 @@ function change_sevi_pause_button_to_resume() {
 function add_pause_screen_overlay() {
 	const sevi_content = document.getElementById("SeviModeContent");
 	// Gray out sections
-	sevi_content.classList.add("paused");
+	if (sevi_content) sevi_content.classList.add("paused");
 	// Add pause icon on accumulated image display
 	draw_pause_icon();
 }
@@ -473,7 +480,7 @@ function add_pause_screen_overlay() {
  */
 function remove_pause_screen_overlay() {
 	const sevi_content = document.getElementById("SeviModeContent");
-	sevi_content.classList.remove("paused");
+	if (sevi_content) sevi_content.classList.remove("paused");
 }
 
 /**
@@ -482,6 +489,10 @@ function remove_pause_screen_overlay() {
 function draw_pause_icon() {
 	const image_display = document.getElementById("Display");
 	const ctx = image_display.getContext("2d");
+
+	if (!image_display || !ctx) {
+		return;
+	}
 
 	const canvas_center = { x: 1000, y: 1000 };
 
@@ -518,7 +529,7 @@ function draw_pause_icon() {
  */
 function sevi_cancel_button() {
 	// If a scan isn't running, do nothing
-	if (!scan.status.running) {
+	if (!Images.current) {
 		return;
 	}
 	// If the scan was paused, remove pause overlay
@@ -549,12 +560,14 @@ function autosave_button() {
  */
 function update_autosave_button_text() {
 	const autosave_on_off_text = document.getElementById("ScanAutosaveStatusText");
-	if (scan.saving.autosave) {
-		// Autosaving is now turned on
-		autosave_on_off_text.innerText = "On";
-	} else {
-		// Autosaving is now turned off
-		autosave_on_off_text.innerText = "Off";
+	if (autosave_on_off_text) {
+		if (scan.saving.autosave) {
+			// Autosaving is now turned on
+			autosave_on_off_text.innerText = "On";
+		} else {
+			// Autosaving is now turned off
+			autosave_on_off_text.innerText = "Off";
+		}
 	}
 }
 
@@ -564,6 +577,10 @@ function update_autosave_button_text() {
 function sevi_scan_reset() {
 	electrons.total.reset();
 	scan.accumulated_image.reset();
+
+	Images.reset();
+	// Add message that scan was reset
+	messenger.add("(IR)SEVI scan reset!");
 }
 
 /**
@@ -593,22 +610,15 @@ function disable_single_shot_button(to_disable) {
  */
 function update_file_name_display() {
 	const ir_on_file = document.getElementById("CurrentImageFileIR");
-	if (scan.status.method === "sevi") {
-		if (scan.status.running) {
-			// Sevi mode scan just started, add CSS class to ir_on file name s.t. it doesn't show even on IR-Sevi tab
+	if (Images.current) {
+		if (Images.current.scanning_mode === Scanning_Mode.SEVI) {
 			ir_on_file.classList.add("do-not-show-file");
-		} else {
-			// Sevi mode scan just ended, take away above CSS class
-			ir_on_file.classList.remove("do-not-show-file");
-		}
-	} else if (scan.status.method === "ir-sevi") {
-		if (scan.status.running) {
-			// IR-Sevi mode scan just started, add CSS class to ir_on file name s.t. it always shows even on Sevi tab
+		} else if (Images.current.scanning_mode === Scanning_Mode.IRSEVI) {
 			ir_on_file.classList.add("always-show-file");
-		} else {
-			// IR-Sevi mode scan just ended, take away above CSS class
-			ir_on_file.classList.remove("always-show-file");
 		}
+	} else {
+		ir_on_file.classList.remove("do-not-show-file");
+		ir_on_file.classList.remove("always-show-file");
 	}
 }
 
@@ -618,8 +628,19 @@ function update_file_name_display() {
 function display_file_names() {
 	const ir_off_file = document.getElementById("CurrentImageFile");
 	const ir_on_file = document.getElementById("CurrentImageFileIR");
-	ir_off_file.value = scan.saving.file_name;
-	ir_on_file.value = scan.saving.file_name_ir;
+	const image_counter = document.getElementById("ImageCounter");
+	// If there is a current image, use that file name
+	if (Images.current) {
+		ir_off_file.value = Images.current.file_name;
+		ir_on_file.value = Images.current.ir_file_name;
+		image_counter.value = Images.current.id;
+	} else {
+		// Generate file name using Image Counter value as ID
+		const image_counter = document.getElementById("ImageCounter");
+		let image_id = parseInt(image_counter.value);
+		ir_off_file.value = Image.file_name(image_id);
+		ir_on_file.value = Image.ir_file_name(image_id);
+	}
 }
 
 /**
@@ -631,7 +652,6 @@ function uptick_image_counter() {
 	current_counter_val++;
 	image_counter.value = current_counter_val;
 	// Update file names
-	update_scan_id();
 	display_file_names();
 }
 
@@ -648,20 +668,7 @@ function downtick_image_counter() {
 	current_counter_val--;
 	image_counter.value = current_counter_val;
 	// Update file names
-	update_scan_id();
 	display_file_names();
-}
-
-/**
- * Update the ID used for scan saving
- */
-function update_scan_id() {
-	const image_counter = document.getElementById("ImageCounter");
-	let image_id = parseInt(image_counter.value);
-	// Update the scan saving ID
-	scan.saving.image_id = image_id;
-	// Update file names in scan.saving
-	scan.saving.get_file_names();
 }
 
 /**
@@ -959,18 +966,21 @@ async function measure_laser_wavelengths() {
 function update_accumulated_image_display(override) {
 	if (!override) {
 		// First check if a scan is currently being taken
-		if (!scan.status.running || scan.status.paused) {
+		if (Images.current && Images.current.paused) {
 			// Don't update the images
 			return;
 		}
+	}
+	// Make sure settings have been updated
+	if (!settings || !settings.centroid) {
+		return;
 	}
 	const image_select = document.getElementById("ImageDisplaySelect");
 	const image_display = document.getElementById("Display");
 	const ctx = image_display.getContext("2d");
 	const display_slider_value = parseFloat(document.getElementById("DisplaySlider").value);
-	let image_height = scan.accumulated_image.params.accumulation_height;
-	let image_width = scan.accumulated_image.params.accumulation_width;
-	let image_data = new ImageData(image_width, image_height); //ctx.getImageData(0, 0, image_width, image_height);
+	let image_size = settings.centroid.bin_size;
+	let image_data = new ImageData(image_size, image_size);
 	let displayed_image;
 	let image_pixel;
 	let display_positive = true; // If false, display only negative values (for difference image)
@@ -978,12 +988,12 @@ function update_accumulated_image_display(override) {
 	// Clear the current image
 	ctx.clearRect(0, 0, image_display.width, image_display.height);
 
-	if (page_info.current_tab === 0) {
+	if (page_info.current_tab === Tab_List.SEVI) {
 		// On Sevi Mode tab, display ir_off + ir_on
-		for (let Y = 0; Y < image_height; Y++) {
-			for (let X = 0; X < image_width; X++) {
-				image_pixel = scan.accumulated_image.images.ir_off[Y][X];
-				image_pixel += scan.accumulated_image.images.ir_on[Y][X];
+		for (let Y = 0; Y < image_size; Y++) {
+			for (let X = 0; X < image_size; X++) {
+				image_pixel = Images.images.ir_off[Y][X];
+				image_pixel += Images.images.ir_on[Y][X];
 				// If the pixel is zero we can just skip it
 				if (image_pixel === 0) {
 					continue;
@@ -996,37 +1006,37 @@ function update_accumulated_image_display(override) {
 				}
 				// Want to make pixels white -> RGBA = [255, 255, 255, 255] (at full contrast)
 				for (let i = 0; i < 4; i++) {
-					image_data.data[4 * (image_width * Y + X) + i] = image_pixel;
+					image_data.data[4 * (image_size * Y + X) + i] = image_pixel;
 				}
 			}
 		}
-	} else if (page_info.current_tab === 1) {
+	} else if (page_info.current_tab === Tab_List.IRSEVI) {
 		// On IR-Sevi tab, display selected image
 		switch (image_select.selectedIndex) {
 			case 0:
 				// IR Off
-				displayed_image = scan.accumulated_image.images.ir_off;
+				displayed_image = Images.images.ir_off;
 				break;
 			case 1:
 				// IR On
-				displayed_image = scan.accumulated_image.images.ir_on;
+				displayed_image = Images.images.ir_on;
 				break;
 			case 2:
 				// Difference positive (need to calculate difference first)
-				displayed_image = scan.accumulated_image.images.difference;
+				displayed_image = Images.images.difference;
 				break;
 			case 3:
 				// Difference negative (need to calculate difference first)
 				display_positive = false;
-				displayed_image = scan.accumulated_image.images.difference;
+				displayed_image = Images.images.difference;
 				break;
 			default:
 				// Just display IR Off
-				displayed_image = scan.accumulated_image.images.ir_off;
+				displayed_image = Images.images.ir_off;
 				break;
 		}
-		for (let Y = 0; Y < image_height; Y++) {
-			for (let X = 0; X < image_width; X++) {
+		for (let Y = 0; Y < image_size; Y++) {
+			for (let X = 0; X < image_size; X++) {
 				image_pixel = displayed_image[Y][X];
 				// If the pixel is zero we can just skip it
 				if (image_pixel === 0) {
@@ -1053,7 +1063,7 @@ function update_accumulated_image_display(override) {
 				}
 				// Want to make pixels white -> RGBA = [255, 255, 255, 255] (at full contrast)
 				for (let i = 0; i < 4; i++) {
-					image_data.data[4 * (image_width * Y + X) + i] = image_pixel;
+					image_data.data[4 * (image_size * Y + X) + i] = image_pixel;
 				}
 			}
 		}
@@ -1062,7 +1072,7 @@ function update_accumulated_image_display(override) {
 	// Have to do this bullshit so that the image is resized to fill the display correctly
 	// (turning the ImageData object into a BMP image and then using drawImage to put it on the canvas)
 	createImageBitmap(image_data).then(function (bitmap_img) {
-		ctx.drawImage(bitmap_img, 0, 0, image_width, image_height, 0, 0, image_display.width, image_display.height);
+		ctx.drawImage(bitmap_img, 0, 0, image_size, image_size, 0, 0, image_display.width, image_display.height);
 	});
 }
 
@@ -1077,21 +1087,35 @@ function update_counter_displays() {
 	const avg_e_count = document.getElementById("AvgECount");
 	const avg_e_count_ir = document.getElementById("AvgECountIROn");
 
-	let frame_count_off = electrons.total.frame_count.ir_off;
-	let frame_count_on = electrons.total.frame_count.ir_on;
 	let avg_off = electrons.average.mode.ir_off_value;
 	let avg_on = electrons.average.mode.ir_on_value;
+	let off_length = electrons.average.mode.ir_off.length;
+	let on_length = electrons.average.mode.ir_on.length;
 
 	// If on Sevi mode tab, total values = ir_off + ir_on
-	if (page_info.current_tab === 0) {
-		total_frames.value = frame_count_off + frame_count_on;
-		total_e_count.value = electrons.total.e_count.get_count("total");
-		avg_e_count.value = ((avg_off + avg_on) / 2).toFixed(2);
+	if (page_info.current_tab === Tab_List.SEVI) {
+		if (Images.current) {
+			total_e_count.value = Images.current.get_electrons(Count_Type.TOTAL);
+			total_frames.value = Images.current.get_frames(Count_Type.TOTAL, true);
+		} else if (Images.latest) {
+			// No current image to display values for, display latest instead
+			total_e_count.value = Images.latest.get_electrons(Count_Type.TOTAL);
+			total_frames.value = Images.latest.get_frames(Count_Type.TOTAL, true);
+		}
+		avg_e_count.value = ((off_length * avg_off + on_length * avg_on) / (off_length + on_length)).toFixed(2);
 	} else {
-		total_frames.value = frame_count_off;
-		total_frames_ir.value = frame_count_on;
-		total_e_count.value = electrons.total.e_count.get_count("ir_off");
-		total_e_count_ir.value = electrons.total.e_count.get_count("ir_on");
+		if (Images.current) {
+			total_e_count.value = Images.current.get_electrons(Count_Type.OFF);
+			total_e_count_ir.value = Images.current.get_electrons(Count_Type.ON);
+			total_frames.value = Images.current.get_frames(Count_Type.OFF, true);
+			total_frames_ir.value = Images.current.get_frames(Count_Type.ON, true);
+		} else if (Images.latest) {
+			// No current image to display values for, display latest instead
+			total_e_count.value = Images.latest.get_electrons(Count_Type.OFF);
+			total_e_count_ir.value = Images.latest.get_electrons(Count_Type.ON);
+			total_frames.value = Images.latest.get_frames(Count_Type.OFF, true);
+			total_frames_ir.value = Images.latest.get_frames(Count_Type.ON, true);
+		}
 		avg_e_count.value = avg_off.toFixed(2);
 		avg_e_count_ir.value = avg_on.toFixed(2);
 	}
@@ -1107,7 +1131,8 @@ function sevi_automatic_stop_input() {
 	}
 	const auto_stop = document.getElementById("AutomaticStop");
 	let value = parseFloat(auto_stop.value);
-	electrons.total.auto_stop.update(value);
+	//electrons.total.autostop.update(value);
+	Images.update_autostop(value);
 }
 
 /**
@@ -1123,22 +1148,22 @@ function sevi_automatic_stop_selection() {
 	switch (auto_stop_unit.selectedIndex) {
 		case 0:
 			// None
-			electrons.total.auto_stop.method = "none";
+			Images.autostop.type = Autostop.NONE;
 			auto_stop.value = "";
 			break;
 		case 1:
 			// Electrons (x1e5)
-			electrons.total.auto_stop.method = "electrons";
-			auto_stop.value = electrons.total.auto_stop.electrons || "";
+			Images.autostop.type = Autostop.ELECTRONS;
+			auto_stop.value = Images.autostop.electrons || "";
 			break;
 		case 2:
 			// Frames (x1000)
-			electrons.total.auto_stop.method = "frames";
-			auto_stop.value = electrons.total.auto_stop.frames || "";
+			Images.autostop.type = Autostop.FRAMES;
+			auto_stop.value = Images.autostop.frames || "";
 			break;
 		default:
 			// None
-			electrons.total.auto_stop.method = "none";
+			Images.autostop.type = Autostop.NONE;
 			auto_stop.value = "";
 			break;
 	}
@@ -1579,7 +1604,9 @@ function disable_action_mode_buttons() {
 		document.getElementById("IRActionTurnAround"),
 	];
 	for (let i = 0; i < disabled_buttons.length; i++) {
-		disabled_buttons[i].disabled = true;
+		if (disabled_buttons[i]) {
+			disabled_buttons[i].disabled = true;
+		}
 	}
 }
 
@@ -2146,9 +2173,11 @@ async function wait_for_melexir() {
  * Create chart to plot IR Absorption Profile
  */
 function create_absorption_plot() {
-	const absorption_display_ctx = document.getElementById("IRAbsorptionPlot").getContext("2d");
-	absorption_display = new Chart(absorption_display_ctx, absorption_config);
-	update_absorption_plot();
+	if (document.getElementById("IRAbsorptionPlot")) {
+		const absorption_display_ctx = document.getElementById("IRAbsorptionPlot").getContext("2d");
+		absorption_display = new Chart(absorption_display_ctx, absorption_config);
+		update_absorption_plot();
+	}
 }
 
 /**
@@ -2219,15 +2248,23 @@ ipc.on("new-camera-frame", (event, centroid_results) => {
 	//		is_led_on				- 	Boolean		- Whether IR LED was on in image
 
 	// Update electron counters
-	electrons.update(centroid_results);
-	update_counter_displays();
+	//electrons.update(centroid_results);
+	//update_counter_displays();
 	// Add electrons to accumulated image and update display
-	scan.accumulated_image.update(centroid_results);
-	update_accumulated_image_display();
+	//scan.accumulated_image.update(centroid_results);
+	//update_accumulated_image_display();
 	// Check if camera frame should be saved to file
 	scan.single_shot.check(centroid_results);
 	// Check if auto-stop is triggered
-	electrons.total.auto_stop.check();
+	//electrons.total.auto_stop.check();
+
+	// Update accumulated image and electron counters
+	electrons.update(centroid_results);
+	Images.update(centroid_results);
+	update_accumulated_image_display();
+	update_counter_displays();
+	// Check if auto-stop is triggered
+	Images.check_autostop();
 });
 
 /*****************************************************************************
@@ -2331,11 +2368,7 @@ async function run_progress_bar() {
 		});
 	}
 }
-/*function run_progress_bar() {
-	const progress_bar = document.getElementById("ProgressBar");
-	progress_bar.style.width = "100%";
 
-	for (let i = 0; i <= 100; i += 10) {
-
-	}
-}*/
+async function sleep(delay_ms) {
+	return new Promise((resolve) => setTimeout(resolve, delay_ms));
+}

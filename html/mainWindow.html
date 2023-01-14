@@ -7,6 +7,10 @@
 		<link href="../css/mainWindowGrid.css" rel="stylesheet" />
 	</head>
 	<body>
+		<!-- Message Bar -->
+		<div class="grid" id="MsgBar">
+			<p class="white-text right-align" id="MessageDisplay"></p>
+		</div>
 		<!-- Tab Bar -->
 		<div id="TabBar">
 			<button class="tab" id="SeviMode">SEVI</button>
@@ -207,14 +211,14 @@
 				</div>
 				<!-- IR Action Mode - First Page - Scan Controls -->
 				<div class="grid background-lighter-blue scan-controls" id="IRActionControls">
+					<div class="grid background-lighter-blue" id="IRActionControlsTitle">
+						<h3 class="white-text">Action Scan Control</h3>
+					</div>
 					<button class="scan-control-button square-button white-text" id="IRActionStartSave">
 						<span class="scan-button-text" id="IRActionStartSaveText">Start</span>
 					</button>
 					<button class="scan-control-button square-button white-text" id="IRActionPauseResume">
 						<span class="scan-button-text" id="IRActionPauseResumeText">Pause</span>
-					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionCancel">
-						<span class="scan-button-text" id="IRActionCancelText">Cancel</span>
 					</button>
 					<button class="scan-control-button square-button white-text" id="IRActionPreviousWavelength">
 						<span class="scan-button-text" id="IRActionPreviousWavelengthText">Previous λ</span>
@@ -222,9 +226,45 @@
 					<button class="scan-control-button square-button white-text" id="IRActionNextWavelength">
 						<span class="scan-button-text" id="IRActionNextWavelengthText">Next λ</span>
 					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionTurnAround">
-						<span class="scan-button-text" id="IRActionTurnAroundText">Turn Around</span>
+				</div>
+				<!-- IR Action Mode - First Page - Image Controls -->
+				<div class="grid background-lighter-blue scan-controls" id="IRActionImageControls">
+					<div class="grid background-lighter-blue" id="IRActionImageControlsTitle">
+						<h3 class="white-text">Image Control</h3>
+					</div>
+					<button class="scan-control-button square-button white-text" id="IRActionPauseImage">
+						<span class="scan-button-text" id="IRActionPauseImageText">Pause</span>
 					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionResetImage">
+						<span class="scan-button-text" id="IRActionResetImageText">Reset</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionSaveImage">
+						<span class="scan-button-text" id="IRActionSaveImageText">Save & Move On</span>
+					</button>
+				</div>
+				<!-- IR Action Mode - First Page - Wavemeter Controls -->
+				<div class="grid background-lighter-blue scan-controls" id="IRActionWavemeterControls">
+					<div class="grid background-lighter-blue" id="IRActionWavemeterControlsTitle">
+						<h3 class="white-text">Wavemeter Control</h3>
+					</div>
+					<button class="scan-control-button square-button white-text" id="IRActionPauseWavemeter">
+						<span class="scan-button-text" id="IRActionPauseWavemeterText">Pause</span>
+					</button>
+					<label class="white-text right-align" for="DesiredWLMeasurementLength" id="DesiredWLMeasurementLengthLabel"
+						>Measurement Length (counts)</label
+					>
+					<select class="white-text square-button drop-down" name="DesiredWLMeasurementLength" id="DesiredWLMeasurementLength">
+						<option value="25">25</option>
+						<option value="50">50</option>
+						<option value="100">100</option>
+						<option value="250">250</option>
+						<option value="500">500</option>
+					</select>
+					<button class="scan-control-button square-button white-text" id="IRActionResetWavemeter">
+						<span class="scan-button-text" id="IRActionResetWavemeterText">Remeasure</span>
+					</button>
+					<label class="settings-input-label right-align" for="RemeasureWL" id="RemeasureWLLabel">Remeasure λ after image?</label>
+					<input type="checkbox" id="RemeasureWL" />
 				</div>
 				<!-- IR Action Mode - First Page - Scan Options -->
 				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionOptions">
@@ -375,8 +415,7 @@
 			</div>
 		</div>
 
-		<!--<script src="../JS/mainDefinitions.js"></script>-->
-		<script src="../JS/mainDefinitions2.js"></script>
+		<script src="../JS/mainDefinitions.js"></script>
 		<script src="../JS/mainFunctions.js"></script>
 	</body>
 </html>

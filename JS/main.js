@@ -6,6 +6,9 @@ let main_window; // Main window, for bulk of processing and control
 let live_view_window; // Auxilliary window for displaying incoming camera images
 let invisible_window; // Hidden window used to communicate with camera and centroid images
 
+const open_live_view_window = true;
+const open_invisible_window = true;
+
 const settings = {
 	file_name: path.join(".", "Settings", "Settings.JSON"),
 	information: {
@@ -212,14 +215,14 @@ app.on("ready", function () {
 	//create_folders();
 
 	main_window = create_main_window();
-	invisible_window = create_invisible_window();
-	live_view_window = create_live_view_window();
+	if (open_invisible_window) invisible_window = create_invisible_window();
+	if (open_live_view_window) live_view_window = create_live_view_window();
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) {
 			main_window = create_main_window();
-			invisible_window = create_invisible_window();
-			live_view_window = create_live_view_window();
+			if (open_invisible_window) invisible_window = create_invisible_window();
+			if (open_live_view_window) live_view_window = create_live_view_window();
 		}
 	});
 
@@ -336,6 +339,7 @@ function get_folder_names() {
 // Message received from main window
 // Main window is loaded, send the settings info
 ipcMain.on("main-window-ready", function (event, arg) {
+	console.log("Main window ready!");
 	send_settings("main");
 });
 
@@ -427,10 +431,16 @@ ipcMain.on("scan-update", function (event, update) {
 
 // Message received from invisible window
 // Relay centroid data to main and live view windows
+let main_window_failed = false;
 ipcMain.on("new-camera-frame", function (event, info) {
 	// Send data to main window if it's open
-	if (main_window) {
-		main_window.webContents.send("new-camera-frame", info);
+	if (main_window && !main_window_failed) {
+		try {
+			main_window.webContents.send("new-camera-frame", info);
+		} catch (error) {
+			console.log("No main window:", error);
+			main_window_failed = true;
+		}
 	}
 
 	// Send data to live view window if it's open

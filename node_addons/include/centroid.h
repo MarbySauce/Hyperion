@@ -100,6 +100,7 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 	// Image parameters
 	int Width = Image.width();
 	int Height = Image.height();
+	int RegionMax = RegionVector.width();
 
 	// Create the necessary centroiding arrays
 	COMs.fill(0); // Center of Mass parameters
@@ -142,6 +143,11 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 			else if ((NoiseyLowerBound <= Y && Y < NoiseyUpperBound) && (NoisexLowerBound <= X && X < NoisexUpperBound)) {
 				NoiseIntensity += (int)pixValue;
 				NoiseCount++;
+			}
+
+			// Make sure there haven't been too many regions
+			if (regions >= RegionMax) {
+				continue;
 			}
 
 			// Check if pixel is within centroiding AoI
