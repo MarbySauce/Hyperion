@@ -304,6 +304,7 @@ function switch_pages(page_index) {
 
 *****************************************************************************/
 
+//	DONE
 /**
  * Functionality for SEVI/IR-SEVI Mode Start/Save button
  */
@@ -333,21 +334,11 @@ function sevi_start_save_button() {
 	update_file_name_display();
 }
 
+//	DONE
 /**
  * Start a SEVI or IR-SEVI scan
  */
 function start_sevi_scan() {
-	// Reset counters, accumulated image, and autosave timer
-	//electrons.total.reset();
-	scan.accumulated_image.reset();
-	scan.saving.start_timer();
-	// Save image ID for scan
-	////update_scan_id();
-	//update_pes_id();
-	// Update scan running status
-	scan.status.running = true;
-	scan.status.paused = false;
-
 	const image_counter = document.getElementById("ImageCounter");
 	let image_id = parseInt(image_counter.value);
 	if (page_info.current_tab === Tab_List.SEVI) {
@@ -361,29 +352,18 @@ function start_sevi_scan() {
 		// Add message that scan was started
 		messenger.add("IR-SEVI scan started!");
 	}
-
+	// Reset accumulated images and electron counters
 	Images.reset();
+	// Start autosave timer
+	Images.autosave_timer();
 }
 
+//	DONE
 /**
  * Stop SEVI or IR-SEVI scan
  * @param {bool} save_image - Whether to save image to file
  */
 function stop_sevi_scan(save_image) {
-	// Update scan running status
-	scan.status.running = false;
-	scan.status.paused = false;
-	/*// Save image to file (if selected)
-	if (save_image) {
-		scan.previous.add_scan();
-		scan.accumulated_image.save();
-		// Add message that scan was saved
-		messenger.add("(IR)SEVI scan saved!");
-	} else {
-		// Add message that scan was canceled
-		messenger.add("(IR)SEVI scan canceled!");
-	}*/
-
 	// Move "current" image & spectrum to "latest" position
 	Images.update_latest(Images.current);
 	Images.clear_current();
@@ -395,6 +375,7 @@ function stop_sevi_scan(save_image) {
 	}
 }
 
+//	DONE
 /**
  * Change SEVI Mode Start button text to say Start
  */
@@ -403,6 +384,7 @@ function change_sevi_start_button_to_start() {
 	if (start_button_text) start_button_text.innerText = "Start";
 }
 
+//	DONE
 /**
  * Change SEVI Mode Start button text to say Save
  */
@@ -411,6 +393,10 @@ function change_sevi_start_button_to_save() {
 	if (start_button_text) start_button_text.innerText = "Save";
 }
 
+//	DONE
+/**
+ * Functionality for SEVI/IR-SEVI Mode Pause/Resume button
+ */
 function sevi_pause_resume_button() {
 	if (Images.current) {
 		// Scan is currently being taken
@@ -438,7 +424,7 @@ function sevi_pause_resume_button() {
 			change_sevi_start_button_to_save();
 			change_sevi_pause_button_to_pause();
 			// Start autosave timer
-			scan.saving.start_timer(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Change
+			Images.autosave_timer();
 			// Move "latest" to "current"
 			Images.current = Images.latest;
 			display_file_names();
@@ -448,6 +434,7 @@ function sevi_pause_resume_button() {
 	}
 }
 
+//	DONE
 /**
  * Change SEVI Mode Pause button text to say Pause
  */
@@ -456,6 +443,7 @@ function change_sevi_pause_button_to_pause() {
 	if (pause_button_text) pause_button_text.innerText = "Pause";
 }
 
+//	DONE
 /**
  * Change SEVI Mode Pause button text to say Resume
  */
@@ -464,6 +452,7 @@ function change_sevi_pause_button_to_resume() {
 	if (pause_button_text) pause_button_text.innerText = "Resume";
 }
 
+//	DONE
 /**
  * Gray out display to show scan is paused
  */
@@ -475,6 +464,7 @@ function add_pause_screen_overlay() {
 	draw_pause_icon();
 }
 
+//	DONE
 /**
  * Remove pause screen display
  */
@@ -483,6 +473,7 @@ function remove_pause_screen_overlay() {
 	if (sevi_content) sevi_content.classList.remove("paused");
 }
 
+//	DONE
 /**
  * Draw a pause icon on the accumulated image display
  */
@@ -524,6 +515,7 @@ function draw_pause_icon() {
 	ctx.fill(); // Fill in shapes with color
 }
 
+//	DONE
 /**
  * Cancel SEVI scan
  */
@@ -543,25 +535,27 @@ function sevi_cancel_button() {
 	update_file_name_display();
 }
 
+//	DONE
 /**
  * Toggle to autosave images
  */
 function autosave_button() {
 	// Toggle autosaving status in scan info
-	scan.saving.autosave = !scan.saving.autosave;
+	Images.autosave.use_autosave = !Images.autosave.use_autosave;
 	// Start autosave timer (if taking scan)
-	scan.saving.start_timer();
+	Images.autosave_timer();
 	// Update button text
 	update_autosave_button_text();
 }
 
+//	DONE
 /**
  * Update text for autosave button to match scan saving status
  */
 function update_autosave_button_text() {
 	const autosave_on_off_text = document.getElementById("ScanAutosaveStatusText");
 	if (autosave_on_off_text) {
-		if (scan.saving.autosave) {
+		if (Images.autosave.use_autosave) {
 			// Autosaving is now turned on
 			autosave_on_off_text.innerText = "On";
 		} else {
@@ -571,13 +565,11 @@ function update_autosave_button_text() {
 	}
 }
 
+//	DONE
 /**
  * Reset accumulated image and electron counters
  */
 function sevi_scan_reset() {
-	electrons.total.reset();
-	scan.accumulated_image.reset();
-
 	Images.reset();
 	// Add message that scan was reset
 	messenger.add("(IR)SEVI scan reset!");

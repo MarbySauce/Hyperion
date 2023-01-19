@@ -148,6 +148,11 @@ class Spectrum {
 	constructor(image_id) {
 		this.id = image_id; // ID stored as an integer
 		this.id_str = ("0" + image_id).slice(-2); // ID stored as a 2 digit string
+
+		this.params = {
+			hv: undefined,
+			vmi: undefined,
+		};
 	}
 
 	get file_name() {
@@ -178,11 +183,12 @@ class Spectrum {
 		}
 	}
 
-	add_params(laser_energy, vmi_setting) {
-		this.params = {
-			hv: laser_energy,
-			vmi: vmi_setting,
-		};
+	add_hv(laser_energy) {
+		this.params.hv = laser_energy;
+	}
+
+	add_vmi(vmi_setting) {
+		this.params.vmi = vmi_setting;
 	}
 
 	add_data(data) {
@@ -238,13 +244,15 @@ const Spectra = {
 	current: undefined,
 	latest: undefined,
 	new: (image_id, scanning_mode) => {
-		// Check if Spectrum with that ID and scanning mode is already stored
+		let new_spectrum;
+		// Check if Image with that ID and scanning mode is already stored
 		if (Spectra.all[image_id] && Spectra.all[image_id].scanning_mode === scanning_mode) {
-			return Spectra.all[image_id];
+			new_spectrum = Spectra.all[image_id];
+		} else {
+			// Create new image
+			new_spectrum = Spectrum.new(image_id, scanning_mode);
+			Spectra.all[image_id] = new_spectrum;
 		}
-		// Else:	Create new spectrum and return
-		let new_spectrum = Spectrum.new(image_id, scanning_mode);
-		Spectra.all[image_id] = new_spectrum;
 		Spectra.update_current(new_spectrum);
 		return new_spectrum;
 	},
@@ -541,6 +549,10 @@ const Images = {
 		electrons: 1, // x1e5
 		frames: 5, // x1000
 	},
+	autosave: {
+		delay: 100000, // ms
+		use_autosave: false,
+	},
 	new: (image_id, scanning_mode) => {
 		let new_image;
 		// Check if Image with that ID and scanning mode is already stored
@@ -651,6 +663,18 @@ const Images = {
 		if (Images.current && Images.current.check_autostop()) {
 			// Save image (essentially pressing save button)
 			sevi_start_save_button();
+		}
+	},
+	autosave_timer: async () => {
+		// Make sure we want to autosave and there is an image being taken
+		while (Images.autosave.use_autosave && Images.current) {
+			await sleep(Images.autosave.delay);
+			// Make sure we still want to autosave image
+			if (!Images.autosave.use_autosave || !Images.current) break;
+			// If image is paused, keep timer going but don't save
+			if (Images.current.paused) continue;
+			// Save image to file
+			Images.save();
 		}
 	},
 };
@@ -778,30 +802,6 @@ const electrons = {
 			frame_count: 0,
 		},
 	},
-	// Total counts of current scan
-	/*total: {
-		method: {
-			ccl: 0,
-			hybrid: 0,
-		},
-		e_count: {
-			ir_on: 0,
-			ir_off: 0,
-			get_count: (image) => electrons_total_e_count_get_count(image),
-		},
-		frame_count: {
-			ir_on: 0,
-			ir_off: 0,
-		},
-		auto_stop: {
-			method: "none", // Can be "none", "electrons", or "frames"
-			electrons: 0,
-			frames: 0,
-			update: (value) => electrons_auto_stop_update(value),
-			check: () => electrons_auto_stop_check(),
-		},
-		reset: () => electrons_total_reset(),
-	},*/
 	/**
 	 * Update electron counts with results from centroiding
 	 * @param {object} centroid_results - Object containing electron centroids, computation time, and LED bool
