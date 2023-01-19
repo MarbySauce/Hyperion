@@ -13,6 +13,8 @@ const settings = {
 	file_name: path.join(".", "Settings", "Settings.JSON"),
 	information: {
 		camera: {
+			width: 1024,
+			height: 768,
 			x_AoI: 0,
 			y_AoI: 0,
 			x_offset: 0,

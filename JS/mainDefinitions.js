@@ -666,6 +666,8 @@ const Images = {
 		}
 	},
 	autosave_timer: async () => {
+		// Wait a second in case the timer is requested before an image is started
+		await sleep(1000);
 		// Make sure we want to autosave and there is an image being taken
 		while (Images.autosave.use_autosave && Images.current) {
 			await sleep(Images.autosave.delay);
@@ -678,6 +680,101 @@ const Images = {
 		}
 	},
 };
+
+/*****************************************************************************
+
+							SINGLE SHOT
+
+*****************************************************************************/
+
+const single_shot = {
+	saving: {
+		to_save: false,
+		image_id: 1,
+	},
+	data: {
+		image_buffer: [],
+		image_centroids: [],
+	},
+	check: (centroid_results) => {
+		if (single_shot.saving.to_save) {
+			// Create copy of image buffer and centroids
+			single_shot.data.image_buffer = [...centroid_results.image_buffer];
+			single_shot.data.image_centroids = [centroid_results.ccl_centers, centroid_results.hybrid_centers];
+			// Save to file
+			single_shot.try_save();
+			// Reset single shot save boolean
+			single_shot.saving.to_save = false;
+		}
+	},
+	save: () => {
+		let save_dir = settings.save_directory.full_dir;
+		// Save image to file
+		fs.writeFile(path.join(save_dir, `singleShot_${single_shot.saving.image_id}.txt`), convert_ss_image_to_string(), (err) => {
+			if (err) {
+				console.log(err);
+			} else {
+				messenger.add(`singleShot_${single_shot.saving.image_id}.txt saved!`);
+				single_shot.saving.image_id++;
+			}
+		});
+		// Save centroids to file
+		fs.writeFile(path.join(save_dir, `ssCentroids_${single_shot.saving.image_id}.txt`), convert_ss_centroids_to_string(), (err) => {
+			if (err) {
+				console.log(err);
+			}
+		});
+	},
+	try_save: () => {
+		let save_dir = settings.save_directory.full_dir;
+		fs.access(path.join(save_dir, `singleShot_${single_shot.saving.image_id}.txt`), fs.constants.F_OK, (err) => {
+			if (err) {
+				// File doesn't already exist, save to that file name
+				single_shot.save();
+			} else {
+				// File already exists. Increment ID and try again
+				single_shot.saving.image_id++;
+				single_shot.try_save();
+			}
+		});
+	},
+};
+
+// Convert camera frame buffer to saveable string
+function convert_ss_image_to_string() {
+	const height = settings.camera.height;
+	const width = settings.camera.width;
+	let ss_string = "";
+	let alpha_index;
+	let intensity;
+	// Convert to string where elements of each row are space separated
+	// Since image is RGBA, need to only grab alpha values
+	for (let Y = 0; Y < height; Y++) {
+		for (let X = 0; X < width; X++) {
+			alpha_index = 4 * (width * Y + X) + 3;
+			intensity = 255 - single_shot.data.image_buffer[alpha_index];
+			ss_string += intensity.toString() + " ";
+		}
+		if (Y < height - 1) {
+			ss_string += "\n";
+		}
+	}
+	return ss_string;
+}
+
+// Convert centroids from single shot to saveable string
+function convert_ss_centroids_to_string() {
+	const headers = ["CCL Centroids", "Hybrid Centroids"];
+	let centroids_string = "";
+	for (let i = 0; i < 2; i++) {
+		centroids_string += headers[i];
+		centroids_string += single_shot.data.image_centroids[i].map((row) => row.join(" ")).join("\n");
+		if (i == 0) {
+			centroids_string += "\n";
+		}
+	}
+	return centroids_string;
+}
 
 /*****************************************************************************
 
@@ -1736,7 +1833,7 @@ function scan_single_shot_save() {
 }
 
 // Convert camera frame buffer to saveable string
-function convert_ss_image_to_string() {
+/*function convert_ss_image_to_string() {
 	const height = scan.accumulated_image.params.camera_height;
 	const width = scan.accumulated_image.params.camera_width;
 	let ss_string = "";
@@ -1769,7 +1866,7 @@ function convert_ss_centroids_to_string() {
 		}
 	}
 	return centroids_string;
-}
+}*/
 
 // Add most recent scan to previous scans list (previous.all)
 function scan_previous_add_scan() {

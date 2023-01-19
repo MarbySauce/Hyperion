@@ -423,11 +423,11 @@ function sevi_pause_resume_button() {
 			// Update button text
 			change_sevi_start_button_to_save();
 			change_sevi_pause_button_to_pause();
-			// Start autosave timer
-			Images.autosave_timer();
 			// Move "latest" to "current"
 			Images.current = Images.latest;
 			display_file_names();
+			// Start autosave timer
+			Images.autosave_timer();
 			// Add message that scan was resumed
 			messenger.add("Previous (IR)SEVI scan resumed!");
 		}
@@ -575,11 +575,12 @@ function sevi_scan_reset() {
 	messenger.add("(IR)SEVI scan reset!");
 }
 
+//	DONE
 /**
  * Save the next camera frame (and centroids) to file
  */
 function single_shot_button() {
-	scan.single_shot.saving.to_save = true;
+	single_shot.saving.to_save = true;
 	// Disable button for 0.5s to make it clear it saved
 	disable_single_shot_button(true);
 	setTimeout(() => {
@@ -587,6 +588,7 @@ function single_shot_button() {
 	}, 500 /* ms */);
 }
 
+//	DONE
 /**
  * Disable or enable single shot button
  * @param {bool} to_disable - whether to disable (true) or enable (false) button
@@ -596,6 +598,7 @@ function disable_single_shot_button(to_disable) {
 	single_shot_button.disabled = to_disable;
 }
 
+//	DONE
 /**
  * If a scan is running, only show the file names that will be saved even when switching tabs (SEVI and IR-SEVI only)
  * (i.e. if SEVI scan is being taken, only show one file name while on IR-SEVI tab)
@@ -614,6 +617,7 @@ function update_file_name_display() {
 	}
 }
 
+//	DONE
 /**
  * Display the image file names for ir_off and ir_on
  */
@@ -635,6 +639,7 @@ function display_file_names() {
 	}
 }
 
+//	DONE
 /**
  * Increment the image counter by one
  */
@@ -647,6 +652,7 @@ function uptick_image_counter() {
 	display_file_names();
 }
 
+//	DONE
 /**
  * Decrement the image counter by one
  */
@@ -2246,7 +2252,7 @@ ipc.on("new-camera-frame", (event, centroid_results) => {
 	//scan.accumulated_image.update(centroid_results);
 	//update_accumulated_image_display();
 	// Check if camera frame should be saved to file
-	scan.single_shot.check(centroid_results);
+	//scan.single_shot.check(centroid_results);
 	// Check if auto-stop is triggered
 	//electrons.total.auto_stop.check();
 
@@ -2255,6 +2261,8 @@ ipc.on("new-camera-frame", (event, centroid_results) => {
 	Images.update(centroid_results);
 	update_accumulated_image_display();
 	update_counter_displays();
+	// Check if camera frame should be saved to file
+	single_shot.check(centroid_results);
 	// Check if auto-stop is triggered
 	Images.check_autostop();
 });
