@@ -1692,10 +1692,10 @@ function get_action_absorption_parameters() {
  */
 function get_action_autostop_parameter() {
 	// For now, just autostop at 5k frames
-	//electrons.total.auto_stop.method = "frames";
-	//electrons.total.auto_stop.update(0.5);
-	electrons.total.auto_stop.method = "electrons";
-	electrons.total.auto_stop.update(0.1);
+	electrons.total.auto_stop.method = "frames";
+	electrons.total.auto_stop.update(3);
+	//electrons.total.auto_stop.method = "electrons";
+	//electrons.total.auto_stop.update(0.1);
 	return true;
 }
 
@@ -2339,3 +2339,38 @@ async function run_progress_bar() {
 
 	}
 }*/
+
+
+async function action_mode_step(ir_energy) {
+	// Update scan status
+	scan.action_mode.status.running = true;
+	scan.status.action_image = true;
+	scan.status.method = "ir-sevi";
+
+	electrons.total.auto_stop.method = "electrons";
+	electrons.total.auto_stop.update(1);
+
+	opo.move_fast();
+	[desired_wl, desired_mode] = laser.excitation.get_nir(ir_energy);
+	if (!desired_wl) {
+		console.log(`Could not move to ${ir_enrgy} cm-1`);
+		return;
+	}
+	await move_ir_and_measure(desired_wl);
+	// Switch to moving slowly
+	opo.move_slow();
+	// Move nIR wavelength to get desired energy
+	let measured_energies = await move_to_ir(ir_energy);
+	// Start taking data
+	console.log("Starting an IR SEVI scan");
+	start_sevi_scan();
+	// Wait for scan to finish
+	console.log("Waiting for SEVI scan to complete");
+	await wait_for_sevi_scan();
+	console.log("SEVI scan completed!");
+	console.log(measured_energies[desired_mode]);
+
+	// Update scan status
+	scan.action_mode.status.running = false;
+	scan.status.action_image = false;
+}

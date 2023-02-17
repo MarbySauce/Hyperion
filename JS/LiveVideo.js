@@ -186,7 +186,7 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 
 const eChartData = {
 	xAxisMax: 30,
-	yAxisMax: 200,
+	yAxisMax: 50,
 	labels: [],
 	cclData: [],
 	hybridData: [],
