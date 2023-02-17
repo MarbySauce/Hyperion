@@ -25,6 +25,14 @@ const settings = {
 			trigger: "Rising Edge",
 			trigger_delay: 0,
 		},
+		laser: {
+			detachment: {
+				yag_fundamental: 1064.0,
+			},
+			excitation: {
+				yag_fundamental: 1064.5,
+			},
+		},
 		opo: {
 			host: "localhost",
 		},

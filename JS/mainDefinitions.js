@@ -187,10 +187,6 @@ class Spectrum {
 		this.params.hv = laser_energy;
 	}
 
-	add_vmi(vmi_setting) {
-		this.params.vmi = vmi_setting;
-	}
-
 	add_data(data) {
 		this.data = {
 			radial_values: data.radial_values,
@@ -261,6 +257,8 @@ const Spectra = {
 	},
 	update_current: (spectrum) => {
 		Spectra.current = spectrum;
+		// Update VMI information
+		Spectra.update_vmi();
 	},
 	clear_current: () => {
 		Spectra.current = undefined;
@@ -270,6 +268,12 @@ const Spectra = {
 	},
 	clear_latest: () => {
 		Spectra.latest = undefined;
+	},
+	update_vmi: () => {
+		// If there is a current spectrum, update VMI mode
+		if (Spectra.current) {
+			Spectra.current.params.vmi = vmi_info.selected_setting;
+		}
 	},
 };
 
@@ -1977,7 +1981,7 @@ function scan_previous_sort_scans() {
 // Process and track info relating to lasers
 const laser = {
 	detachment: {
-		mode: "standard", // Can be "standard", "doubled", "raman", or "irdfg"
+		mode: Detachment_Mode.STANDARD,
 		wavelength: {
 			yag_fundamental: 1064.0, // Nd:YAG fundamental wavelength
 			input: 0, // User entered (or measured) wavelength
@@ -2359,7 +2363,7 @@ function process_opo_data(data) {
 *****************************************************************************/
 
 const vmi_info = {
-	selected_setting: "V1", // "V1", "V2", "V3", or "V4"
+	selected_setting: VMI_Mode.V1,
 	// Calibration constants to convert from R(px) to eBE(cm^-1)
 	// 		eBE = hv(cm^-1) - (a * R^2 + b * R^4)
 	calibration_constants: {

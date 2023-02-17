@@ -682,14 +682,31 @@ function update_pes_id() {
 	}
 }
 
+//	DONE
 /**
  * Update the selected VMI mode in vmi_info
  */
 function vmi_mode_selection() {
 	const vmi_mode = document.getElementById("VMIMode");
-	// The VMI modes are [V1, V2, V3, V4], which is one above the selected index value
-	vmi_setting = "V" + (vmi_mode.selectedIndex + 1);
-	vmi_info.selected_setting = vmi_setting;
+	switch (vmi_mode.selectedIndex) {
+		case 0: // V1
+			vmi_info.selected_setting = VMI_Mode.V1;
+			break;
+		case 1: // V2
+			vmi_info.selected_setting = VMI_Mode.V2;
+			break;
+		case 2: // V3
+			vmi_info.selected_setting = VMI_Mode.V3;
+			break;
+		case 3: // V4
+			vmi_info.selected_setting = VMI_Mode.V4;
+			break;
+		default:
+			vmi_info.selected_setting = VMI_Mode.V1;
+			break;
+	}
+	// Update VMI information in current Spectrum (if applicable)
+	Spectra.update_vmi();
 }
 
 /**
@@ -719,23 +736,23 @@ function detachment_mode_selection() {
 	switch (detachment_mode.selectedIndex) {
 		case 0:
 			// Standard mode
-			laser.detachment.mode = "standard";
+			laser.detachment.mode = Detachment_Mode.STANDARD;
 			break;
 		case 1:
 			// Doubled mode
-			laser.detachment.mode = "doubled";
+			laser.detachment.mode = Detachment_Mode.DOUBLED;
 			break;
 		case 2:
 			// Raman shifter mode
-			laser.detachment.mode = "raman";
+			laser.detachment.mode = Detachment_Mode.RAMAN;
 			break;
 		case 3:
 			// IR-DFG mode
-			laser.detachment.mode = "irdfg";
+			laser.detachment.mode = Detachment_Mode.IRDFG;
 			break;
 		default:
 			// Use standard mode as default
-			laser.detachment.mode = "standard";
+			laser.detachment.mode = Detachment_Mode.STANDARD;
 			break;
 	}
 	// Update displays
@@ -753,7 +770,7 @@ function display_detachment_energies() {
 		converted_wavelength.value = laser.detachment.wavelength[laser.detachment.mode].toFixed(3);
 		converted_wavenumber.value = laser.detachment.wavenumber[laser.detachment.mode].toFixed(3);
 		// If standard mode was chosen, shouldn't show converted wavelength
-		if (laser.detachment.mode === "standard") {
+		if (laser.detachment.mode === Detachment_Mode.STANDARD) {
 			converted_wavelength.value = "";
 		}
 	} else {
@@ -1144,23 +1161,19 @@ function sevi_automatic_stop_selection() {
 	const auto_stop = document.getElementById("AutomaticStop");
 	const auto_stop_unit = document.getElementById("AutomaticStopUnit");
 	switch (auto_stop_unit.selectedIndex) {
-		case 0:
-			// None
+		case 0: // None
 			Images.autostop.type = Autostop.NONE;
 			auto_stop.value = "";
 			break;
-		case 1:
-			// Electrons (x1e5)
+		case 1: // Electrons (x1e5)
 			Images.autostop.type = Autostop.ELECTRONS;
 			auto_stop.value = Images.autostop.electrons || "";
 			break;
-		case 2:
-			// Frames (x1000)
+		case 2: // Frames (x1000)
 			Images.autostop.type = Autostop.FRAMES;
 			auto_stop.value = Images.autostop.frames || "";
 			break;
-		default:
-			// None
+		default: // None
 			Images.autostop.type = Autostop.NONE;
 			auto_stop.value = "";
 			break;
@@ -1993,6 +2006,7 @@ async function measure_wavelength(expected_wl) {
 				// Make sure there actually was a measurement to get
 				if (wl > 0) {
 					// Make sure we didn't get the same measurement twice by comparing against last measurement
+					// NOTE!!!!! measured_values["length"] does NOT give you the last element in list
 					if (wl !== measured_values["length"]) {
 						// If an expected wavelength was given, make sure measured value isn't too far away
 						if (expected_wl) {
@@ -2330,6 +2344,80 @@ function norm_rand(mu, sigma) {
 	return sigma * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) + mu;
 }
 
+/**
+ * Asynchronous sleep function
+ * @param {Number} delay_ms - delay time in milliseconds
+ * @returns resolved promise upon completion
+ */
+async function sleep(delay_ms) {
+	return new Promise((resolve) => setTimeout(resolve, delay_ms));
+}
+
+/*
+NOTE: Not sure if these functions are better than the laser object yet...
+
+function convert_wn_wl(energy) {
+	if (!energy) {
+		// Energy is 0 or undefined
+		return 0;
+	}
+	return Math.pow(10, 7) / energy;
+}
+
+function detachment_wavelength_conversion(wavelength) {
+	const h2_wn = 4055.201; // H2 frequency in cm^-1, for Raman shifter
+	const yag_fundamental_wl = settings.laser.detachment.yag_fundamental;
+	const yag_fundamental_wn = decimal_round(convert_wn_wl(yag_fundamental_wl), 3);
+	const detachment = {
+		wavelength: {
+			input: wavelength, // User entered (or measured) wavelength
+			standard: 0,
+			doubled: 0,
+			raman: 0,
+			irdfg: 0,
+		},
+		wavenumber: {
+			standard: 0,
+			doubled: 0,
+			raman: 0,
+			irdfg: 0,
+		},
+	};
+	if (wavelength <= 0) {
+		return detachment;
+	}
+	// Calculate input energy in wavenumbers
+	let input_wn = decimal_round(convert_wn_wl(wavelength), 3);
+	// Standard setup, will be the same as input value
+	detachment.wavelength.standard = wavelength; 
+	detachment.wavenumber.standard = input_wn;
+	// Doubled setup, energies are doubled
+	let doubled_wn = 2 * input_wn; 
+	let doubled_wl = convert_wn_wl(doubled_wn); 
+	detachment.wavelength.doubled = decimal_round(doubled_wl, 3);
+	detachment.wavenumber.doubled = decimal_round(doubled_wn, 3);
+	// Raman shifter setup, subtract off H2 Raman frequency
+	let raman_wn = input_wn - h2_wn; 
+	let raman_wl = convert_wn_wl(raman_wn); 
+	detachment.wavelength.raman = decimal_round(raman_wl, 3);
+	detachment.wavenumber.raman = decimal_round(raman_wn, 3);
+	// IR-DFG setup, subtract off YAG fundamental frequency
+	let irdfg_wn = input_wn - yag_fundamental_wn;
+	let irdfg_wl = convert_wn_wl(irdfg_wn); 
+	detachment.wavelength.irdfg = decimal_round(irdfg_wl, 3);
+	detachment.wavenumber.irdfg = decimal_round(irdfg_wn, 3);
+	return detachment;
+}
+
+function detachment_wavenumber_conversion(wavenumber) {
+	if (wavenumber <= 0) {
+		return detachment_wavelength_conversion(0);
+	}
+	let input_wl = decimal_round(convert_wn_wl(wavenumber), 3);
+	return detachment_wavelength_conversion(input_wl);
+}
+*/
+
 // ----------------------------------------------- //
 
 function add_wl() {
@@ -2367,8 +2455,4 @@ async function run_progress_bar() {
 			}, 500);
 		});
 	}
-}
-
-async function sleep(delay_ms) {
-	return new Promise((resolve) => setTimeout(resolve, delay_ms));
 }
