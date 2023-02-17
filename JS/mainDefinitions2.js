@@ -969,16 +969,19 @@ function scan_action_mode_data_peak_areas_calculate() {
 		origin_on = 0,
 		new_peak = 0;
 	// Calculate area of origin
-	for (r = origin_radius - 2; r <= origin_radius + 2; r++) {
+	for (r = origin_radius - 10; r <= origin_radius + 10; r++) {
 		origin_off += scan.accumulated_image.spectra.data.ir_off_intensity[r];
 		origin_on += scan.accumulated_image.spectra.data.ir_on_intensity[r];
 	}
 	// Calculate area of new peak
 	if (new_peak_radius !== 0) {
-		for (r = new_peak_radius - 2; r <= new_peak_radius + 2; r++) {
+		for (r = new_peak_radius - 5; r <= new_peak_radius + 5; r++) {
 			new_peak += scan.accumulated_image.spectra.data.ir_on_intensity[r];
 		}
 	}
+	origin_off = decimal_round(origin_off, 4);
+	origin_on = decimal_round(origin_on, 4);
+	new_peak = decimal_round(new_peak, 4);
 	// Return values
 	return [origin_off, origin_on, new_peak];
 }
@@ -1007,9 +1010,9 @@ function scan_action_mode_calculate_absorption(origin_off_area, origin_on_area, 
 	let mode = scan.action_mode.params.peak_radii.mode;
 	let absorption_value = 0;
 	if (mode === "depletion") {
-		absorption_value = 1 - origin_on_area / origin_off_area;
+		absorption_value = decimal_round(1 - origin_on_area / origin_off_area, 4);
 	} else if (mode === "rel_height") {
-		absorption_value = new_peak_area / origin_off_area;
+		absorption_value = decimal_round(new_peak_area / origin_off_area, 4);
 	}
 	if (isNaN(absorption_value)) {
 		absorption_value = 0;
@@ -1039,10 +1042,11 @@ function scan_action_mode_save() {
 	save_string += `New peak radius: ${params.peak_radii.new_peak || "None"}\n\n`; // Saves as "None" if no radius was specified
 	// Next add data
 	save_string += "Data:\n";
-	save_string += "Energy (cm-1) - Absorption - Origin Area (Off) - Origin Area (On) - New Peak Area\n";
+	save_string += "Image - Energy (cm-1) - Absorption - Origin Area (Off) - Origin Area (On) - New Peak Area\n";
 	for (let i = 0; i < data.energies.length; i++) {
-		save_string += data.energies[i] + " " + data.absorption[i] + " ";
-		save_string += data.peak_areas.origin_off[i] + " " + data.peak_areas.origin_on[i] + " ";
+		save_string += "i" + ("0" + (scan.action_mode.status.first_image + i)).slice(-2) + "  -  ";
+		save_string += data.energies[i] + "  -  " + data.absorption[i] + "  -  ";
+		save_string += data.peak_areas.origin_off[i] + "  -  " + data.peak_areas.origin_on[i] + "  -  ";
 		save_string += data.peak_areas.new_peak[i] + "\n";
 	}
 	// Write to file
