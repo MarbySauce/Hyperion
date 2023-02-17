@@ -1738,6 +1738,9 @@ async function start_action_scan() {
 		measured_energies = await move_to_ir(desired_energy);
 		// Update current/next IR energy
 		update_action_energy_displays(measured_energies[desired_mode].wavenumber);
+		// Update laser excitation values in laser module
+		laser.excitation.wavelength.input = decimal_round(measured_energies.nir.wavelength, 3);
+		laser.excitation.convert();
 		// Start taking data
 		start_sevi_scan();
 		// Save image ID's for file naming later
