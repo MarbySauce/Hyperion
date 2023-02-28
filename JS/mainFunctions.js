@@ -2281,6 +2281,19 @@ ipc.on("new-camera-frame", (event, centroid_results) => {
 	Images.check_autostop();
 });
 
+// These might be a way cleaner way of dealing with camera frames or opo messages
+const inner_function = (event, centroid_results) => {
+	console.log("Hello there");
+};
+
+function collect_image() {
+	ipc.on("new-camera-frame", inner_function);
+}
+
+function stop_image() {
+	ipc.removeListener("new-camera-frame", inner_function);
+}
+
 /*****************************************************************************
 
 
