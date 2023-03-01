@@ -58,7 +58,6 @@
 					<button class="image-id-button" id="ImageCounterDown">-</button>
 					<input class="input-read" type="number" value="1" id="ImageCounter" readonly />
 					<button class="image-id-button" id="ImageCounterUp">+</button>
-					<input class="white-text input-read file-name-display sevi-mode-hide" id="CurrentImageFileIR" readonly />
 					<label class="white-text text-box-label" id="VMILabel">VMI Setting:</label>
 					<select class="white-text square-button drop-down" name="VMIMode" id="VMIMode">
 						<option value="V1">V1</option>
@@ -88,48 +87,9 @@
 						<input class="input-read hv-display" id="DetachmentWavenumber" type="number" placeholder="-" readonly />
 						<label class="white-text" id="WNLabel1">cm<sup>-1</sup></label>
 					</div>
-					<!-- IR Laser Readout -->
-					<div class="grid background-lighter-blue laser-readout sevi-mode-hide" id="IRLaserReadout">
-						<select class="white-text square-button drop-down sevi-mode-hide" name="IRWavelengthMode" id="IRWavelengthMode">
-							<option value="Standard">Near IR</option>
-							<option value="Doubled">Inter. IR</option>
-							<option value="Raman">Mid IR</option>
-							<option value="IRDFG">Far IR</option>
-						</select>
-						<label class="white-text right-align sevi-mode-hide" for="IRWavelength" id="IRWavelengthLabel">h<em class="serif">ν</em>:</label>
-						<input class="input-change hv-display sevi-mode-hide" id="IRWavelength" type="number" min="0" placeholder="-" />
-						<label class="white-text sevi-mode-hide" id="NMLabel3">nm</label>
-						<input class="input-read hv-display sevi-mode-hide" id="IRConvertedWavelength" type="number" placeholder="-" readonly />
-						<label class="white-text sevi-mode-hide" id="NMLabel4">nm</label>
-						<input class="input-read hv-display sevi-mode-hide" id="IRWavenumber" type="number" placeholder="-" readonly />
-						<label class="white-text sevi-mode-hide" id="WNLabel2">cm<sup>-1</sup></label>
-					</div>
-					<!-- IR Laser Control -->
-					<div class="grid background-lighter-blue laser-readout sevi-mode-hide" id="IRLaserControl">
-						<label class="white-text sevi-mode-hide" id="IRLaserControlLabel">Desired IR Energy:</label>
-						<input class="input-change hv-display sevi-mode-hide" id="DesiredEnergy" type="number" min="0" placeholder="-" />
-						<select class="white-text square-button drop-down sevi-mode-hide" name="DesiredEnergyUnit" id="DesiredEnergyUnit">
-							<!-- $#x is the beginning for unicode characters, 207B is superscript "-", 00B9 is superscript "1" -->
-							<option value="cm-1">cm&#x207B;&#x00B9;</option>
-							<option value="um">µm</option>
-							<option value="nm">nm</option>
-						</select>
-						<label class="white-text faded sevi-mode-hide" id="DesiredIRRangeMessage"></label>
-						<button class="white-text square-button sevi-mode-hide" id="MoveIRButton">Go</button>
-					</div>
-					<div class="grid background-lighter-blue" id="LaserMeasurement">
-						<button class="white-text square-button" id="MeasureDetachmentWavelength">Measure</button>
-					</div>
-				</div>
 				<!-- SEVI Mode - First Page - Image Display -->
 				<div class="grid background-lighter-blue" id="ImageDisplay">
 					<h3 class="white-text">Accumulated View</h3>
-					<select class="white-text square-button drop-down sevi-mode-hide" name="ImageDisplaySelect" id="ImageDisplaySelect">
-						<option value="IROff">IR Off</option>
-						<option value="IROn">IR On</option>
-						<option value="DifferencePos">Difference (Pos.)</option>
-						<option value="DifferenceNeg">Difference (Neg.)</option>
-					</select>
 					<div class="grid" id="DisplayWrapper">
 						<canvas class="accumulated-image" id="Display" width="2000" height="2000"></canvas>
 					</div>
@@ -138,17 +98,12 @@
 				</div>
 				<!-- SEVI Mode - First Page - Electron Counters -->
 				<div class="grid background-lighter-blue negative-bottom-margin" id="Counters">
-					<h3 class="white-text sevi-mode-hide" id="IROffCountersTitle">IR Off</h3>
-					<h3 class="white-text sevi-mode-hide" id="IROnCountersTitle">IR On</h3>
 					<label class="white-text text-box-label" id="TotalFramesLabel" for="TotalFrames">Total Frames:</label>
 					<input class="input-read e-counter-box" id="TotalFrames" type="number" value="0" readonly />
-					<input class="input-read e-counter-box sevi-mode-hide" id="TotalFramesIROn" type="number" value="0" readonly />
 					<label class="white-text text-box-label" id="TotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
 					<input class="input-read e-counter-box" id="TotalECount" type="text" value="0" readonly />
-					<input class="input-read e-counter-box sevi-mode-hide" id="TotalECountIROn" type="text" value="0" readonly />
 					<label class="white-text text-box-label" id="AvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
 					<input class="input-read e-counter-box" id="AvgECount" type="number" value="0" readonly />
-					<input class="input-read e-counter-box sevi-mode-hide" id="AvgECountIROn" type="number" value="0" readonly />
 					<div class="divider-line" id="ECountersDivLine"></div>
 					<label class="white-text text-box-label" id="AutomaticStopLabel">Stop Scan After:</label>
 					<input class="input-change e-counter-box" id="AutomaticStop" placeholder="-" />
@@ -204,143 +159,7 @@
 			</div>
 		</div>
 		<!-- IR Action Mode -->
-		<div id="IRActionModeContent">
-			<!-- IR Action Mode - First Page -->
-			<div class="first-page page grid" id="IRActionFirstPage">
-				<!-- IR Action Mode - First Page - Title Section -->
-				<div class="grid background-lighter-blue title-section" id="IRActionTitleSection">
-					<h1 class="white-text title">Hyperion</h1>
-				</div>
-				<!-- IR Action Mode - First Page - Scan Controls -->
-				<div class="grid background-lighter-blue scan-controls" id="IRActionControls">
-					<div class="grid background-lighter-blue" id="IRActionControlsTitle">
-						<h3 class="white-text">Action Scan Control</h3>
-					</div>
-					<button class="scan-control-button square-button white-text" id="IRActionStartSave">
-						<span class="scan-button-text" id="IRActionStartSaveText">Start</span>
-					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionPauseResume">
-						<span class="scan-button-text" id="IRActionPauseResumeText">Pause</span>
-					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionPreviousWavelength">
-						<span class="scan-button-text" id="IRActionPreviousWavelengthText">Previous λ</span>
-					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionNextWavelength">
-						<span class="scan-button-text" id="IRActionNextWavelengthText">Next λ</span>
-					</button>
-				</div>
-				<!-- IR Action Mode - First Page - Image Controls -->
-				<div class="grid background-lighter-blue scan-controls" id="IRActionImageControls">
-					<div class="grid background-lighter-blue" id="IRActionImageControlsTitle">
-						<h3 class="white-text">Image Control</h3>
-					</div>
-					<button class="scan-control-button square-button white-text" id="IRActionPauseImage">
-						<span class="scan-button-text" id="IRActionPauseImageText">Pause</span>
-					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionResetImage">
-						<span class="scan-button-text" id="IRActionResetImageText">Reset</span>
-					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionSaveImage">
-						<span class="scan-button-text" id="IRActionSaveImageText">Save & Move On</span>
-					</button>
-				</div>
-				<!-- IR Action Mode - First Page - Wavemeter Controls -->
-				<div class="grid background-lighter-blue scan-controls" id="IRActionWavemeterControls">
-					<div class="grid background-lighter-blue" id="IRActionWavemeterControlsTitle">
-						<h3 class="white-text">Wavemeter Control</h3>
-					</div>
-					<button class="scan-control-button square-button white-text" id="IRActionPauseWavemeter">
-						<span class="scan-button-text" id="IRActionPauseWavemeterText">Pause</span>
-					</button>
-					<label class="white-text right-align" for="DesiredWLMeasurementLength" id="DesiredWLMeasurementLengthLabel"
-						>Measurement Length (counts)</label
-					>
-					<select class="white-text square-button drop-down" name="DesiredWLMeasurementLength" id="DesiredWLMeasurementLength">
-						<option value="25">25</option>
-						<option value="50">50</option>
-						<option value="100">100</option>
-						<option value="250">250</option>
-						<option value="500">500</option>
-					</select>
-					<button class="scan-control-button square-button white-text" id="IRActionResetWavemeter">
-						<span class="scan-button-text" id="IRActionResetWavemeterText">Remeasure</span>
-					</button>
-					<label class="settings-input-label right-align" for="RemeasureWL" id="RemeasureWLLabel">Remeasure λ after image?</label>
-					<input type="checkbox" id="RemeasureWL" />
-				</div>
-				<!-- IR Action Mode - First Page - Scan Options -->
-				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionOptions">
-					<!-- IR Energy Range Selection -->
-					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsRange">
-						<h3 class="white-text text-box-label" id="IRActionRangeLabel">Range:</h3>
-						<input class="input-change hv-display" id="IRActionRangeStart" type="number" min="0" placeholder="-" />
-						<label class="white-text" id="IRActionWNLabel1">cm<sup>-1</sup></label>
-						<h3 class="white-text text-box-label" id="IRActionRangeToLabel">to</h3>
-						<input class="input-change hv-display" id="IRActionRangeEnd" type="number" min="0" placeholder="-" />
-						<label class="white-text" id="IRActionWNLabel2">cm<sup>-1</sup></label>
-					</div>
-					<!-- IR Energy Increment -->
-					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsIncrement">
-						<h3 class="white-text text-box-label" id="IRActionIncrementLabel">Increment:</h3>
-						<input class="input-change hv-display" id="IRActionIncrement" type="number" min="0" placeholder="-" />
-						<label class="white-text" id="IRActionWNLabel3">cm<sup>-1</sup></label>
-					</div>
-					<!-- Image Collection Length -->
-					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsCollectionLength">
-						<h4 class="white-text">Stand-in: (e- / frames) per image</h4>
-					</div>
-					<!-- Absorption Calculation Method -->
-					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsMeasurementMethod">
-						<h4 class="white-text">Stand-in: depletion or peak height</h4>
-					</div>
-					<!-- Absorption Peak Radial Values -->
-					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsRadialValues">
-						<!-- Should have two inputs: one for the origin, and one that appears for second peak 
-								if the drop-down selection is rel. peak height -->
-						<h3 class="white-text text-box-label" id="IRActionOriginRadiusLabel">Origin Radius:</h3>
-						<input class="input-change hv-display" id="IRActionRadius" type="number" min="0" placeholder="-" />
-						<label class="white-text" id="IRActionPxLabel">px</label>
-					</div>
-				</div>
-				<!-- IR Action Mode - First Page - Absorption Plot -->
-				<div class="grid background-lighter-blue" id="IRAbsorptionPlotSection">
-					<canvas id="IRAbsorptionPlot"></canvas>
-				</div>
-				<!-- IR Action Mode - First Page - Next Wavelength -->
-				<div class="grid background-lighter-blue" id="IRNextWavelength">
-					<div class="grid text-background" id="CurrentEnergyBackground">
-						<h3 class="white-text next-wavelength next-wavelength-label" id="IRActionCurrentEnergyLabel">Current Energy:</h3>
-						<h3 class="white-text next-wavelength" id="IRActionCurrentEnergy"></h3>
-					</div>
-					<div class="grid text-background" id="NextEnergyBackground">
-						<h3 class="white-text next-wavelength next-wavelength-label" id="IRActionNextEnergyLabel">Next Energy:</h3>
-						<h3 class="white-text next-wavelength" id="IRActionNextEnergy"></h3>
-					</div>
-				</div>
-				<!-- IR Action Mode - First Page - Progress -->
-				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionProgress">
-					<div class="grid text-background" id="ProgressTextBackground">
-						<h3 class="white-text progress-text" id="ProgressTextProgress">Progress:</h3>
-						<h3 class="white-text progress-text" id="ProgressTextCurrentImage"></h3>
-						<h3 class="white-text progress-text" id="ProgressTextOf">of</h3>
-						<h3 class="white-text progress-text" id="ProgressTextTotalImages"></h3>
-					</div>
-					<div class="grid text-background" id="ProgressBarBackground">
-						<div id="ProgressBarOuter"></div>
-						<div class="white-text" id="ProgressBar"></div>
-					</div>
-				</div>
-				<button class="page-down page-button" id="IRActionPageDown"><i class="arrow arrow-down"></i></button>
-			</div>
-			<!-- IR Action Mode - Second Page -->
-			<div class="second-page page grid" id="IRActionSecondPage">
-				<button class="page-up page-button" id="IRActionPageUp"><i class="arrow arrow-up"></i></button>
-				<div class="grid background-lighter-blue negative-top-margin" id="IRActionInfo"></div>
-				<div class="grid background-lighter-blue" id="IRPreviousWavelengths"></div>
-				<div class="grid background-lighter-blue negative-top-margin" id="IRActionImage"></div>
-				<div class="grid background-lighter-blue" id="IRActionSpectrum"></div>
-			</div>
-		</div>
+		
 		<!-- Future tabs should be added here (before settings section) -->
 		<!-- Settings Section -->
 		<div id="SettingsContent">
@@ -417,8 +236,10 @@
 			</div>
 		</div>
 
-		<script src="../JS/mainDefinitions.js"></script>
-		<script src="../JS/mainFunctions.js"></script>
-		<script src="../JS/testing.js"></script>
+		<!--<script src="../JS/mainDefinitions.js"></script>
+		<script src="../JS/mainFunctions.js"></script>-->
+		<script src="../JS/MainWindow/startup.js"></script>
+		<script src="../JS/MainWindow/interface.js"></script>
+		<!--<script src="../JS/testing.js"></script>-->
 	</body>
 </html>

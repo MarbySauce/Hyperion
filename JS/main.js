@@ -169,7 +169,7 @@ function create_main_window() {
 	]);
 	//Menu.setApplicationMenu(menu);
 
-	win.loadFile("HTML/mainWindow.html");
+	win.loadFile("HTML/mainWindow2.html");
 	win.webContents.openDevTools();
 
 	return win;
