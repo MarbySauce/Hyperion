@@ -1692,10 +1692,10 @@ function get_action_absorption_parameters() {
  */
 function get_action_autostop_parameter() {
 	// For now, just autostop at 5k frames
-	electrons.total.auto_stop.method = "frames";
-	electrons.total.auto_stop.update(3);
-	//electrons.total.auto_stop.method = "electrons";
-	//electrons.total.auto_stop.update(0.1);
+	//electrons.total.auto_stop.method = "frames";
+	//electrons.total.auto_stop.update(3);
+	electrons.total.auto_stop.method = "electrons";
+	electrons.total.auto_stop.update(1);
 	return true;
 }
 
@@ -1852,12 +1852,18 @@ function hide_progress_bar_complete() {
 async function move_to_ir(desired_energy) {
 	let desired_wl, desired_mode;
 	let measured_wl, measured_energies, energy_difference, wl_difference;
+	let false_measurement = {
+		nir: { wavelength: 0, wavenumber: 0 },
+		iir: { wavelength: 0, wavenumber: 0 },
+		mir: { wavelength: 0, wavenumber: 0 },
+		fir: { wavelength: 0, wavenumber: 0 },
+	};
 
 	// Calculate nIR wavelength for desired energy
 	[desired_wl, desired_mode] = laser.excitation.get_nir(desired_energy);
 	if (!desired_wl) {
 		// Couldn't get nIR wavelength - move to next energy
-		return false;
+		return false_measurement;
 	}
 	console.log(`Desired energy: ${desired_energy} cm-1 -> nIR: ${desired_wl} nm`);
 	// Move OPO to desired energy and measure the wavelength
@@ -1865,7 +1871,7 @@ async function move_to_ir(desired_energy) {
 	measured_wl = await move_ir_and_measure(desired_wl);
 	if (!measured_wl) {
 		// Couldn't get nIR measurement - move to next energy
-		return false;
+		return false_measurement;
 	}
 	// Calculate the excitation IR energy (cm^-1)
 	measured_energies = convert_nir(measured_wl);
@@ -1877,17 +1883,18 @@ async function move_to_ir(desired_energy) {
 		// Too far away, move nIR by difference between desired and measured
 		// -> move_to((desired + difference) = (desired + (desired - measured)) = (2*desired - measured))
 		console.log("Second iteration of moving IR and measuring");
-		opo.move_very_slow();
+		opo.move_slow();
+		//opo.move_very_slow();
 		measured_wl = await move_ir_and_measure(2 * desired_wl - measured_wl);
 		//measured_wl = await move_ir_and_measure(desired_wl + 0.01 * (2 * (wl_difference > 0) - 1));
 		if (!measured_wl) {
 			// Couldn't get nIR measurement - move to next energy
-			return false;
+			return false_measurement;
 		}
 		// Calculate the excitation IR energy (cm^-1)
 		measured_energies = convert_nir(measured_wl);
 		// Don't want to iterate movement more than once - move on
-		opo.move_slow();
+		opo.move_fast();
 	}
 
 	// Add desired mode to measured_energies
@@ -1971,7 +1978,7 @@ async function measure_wavelength(expected_wl) {
 				// Make sure there actually was a measurement to get
 				if (wl > 0) {
 					// Make sure we didn't get the same measurement twice by comparing against last measurement
-					if (wl !== measured_values["length"]) {
+					if (wl !== measured_values[measured_values.length-1]) {
 						// If an expected wavelength was given, make sure measured value isn't too far away
 						if (expected_wl) {
 							if (Math.abs(wl - expected_wl) < too_far_val) {

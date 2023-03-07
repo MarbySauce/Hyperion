@@ -283,8 +283,8 @@ void Centroid::calculateCentroids()
 	// Create the list containing the arrays of calculated centroids for each method
 	// Centroids[0] is the centroids calculated using the Connected Component Labeling method
 	// Centroids[1] is the centroids calculated using the hybrid method
-	CImg<float> CCLCenters(500, 3); // (xCenter, yCenter, avgPixIntensity)
-	CImg<float> HybridCenters(500, 3);
+	CImg<float> CCLCenters(5000, 3); // (xCenter, yCenter, avgPixIntensity)
+	CImg<float> HybridCenters(5000, 3);
 	CCLCenters.fill(0);
 	HybridCenters.fill(0);
 

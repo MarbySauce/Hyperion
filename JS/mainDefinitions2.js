@@ -1029,6 +1029,10 @@ function scan_action_mode_save() {
 	let file_name = path.join(settings.save_directory.full_dir, `action_spectrum_i${first_image}_i${last_image}.txt`);
 	let params = scan.action_mode.params;
 	let [ms, s, min, hrs] = scan.action_mode.timer.duration_converted;
+	console.log("Saving section");
+	console.log(scan.action_mode.timer.duration_converted);
+	console.log(ms, s, min, hrs);
+	console.log(" ");
 	let data = scan.action_mode.data;
 	let save_string = "";
 	// First add header

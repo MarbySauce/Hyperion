@@ -256,8 +256,8 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	// Initialize image array for centroiding
 	img.Image.assign(camera.width, camera.height);
 	img.RegionImage.assign(camera.width, camera.height);
-	img.RegionVector.assign(1500, 1);
-	img.COMs.assign(1500, 4);
+	img.RegionVector.assign(5000, 1);
+	img.COMs.assign(5000, 4);
 
 	// Check to make sure camera was initialized first
 	if (!camera.connected) {
