@@ -8,6 +8,16 @@ const Chart = require("chart.js");
 const net = require("net");
 // Addon libraries
 const wavemeter = require("bindings")("wavemeter");
+const EventEmitter = require("events").EventEmitter;
+
+const wmEmitter = new EventEmitter();
+
+const wmMessages = {
+	Alert: {
+		Motors_Stopped: "wm_Alert_Motors_Stopped",
+		Current_Wavelength: "wm_Alert_Current_Wavelength"
+	}
+}
 
 let settings; // Global variable, to be filled in on startup
 
@@ -1419,7 +1429,7 @@ function laser_excitation_get_nir(wavenumber) {
 	} else {
 		// Photon energy out of range
 		console.log(`Energy of ${wavenumber} cm^-1 Out of Range`);
-		return [];
+		return [undefined, undefined];
 	}
 	return [nir_wl, desired_mode];
 }
@@ -1441,9 +1451,6 @@ const opo = {
 		command: {
 			get_wl: "TELLWL",
 			get_motor_status: "TELLSTAT",
-			move_fast: "SETSPD 1.0", //"SETSPD 3.0", // Move 3 nm/sec
-			move_slow: "SETSPD 0.01", //"SETSPD 0.033", // Move 0.033 nm/sec
-			move_very_slow: "SETSPD 0.001",
 			move: (val) => {
 				return "GOTO " + val.toFixed(3);
 			},
@@ -1499,19 +1506,13 @@ const opo = {
 	 */
 	goto_nir: (nir_wavelength) => opo_goto_nir(nir_wavelength),
 	/**
-	 * Set OPO motor speed as 3 nm/sec
+	 * Set OPO movement speed (in nm/sec)
+	 * @param {number} speed - OPO nIR movement speed (in nm/sec)
 	 */
-	move_fast: () => {
-		opo.network.client.write(opo.network.command.move_fast, () => {});
-	},
-	/**
-	 * Set OPO motor speed as 0.66 nm/sec
-	 */
-	move_slow: () => {
-		opo.network.client.write(opo.network.command.move_slow, () => {});
-	},
-	move_very_slow: () => {
-		opo.network.client.write(opo.network.command.move_very_slow, () => {});
+	set_speed: (speed) => {
+		let nIR_speed = speed || 1.0; // Default value of 1 nm/sec
+		console.log(`SETSPD ${nIR_speed.toFixed(3)}`);
+		opo.network.client.write(`SETSPD ${nIR_speed.toFixed(3)}`, () => {});
 	},
 	/**
 	 * Parse error returned by OPO
@@ -1537,6 +1538,7 @@ function opo_goto_nir(nir_wavelength) {
 // Update nIR wavelength value given by OPO
 function opo_update_wavelength(wavelength) {
 	console.log("Wavelength:", wavelength);
+	wmEmitter.emit(wmMessages.Alert.Current_Wavelength, wavelength);
 	opo.status.current_wavelength = wavelength;
 }
 

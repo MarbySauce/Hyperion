@@ -1692,10 +1692,10 @@ function get_action_absorption_parameters() {
  */
 function get_action_autostop_parameter() {
 	// For now, just autostop at 5k frames
-	//electrons.total.auto_stop.method = "frames";
-	//electrons.total.auto_stop.update(3);
-	electrons.total.auto_stop.method = "electrons";
-	electrons.total.auto_stop.update(1);
+	electrons.total.auto_stop.method = "frames";
+	electrons.total.auto_stop.update(2);
+	//electrons.total.auto_stop.method = "electrons";
+	//electrons.total.auto_stop.update(1);
 	return true;
 }
 
@@ -1721,11 +1721,11 @@ async function start_action_scan() {
 	// Get energy bounds
 	const energy = scan.action_mode.params.energy;
 	// Move to starting wavelength with fast OPO speed
-	opo.move_fast();
+	//opo.set_speed();
 	[desired_wl, desired_mode] = laser.excitation.get_nir(energy.start);
-	await move_ir_and_measure(desired_wl);
+	//await move_ir_and_measure(desired_wl);
 	// Switch to moving slowly
-	opo.move_slow();
+	//opo.set_speed(0.05);
 	// Loop over each data point
 	for (let point = 0; point <= scan.action_mode.status.data_points.total; point++) {
 		console.log(`Point ${point} of ${scan.action_mode.status.data_points.total}`);
@@ -1849,7 +1849,7 @@ function hide_progress_bar_complete() {
  * @param {number} desired_energy - Desired IR energy in wavenumbers (cm-1)
  * @returns {object} - Object containing desired IR mode and IR energies converted from measured nIR
  */
-async function move_to_ir(desired_energy) {
+/*async function move_to_ir(desired_energy) {
 	let desired_wl, desired_mode;
 	let measured_wl, measured_energies, energy_difference, wl_difference;
 	let false_measurement = {
@@ -1899,6 +1899,53 @@ async function move_to_ir(desired_energy) {
 
 	// Add desired mode to measured_energies
 	measured_energies.desired_mode = desired_mode;
+
+	return measured_energies;
+}*/
+
+/**
+ * Move OPO to desired energy including iterations to maximize accuracy
+ * @param {number} desired_energy - Desired IR energy in wavenumbers (cm-1)
+ * @returns {object} - Object containing desired IR mode and IR energies converted from measured nIR
+ */
+async function move_to_ir(energy) {
+	let false_measurement = {
+		nir: { wavelength: 0, wavenumber: 0 },
+		iir: { wavelength: 0, wavenumber: 0 },
+		mir: { wavelength: 0, wavenumber: 0 },
+		fir: { wavelength: 0, wavenumber: 0 },
+	};
+	// First, need to figure out the discrepancy between the wavelength the OPO/A thinks it is at vs where it actually is
+	// Ask OPO what wavelength it is at
+	let opo_wavelength = await new Promise((resolve) => {
+		wmEmitter.once(wmMessages.Alert.Current_Wavelength, (value) => {
+			resolve(value);
+		});
+		opo.get_wavelength();
+	});
+	// Measure actual wavelength
+	let current_wavelength = await measure_wavelength(opo_wavelength);
+	let wl_difference = current_wavelength - opo_wavelength || 0; // Set the wl difference as 0 in case there was a problem measuring wavelength
+
+	// Next, calculate the wavelength we want to move to
+	let [desired_nir, desired_mode] = laser.excitation.get_nir(energy);
+	if (!desired_nir) return false_measurement; // Desired energy is not achievable, return 
+
+	// If the wavelength is near where we currently are, have the OPO move slowly (otherwise move at default speed)
+	if (Math.abs(desired_nir - opo_wavelength) < 5) opo.set_speed(0.05);
+	else opo.set_speed(); // Set to default value
+
+	// Move OPO to desired wavelength, accounting for wavelength discrepancy
+	opo.goto_nir(desired_nir - wl_difference);
+	await wait_for_motors(); // Wait for motors to finish moving
+	// Measure current wavelength
+	let final_wavelength = await measure_wavelength(desired_nir);
+	let measured_energies = convert_nir(final_wavelength);
+	// Add desired mode to measured_energies
+	measured_energies.desired_mode = desired_mode;
+
+	// Finally, reset OPO speed to default value
+	opo.set_speed();
 
 	return measured_energies;
 }
@@ -2007,7 +2054,7 @@ async function measure_wavelength(expected_wl) {
 			return 0;
 		}
 		// Check if there were too many bad measurements
-		if (bad_measurements >= 4 * measured_value_length) {
+		if (bad_measurements >= 10 * measured_value_length) {
 			// Stop wavemeter measurement
 			wavemeter.stopMeasurement();
 			console.log(`Wavelength measurement: ${bad_measurements} bad measurements - Canceled`);
