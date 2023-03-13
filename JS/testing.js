@@ -1,5 +1,6 @@
 let num_electrons = 0;
 let scan_running;
+let test_bool = false;
 
 async function start_collecting_image(MAX_ELECTRONS) {
 	if (scan_running) return;
@@ -54,9 +55,13 @@ async function start_collecting_image(MAX_ELECTRONS) {
 
 	ipc.on("new-camera-frame", add_electrons_to_image);
 
-	await new Promise((resolve, reject) => {
-		ipc.once("stop-collecting-image", resolve);
+	let new_value = await new Promise((resolve, reject) => {
+		ipc.once("stop-collecting-image", () => {
+			console.log("Image stopped");
+			resolve(test_bool);
+		});
 	});
+	console.log("New Val", new_value);
 
 	console.log("Done");
 	return true;
@@ -83,16 +88,3 @@ async function action_scan() {
 	console.log("Starting second scan");
 	await start_collecting_image(150);
 }
-
-ipc.on("scan-started", change_sevi_start_button_to_save);
-ipc.on("scan-stopped", change_sevi_start_button_to_start);
-
-class MyEmitter extends ipc {}
-const myEmitter = new MyEmitter();
-
-myEmitter.once("test", () => {
-	console.log("It worked!");
-});
-setTimeout(() => {
-	myEmitter.emit("test");
-}, 15000);

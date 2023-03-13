@@ -33,7 +33,7 @@ ipc.on("settings-information", (event, settings_information) => {
 
 function startup() {
 	// Go to Sevi Mode tab
-	uiEmitter.emit(UI.CHANGE.TAB, Tab_List.SEVI);
+	uiEmitter.emit(UI.CHANGE.TAB, TAB.SEVI);
 
 	ipc.send("main-window-loaded", null);
 }

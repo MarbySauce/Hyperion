@@ -3,8 +3,8 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>Hyperion</title>
-		<link href="../css/mainWindow.css" rel="stylesheet" />
-		<link href="../css/mainWindowGrid.css" rel="stylesheet" />
+		<link href="../css/mainWindow2.css" rel="stylesheet" />
+		<link href="../css/mainWindowGrid2.css" rel="stylesheet" />
 	</head>
 	<body>
 		<!-- Message Bar -->
@@ -24,42 +24,42 @@
 			<!-- SEVI Mode - First Page -->
 			<div class="first-page page grid" id="SeviFirstPage">
 				<!-- SEVI Mode - First Page - Title Section -->
-				<div class="grid background-lighter-blue title-section" id="TitleSection">
+				<div class="grid background-lighter-blue title-section" id="SeviTitleSection">
 					<h1 class="white-text title">Hyperion</h1>
 				</div>
 				<!-- SEVI Mode - First Page - Scan Controls -->
-				<div class="grid background-lighter-blue scan-controls" id="ScanControls">
-					<button class="scan-control-button square-button white-text" id="ScanStartSave">
-						<span class="scan-button-text" id="ScanStartSaveText">Start</span>
+				<div class="grid background-lighter-blue scan-controls" id="SeviScanControls">
+					<button class="scan-control-button square-button white-text" id="SeviScanStartSave">
+						<span class="scan-button-text" id="SeviScanStartSaveText">Start</span>
 					</button>
-					<button class="scan-control-button square-button white-text" id="ScanPauseResume">
-						<span class="scan-button-text" id="ScanPauseResumeText">Pause</span>
+					<button class="scan-control-button square-button white-text" id="SeviScanPauseResume">
+						<span class="scan-button-text" id="SeviScanPauseResumeText">Pause</span>
 					</button>
-					<button class="scan-control-button square-button white-text" id="ScanCancel">
-						<span class="scan-button-text" id="ScanCancelText">Cancel</span>
+					<button class="scan-control-button square-button white-text" id="SeviScanCancel">
+						<span class="scan-button-text" id="SeviScanCancelText">Cancel</span>
 					</button>
-					<button class="scan-control-button square-button white-text" id="ScanAutosave">
-						<span class="scan-button-text" id="ScanAutosaveText">Autosave</span>
+					<button class="scan-control-button square-button white-text" id="SeviScanAutosave">
+						<span class="scan-button-text" id="SeviScanAutosaveText">Autosave</span>
 						<br />
-						<span class="scan-button-text" id="ScanAutosaveStatusText">On</span>
+						<span class="scan-button-text" id="SeviScanAutosaveStatusText">On</span>
 					</button>
-					<button class="scan-control-button square-button white-text" id="ScanReset">
-						<span class="scan-button-text" id="ScanResetText">Reset</span>
+					<button class="scan-control-button square-button white-text" id="SeviScanReset">
+						<span class="scan-button-text" id="SeviScanResetText">Reset</span>
 					</button>
-					<button class="scan-control-button square-button white-text" id="ScanSingleShot">
-						<span class="scan-button-text" id="ScanSingleShotText">Single Shot</span>
+					<button class="scan-control-button square-button white-text" id="SeviScanSingleShot">
+						<span class="scan-button-text" id="SeviScanSingleShotText">Single Shot</span>
 					</button>
 				</div>
 				<!-- SEVI Mode - First Page - File Naming -->
-				<div class="grid background-lighter-blue" id="FileNaming">
-					<h4 class="white-text save-control-title" id="CurrentImageTitle">Current Image</h4>
-					<h4 class="white-text save-control-title" id="ImageCounterTitle">Image ID</h4>
-					<input class="white-text input-read file-name-display" id="CurrentImageFile" readonly />
-					<button class="image-id-button" id="ImageCounterDown">-</button>
-					<input class="input-read" type="number" value="1" id="ImageCounter" readonly />
-					<button class="image-id-button" id="ImageCounterUp">+</button>
-					<label class="white-text text-box-label" id="VMILabel">VMI Setting:</label>
-					<select class="white-text square-button drop-down" name="VMIMode" id="VMIMode">
+				<div class="grid background-lighter-blue" id="SeviFileNaming">
+					<h4 class="white-text save-control-title" id="SeviCurrentImageTitle">Current Image</h4>
+					<h4 class="white-text save-control-title" id="SeviImageCounterTitle">Image ID</h4>
+					<input class="white-text input-read file-name-display" id="SeviCurrentImageFile" readonly />
+					<button class="image-id-button" id="SeviImageCounterDown">-</button>
+					<input class="input-read" type="number" value="1" id="SeviImageCounter" readonly />
+					<button class="image-id-button" id="SeviImageCounterUp">+</button>
+					<label class="white-text text-box-label" id="SeviVMILabel">VMI Setting:</label>
+					<select class="white-text square-button drop-down" name="VMIMode" id="SeviVMIMode">
 						<option value="V1">V1</option>
 						<option value="V2">V2</option>
 						<option value="V3">V3</option>
@@ -67,47 +67,48 @@
 					</select>
 				</div>
 				<!-- SEVI Mode - First Page - Laser Setup -->
-				<div class="grid background-lighter-blue save-control-section negative-bottom-margin" id="LaserSetup">
-					<div class="grid background-lighter-blue" id="LaserSetupTitle">
-						<h3 class="white-text" id="LaserControlTitle">Laser Control</h3>
+				<div class="grid background-lighter-blue save-control-section negative-bottom-margin" id="SeviLaserSetup">
+					<div class="grid background-lighter-blue" id="SeviLaserSetupTitle">
+						<h3 class="white-text" id="SeviLaserControlTitle">Laser Control</h3>
 					</div>
 					<!-- Detachment Laser Readout -->
-					<div class="grid background-lighter-blue laser-readout" id="DetachmentLaserReadout">
-						<select class="white-text square-button drop-down" name="WavelengthMode" id="WavelengthMode">
+					<div class="grid background-lighter-blue laser-readout" id="SeviDetachmentLaserReadout">
+						<select class="white-text square-button drop-down" name="WavelengthMode" id="SeviWavelengthMode">
 							<option value="Standard">Standard</option>
 							<option value="Doubled">Doubled</option>
 							<option value="Raman">Raman</option>
 							<option value="IRDFG">IR-DFG</option>
 						</select>
-						<label class="white-text right-align" for="DetachmentWavelength" id="DetachmentWavelengthLabel">h<em class="serif">ν</em>:</label>
-						<input class="input-change hv-display" id="DetachmentWavelength" type="number" min="0" placeholder="-" />
-						<label class="white-text" id="NMLabel1">nm</label>
-						<input class="input-read hv-display" id="ConvertedWavelength" type="number" placeholder="-" readonly />
-						<label class="white-text" id="NMLabel2">nm</label>
-						<input class="input-read hv-display" id="DetachmentWavenumber" type="number" placeholder="-" readonly />
-						<label class="white-text" id="WNLabel1">cm<sup>-1</sup></label>
+						<label class="white-text right-align" for="DetachmentWavelength" id="SeviDetachmentWavelengthLabel">h<em class="serif">ν</em>:</label>
+						<input class="input-change hv-display" id="SeviDetachmentWavelength" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="SeviNMLabel1">nm</label>
+						<input class="input-read hv-display" id="SeviConvertedWavelength" type="number" placeholder="-" readonly />
+						<label class="white-text" id="SeviNMLabel2">nm</label>
+						<input class="input-read hv-display" id="SeviDetachmentWavenumber" type="number" placeholder="-" readonly />
+						<label class="white-text" id="SeviWNLabel1">cm<sup>-1</sup></label>
 					</div>
+				</div>
 				<!-- SEVI Mode - First Page - Image Display -->
-				<div class="grid background-lighter-blue" id="ImageDisplay">
+				<div class="grid background-lighter-blue" id="SeviImageDisplay">
 					<h3 class="white-text">Accumulated View</h3>
-					<div class="grid" id="DisplayWrapper">
-						<canvas class="accumulated-image" id="Display" width="2000" height="2000"></canvas>
+					<div class="grid" id="SeviDisplayWrapper">
+						<canvas class="accumulated-image" id="SeviDisplay" width="2000" height="2000"></canvas>
 					</div>
 
-					<input class="display-slider" id="DisplaySlider" type="range" min="0.05" max="1" step="0.05" value="0.5" />
+					<input class="display-slider" id="SeviDisplaySlider" type="range" min="0.05" max="1" step="0.05" value="0.5" />
 				</div>
 				<!-- SEVI Mode - First Page - Electron Counters -->
-				<div class="grid background-lighter-blue negative-bottom-margin" id="Counters">
-					<label class="white-text text-box-label" id="TotalFramesLabel" for="TotalFrames">Total Frames:</label>
-					<input class="input-read e-counter-box" id="TotalFrames" type="number" value="0" readonly />
-					<label class="white-text text-box-label" id="TotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
-					<input class="input-read e-counter-box" id="TotalECount" type="text" value="0" readonly />
-					<label class="white-text text-box-label" id="AvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
-					<input class="input-read e-counter-box" id="AvgECount" type="number" value="0" readonly />
-					<div class="divider-line" id="ECountersDivLine"></div>
-					<label class="white-text text-box-label" id="AutomaticStopLabel">Stop Scan After:</label>
-					<input class="input-change e-counter-box" id="AutomaticStop" placeholder="-" />
-					<select class="white-text square-button drop-down" name="AutomaticStopUnit" id="AutomaticStopUnit">
+				<div class="grid background-lighter-blue negative-bottom-margin" id="SeviCounters">
+					<label class="white-text text-box-label" id="SeviTotalFramesLabel" for="TotalFrames">Total Frames:</label>
+					<input class="input-read e-counter-box" id="SeviTotalFrames" type="number" value="0" readonly />
+					<label class="white-text text-box-label" id="SeviTotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
+					<input class="input-read e-counter-box" id="SeviTotalECount" type="text" value="0" readonly />
+					<label class="white-text text-box-label" id="SeviAvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
+					<input class="input-read e-counter-box" id="SeviAvgECount" type="number" value="0" readonly />
+					<div class="divider-line" id="SeviECountersDivLine"></div>
+					<label class="white-text text-box-label" id="SeviAutomaticStopLabel">Stop Scan After:</label>
+					<input class="input-change e-counter-box" id="SeviAutomaticStop" placeholder="-" />
+					<select class="white-text square-button drop-down" name="AutomaticStopUnit" id="SeviAutomaticStopUnit">
 						<option value="None">None</option>
 						<option value="Electrons">x1e5 Electrons</option>
 						<option value="Frames">x1000 Frames</option>
@@ -115,51 +116,47 @@
 				</div>
 				<button class="page-down page-button" id="SeviPageDown"><i class="arrow arrow-down"></i></button>
 				<!-- Pause Screen Animation Elements -->
-				<div class="pause-screen" id="PauseScreenDisplay"></div>
-				<!--<div class="pause-screen negative-bottom-margin" id="PauseScreenSaveControls"></div>-->
-				<div class="pause-screen negative-bottom-margin" id="PauseScreenCounters"></div>
+				<div class="pause-screen" id="SeviPauseScreenDisplay"></div>
+				<!--<div class="pause-screen negative-bottom-margin" id="SeviPauseScreenSaveControls"></div>-->
+				<div class="pause-screen negative-bottom-margin" id="SeviPauseScreenCounters"></div>
 			</div>
 			<!-- SEVI Mode - Second Page -->
 			<div class="second-page page grid" id="SeviSecondPage">
 				<button class="page-up page-button" id="SeviPageUp"><i class="arrow arrow-up"></i></button>
 				<!-- SEVI Mode - Second Page - PE Spectrum Display -->
-				<div class="grid background-lighter-blue negative-top-margin" id="SpectrumDisplaySection">
-					<div class="background-lighter-blue" id="SpectrumDisplayInner">
-						<canvas id="PESpectrum"></canvas>
+				<div class="grid background-lighter-blue negative-top-margin" id="SeviSpectrumDisplaySection">
+					<div class="background-lighter-blue" id="SeviSpectrumDisplayInner">
+						<canvas id="SeviPESpectrum"></canvas>
 					</div>
-					<div class="grid background-lighter-blue" id="SpectrumControl">
-						<select class="white-text square-button drop-down sevi-mode-hide" name="SpectrumSwitch" id="SpectrumSwitch">
-							<option value="on-off">On/Off</option>
-							<option value="difference">Difference</option>
-						</select>
-						<button class="white-text square-button" id="CalculateSpectrumButton">Calculate</button>
-						<h4 class="white-text range-label" id="SpectrumYRangeLabel">Vertical Axis Range</h4>
-						<input class="input-change axis-range-input" id="SpectrumYLower" type="number" placeholder="-" />
-						<input class="input-change axis-range-input" id="SpectrumYUpper" type="number" placeholder="-" />
-						<h4 class="white-text range-label" id="SpectrumXRangeLabel">Horizontal Axis Range</h4>
-						<input class="input-change axis-range-input" id="SpectrumXLower" type="number" placeholder="-" />
-						<input class="input-change axis-range-input" id="SpectrumXUpper" type="number" placeholder="-" />
+					<div class="grid background-lighter-blue" id="SeviSpectrumControl">
+						<button class="white-text square-button" id="SeviCalculateSpectrumButton">Calculate</button>
+						<h4 class="white-text range-label" id="SeviSpectrumYRangeLabel">Vertical Axis Range</h4>
+						<input class="input-change axis-range-input" id="SeviSpectrumYLower" type="number" placeholder="-" />
+						<input class="input-change axis-range-input" id="SeviSpectrumYUpper" type="number" placeholder="-" />
+						<h4 class="white-text range-label" id="SeviSpectrumXRangeLabel">Horizontal Axis Range</h4>
+						<input class="input-change axis-range-input" id="SeviSpectrumXLower" type="number" placeholder="-" />
+						<input class="input-change axis-range-input" id="SeviSpectrumXUpper" type="number" placeholder="-" />
 					</div>
 				</div>
 				<!-- SEVI Mode - Second Page - Recent Scans -->
-				<div class="grid background-lighter-blue" id="RecentScans">
-					<header class="grid" id="RecentScansHeader">
+				<div class="grid background-lighter-blue" id="SeviRecentScans">
+					<header class="grid" id="SeviRecentScansHeader">
 						<h4 class="white-text">File Name</h4>
 						<h4 class="white-text">h<em class="serif">ν</em> (nm)</h4>
 						<h4 class="white-text">h<em class="serif">ν</em> (cm<sup>-1</sup>)</h4>
 						<h4 class="white-text">Frame Count</h4>
 						<h4 class="white-text">e<sup>-</sup> Count</h4>
 					</header>
-					<div class="grid" id="RecentScansSection"></div>
+					<div class="grid" id="SeviRecentScansSection"></div>
 				</div>
 				<!-- SEVI Mode - Second Page - Electron Count History -->
-				<div class="background-lighter-blue" id="ElectronCountHistory">
+				<div class="background-lighter-blue" id="SeviElectronCountHistory">
 					<h2 class="white-text">Put laser wavelength conversion boxes here?</h2>
 				</div>
 			</div>
 		</div>
 		<!-- IR Action Mode -->
-		
+
 		<!-- Future tabs should be added here (before settings section) -->
 		<!-- Settings Section -->
 		<div id="SettingsContent">
@@ -239,7 +236,8 @@
 		<!--<script src="../JS/mainDefinitions.js"></script>
 		<script src="../JS/mainFunctions.js"></script>-->
 		<script src="../JS/MainWindow/startup.js"></script>
+		<script src="../JS/MainWindow/sevi.js"></script>
 		<script src="../JS/MainWindow/interface.js"></script>
-		<!--<script src="../JS/testing.js"></script>-->
+		<script src="../JS/testing.js"></script>
 	</body>
 </html>
