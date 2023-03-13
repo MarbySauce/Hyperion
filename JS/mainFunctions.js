@@ -1910,6 +1910,7 @@ function hide_progress_bar_complete() {
  */
 async function move_to_ir(energy) {
 	let false_measurement = {
+		desired_mode: "nir",
 		nir: { wavelength: 0, wavenumber: 0 },
 		iir: { wavelength: 0, wavenumber: 0 },
 		mir: { wavelength: 0, wavenumber: 0 },
@@ -1929,7 +1930,7 @@ async function move_to_ir(energy) {
 
 	// Next, calculate the wavelength we want to move to
 	let [desired_nir, desired_mode] = laser.excitation.get_nir(energy);
-	if (!desired_nir) return false_measurement; // Desired energy is not achievable, return 
+	if (!desired_nir) return false_measurement; // Desired energy is not achievable, return
 
 	// If the wavelength is near where we currently are, have the OPO move slowly (otherwise move at default speed)
 	if (Math.abs(desired_nir - opo_wavelength) < 5) opo.set_speed(0.05);
@@ -2025,7 +2026,7 @@ async function measure_wavelength(expected_wl) {
 				// Make sure there actually was a measurement to get
 				if (wl > 0) {
 					// Make sure we didn't get the same measurement twice by comparing against last measurement
-					if (wl !== measured_values[measured_values.length-1]) {
+					if (wl !== measured_values[measured_values.length - 1]) {
 						// If an expected wavelength was given, make sure measured value isn't too far away
 						if (expected_wl) {
 							if (Math.abs(wl - expected_wl) < too_far_val) {
@@ -2397,7 +2398,6 @@ async function run_progress_bar() {
 	}
 }*/
 
-
 async function action_mode_step(ir_energy) {
 	// Update scan status
 	scan.action_mode.status.running = true;
@@ -2430,4 +2430,124 @@ async function action_mode_step(ir_energy) {
 	// Update scan status
 	scan.action_mode.status.running = false;
 	scan.status.action_image = false;
+}
+
+/*
+
+	R2PD Action Mode
+
+*/
+
+const R2PD = {
+	data: {
+		energies: [],
+		electrons_off: [],
+		electrons_on: [],
+		current: {
+			off: 0,
+			on: 0,
+			off_frames: 0,
+			on_frames: 0,
+		},
+	},
+	params: {
+		start_energy: 0,
+		end_energy: 0,
+		spacing: 0,
+		frames: 0,
+	},
+	status: {
+		running: false,
+		paused: false,
+		cancel: false,
+	},
+	reset: () => {
+		R2PD.data.energies = [];
+		R2PD.data.electrons_off = [];
+		R2PD.data.electrons_on = [];
+		R2PD.reset_current();
+	},
+	reset_current: () => {
+		R2PD.data.current.on = 0;
+		R2PD.data.current.off = 0;
+		R2PD.data.current.frames_on = 0;
+		R2PD.data.current.frames_off = 0;
+	},
+	save: (file_name) => {
+		let file = file_name || "R2PD_Action.txt";
+		let save_path = path.join(settings.save_directory.full_dir, file);
+		let save_str = `Start: ${R2PD.params.start_energy} cm-1, end: ${R2PD.params.end_energy} cm-1, spacing: ${R2PD.params.spacing} cm-1, frames: ${R2PD.params.frames} \n`;
+		save_str += "mIR energy (cm-1) \t | electrons on \t | electrons off \n";
+		for (let i = 0; i < R2PD.data.energies.length; i++) {
+			save_str += `${R2PD.data.energies[i].toFixed(3)} \t ${R2PD.data.electrons_on[i]} \t ${R2PD.data.electrons_off[i]} \n`;
+		}
+		fs.writeFile(save_path, save_str, (error) => {
+			if (error) console.log(error);
+			else console.log(`R2PD spectrum saved under ${file}`);
+		});
+	},
+};
+
+async function R2PD_scan(starting_energy, ending_energy, spacing = 1, frames = 30) {
+	// Save parameters
+	R2PD.params.start_energy = starting_energy;
+	R2PD.params.end_energy = ending_energy;
+	R2PD.params.spacing = spacing;
+	R2PD.params.frames = frames;
+	R2PD.reset();
+	// Scan
+	let energy = starting_energy;
+	let this_energy;
+	while (energy <= ending_energy) {
+		if (R2PD.status.cancel) {
+			return;
+		}
+		console.log(`R2PD: Moving to ${energy}`);
+		// Move laser to proper energy
+		let measured_energies = await move_to_ir(energy);
+		this_energy = measured_energies[measured_energies.desired_mode].wavenumber;
+		R2PD.data.energies.push(this_energy);
+		console.log(`R2PD: Measured energy: ${this_energy}`);
+		// Set up event listener to catch new camera frames
+		ipc.on("new-camera-frame", R2PD_camera_frame);
+		console.log("R2PD: Collecting electrons...");
+		await wait_for_R2PD_step();
+		R2PD.reset_current();
+		ipc.removeListener("new-camera-frame", R2PD_camera_frame);
+		energy += spacing;
+	}
+	R2PD.save();
+}
+
+function R2PD_camera_frame(event, centroid_results) {
+	let electrons;
+	if (R2PD.status.paused) {
+		return;
+	}
+	if (centroid_results.is_led_on) {
+		// IR On frame
+		if (R2PD.data.current.frames_on < R2PD.params.frames) {
+			electrons = centroid_results.ccl_centers.length + centroid_results.hybrid_centers.length;
+			R2PD.data.current.on += electrons;
+			R2PD.data.current.frames_on++;
+		}
+	} else {
+		// IR Off frame
+		if (R2PD.data.current.frames_off < R2PD.params.frames) {
+			electrons = centroid_results.ccl_centers.length + centroid_results.hybrid_centers.length;
+			R2PD.data.current.off += electrons;
+			R2PD.data.current.frames_off++;
+		}
+	}
+	if (R2PD.data.current.frames_on >= R2PD.params.frames && R2PD.data.current.frames_off >= R2PD.params.frames) {
+		R2PD.data.electrons_on.push(R2PD.data.current.on);
+		R2PD.data.electrons_off.push(R2PD.data.current.off);
+		wmEmitter.emit("R2PD-done");
+	}
+}
+
+async function wait_for_R2PD_step() {
+	await new Promise((resolve) => {
+		wmEmitter.once("R2PD-done", resolve);
+	});
 }
