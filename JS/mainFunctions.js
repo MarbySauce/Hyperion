@@ -1692,10 +1692,10 @@ function get_action_absorption_parameters() {
  */
 function get_action_autostop_parameter() {
 	// For now, just autostop at 5k frames
-	electrons.total.auto_stop.method = "frames";
-	electrons.total.auto_stop.update(2);
-	//electrons.total.auto_stop.method = "electrons";
-	//electrons.total.auto_stop.update(1);
+	//electrons.total.auto_stop.method = "frames";
+	//electrons.total.auto_stop.update(8);
+	electrons.total.auto_stop.method = "electrons";
+	electrons.total.auto_stop.update(1.5);
 	return true;
 }
 
@@ -1726,6 +1726,7 @@ async function start_action_scan() {
 	//await move_ir_and_measure(desired_wl);
 	// Switch to moving slowly
 	//opo.set_speed(0.05);
+	scan.action_mode.timer.start();
 	// Loop over each data point
 	for (let point = 0; point <= scan.action_mode.status.data_points.total; point++) {
 		console.log(`Point ${point} of ${scan.action_mode.status.data_points.total}`);
@@ -1774,6 +1775,7 @@ async function start_action_scan() {
 	// Scan is done
 	scan.action_mode.status.running = false;
 	scan.status.action_image = false;
+	scan.action_mode.timer.end();
 	// Save data to file
 	scan.action_mode.save();
 	// Update button text
@@ -1937,6 +1939,8 @@ async function move_to_ir(energy) {
 	else opo.set_speed(); // Set to default value
 
 	// Move OPO to desired wavelength, accounting for wavelength discrepancy
+	console.log("Go To parameter:", desired_nir - wl_difference, desired_nir, wl_difference);
+	if (Math.abs(wl_difference) > 10) wl_difference = 0;
 	opo.goto_nir(desired_nir - wl_difference);
 	await wait_for_motors(); // Wait for motors to finish moving
 	// Measure current wavelength
@@ -2351,6 +2355,12 @@ function norm_rand(mu, sigma) {
 	return sigma * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) + mu;
 }
 
+async function sleep(delay_ms) {
+	return new Promise(resolve => {
+		setTimeout(resolve, delay_ms);
+	});
+}
+
 // ----------------------------------------------- //
 
 function add_wl() {
@@ -2550,4 +2560,97 @@ async function wait_for_R2PD_step() {
 	await new Promise((resolve) => {
 		wmEmitter.once("R2PD-done", resolve);
 	});
+}
+
+
+const power_measurement = {
+	data: {
+		energies: [],
+		power: [],
+		stdev: [],
+	},
+	params: {
+		start_energy: 0,
+		end_energy: 0,
+		spacing: 0,
+		measurements: 50,
+	},
+	status: {
+		running: false,
+		paused: false,
+		cancel: false,
+	},
+	reset: () => {
+		power_measurement.data.energies = [];
+		power_measurement.data.power = [];
+		power_measurement.data.stdev = [];
+	},
+	save: (file_name) => {
+		let file = file_name || "Power_measurement.txt";
+		let save_path = path.join(settings.save_directory.full_dir, file);
+		let save_str = `Start: ${power_measurement.params.start_energy} cm-1, end: ${power_measurement.params.end_energy} cm-1, spacing: ${power_measurement.params.spacing} cm-1, measurements: ${power_measurement.params.measurements} \n`;
+		save_str += "mIR energy (cm-1) \t | power \t | st. dev. \n";
+		for (let i = 0; i < power_measurement.data.energies.length; i++) {
+			save_str += `${power_measurement.data.energies[i].toFixed(3)} \t ${power_measurement.data.power[i].toFixed(4)} \t ${power_measurement.data.stdev[i].toFixed(6)} \n`;
+		}
+		fs.writeFile(save_path, save_str, (error) => {
+			if (error) console.log(error);
+			else console.log(`Power Measurement saved under ${file}`);
+		});
+	},
+}
+
+async function get_opo_power(measurements) {
+	let power_array = [];
+	let count = measurements || 50;
+	for (let i = 0; i < count; i++) {
+		await new Promise((resolve) => {
+			opoEmitter.once(opoMessages.Alert.Power, (power) => {
+				if (power && !isNaN(power)) {
+					power_array.push(power);
+				}
+				resolve();
+			});
+			opo.network.client.write(opo.network.command.get_power, () => {});
+		});
+		await sleep(100);
+	}
+	return average(power_array);
+}
+
+async function power_measurement_scan(starting_energy, ending_energy, spacing = 1, measurements = 50) {
+	if (!opo.status.connected) {
+		opo.network.connect();
+	}
+	console.time("Power");
+	// Save parameters
+	power_measurement.params.start_energy = starting_energy;
+	power_measurement.params.end_energy = ending_energy;
+	power_measurement.params.spacing = spacing;
+	power_measurement.params.measurements = measurements;
+	power_measurement.reset();
+	// Scan
+	let energy = starting_energy;
+	let this_energy;
+	while (energy <= power_measurement.params.end_energy) {
+		if (power_measurement.status.cancel) {
+			return;
+		}
+		while (power_measurement.status.paused) {
+			await sleep(1000);
+		}
+		console.log(`Power measurement: Moving to ${energy}`);
+		// Move laser to proper energy
+		let measured_energies = await move_to_ir(energy);
+		this_energy = measured_energies[measured_energies.desired_mode].wavenumber;
+		power_measurement.data.energies.push(this_energy);
+		console.log(`power_measurement: Measured energy: ${this_energy}`);
+		// Measure power
+		let [avg, stdev] = await get_opo_power(power_measurement.params.measurements);
+		power_measurement.data.power.push(avg);
+		power_measurement.data.stdev.push(stdev);
+		energy += power_measurement.params.spacing;
+	}
+	console.timeEnd("Power");
+	power_measurement.save();
 }

@@ -11,11 +11,18 @@ const wavemeter = require("bindings")("wavemeter");
 const EventEmitter = require("events").EventEmitter;
 
 const wmEmitter = new EventEmitter();
+const opoEmitter = new EventEmitter();
 
 const wmMessages = {
 	Alert: {
 		Motors_Stopped: "wm_Alert_Motors_Stopped",
 		Current_Wavelength: "wm_Alert_Current_Wavelength"
+	}
+}
+
+const opoMessages = {
+	Alert: {
+		Power: "opo_Alert_Power",
 	}
 }
 
@@ -1248,7 +1255,7 @@ const laser = {
 	detachment: {
 		mode: "standard", // Can be "standard", "doubled", "raman", or "irdfg"
 		wavelength: {
-			yag_fundamental: 1064.0, // Nd:YAG fundamental wavelength
+			yag_fundamental: 1064.438, // Nd:YAG fundamental wavelength
 			input: 0, // User entered (or measured) wavelength
 			standard: 0,
 			doubled: 0,
@@ -1451,6 +1458,7 @@ const opo = {
 		command: {
 			get_wl: "TELLWL",
 			get_motor_status: "TELLSTAT",
+			get_power: "TELLPWR",
 			move: (val) => {
 				return "GOTO " + val.toFixed(3);
 			},
@@ -1526,7 +1534,7 @@ const opo = {
 function opo_goto_nir(nir_wavelength) {
 	// Make sure wavelength is in proper OPO bounds
 	if (nir_wavelength < opo.params.lower_wl_bound || nir_wavelength > opo.params.upper_wl_bound) {
-		console.log(`Wavelength ${wl} nm is out of OPO bounds: ${lower_wl_bound} - ${upper_wl_bound}`);
+		console.log(`Wavelength ${nir_wavelength} nm is out of OPO bounds: ${lower_wl_bound} - ${upper_wl_bound}`);
 		return false;
 	}
 	opo.status.motors_moving = true;
@@ -1599,6 +1607,13 @@ function process_opo_data(data) {
 	}
 	// Make sure it is a number (not an unexpected result)
 	if (isNaN(data)) {
+		// Power measurement shows up as a string ending in " W", filter these out
+		if (data.endsWith(" W")) {
+			// Extract the value as a float and send an alert
+			let power = parseFloat(data.replace(" W", ""));
+			opoEmitter.emit(opoMessages.Alert.Power, power);
+			return;
+		}
 		console.log("Message from OPO:", data);
 		return;
 	}
