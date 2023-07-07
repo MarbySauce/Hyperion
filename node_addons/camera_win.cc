@@ -3,7 +3,7 @@
 #endif
 
 #include "camera.h"
-#include "centroid.h"
+#include "centroid2.h"
 #include <string>
 #include <napi.h>
 #include <windows.h>
@@ -256,8 +256,8 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	// Initialize image array for centroiding
 	img.Image.assign(camera.width, camera.height);
 	img.RegionImage.assign(camera.width, camera.height);
-	img.RegionVector.assign(5000, 1);
-	img.COMs.assign(5000, 4);
+	img.RegionVector.assign(2500, 3);
+	img.COMs.assign(2500, 4);
 
 	// Check to make sure camera was initialized first
 	if (!camera.connected) {

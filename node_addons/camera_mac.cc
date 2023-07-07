@@ -1,5 +1,5 @@
 #include "camera.h"
-#include "centroid.h"
+#include "centroid2.h"
 #include <napi.h>
 
 // Global variables
@@ -194,7 +194,7 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	// Initialize image array for centroiding
 	img.Image.assign(camera.width, camera.height);
 	img.RegionImage.assign(camera.width, camera.height);
-	img.RegionVector.assign(1500, 1);
+	img.RegionVector.assign(1500, 3);
 	img.COMs.assign(1500, 4);
 
 	// Check to make sure camera was initialized first
