@@ -37,6 +37,7 @@ function UpdateAverageDisplays() {
 	if (averageCount.updateCounter === averageCount.updateFrequency) {
 		//avgCountDisplay.value = averageCount.getTotalAverage();
 		avgCountDisplay.value = averageCount.getTotalIRAverage();
+		console.log(averageCount.getTotalIRAverage());
 
 		averageCount.updateCounter = 0;
 	} else {
@@ -159,7 +160,7 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 		scales: {
 			y: {
 				beginAtZero: true,
-				suggestedMax: 10, // Defines starting max value of chart
+				//suggestedMax: 10, // Defines starting max value of chart
 				title: {
 					text: "Electron Count",
 					color: "black",
@@ -232,7 +233,7 @@ const eChartData = {
 	},
 	updateChart: function (echart) {
 		// Update chart vertical max value
-		echart.options.scales.y.max = this.yAxisMax;
+		//echart.options.scales.y.max = this.yAxisMax;
 		// Update chart data
 		echart.data.labels = this.labels;
 		echart.data.datasets[0].data = this.cclData;
@@ -283,6 +284,9 @@ const averageCount = {
 	},
 	getAverage: function (arr) {
 		// Calculates the average value of the arrays
+		if (arr.length === 0) {
+			return 0;
+		}
 		const sum = arr.reduce((accumulator, currentValue) => {
 			return accumulator + currentValue;
 		});

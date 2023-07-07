@@ -221,6 +221,9 @@ function electrons_average_add(arr, el) {
 
 // Calculates the average value of the arrays
 function electrons_average_get_average(arr) {
+	if (arr.length == 0) {
+		return 0;
+	}
 	const sum = arr.reduce((accumulator, current_value) => {
 		return accumulator + current_value;
 	});

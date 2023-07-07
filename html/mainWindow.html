@@ -245,7 +245,12 @@
 					</div>
 					<!-- Image Collection Length -->
 					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsCollectionLength">
-						<h4 class="white-text">Stand-in: (e- / frames) per image</h4>
+						<h3 class="white-text text-box-label" id="IRActionCollectionLengthLabel">Collection Length:</h3>
+						<input class="input-change hv-display" id="IRActionCollectionLength" type="number" min="0" placeholder="-" />
+						<select class="white-text square-button drop-down" name="IRActionCollectionUnit" id="IRActionCollectionUnit">
+							<option value="Electrons">x1e5 Electrons</option>
+							<option value="Frames">x1000 Frames</option>
+						</select>
 					</div>
 					<!-- Absorption Calculation Method -->
 					<div class="grid background-lighter-blue ir-action-options-row" id="IRActionOptionsMeasurementMethod">

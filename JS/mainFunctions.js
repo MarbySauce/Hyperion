@@ -1650,17 +1650,17 @@ function get_action_energy_parameters() {
 	// Check that values are in range
 	if (starting_energy > 7400 || ending_energy > 7400) {
 		// Energies are too large
-		alert("Action Energies out of range");
+		alert("Action Energies too large");
 		return false;
 	}
 	if (starting_energy < 625 || ending_energy < 625) {
-		alert("Action Energies out of range");
+		alert("Action Energies too small");
 		return false;
 	}
-	if (increment < 1) {
+	/*if (increment < 1) {
 		alert("Action Increment too small");
 		return false;
-	}
+	}*/
 	// If it got this far, the parameters all look fine
 	// Update values in action_mode object
 	scan.action_mode.params.energy.update(starting_energy, ending_energy, increment);
@@ -1691,11 +1691,27 @@ function get_action_absorption_parameters() {
  * @returns {boolean} Success of function call
  */
 function get_action_autostop_parameter() {
-	// For now, just autostop at 5k frames
-	//electrons.total.auto_stop.method = "frames";
-	//electrons.total.auto_stop.update(8);
-	electrons.total.auto_stop.method = "electrons";
-	electrons.total.auto_stop.update(1.5);
+	const collection_length = document.getElementById("IRActionCollectionLength");
+	const collection_unit = document.getElementById("IRActionCollectionUnit");
+	// Get value for collection length
+	let collection_val = parseFloat(collection_length.value);
+	// Figure out collection unit (frames or electrons)
+	let collection_method;
+	switch (collection_unit.selectedIndex) {
+		case 0: // Electrons
+			collection_method = "electrons";
+			break;
+		case 1:
+			collection_method = "frames";
+			break;
+		default:
+			collection_method = "electrons";
+			break;
+	}
+	// Update values
+	electrons.total.auto_stop.method = collection_method;
+	electrons.total.auto_stop.update(collection_val);
+	console.log(collection_val, collection_method);
 	return true;
 }
 
@@ -1782,6 +1798,8 @@ async function start_action_scan() {
 	update_action_button_to_start();
 	show_progress_bar_complete();
 	console.timeEnd("ActionMode");
+	// Reset automatic stop
+	sevi_automatic_stop_selection()
 }
 
 /**
@@ -2052,7 +2070,7 @@ async function measure_wavelength(expected_wl) {
 			}, 100)
 		);
 		// Check if there were too many failures
-		if (fail_count > 0.2 * measured_value_length) {
+		if (fail_count > measured_value_length) {
 			// Stop wavemeter measurement
 			wavemeter.stopMeasurement();
 			console.log(`Wavelength measurement: ${fail_count} failed measurements - Canceled`);

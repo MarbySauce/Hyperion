@@ -3,6 +3,8 @@
 #include "CImg.h"
 #include "timer.h"
 
+#include <stdio.h>
+
 using namespace cimg_library;
 
 class Centroid
@@ -122,6 +124,9 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 	NoiseCount = 0;
 	isLEDon = false;
 
+	printf("Starting first pass through \n");
+	//UseHybridMethod = false;
+
 	// Go through each pixel and add it to a region if sufficient intensity
 	int regionNo;
 	for (int Y = 1; Y < Height - 1; Y++)
@@ -133,6 +138,10 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 			Image(X, Y) = pixValue;
 
 			updateBuffer(Buffer, X, Y, Width, pixValue);
+
+			if (regions >= RegionVector.width()) {
+				break;
+			}
 
 			// Check if pixel is within Noise of LED areas
 			if ((LEDyLowerBound <= Y && Y < LEDyUpperBound) && (LEDxLowerBound <= X && X < LEDxUpperBound)) {
@@ -161,10 +170,14 @@ void Centroid::centroid(std::vector<unsigned char>& Buffer, char* pMem, int pPit
 		}
 	}
 
+	printf("Starting region reduction \n");
+
 	if (ReduceRegionVector)
 	{
 		reduceRegionVector();
 	}
+
+	printf("Starting centroiding calculation \n");
 
 	calculateCentroids();
 
@@ -313,6 +326,9 @@ void Centroid::calculateCentroids()
 
 			if ((pixCount > 3) && (pixCount <= maxPix))
 			{ // Calculate CoM for spots of non-overlapping electrons
+				if (CCLCount >= CCLCenters.width()) {
+					break;
+				}
 				CCLCenters(CCLCount, 0) = (1.0 * xCOM) / (1.0 * norm);		// x center
 				CCLCenters(CCLCount, 1) = (1.0 * yCOM) / (1.0 * norm);		// y center
 				CCLCenters(CCLCount, 2) = (1.0 * norm) / (1.0 * pixCount);	// Average pixel intensity
@@ -320,6 +336,9 @@ void Centroid::calculateCentroids()
 			}
 			else if (UseHybridMethod && pixCount > maxPix)
 			{ // Calculate local maxima of spots of overlapping electrons
+				if (HybridCount >= HybridCenters.width()) {
+					break;
+				}
 				int centerX = round((1.0 * xCOM) / (1.0 * norm));
 				int centerY = round((1.0 * yCOM) / (1.0 * norm));
 				float avgPixInt = (1.0 * norm) / (1.0 * pixCount);

@@ -174,7 +174,7 @@ function create_live_view_window() {
 	});
 
 	win.loadFile("HTML/LVWindow.html");
-	//win.webContents.openDevTools();
+	win.webContents.openDevTools();
 
 	return win;
 }
