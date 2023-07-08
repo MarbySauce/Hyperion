@@ -37,7 +37,6 @@ function UpdateAverageDisplays() {
 	if (averageCount.updateCounter === averageCount.updateFrequency) {
 		//avgCountDisplay.value = averageCount.getTotalAverage();
 		avgCountDisplay.value = averageCount.getTotalIRAverage();
-		console.log(averageCount.getTotalIRAverage());
 
 		averageCount.updateCounter = 0;
 	} else {

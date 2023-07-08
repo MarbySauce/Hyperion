@@ -21,6 +21,7 @@ self.onmessage = function (event) {
 	if (!received_data.method) {
 		// The received data was not properly formatted
 		console.log("Melexir Worker: Improper message received:", received_data);
+		self.postMessage(false);
 		return;
 	}
 	// MELEXIR throws an error if the image is blank (i.e. all 0's)
@@ -40,18 +41,24 @@ self.onmessage = function (event) {
 		// Make sure image is not blank
 		if (pixel_sum !== 0) {
 			// Run Melexir and package results as ir_off
+			console.log("MLXR - Running IR Off");
 			returned_results.ir_off = melexir.process(image);
 			returned_results.images_summed = true;
+			console.log("MLXR - Finished IR Off");
 		}
 	} else if (received_data.method === "ir-sevi") {
 		// Check that each image is not blank
 		if (get_image_sum(received_data.ir_off) !== 0) {
 			// Run Melexir for ir_off
+			console.log("MLXR - Running IR Off");
 			returned_results.ir_off = melexir.process(received_data.ir_off);
+			console.log("MLXR - Finished IR Off");
 		}
 		if (get_image_sum(received_data.ir_on) !== 0) {
 			// Then ir_on
+			console.log("MLXR - Running IR On", get_image_sum(received_data.ir_on));
 			returned_results.ir_on = melexir.process(received_data.ir_on);
+			console.log("MLXR - Finished IR On");
 		}
 	}
 

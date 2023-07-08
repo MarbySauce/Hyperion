@@ -1206,19 +1206,23 @@ function run_melexir() {
 	// Store results
 	melexir_worker.onmessage = function (event) {
 		let returned_results = event.data;
-		// Reset PE Spectra data
-		scan.accumulated_image.spectra.reset();
-		// Update PE Spectra values
-		scan.accumulated_image.spectra.data.radial_values = returned_results.ir_off.spectrum[0];
-		scan.accumulated_image.spectra.data.ir_off_intensity = returned_results.ir_off.spectrum[1];
-		scan.accumulated_image.spectra.data.ir_off_anisotropy = returned_results.ir_off.spectrum[2];
-		scan.accumulated_image.spectra.data.ir_on_intensity = returned_results.ir_on.spectrum[1];
-		scan.accumulated_image.spectra.data.ir_on_anisotropy = returned_results.ir_on.spectrum[2];
-		// Save results to file
-		scan.accumulated_image.spectra.save();
-		update_pes_id();
-		// Process the results
-		process_melexir_results();
+		if (returned_results) {
+			// Reset PE Spectra data
+			scan.accumulated_image.spectra.reset();
+			// Update PE Spectra values
+			scan.accumulated_image.spectra.data.radial_values = returned_results.ir_off.spectrum[0];
+			scan.accumulated_image.spectra.data.ir_off_intensity = returned_results.ir_off.spectrum[1];
+			scan.accumulated_image.spectra.data.ir_off_anisotropy = returned_results.ir_off.spectrum[2];
+			scan.accumulated_image.spectra.data.ir_on_intensity = returned_results.ir_on.spectrum[1];
+			scan.accumulated_image.spectra.data.ir_on_anisotropy = returned_results.ir_on.spectrum[2];
+			// Save results to file
+			scan.accumulated_image.spectra.save();
+			update_pes_id();
+			// Process the results
+			process_melexir_results();
+		} else {
+			console.log("Melexir worker returned with an error");
+		}
 		// Terminate worker
 		melexir_worker.terminate();
 		melexir_worker = null;
