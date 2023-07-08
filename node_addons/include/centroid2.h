@@ -125,7 +125,7 @@ void Centroid::findRegions(std::vector<unsigned char>& Buffer, char* pMem, int p
 			updateBuffer(Buffer, X, Y, Width, pixValue);
 
 			// Make sure we don't run out of memory
-			if (regions >= RegionVector.width()) break;
+			if (regions >= RegionVector.width()) continue;
 			//printf("centroid2 - findRegions() - col %d - regions: %d \n", X, regions);
 
 			// Check if pixel is within Noise of LED areas
