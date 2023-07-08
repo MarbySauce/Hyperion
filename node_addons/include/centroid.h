@@ -351,12 +351,17 @@ void Centroid::calculateCentroids()
 				{
 					for (int X = centerX - smallWindowSize / 2; X < centerX + smallWindowSize / 2; X++)
 					{
+						if (X < 0 || X >= Image.width() || Y < 0 || Y >= Image.height()) {
+							continue;
+						}
+						//printf("X: %d, Y: %d - Image size: (%d, %d) \n", X, Y, Image.width(), Image.height());
 						if (Image(X, Y) >= threshold)
 						{
 							smallWindow(X - (centerX - smallWindowSize / 2), Y - (centerY - smallWindowSize / 2)) = Image(X, Y);
 						}
 					}
 				}
+				printf("After small window - Hybrid count = %d \n", HybridCount);
 
 				// Apply Gaussian blur to smallWindow to account for spots that saturate the camera
 				// Essentially rounds-out the flat tops of these spots
@@ -372,6 +377,10 @@ void Centroid::calculateCentroids()
 				{
 					for (int X = 2; X < smallWindowSize - 2; X++)
 					{
+						if (tempHybridCount >= tempHybridCenters.width()) {
+							break;
+						}
+						printf("Accessing pix Region - (%d, %d) \n", X + (centerX - smallWindowSize / 2), Y + (centerY - smallWindowSize / 2));
 						unsigned int pixRegion = RegionImage(X + (centerX - smallWindowSize / 2), Y + (centerY - smallWindowSize / 2));
 						if (RegionVector(pixRegion) == i)
 						{ // We only need to look at pixels in the parent region
@@ -388,7 +397,6 @@ void Centroid::calculateCentroids()
 								if (Xm1 >= 0 && X0 >= 0 && Xp1 < 0)
 								{
 									// Calculate first-order approximation of zero-crossing
-									// NOTE: look into using third-order approximation
 									float rootX = (centerX - smallWindowSize / 2) + X + X0 / (X0 - Xp1);
 									float rootY = (centerY - smallWindowSize / 2) + Y + Y0 / (Y0 - Yp1);
 									tempHybridCenters(tempHybridCount, 0) = rootX;
@@ -399,6 +407,8 @@ void Centroid::calculateCentroids()
 						}
 					}
 				}
+
+				printf("After zero crossings - temp Hybrid count = %d \n", tempHybridCount);
 
 				// Get rid of double-counted spots (i.e. nearby calculated centroids) and add to HybridCenters
 				for (int k = 0; k <= tempHybridCount; k++)
@@ -434,6 +444,9 @@ void Centroid::calculateCentroids()
 							}
 						}
 					}
+					if (HybridCount >= HybridCenters.width()) {
+						break;
+					}
 					// Add centers to HybridCenters
 					HybridCenters(HybridCount, 0) = tempHybridCenters(k, 0);
 					HybridCenters(HybridCount, 1) = tempHybridCenters(k, 1);
@@ -443,6 +456,8 @@ void Centroid::calculateCentroids()
 			}
 		}
 	}
+
+	printf("Done calculating centroids \n");
 
 	Centroids[0] = CCLCenters;
 	Centroids[1] = HybridCenters;
