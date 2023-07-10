@@ -1242,19 +1242,23 @@ function run_melexir() {
 	// Store results
 	melexir_worker.onmessage = function (event) {
 		let returned_results = event.data;
-		// Reset PE Spectra data
-		scan.accumulated_image.spectra.reset();
-		// Update PE Spectra values
-		scan.accumulated_image.spectra.data.radial_values = returned_results.ir_off.spectrum[0];
-		scan.accumulated_image.spectra.data.ir_off_intensity = returned_results.ir_off.spectrum[1];
-		scan.accumulated_image.spectra.data.ir_off_anisotropy = returned_results.ir_off.spectrum[2];
-		scan.accumulated_image.spectra.data.ir_on_intensity = returned_results.ir_on.spectrum[1];
-		scan.accumulated_image.spectra.data.ir_on_anisotropy = returned_results.ir_on.spectrum[2];
-		// Save results to file
-		scan.accumulated_image.spectra.save();
-		update_pes_id();
-		// Process the results
-		process_melexir_results();
+		if (returned_results) {
+			// Reset PE Spectra data
+			scan.accumulated_image.spectra.reset();
+			// Update PE Spectra values
+			scan.accumulated_image.spectra.data.radial_values = returned_results.ir_off.spectrum[0];
+			scan.accumulated_image.spectra.data.ir_off_intensity = returned_results.ir_off.spectrum[1];
+			scan.accumulated_image.spectra.data.ir_off_anisotropy = returned_results.ir_off.spectrum[2];
+			scan.accumulated_image.spectra.data.ir_on_intensity = returned_results.ir_on.spectrum[1];
+			scan.accumulated_image.spectra.data.ir_on_anisotropy = returned_results.ir_on.spectrum[2];
+			// Save results to file
+			scan.accumulated_image.spectra.save();
+			update_pes_id();
+			// Process the results
+			process_melexir_results();
+		} else {
+			console.log("Melexir worker returned with an error");
+		}
 		// Terminate worker
 		melexir_worker.terminate();
 		melexir_worker = null;
@@ -1688,17 +1692,17 @@ function get_action_energy_parameters() {
 	// Check that values are in range
 	if (starting_energy > 7400 || ending_energy > 7400) {
 		// Energies are too large
-		alert("Action Energies out of range");
+		alert("Action Energies too large");
 		return false;
 	}
 	if (starting_energy < 625 || ending_energy < 625) {
-		alert("Action Energies out of range");
+		alert("Action Energies too small");
 		return false;
 	}
-	if (increment < 1) {
+	/*if (increment < 1) {
 		alert("Action Increment too small");
 		return false;
-	}
+	}*/
 	// If it got this far, the parameters all look fine
 	// Update values in action_mode object
 	scan.action_mode.params.energy.update(starting_energy, ending_energy, increment);
@@ -1729,11 +1733,27 @@ function get_action_absorption_parameters() {
  * @returns {boolean} Success of function call
  */
 function get_action_autostop_parameter() {
-	// For now, just autostop at 5k frames
-	//electrons.total.auto_stop.method = "frames";
-	//electrons.total.auto_stop.update(0.5);
-	electrons.total.auto_stop.method = "electrons";
-	electrons.total.auto_stop.update(0.1);
+	const collection_length = document.getElementById("IRActionCollectionLength");
+	const collection_unit = document.getElementById("IRActionCollectionUnit");
+	// Get value for collection length
+	let collection_val = parseFloat(collection_length.value);
+	// Figure out collection unit (frames or electrons)
+	let collection_method;
+	switch (collection_unit.selectedIndex) {
+		case 0: // Electrons
+			collection_method = "electrons";
+			break;
+		case 1:
+			collection_method = "frames";
+			break;
+		default:
+			collection_method = "electrons";
+			break;
+	}
+	// Update values
+	electrons.total.auto_stop.method = collection_method;
+	electrons.total.auto_stop.update(collection_val);
+	console.log(collection_val, collection_method);
 	return true;
 }
 
@@ -1759,11 +1779,12 @@ async function start_action_scan() {
 	// Get energy bounds
 	const energy = scan.action_mode.params.energy;
 	// Move to starting wavelength with fast OPO speed
-	opo.move_fast();
+	//opo.set_speed();
 	[desired_wl, desired_mode] = laser.excitation.get_nir(energy.start);
-	await move_ir_and_measure(desired_wl);
+	//await move_ir_and_measure(desired_wl);
 	// Switch to moving slowly
-	opo.move_slow();
+	//opo.set_speed(0.05);
+	scan.action_mode.timer.start();
 	// Loop over each data point
 	for (let point = 0; point <= scan.action_mode.status.data_points.total; point++) {
 		console.log(`Point ${point} of ${scan.action_mode.status.data_points.total}`);
@@ -1776,6 +1797,9 @@ async function start_action_scan() {
 		measured_energies = await move_to_ir(desired_energy);
 		// Update current/next IR energy
 		update_action_energy_displays(measured_energies[desired_mode].wavenumber);
+		// Update laser excitation values in laser module
+		laser.excitation.wavelength.input = decimal_round(measured_energies.nir.wavelength, 3);
+		laser.excitation.convert();
 		// Start taking data
 		start_sevi_scan();
 		// Save image ID's for file naming later
@@ -1809,12 +1833,15 @@ async function start_action_scan() {
 	// Scan is done
 	scan.action_mode.status.running = false;
 	scan.status.action_image = false;
+	scan.action_mode.timer.end();
 	// Save data to file
 	scan.action_mode.save();
 	// Update button text
 	update_action_button_to_start();
 	show_progress_bar_complete();
 	console.timeEnd("ActionMode");
+	// Reset automatic stop
+	sevi_automatic_stop_selection();
 }
 
 /**
@@ -1884,15 +1911,21 @@ function hide_progress_bar_complete() {
  * @param {number} desired_energy - Desired IR energy in wavenumbers (cm-1)
  * @returns {object} - Object containing desired IR mode and IR energies converted from measured nIR
  */
-async function move_to_ir(desired_energy) {
+/*async function move_to_ir(desired_energy) {
 	let desired_wl, desired_mode;
 	let measured_wl, measured_energies, energy_difference, wl_difference;
+	let false_measurement = {
+		nir: { wavelength: 0, wavenumber: 0 },
+		iir: { wavelength: 0, wavenumber: 0 },
+		mir: { wavelength: 0, wavenumber: 0 },
+		fir: { wavelength: 0, wavenumber: 0 },
+	};
 
 	// Calculate nIR wavelength for desired energy
 	[desired_wl, desired_mode] = laser.excitation.get_nir(desired_energy);
 	if (!desired_wl) {
 		// Couldn't get nIR wavelength - move to next energy
-		return false;
+		return false_measurement;
 	}
 	console.log(`Desired energy: ${desired_energy} cm-1 -> nIR: ${desired_wl} nm`);
 	// Move OPO to desired energy and measure the wavelength
@@ -1900,7 +1933,7 @@ async function move_to_ir(desired_energy) {
 	measured_wl = await move_ir_and_measure(desired_wl);
 	if (!measured_wl) {
 		// Couldn't get nIR measurement - move to next energy
-		return false;
+		return false_measurement;
 	}
 	// Calculate the excitation IR energy (cm^-1)
 	measured_energies = convert_nir(measured_wl);
@@ -1912,21 +1945,72 @@ async function move_to_ir(desired_energy) {
 		// Too far away, move nIR by difference between desired and measured
 		// -> move_to((desired + difference) = (desired + (desired - measured)) = (2*desired - measured))
 		console.log("Second iteration of moving IR and measuring");
-		opo.move_very_slow();
+		opo.move_slow();
+		//opo.move_very_slow();
 		measured_wl = await move_ir_and_measure(2 * desired_wl - measured_wl);
 		//measured_wl = await move_ir_and_measure(desired_wl + 0.01 * (2 * (wl_difference > 0) - 1));
 		if (!measured_wl) {
 			// Couldn't get nIR measurement - move to next energy
-			return false;
+			return false_measurement;
 		}
 		// Calculate the excitation IR energy (cm^-1)
 		measured_energies = convert_nir(measured_wl);
 		// Don't want to iterate movement more than once - move on
-		opo.move_slow();
+		opo.move_fast();
 	}
 
 	// Add desired mode to measured_energies
 	measured_energies.desired_mode = desired_mode;
+
+	return measured_energies;
+}*/
+
+/**
+ * Move OPO to desired energy including iterations to maximize accuracy
+ * @param {number} desired_energy - Desired IR energy in wavenumbers (cm-1)
+ * @returns {object} - Object containing desired IR mode and IR energies converted from measured nIR
+ */
+async function move_to_ir(energy) {
+	let false_measurement = {
+		desired_mode: "nir",
+		nir: { wavelength: 0, wavenumber: 0 },
+		iir: { wavelength: 0, wavenumber: 0 },
+		mir: { wavelength: 0, wavenumber: 0 },
+		fir: { wavelength: 0, wavenumber: 0 },
+	};
+	// First, need to figure out the discrepancy between the wavelength the OPO/A thinks it is at vs where it actually is
+	// Ask OPO what wavelength it is at
+	let opo_wavelength = await new Promise((resolve) => {
+		wmEmitter.once(wmMessages.Alert.Current_Wavelength, (value) => {
+			resolve(value);
+		});
+		opo.get_wavelength();
+	});
+	// Measure actual wavelength
+	let current_wavelength = await measure_wavelength(opo_wavelength);
+	let wl_difference = current_wavelength - opo_wavelength || 0; // Set the wl difference as 0 in case there was a problem measuring wavelength
+
+	// Next, calculate the wavelength we want to move to
+	let [desired_nir, desired_mode] = laser.excitation.get_nir(energy);
+	if (!desired_nir) return false_measurement; // Desired energy is not achievable, return
+
+	// If the wavelength is near where we currently are, have the OPO move slowly (otherwise move at default speed)
+	if (Math.abs(desired_nir - opo_wavelength) < 5) opo.set_speed(0.05);
+	else opo.set_speed(); // Set to default value
+
+	// Move OPO to desired wavelength, accounting for wavelength discrepancy
+	console.log("Go To parameter:", desired_nir - wl_difference, desired_nir, wl_difference);
+	if (Math.abs(wl_difference) > 10) wl_difference = 0;
+	opo.goto_nir(desired_nir - wl_difference);
+	await wait_for_motors(); // Wait for motors to finish moving
+	// Measure current wavelength
+	let final_wavelength = await measure_wavelength(desired_nir);
+	let measured_energies = convert_nir(final_wavelength);
+	// Add desired mode to measured_energies
+	measured_energies.desired_mode = desired_mode;
+
+	// Finally, reset OPO speed to default value
+	opo.set_speed();
 
 	return measured_energies;
 }
@@ -2006,8 +2090,7 @@ async function measure_wavelength(expected_wl) {
 				// Make sure there actually was a measurement to get
 				if (wl > 0) {
 					// Make sure we didn't get the same measurement twice by comparing against last measurement
-					// NOTE!!!!! measured_values["length"] does NOT give you the last element in list
-					if (wl !== measured_values["length"]) {
+					if (wl !== measured_values[measured_values.length - 1]) {
 						// If an expected wavelength was given, make sure measured value isn't too far away
 						if (expected_wl) {
 							if (Math.abs(wl - expected_wl) < too_far_val) {
@@ -2029,14 +2112,14 @@ async function measure_wavelength(expected_wl) {
 			}, 100)
 		);
 		// Check if there were too many failures
-		if (fail_count > 0.2 * measured_value_length) {
+		if (fail_count > measured_value_length) {
 			// Stop wavemeter measurement
 			wavemeter.stopMeasurement();
 			console.log(`Wavelength measurement: ${fail_count} failed measurements - Canceled`);
 			return 0;
 		}
 		// Check if there were too many bad measurements
-		if (bad_measurements >= 4 * measured_value_length) {
+		if (bad_measurements >= 10 * measured_value_length) {
 			// Stop wavemeter measurement
 			wavemeter.stopMeasurement();
 			console.log(`Wavelength measurement: ${bad_measurements} bad measurements - Canceled`);

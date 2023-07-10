@@ -2,7 +2,7 @@
 #define UNICODE
 #endif
 
-#include <iostream>
+#include <stdio.h>
 #include <string>
 #include <math.h>
 #include <napi.h>
@@ -197,6 +197,9 @@ void Test(const Napi::CallbackInfo& info) {
 
 }
 
+int global_count = 0;
+//double* flat_image = new double[1024*1024];
+//double* lp_image = new double[1024*1024];
 // Take an image from JS and run Melexir 
 // Parameter should be the image (as a 2D array)
 // Returns PES
@@ -221,6 +224,8 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
             flat_image[image_height*col + row] = (double)napi_row.Get(Napi::Number::New(env, col)).ToNumber().DoubleValue();
         }
     } 
+
+    //printf("MLXR - Image has been flattened \n");
     
     // Give options string to Melexir
     char options_string[] = "-H1 -LP2";
@@ -246,12 +251,20 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
     nl_odd = (nl_odd + 1) / 2; // Get count of just odd components (0.5 rounds down to 0 bc it's an int)
     nl = nl_even + nl_odd;
 
+    //printf("MLXR - Options have been set \n");
+
     // Prepare image for MELEXIR
     int nrow = image_height;
     int ncol = image_width;
-    int ldd = pow(max(nrow, ncol),2); // Largest possible value for length of contracted data (Comes from PrepareVMI3.f90 ln104)
+    int ldd = 2*nrow*nl; //pow(max(nrow, ncol),2); // Largest possible value for length of contracted data (Comes from PrepareVMI3.f90 ln104)
     double* lp_image = new double[ldd]; // Will be Legendre projection of image
+    //printf("MLXR - nrow: %d, ncol: %d, ldd: %d \n", nrow, ncol, ldd);
+    //printf("MLXR - lp_image made at %p \n", lp_image);
+    global_count++;
+    //printf("MLXR - times run: %d \n", global_count);
     image2data_(flat_image, &nrow, &nrow, &ncol, lp_image, &ldd);
+
+    //printf("MLXR - Image has been prepared \n");
 
     // Run MELEXIR
     //int nt = nrow * ncol;
@@ -279,6 +292,8 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
     // sigma will be the spectrum
     // dat will be the residuals (idk why he swaps it)
 
+    //printf("MLXR - Melexir has been run \n");
+
     // Set up arrays to return
     Napi::Object results = Napi::Object::New(env);
     Napi::Array spectrum = Napi::Array::New(env); // Worked up spectrum
@@ -303,6 +318,16 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
     // Add result arrays to object
     results["spectrum"] = spectrum;
     results["residuals"] = residuals;
+
+    // Deallocate memory for dynamic arrays
+    delete flat_image;
+    delete lp_image;
+    delete dat; 
+    delete sigma; 
+    delete fmap; 
+    delete base; 
+    delete datainv; 
+
 
     return results;
 }

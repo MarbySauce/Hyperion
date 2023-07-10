@@ -608,7 +608,19 @@ body {
 /* IR Action Mode - First Page - Scan Options - Collection Length */
 #IRActionOptionsCollectionLength {
 	grid-area: CollectionLength;
+	grid-template-columns: 3.5fr 2fr 2.5fr 0.5fr;
+	grid-template-areas: "CollectionLengthLabel CollectionLength CollectionUnit blank2"
 }
+#IRActionCollectionLengthLabel {
+	grid-area: CollectionLengthLabel;
+}
+#IRActionCollectionLength {
+	grid-area: CollectionLength;
+}
+#IRActionCollectionUnit {
+	grid-area: CollectionUnit;
+}
+
 /* IR Action Mode - First Page - Scan Options - Absorption Calculation Method */
 #IRActionOptionsMeasurementMethod {
 	grid-area: MeasurementMethod;
