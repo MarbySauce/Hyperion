@@ -9,13 +9,18 @@ const Chart = require("chart.js");
 const net = require("net");
 // Addon libraries
 const wavemeter = require("bindings")("wavemeter");
+const { IPCMessages, UI, SEVI, MSG } = require("../JS/Messages.js");
 
 let settings; // Global variable, to be filled in on startup
+
+const seviEmitter = new EventEmitter();
+const uiEmitter = new EventEmitter();
+const msgEmitter = new EventEmitter();
 
 // Window loaded
 window.onload = function () {
 	// Send message to main process that the window is ready
-	ipc.send("main-window-ready", null);
+	ipc.send(IPCMessages.READY.MAINWINDOW, null);
 	uiEmitter.emit(UI.CHANGE.TAB);
 };
 
@@ -33,7 +38,16 @@ ipc.on("settings-information", (event, settings_information) => {
 
 function startup() {
 	// Go to Sevi Mode tab
-	uiEmitter.emit(UI.CHANGE.TAB, TAB.SEVI);
+	uiEmitter.emit(UI.CHANGE.TAB, UI.TAB.SEVI);
 
-	ipc.send("main-window-loaded", null);
+	ipc.send(IPCMessages.LOADED.MAINWINDOW, null);
+}
+
+/**
+ * Asynchronous sleep function
+ * @param {Number} delay_ms - delay time in milliseconds
+ * @returns resolved promise upon completion
+ */
+async function sleep(delay_ms) {
+	return new Promise((resolve) => setTimeout(resolve, delay_ms));
 }

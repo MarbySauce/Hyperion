@@ -1,58 +1,76 @@
-const seviEmitter = new EventEmitter();
+/*****************************************************************************
 
-const SEVI = {
-	QUERY: {
-		SCAN: {
-			RUNNING: "SEVI-QUERY-SCAN-RUNNING",
-			PAUSED: "SEVI-QUERY-SCAN-PAUSED",
-		},
+								Image Manager
+
+*****************************************************************************/
+
+// This is what manages all the VMI images, taking in requests from UI, Camera, etc
+
+const ImageManager = {
+	status: {
+		running: false,
+		paused: false,
 	},
-	RESPONSE: {
-		SCAN: {
-			RUNNING: "SEVI-RESPONSE-SCAN-RUNNING",
-			PAUSED: "SEVI-RESPONSE-SCAN-PAUSED",
-		},
-	},
-	ALERT: {
-		SCAN: {
-			STARTED: "SEVI-RESPONSE-SCAN-STARTED",
-			STOPPED: "SEVI-RESPONSE-SCAN-STOPPED",
-			PAUSED: "SEVI-RESPONSE-SCAN-PAUSED",
-			RESUMED: "SEVI-RESPONSE-SCAN-RESUMED",
-			CANCELED: "SEVI-RESPONSE-SCAN-CANCELED",
-			RESET: "SEVI-RESPONSE-SCAN-RESET",
-		},
-	},
-	SCAN: {
-		START: "SEVI-SCAN-START",
-		STOP: "SEVI-SCAN-STOP",
-		PAUSE: "SEVI-SCAN-PAUSE",
-		RESUME: "SEVI-SCAN-RESUME",
-		CANCEL: "SEVI-SCAN-CANCEL",
-		RESET: "SEVI-SCAN-RESET",
-		SINGLESHOT: "SEVI-SCAN-SINGLESHOT",
-	},
+	all_images: [],
+	current_image: undefined,
+	start_scan: (id) => ImageManager_start_scan(id),
 };
 
-let sevi_scan_running = false;
-let sevi_scan_paused = false;
+seviEmitter.on(SEVI.SCAN.START, ImageManager.start_scan);
 
-// These are bullshit for now
+seviEmitter.on(SEVI.QUERY.SCAN.RUNNING, () => {
+	seviEmitter.emit(SEVI.RESPONSE.SCAN.RUNNING, ImageManager.status.running);
+});
+seviEmitter.on(SEVI.QUERY.SCAN.PAUSED, () => {
+	seviEmitter.emit(SEVI.RESPONSE.SCAN.PAUSED, ImageManager.status.paused);
+});
 
-// Current idea is to have the scans that are currently running being the ones that respond to queries
-//	Using class structure from before
-// Need to come up with dealing with queries when there aren't scans then
+uiEmitter.on(UI.INFO.RESPONSE.IMAGEID, (image_id) => {
+	if (ImageManager.current_image) {
+		ImageManager.current_image.id = image_id;
+	}
+});
+uiEmitter.on(UI.INFO.RESPONSE.VMIINFO, (vmi_info) => {
+	if (ImageManager.current_image) {
+		console.log(vmi_info);
+		ImageManager.current_image.vmi_info = vmi_info;
+	}
+});
 
-// if emit(event) doesn't have any listeners, it returns false!
-
-seviEmitter.on(SEVI.SCAN.START, () => {
-	sevi_scan_running = true;
+function ImageManager_start_scan(id) {
+	if (ImageManager.status.running) {
+		// Image is already running, do nothing
+		return;
+	}
+	let new_image = new Image(id);
+	ImageManager.all_images.push(new_image);
+	ImageManager.current_image = new_image;
+	ImageManager.status.running = true;
+	// Alert that a new image has been started
 	seviEmitter.emit(SEVI.ALERT.SCAN.STARTED);
-});
-seviEmitter.on(SEVI.SCAN.STOP, () => {
-	sevi_scan_running = false;
+	// Get info about image
+	ImageManager_get_image_info();
+}
+
+function ImageManager_stop_scan() {
+	if (!ImageManager.status.running) {
+		// An image is not running, do nothing
+		return;
+	}
+	// Stop image and alert that it has been stopped
+	ImageManager.status.running = false;
+	ImageManager.status.paused = false;
 	seviEmitter.emit(SEVI.ALERT.SCAN.STOPPED);
-});
+	// Save image to file
+	ImageManager.current_image.save_image();
+	// Remove image from current_image position
+	ImageManager.current_image = undefined;
+}
+
+function ImageManager_get_image_info() {
+	uiEmitter.emit(UI.INFO.QUERY.IMAGEID);
+	uiEmitter.emit(UI.INFO.QUERY.VMIINFO);
+}
 
 /*****************************************************************************
 
@@ -63,54 +81,30 @@ seviEmitter.on(SEVI.SCAN.STOP, () => {
 // This is the class for an image that is *currently* being collected
 //		FinishedImage is the class generated after which is for images that were collected and have stopped
 class Image {
-	constructor() {
-		this.id = -1;
+	constructor(id) {
+		this.id = id;
 		//this.id_str = ("0" + image_id).slice(-2); // ID stored as a 2 digit string
-
-		this.paused = true;
 
 		this.counts = {
 			electrons: {
 				on: 0,
 				off: 0,
+				total: 0,
 			},
 			frames: {
 				on: 0,
 				off: 0,
+				total: 0,
 			},
 		};
-
-		// Request information about this image
-		uiEmitter.on(UI.INFO.RESPONSE.IMAGEID, this.emitter_image_id_update);
-		uiEmitter.emit(UI.INFO.QUERY.IMAGEID); // Request Image ID
-
-		// Set up event listeners
-		seviEmitter.on(SEVI.QUERY.SCAN.RUNNING, this.running_response);
-		seviEmitter.on(SEVI.QUERY.SCAN.PAUSED, this.paused_response);
-	}
-
-	testvar = 1;
-
-	running_response() {
-		seviEmitter.emit(SEVI.RESPONSE.SCAN.RUNNING, true);
-	}
-
-	paused_response() {
-		seviEmitter.emit(SEVI.RESPONSE.SCAN.PAUSED, this.paused);
-	}
-
-	emitter_image_id_update(id) {
-		console.log(id, testvar);
 	}
 
 	update_id(id) {
 		this.id = id;
 	}
 
-	delete_emitters() {
-		seviEmitter.removeListener(SEVI.QUERY.SCAN.RUNNING, this.running_response);
-		seviEmitter.removeListener(SEVI.QUERY.SCAN.PAUSED, this.paused_response);
-		seviEmitter.removeListener(UI.INFO.RESPONSE.IMAGEID, this.image_id_update);
+	save_image() {
+		console.log("Image has been saved! (Not really)");
 	}
 }
 
