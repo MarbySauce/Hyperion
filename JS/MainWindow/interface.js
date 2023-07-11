@@ -48,18 +48,12 @@ seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, () => {
 	uiEmitter.emit(UI.CHANGE.SEVI.START);
 });
 
-let bs_counter = 0;
 document.getElementById("SeviScanPauseResume").onclick = function () {
 	// This won't be too easy to get working, saving for later
 	//	TODO
-	bs_counter++;
-	msgEmitter.emit(MSG.UPDATE, `This is message #${bs_counter}`);
 };
-let bs_counter_2 = 0;
 document.getElementById("SeviScanCancel").onclick = function () {
-	//seviEmitter.emit(SEVI.SCAN.CANCEL);
-	bs_counter_2++;
-	msgEmitter.emit(MSG.ERROR, `This is error #${bs_counter_2}`);
+	seviEmitter.emit(SEVI.SCAN.CANCEL);
 };
 document.getElementById("SeviScanAutosave").onclick = function () {
 	//autosave_button();
