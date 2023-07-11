@@ -10,9 +10,6 @@ grid-template-areas defines where
 	in grid to place items using keywords
 */
 
-/* NOTE TO MARTY: After moving all grid aspects over, try to consolidate as much as you can
-	so that you are rarely using # here */
-
 * {
 	box-sizing: border-box;
 	margin: 0;
@@ -35,6 +32,8 @@ label {
 	color: white;
 }
 
+/* Message Bar */
+
 #MsgBar {
 	border-bottom: 1px solid hsl(225, 20%, 40%);
 	align-items: center;
@@ -47,13 +46,13 @@ label {
 	text-overflow: ellipsis;
 }
 
+/* Tabs */
+
 #TabBar {
 	height: 100%;
 	padding: 30px 0;
 	background: hsl(225, 20%, 25%);
 }
-
-/* Tabs */
 
 .tab {
 	padding: 3px;
@@ -74,32 +73,7 @@ label {
 	border-left: 3px solid white;
 }
 
-/* 
-
-
-					Normal Mode Content
-
-
-*/
-
-/* NOTE TO MARTY: Maybe move these? Better to group ID's and classes */
-#SeviModeContent {
-	display: none; /* Set to none so that it looks cleaner on startup */
-}
-#IRSeviModeContent {
-	display: none;
-}
-
-#SeviFirstPage {
-	padding: 30px 20px 0 20px;
-	grid-gap: 20px;
-}
-
-#SeviSecondPage {
-	display: none;
-	padding: 0 20px 30px 20px;
-	grid-gap: 20px;
-}
+/* Various Classes */
 
 .grid {
 	display: grid;
@@ -217,11 +191,6 @@ label {
 	text-align: right;
 }
 
-/* 
-Left Side 
-*/
-
-/* Title Section */
 .title-section {
 	align-items: center;
 }
@@ -235,7 +204,6 @@ Left Side
 	text-shadow: black 0 0 5px;
 }
 
-/* Scan Controls */
 .scan-controls {
 	padding: 3%;
 	grid-gap: 3%;
@@ -252,12 +220,6 @@ Left Side
 	height: 10px;
 }
 
-/* FileNaming */
-#SeviFileNaming {
-	padding: 20px 15px;
-	grid-gap: 5% 5px;
-	align-items: center;
-}
 .save-control-title {
 	text-align: center;
 	align-self: end;
@@ -270,20 +232,7 @@ Left Side
 	background: inherit;
 	border: 1px solid rgb(62, 71, 95);
 }
-#SeviImageCounter {
-	width: 100%;
-	height: 70%;
-	text-align: center;
-}
-#SeviVMILabel {
-	padding-right: 10px;
-}
-#SeviVMIMode {
-	height: 100%;
-	padding-left: 30%;
-}
 
-/* Save Controls - Detachment Wavelength */
 .drop-down {
 	height: 50%;
 	padding-left: 5%;
@@ -299,61 +248,12 @@ Left Side
 	height: 60%;
 	text-align: center;
 }
-#SeviLaserSetup {
-	grid-gap: 5px;
-	padding: 20px;
-}
-#SeviLaserSetupTitle {
-	justify-items: center;
-}
-#LaserControlTitle {
-	width: 80%;
-	text-align: center;
-	border-bottom: 1px solid white;
-	padding-bottom: 5px;
-}
 
 .laser-readout {
 	align-items: center;
 	grid-gap: 5px;
 }
 
-#IRLaserControl {
-	grid-gap: 5px 15px;
-}
-#DesiredIRRangeMessage {
-	text-align: center;
-}
-
-#SeviLaserMeasurement {
-	align-items: center;
-}
-
-/* 
-End left side 
-*/
-
-/* 
-Right Side 
-*/
-
-/* Image Display */
-#SeviImageDisplay {
-	padding: 5px 5px;
-	grid-gap: 10px;
-}
-#ImageDisplaySelect {
-	height: 80%;
-}
-#IRImageDisplay:focus-visible {
-	outline: none;
-}
-#SeviDisplayWrapper {
-	height: 50vh;
-	aspect-ratio: 1 / 1;
-	justify-self: center;
-	border-radius: 10px;
-}
 .accumulated-image {
 	height: inherit;
 	width: inherit;
@@ -362,16 +262,7 @@ Right Side
 .accumulated-image:hover {
 	transform: scale(2);
 }
-#SeviImageDisplay h3 {
-	/*padding-right: 10%;*/
-	text-align: center;
-	align-self: end;
-}
-#SeviDisplaySlider {
-	justify-self: center;
-}
 
-/* Electron & Frame Counters */
 .divider-line {
 	width: 100%;
 	height: 100%;
@@ -383,29 +274,7 @@ Right Side
 	width: 80%;
 	height: 40%;
 }
-#SeviCounters {
-	padding: 10px 30px;
-	grid-gap: 0 10px;
-	align-items: center;
-	justify-items: center;
-}
-#SeviCounters h3 {
-	text-align: center;
-	width: 100%;
-	border-bottom: 1px solid white;
-}
-#SeviAutomaticStop {
-	width: 80%;
-	height: 60%;
-	text-align: center;
-}
-#SeviAutomaticStopUnit {
-	width: 90%;
-	height: 70%;
-}
 
-/* Pause "animation" */
-/* NOTE TO MARTY: .paused can obviously be one thing */
 .pause-screen {
 	display: none;
 }
@@ -416,40 +285,12 @@ Right Side
 	border-radius: 7px;
 }
 
-/* 
-End right side 
-*/
-
-/* Sevi Mode - Second Page */
 .red-border {
 	border: 1px solid red;
 	width: 100%;
 	height: 100%;
 }
 
-/* Sevi Mode - Second Page - PE Spectrum */
-#SeviSpectrumDisplaySection {
-	padding: 10px;
-}
-#SeviSpectrumDisplayInner {
-	padding: 15px 20px 0 10px;
-	background: hsla(225, 20%, 90%, 0.85);
-	align-items: center;
-}
-#SeviSpectrumControl {
-	padding: 5px;
-	padding-left: 10px;
-	grid-gap: 0 5px;
-	align-items: center;
-	justify-items: center;
-}
-#SpectrumSwitch {
-	width: 80%;
-}
-#SeviCalculateSpectrumButton {
-	width: 65%;
-	height: 35%;
-}
 .range-label {
 	text-align: center;
 }
@@ -459,106 +300,40 @@ End right side
 	text-align: center;
 }
 
-/* Sevi Mode - Second Page - Recent Scans */
-#SeviRecentScans {
-	padding: 0 25px 5px 25px;
-}
-#SeviRecentScansHeader {
-	padding-bottom: 10px;
-	z-index: 5;
-	border-bottom: black;
-}
-#SeviRecentScans h4 {
-	text-align: center;
-	align-self: end;
-	font-size: 1.3vw;
-}
-#SeviRecentScansSection {
-	max-height: 375px;
-	padding-top: 5px;
-	border: 2px solid rgb(62, 71, 95);
-}
-#SeviRecentScans p {
-	text-align: center;
-	font-size: 1.3vw;
-	padding-top: 7px;
-	height: 100%;
-	border-bottom: 1px dotted rgb(62, 71, 95);
-	color: white;
-}
-
-/* End Sevi Mode Content */
-
-/*
-
-
-					IR Action Mode Content
-
-
-*/
 .page-button {
 	background: hsl(225, 20%, 35%);
 	border-radius: 7px;
 	border: none;
 	margin: 0 -20px;
 }
-
 .page-down:hover {
 	background: linear-gradient(to bottom, hsl(225, 20%, 35%), hsl(225, 20%, 45%));
 }
-
 .page-up:hover {
 	background: linear-gradient(to top, hsl(225, 20%, 35%), hsl(225, 20%, 45%));
 }
-
 .arrow {
 	border: solid white;
 	border-width: 0 3px 3px 0;
 	display: inline-block;
 	padding: 3px;
 }
-
 .arrow-up {
 	transform: rotate(-135deg);
 	-webkit-transform: rotate(-135deg);
 }
-
 .arrow-down {
 	transform: rotate(45deg);
 	-webkit-transform: rotate(45deg);
 }
-
-#IRActionModeContent {
-	display: none; /* Set to none so that it looks cleaner on startup */
+/* Negative margins to make room for page up / page down buttons */
+.negative-bottom-margin {
+	margin-bottom: -20px;
+}
+.negative-top-margin {
+	margin-top: -20px;
 }
 
-#IRActionFirstPage {
-	padding: 30px 20px 0 20px;
-	grid-gap: 20px;
-}
-
-/* IR Action Mode - First Page - Scan Options */
-.ir-action-options-row {
-	align-items: center;
-	justify-items: center;
-}
-#IRActionOptions {
-	padding: 20px;
-	grid-gap: 50px;
-}
-
-/* IR Action Mode - First Page - Absorption Plot */
-#IRAbsorptionPlotSection {
-	padding: 15px;
-	align-items: center;
-}
-#IRAbsorptionPlot {
-	padding: 10px;
-	border-radius: 7px;
-	background: hsla(225, 20%, 90%, 0.85);
-}
-
-/* IR Action Mode - First Page - Next Wavelength */
 .next-wavelength {
 	font-size: 2vh;
 }
@@ -571,69 +346,9 @@ End right side
 	height: 100%;
 	width: 100%;
 }
-#IRNextWavelength {
-	padding: 30px 50px;
-	grid-gap: 20px;
-}
-#CurrentEnergyBackground,
-#NextEnergyBackground {
-	grid-gap: 20px;
-	align-items: center;
-}
 
-/* IR Action Mode - First Page - Progress */
-#IRActionProgress {
-	padding: 30px;
-	grid-gap: 20px;
-}
 .progress-text {
 	font-size: 2vh;
-}
-#ProgressTextBackground {
-	padding: 0 130px;
-	align-items: center;
-	justify-items: center;
-}
-#ProgressBarBackground {
-	padding: 10px 20px;
-}
-#ProgressBarOuter {
-	width: 100%;
-	height: 100%;
-	border: 1px solid hsla(0, 0%, 0%, 0.4);
-	border-radius: 30px;
-}
-#ProgressBar {
-	/*background-color: hsla(120, 85%, 40%, 0.8);*/
-	background-color: hsl(245, 91%, 38%);
-	border: 1px solid hsla(0, 0%, 0%, 0.4);
-	border-radius: 30px;
-	text-align: center;
-	font-size: 2vh;
-	padding-top: 3px;
-	display: none;
-}
-
-#IRActionSecondPage {
-	display: none;
-	padding: 0 20px 30px 20px;
-	grid-gap: 20px;
-}
-
-/* End IR Action Mode Content */
-
-/*
-
-
-					Settings Content
-
-
-*/
-
-#SettingsContent {
-	padding: 40px 40px 0 40px;
-	overflow: scroll;
-	display: none; /* Set to none so that it looks cleaner on startup */
 }
 
 .settings-input-label {
@@ -650,13 +365,6 @@ End right side
 	padding: 0 0 0 0;
 }
 
-#SettingsTitle {
-	height: 50px;
-	padding-left: 50px;
-	color: white;
-	border-bottom: 1px solid white;
-}
-
 .settings-section {
 	padding-left: 40px;
 }
@@ -668,32 +376,6 @@ End right side
 	border-bottom: 1px dotted white;
 }
 
-/* Camera Settings */
-
-#Gain {
-	width: 8%;
-}
-
-#GainBoost {
-	width: 20px;
-}
-
-/* Centroid Settings */
-
-/* Save Button */
-
-#SaveButtonSection {
-	padding: 10px;
-	padding-left: 90%;
-}
-
-#SaveSettingsButton {
-	width: 100%;
-	height: 50%;
-}
-
-/* End Settings Content */
-
 /* Get rid of input arrows */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -704,14 +386,4 @@ input::-webkit-inner-spin-button {
 /* Get rid of scroll bars */
 *::-webkit-scrollbar {
 	display: none;
-}
-
-/* NOTE TO MARTY: Putting random classes down here. Need to sort later */
-
-/* Negative margins to make room for page up / page down buttons */
-.negative-bottom-margin {
-	margin-bottom: -20px;
-}
-.negative-top-margin {
-	margin-top: -20px;
 }

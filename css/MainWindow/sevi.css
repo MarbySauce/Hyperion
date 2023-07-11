@@ -1,0 +1,158 @@
+#SeviModeContent {
+	display: none; /* Set to none so that it looks cleaner on startup */
+}
+
+#SeviFirstPage {
+	padding: 30px 20px 0 20px;
+	grid-gap: 20px;
+}
+#SeviSecondPage {
+	display: none;
+	padding: 0 20px 30px 20px;
+	grid-gap: 20px;
+}
+
+/* First Page - Left Side */
+
+/* FileNaming */
+#SeviFileNaming {
+	padding: 20px 15px;
+	grid-gap: 5% 5px;
+	align-items: center;
+}
+
+#SeviImageCounter {
+	width: 100%;
+	height: 70%;
+	text-align: center;
+}
+#SeviVMILabel {
+	padding-right: 10px;
+}
+#SeviVMIMode {
+	height: 100%;
+	padding-left: 30%;
+}
+
+/* Save Controls - Detachment Wavelength */
+
+#SeviLaserSetup {
+	grid-gap: 5px;
+	padding: 20px;
+}
+#SeviLaserSetupTitle {
+	justify-items: center;
+}
+#SeviLaserControlTitle {
+	width: 80%;
+	text-align: center;
+	border-bottom: 1px solid white;
+	padding-bottom: 5px;
+}
+
+#SeviLaserMeasurement {
+	align-items: center;
+}
+
+/* 
+End left side 
+
+Right Side 
+*/
+
+/* Image Display */
+#SeviImageDisplay {
+	padding: 5px 5px;
+	grid-gap: 10px;
+}
+#SeviDisplayWrapper {
+	height: 50vh;
+	aspect-ratio: 1 / 1;
+	justify-self: center;
+	border-radius: 10px;
+}
+
+#SeviImageDisplay h3 {
+	/*padding-right: 10%;*/
+	text-align: center;
+	align-self: end;
+}
+#SeviDisplaySlider {
+	justify-self: center;
+}
+
+/* Electron & Frame Counters */
+#SeviCounters {
+	padding: 10px 30px;
+	grid-gap: 0 10px;
+	align-items: center;
+	justify-items: center;
+}
+#SeviCounters h3 {
+	text-align: center;
+	width: 100%;
+	border-bottom: 1px solid white;
+}
+#SeviAutomaticStop {
+	width: 80%;
+	height: 60%;
+	text-align: center;
+}
+#SeviAutomaticStopUnit {
+	width: 90%;
+	height: 70%;
+}
+
+/* Sevi Mode - Second Page */
+
+/* Sevi Mode - Second Page - PE Spectrum */
+#SeviSpectrumDisplaySection {
+	padding: 10px;
+}
+#SeviSpectrumDisplayInner {
+	padding: 15px 20px 0 10px;
+	background: hsla(225, 20%, 90%, 0.85);
+	align-items: center;
+}
+#SeviSpectrumControl {
+	padding: 5px;
+	padding-left: 10px;
+	grid-gap: 0 5px;
+	align-items: center;
+	justify-items: center;
+}
+#SpectrumSwitch {
+	width: 80%;
+}
+#SeviCalculateSpectrumButton {
+	width: 65%;
+	height: 35%;
+}
+
+/* Sevi Mode - Second Page - Recent Scans */
+#SeviRecentScans {
+	padding: 0 25px 5px 25px;
+}
+#SeviRecentScansHeader {
+	padding-bottom: 10px;
+	z-index: 5;
+	border-bottom: black;
+}
+#SeviRecentScans h4 {
+	text-align: center;
+	align-self: end;
+	font-size: 1.3vw;
+}
+#SeviRecentScansSection {
+	max-height: 375px;
+	padding-top: 5px;
+	border: 2px solid rgb(62, 71, 95);
+}
+#SeviRecentScans p {
+	text-align: center;
+	font-size: 1.3vw;
+	padding-top: 7px;
+	height: 100%;
+	border-bottom: 1px dotted rgb(62, 71, 95);
+	color: white;
+}

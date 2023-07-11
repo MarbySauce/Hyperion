@@ -1,0 +1,78 @@
+#IRActionModeContent {
+	display: none; /* Set to none so that it looks cleaner on startup */
+}
+
+#IRActionFirstPage {
+	padding: 30px 20px 0 20px;
+	grid-gap: 20px;
+}
+
+/* IR Action Mode - First Page - Scan Options */
+.ir-action-options-row {
+	align-items: center;
+	justify-items: center;
+}
+#IRActionOptions {
+	padding: 20px;
+	grid-gap: 50px;
+}
+
+/* IR Action Mode - First Page - Absorption Plot */
+#IRAbsorptionPlotSection {
+	padding: 15px;
+	align-items: center;
+}
+#IRAbsorptionPlot {
+	padding: 10px;
+	border-radius: 7px;
+	background: hsla(225, 20%, 90%, 0.85);
+}
+
+/* IR Action Mode - First Page - Next Wavelength */
+
+#IRNextWavelength {
+	padding: 30px 50px;
+	grid-gap: 20px;
+}
+#CurrentEnergyBackground,
+#NextEnergyBackground {
+	grid-gap: 20px;
+	align-items: center;
+}
+
+/* IR Action Mode - First Page - Progress */
+#IRActionProgress {
+	padding: 30px;
+	grid-gap: 20px;
+}
+
+#ProgressTextBackground {
+	padding: 0 130px;
+	align-items: center;
+	justify-items: center;
+}
+#ProgressBarBackground {
+	padding: 10px 20px;
+}
+#ProgressBarOuter {
+	width: 100%;
+	height: 100%;
+	border: 1px solid hsla(0, 0%, 0%, 0.4);
+	border-radius: 30px;
+}
+#ProgressBar {
+	/*background-color: hsla(120, 85%, 40%, 0.8);*/
+	background-color: hsl(245, 91%, 38%);
+	border: 1px solid hsla(0, 0%, 0%, 0.4);
+	border-radius: 30px;
+	text-align: center;
+	font-size: 2vh;
+	padding-top: 3px;
+	display: none;
+}
+
+#IRActionSecondPage {
+	display: none;
+	padding: 0 20px 30px 20px;
+	grid-gap: 20px;
+}

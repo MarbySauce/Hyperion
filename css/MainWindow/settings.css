@@ -1,0 +1,36 @@
+#SettingsContent {
+	padding: 40px 40px 0 40px;
+	overflow: scroll;
+	display: none; /* Set to none so that it looks cleaner on startup */
+}
+
+#SettingsTitle {
+	height: 50px;
+	padding-left: 50px;
+	color: white;
+	border-bottom: 1px solid white;
+}
+
+/* Camera Settings */
+
+#Gain {
+	width: 8%;
+}
+
+#GainBoost {
+	width: 20px;
+}
+
+/* Centroid Settings */
+
+/* Save Button */
+
+#SaveButtonSection {
+	padding: 10px;
+	padding-left: 90%;
+}
+
+#SaveSettingsButton {
+	width: 100%;
+	height: 50%;
+}
