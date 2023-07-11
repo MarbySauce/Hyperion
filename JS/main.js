@@ -1,5 +1,6 @@
 const { app, BrowserWindow, dialog, ipcMain, nativeTheme, Menu } = require("electron");
 const path = require("path");
+const { IPCMessages } = require("./Messages.js");
 
 // Declaring variables for each window used
 let main_window; // Main window, for bulk of processing and control
@@ -69,6 +70,24 @@ const settings = {
 				y: 0,
 				width: 1200,
 				height: 820,
+			},
+		},
+		vmi: {
+			V1: {
+				a: 0,
+				b: 0,
+			},
+			V2: {
+				a: 0,
+				b: 0,
+			},
+			V3: {
+				a: 0,
+				b: 0,
+			},
+			V4: {
+				a: 0,
+				b: 0,
 			},
 		},
 	},
@@ -348,12 +367,12 @@ function get_folder_names() {
 
 // Message received from main window
 // Main window is loaded, send the settings info
-ipcMain.on("main-window-ready", function (event, arg) {
+ipcMain.on(IPCMessages.READY.MAINWINDOW, function (event, arg) {
 	console.log("Main window ready!");
 	send_settings("main");
 });
 
-ipcMain.on("main-window-loaded", function (event, arg) {
+ipcMain.on(IPCMessages.LOADED.MAINWINDOW, function (event, arg) {
 	// Change window sizes and positions based on saved settings and show windows
 	if (main_window) {
 		main_window.setPosition(settings.information.windows.main_window.x, settings.information.windows.main_window.y);
