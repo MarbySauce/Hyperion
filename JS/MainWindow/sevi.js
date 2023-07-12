@@ -1,3 +1,78 @@
+/************************************************** 
+
+			Control for SEVI / IR-SEVI
+
+**************************************************/
+
+/*****************************************************************************
+
+							VMI IMAGE CLASSES
+
+*****************************************************************************/
+
+// Class for SEVI images
+class Image {
+	constructor() {
+		this.id = 1;
+		this.is_ir = false;
+
+		this.counts = {
+			electrons: {
+				on: 0,
+				off: 0,
+				total: 0,
+			},
+			frames: {
+				on: 0,
+				off: 0,
+				total: 0,
+			},
+		};
+	}
+
+	update_id(id) {
+		this.id = id;
+	}
+
+	get id_str() {
+		if (this.id < 10) return `0${this.id}`;
+		else return this.id.toString();
+	}
+
+	/* Current date, formatted as MMDDYY */
+	get formatted_date() {
+		let today = new Date();
+		let day = ("0" + today.getDate()).slice(-2);
+		let month = ("0" + (today.getMonth() + 1)).slice(-2);
+		let year = today.getFullYear().toString().slice(-2);
+		return month + day + year;
+	}
+
+	get file_name() {
+		return `${this.formatted_date}i${this.id_str}.i0N`;
+	}
+
+	get file_name_ir() {
+		return `${this.formatted_date}i${this.id_str}_IR.i0N`;
+	}
+
+	save_image() {
+		console.log("Image has been saved! (Not really)");
+	}
+}
+
+// Not sure if this class is necessary...
+class IRImage extends Image {
+	constructor() {
+		super();
+		this.is_ir = true;
+	}
+}
+
+// This image is a place holder for ImageManager.current_image whenever a scan is not currently being taken
+// That way the image functionality (such as returning file names) can still be used
+const EmptyImage = new IRImage();
+
 /*****************************************************************************
 
 								Image Manager
@@ -10,39 +85,75 @@ const ImageManager = {
 	status: {
 		running: false,
 		paused: false,
+		isIR: false,
 	},
 	all_images: [],
-	current_image: undefined,
-	start_scan: (id) => ImageManager_start_scan(id),
+	current_image: EmptyImage,
+	start_scan: (is_ir) => ImageManager_start_scan(is_ir),
 };
 
-seviEmitter.on(SEVI.SCAN.START, ImageManager.start_scan);
+/****
+		UI Event Listeners
+****/
 
+uiEmitter.on(UI.INFO.RESPONSE.IMAGEID, (image_id) => {
+	ImageManager.current_image.id = image_id;
+	// Make sure file names also get updated
+	seviEmitter.emit(SEVI.QUERY.SCAN.FILENAME);
+	seviEmitter.emit(SEVI.QUERY.SCAN.FILENAMEIR);
+});
+uiEmitter.on(UI.INFO.RESPONSE.VMIINFO, (vmi_info) => {
+	ImageManager.current_image.vmi_info = vmi_info;
+});
+
+/****
+		SEVI Event Listeners
+****/
+
+/* Scan Control */
+seviEmitter.on(SEVI.SCAN.START, () => {
+	ImageManager.start_scan(false);
+});
+seviEmitter.on(SEVI.SCAN.STARTIR, () => {
+	ImageManager.start_scan(true);
+});
+
+/* Scan Status */
 seviEmitter.on(SEVI.QUERY.SCAN.RUNNING, () => {
 	seviEmitter.emit(SEVI.RESPONSE.SCAN.RUNNING, ImageManager.status.running);
 });
 seviEmitter.on(SEVI.QUERY.SCAN.PAUSED, () => {
 	seviEmitter.emit(SEVI.RESPONSE.SCAN.PAUSED, ImageManager.status.paused);
 });
-
-uiEmitter.on(UI.INFO.RESPONSE.IMAGEID, (image_id) => {
-	if (ImageManager.current_image) {
-		ImageManager.current_image.id = image_id;
-	}
-});
-uiEmitter.on(UI.INFO.RESPONSE.VMIINFO, (vmi_info) => {
-	if (ImageManager.current_image) {
-		console.log(vmi_info);
-		ImageManager.current_image.vmi_info = vmi_info;
-	}
+seviEmitter.on(SEVI.QUERY.SCAN.ISIR, () => {
+	seviEmitter.emit(SEVI.RESPONSE.SCAN.ISIR, ImageManager.status.isIR);
 });
 
-function ImageManager_start_scan(id) {
+/* Scan Information */
+seviEmitter.on(SEVI.QUERY.SCAN.FILENAME, () => {
+	seviEmitter.emit(SEVI.RESPONSE.SCAN.FILENAME, ImageManager.current_image.file_name);
+});
+seviEmitter.on(SEVI.QUERY.SCAN.FILENAMEIR, () => {
+	seviEmitter.emit(SEVI.RESPONSE.SCAN.FILENAMEIR, ImageManager.current_image.file_name_ir);
+});
+
+/****
+		Functions
+****/
+
+function ImageManager_start_scan(is_ir) {
 	if (ImageManager.status.running) {
 		// Image is already running, do nothing
 		return;
 	}
-	let new_image = new Image(id);
+	let new_image;
+	if (is_ir) {
+		new_image = new IRImage();
+		ImageManager.status.isIR = true;
+	} else {
+		new_image = new Image();
+		ImageManager.status.isIR = false;
+	}
 	ImageManager.all_images.push(new_image);
 	ImageManager.current_image = new_image;
 	ImageManager.status.running = true;
@@ -64,65 +175,10 @@ function ImageManager_stop_scan() {
 	// Save image to file
 	ImageManager.current_image.save_image();
 	// Remove image from current_image position
-	ImageManager.current_image = undefined;
+	ImageManager.current_image = EmptyImage;
 }
 
 function ImageManager_get_image_info() {
 	uiEmitter.emit(UI.INFO.QUERY.IMAGEID);
 	uiEmitter.emit(UI.INFO.QUERY.VMIINFO);
-}
-
-/*****************************************************************************
-
-								VMI IMAGES
-
-*****************************************************************************/
-
-// This is the class for an image that is *currently* being collected
-//		FinishedImage is the class generated after which is for images that were collected and have stopped
-class Image {
-	constructor(id) {
-		this.id = id;
-		//this.id_str = ("0" + image_id).slice(-2); // ID stored as a 2 digit string
-
-		this.counts = {
-			electrons: {
-				on: 0,
-				off: 0,
-				total: 0,
-			},
-			frames: {
-				on: 0,
-				off: 0,
-				total: 0,
-			},
-		};
-	}
-
-	update_id(id) {
-		this.id = id;
-	}
-
-	save_image() {
-		console.log("Image has been saved! (Not really)");
-	}
-}
-
-// Class for images that have been collected and are no longer collecting data
-class FinishedImage {
-	constructor(image_id) {}
-}
-
-seviEmitter.on("test_response", () => {
-	console.log("Test response responding");
-});
-
-function test1() {
-	let retval = seviEmitter.emit("test_response");
-	if (retval) console.log("test_response has a response");
-	else console.log("test_response has no response");
-
-	let retval2 = seviEmitter.emit("test_no_response");
-	if (retval2) console.log("test_no_response has a response");
-	else console.log("test_no_response has no response");
 }

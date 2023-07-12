@@ -1,151 +1,171 @@
 /************************************************** 
 
-			Control for all UI elements
+		Control for universal UI elements
 
 **************************************************/
 
-/*		Tabs		*/
+/*****************************************************************************
+
+							TABS
+
+*****************************************************************************/
+
+/****
+		HTML Element Listeners
+****/
 
 document.getElementById("SeviMode").onclick = function () {
 	// SEVI mode tab
-	uiEmitter.emit(UI.CHANGE.TAB, UI.TAB.SEVI);
+	change_tab(UI.TAB.SEVI);
 };
 document.getElementById("IRSeviMode").onclick = function () {
 	// IR SEVI mode tab
-	uiEmitter.emit(UI.CHANGE.TAB, UI.TAB.IRSEVI);
+	change_tab(UI.TAB.IRSEVI);
 };
 document.getElementById("IRActionMode").onclick = function () {
 	// IR Action mode tab
-	uiEmitter.emit(UI.CHANGE.TAB, UI.TAB.IRACTION);
+	change_tab(UI.TAB.IRACTION);
 };
 document.getElementById("Settings").onclick = function () {
 	// Settings tab
-	uiEmitter.emit(UI.CHANGE.TAB, UI.TAB.SETTINGS);
+	change_tab(UI.TAB.SETTINGS);
 };
 
-/*		Sevi Mode		*/
+/****
+		UI Event Listeners
+****/
 
-// Scan control buttons
-document.getElementById("SeviScanStartSave").onclick = function () {
-	// Check if there is a scan being taken or not
-	seviEmitter.once(SEVI.RESPONSE.SCAN.RUNNING, (is_running) => {
-		if (is_running) {
-			// A scan is currently running, request it be stopped
-			seviEmitter.emit(SEVI.SCAN.STOP);
-		} else {
-			// Start a new scan
-			seviEmitter.emit(SEVI.SCAN.START);
-		}
-	});
-	seviEmitter.emit(SEVI.QUERY.SCAN.RUNNING);
-};
-// Change button from start to save when scan is started
-seviEmitter.on(SEVI.ALERT.SCAN.STARTED, () => {
-	uiEmitter.emit(UI.CHANGE.SEVI.SAVE);
-});
-// Change button from save to start when scan is stopped
-seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, () => {
-	uiEmitter.emit(UI.CHANGE.SEVI.START);
-});
+uiEmitter.on(UI.CHANGE.TAB, change_tab);
 
-document.getElementById("SeviScanPauseResume").onclick = function () {
-	// This won't be too easy to get working, saving for later
-	//	TODO
-};
-document.getElementById("SeviScanCancel").onclick = function () {
-	seviEmitter.emit(SEVI.SCAN.CANCEL);
-};
-document.getElementById("SeviScanAutosave").onclick = function () {
-	//autosave_button();
-};
-document.getElementById("SeviScanReset").onclick = function () {
-	seviEmitter.emit(SEVI.SCAN.RESET);
-};
-document.getElementById("SeviScanSingleShot").onclick = function () {
-	seviEmitter.emit(SEVI.SCAN.SINGLESHOT);
-};
-
-/* 		uiEmitter Event Listeners		*/
+/****
+		Functions
+****/
 
 // Changing tabs
-uiEmitter.on(UI.CHANGE.TAB, (tab) => {
+function change_tab(tab) {
 	// Add functionality for tab switching
-	console.log(`Changing tab to ${tab}`);
+	if (tab === PageInfo.current_tab) return; // Already on that tab, no need to do anything
 
 	// Depress the current tab and hide content
-	let current_tab = document.getElementById(page_info.current_tab);
-	let current_page = document.getElementById(page_info.current_tab + "Content");
+	let current_tab = document.getElementById(PageInfo.current_tab);
+	let current_page = document.getElementById(PageInfo.current_tab + "Content");
 	if (current_tab) current_tab.classList.remove("pressed-tab");
 	if (current_page) current_page.style.display = "none";
 
 	// Activate selected tab and show content
 	let new_tab = document.getElementById(tab);
 	let new_page = document.getElementById(tab + "Content");
+
 	if (new_tab) new_tab.classList.add("pressed-tab");
 	if (new_page) new_page.style.display = "grid";
-});
 
-// Change SEVI Start/Save button to Start
-uiEmitter.on(UI.CHANGE.SEVI.START, () => {
-	const start_button_text = document.getElementById("SeviScanStartSaveText");
-	if (start_button_text) start_button_text.innerText = "Start";
-});
+	PageInfo.current_tab = tab;
 
-// Change SEVI Start/Save button to Save
-uiEmitter.on(UI.CHANGE.SEVI.SAVE, () => {
-	const start_button_text = document.getElementById("SeviScanStartSaveText");
-	if (start_button_text) start_button_text.innerText = "Save";
-});
+	load_tab(tab);
+}
 
-// Change SEVI Pause/Resume button to Resume
-uiEmitter.on(UI.CHANGE.SEVI.RESUME, () => {
-	const pause_button_text = document.getElementById("SeviScanPauseResumeText");
-	if (pause_button_text) pause_button_text.innerText = "Resume";
-});
-
-// Change SEVI Pause/Resume button to Pause
-uiEmitter.on(UI.CHANGE.SEVI.PAUSE, () => {
-	const pause_button_text = document.getElementById("SeviScanPauseResumeText");
-	if (pause_button_text) pause_button_text.innerText = "Pause";
-});
-
-// Return requested current ID value
-uiEmitter.on(UI.INFO.QUERY.IMAGEID, send_image_id_info);
-
-uiEmitter.on(UI.INFO.QUERY.VMIINFO, send_vmi_info);
-
-// When new scan is started, change Start/Save to Save and Pause/Resume to Pause
-seviEmitter.on(SEVI.ALERT.SCAN.STARTED, () => {
-	uiEmitter.emit(UI.CHANGE.SEVI.SAVE);
-	uiEmitter.emit(UI.CHANGE.SEVI.PAUSE);
-});
-
-/*****************************************************************************
-
-						UI RELATED FUNCTIONS
-
-*****************************************************************************/
-
-function send_image_id_info() {
-	const image_counter = document.getElementById("SeviImageCounter");
-	let current_counter_val;
-	if (image_counter) {
-		current_counter_val = parseInt(image_counter.value);
-		uiEmitter.emit(UI.INFO.RESPONSE.IMAGEID, current_counter_val);
+// Send requests to load information to be displayed in that tab
+function load_tab(tab) {
+	switch (tab) {
+		case UI.TAB.SEVI:
+			uiEmitter.emit(UI.LOAD.SEVI);
+			break;
+		case UI.TAB.IRSEVI:
+			uiEmitter.emit(UI.LOAD.IRSEVI);
+			break;
+		case UI.TAB.IRACTION:
+			uiEmitter.emit(UI.LOAD.IRACTION);
+			break;
+		case UI.TAB.SETTINGS:
+			uiEmitter.emit(UI.LOAD.SETTINGS);
+			break;
 	}
 }
 
-function send_vmi_info() {
-	const vmi_mode_selection = document.getElementById("SeviVMIMode");
-	if (vmi_mode_selection) {
-		let vmi_mode = `V${vmi_mode_selection.selectedIndex + 1}`;
-		// VMI mode will be "V" + selected index + 1 (e.g. option 0 == V1)
-		let vmi_info = {
-			mode: vmi_mode,
-			calibration_constants: settings.vmi[vmi_mode],
-		};
-		uiEmitter.emit(UI.INFO.RESPONSE.VMIINFO, vmi_info);
+/*****************************************************************************
+
+						IMAGE ID INFORMATION
+
+*****************************************************************************/
+
+const ImageIDInfo = {
+	image_id: 1,
+	increase: () => ImageIDInfo_increase(),
+	decrease: () => ImageIDInfo_decrease(),
+};
+
+/****
+		UI Event Listeners
+****/
+
+uiEmitter.on(UI.INFO.QUERY.IMAGEID, send_image_id_info);
+
+uiEmitter.on(UI.CHANGE.IMAGEID.INCREASE, ImageIDInfo.increase);
+uiEmitter.on(UI.CHANGE.IMAGEID.DECREASE, ImageIDInfo.decrease);
+
+/****
+		Functions
+****/
+
+function ImageIDInfo_increase() {
+	ImageIDInfo.image_id++;
+	send_image_id_info();
+}
+
+function ImageIDInfo_decrease() {
+	ImageIDInfo.image_id--;
+	if (ImageIDInfo.image_id < 1) {
+		ImageIDInfo.image_id = 1;
 	}
+	send_image_id_info();
+}
+
+function send_image_id_info() {
+	uiEmitter.emit(UI.INFO.RESPONSE.IMAGEID, ImageIDInfo.image_id);
+}
+
+/*****************************************************************************
+
+							VMI INFORMATION
+
+*****************************************************************************/
+
+const VMIInfo = {
+	selected_mode: "V1",
+	selected_index: 0,
+};
+
+/****
+		UI Event Listeners
+****/
+
+uiEmitter.on(UI.INFO.QUERY.VMI, send_vmi_info);
+uiEmitter.on(UI.CHANGE.VMI.INDEX, update_vmi_info);
+
+/****
+		Functions
+****/
+
+function send_vmi_info() {
+	// Get calibration constants and package everything together
+	let vmi_info = {
+		index: VMIInfo.selected_index,
+		mode: VMIInfo.selected_mode,
+		calibration_constants: settings.vmi[VMIInfo.selected_mode],
+	};
+	uiEmitter.emit(UI.INFO.RESPONSE.VMI, vmi_info);
+}
+
+function update_vmi_info(selected_index) {
+	// selected_index ranges from 0 to 3, where VMI mode = "V" + (selected_index+1)
+	// (e.g. selected_index = 0 -> V1)
+	if (selected_index > 3) {
+		return;
+	}
+	let vmi_mode = `V${selected_index + 1}`;
+	VMIInfo.selected_index = selected_index;
+	VMIInfo.selected_mode = vmi_mode;
+	send_vmi_info();
 }
 
 /*****************************************************************************
@@ -154,6 +174,6 @@ function send_vmi_info() {
 
 *****************************************************************************/
 
-const page_info = {
+const PageInfo = {
 	current_tab: UI.TAB.SEVI,
 };
