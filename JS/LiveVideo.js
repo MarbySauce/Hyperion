@@ -55,7 +55,7 @@ ipc.on("new-camera-frame", function (event, centroid_results) {
 	// centroid_results is an object containing:
 	//		image_buffer			-	Uint8Buffer - Current image frame
 	// 		ccl_centers				-	Array		- Connect component labeling centroids
-	//		hybrid_centers			-	Array		- Hybrid method centroids
+	//		hgcm_centers			-	Array		- HGCM method centroids
 	//		computation_time		-	Float		- Time to calculate centroids (ms)
 	//		is_led_on				- 	Boolean		- Whether IR LED was on in image
 	//		avg_led_intensity		-	Float		- Average intensity of pixels in LED region
@@ -189,7 +189,7 @@ const eChartData = {
 	yAxisMax: 50,
 	labels: [],
 	cclData: [],
-	hybridData: [],
+	hgcmData: [],
 	frameCount: 0,
 	start: function () {
 		this.running = true;
@@ -200,13 +200,13 @@ const eChartData = {
 	reset: function () {
 		this.labels = [];
 		this.cclData = [];
-		this.hybridData = [];
+		this.hgcmData = [];
 		this.frameCount = 0;
 	},
 	updateData: function (centroid_results) {
 		this.labels.push(this.frameCount);
 		this.cclData.push(centroid_results.ccl_centers.length);
-		this.hybridData.push(centroid_results.ccl_centers.length + centroid_results.hybrid_centers.length);
+		this.hgcmData.push(centroid_results.ccl_centers.length + centroid_results.hgcm_centers.length);
 		this.frameCount++;
 		this.cleaveData();
 	},
@@ -219,8 +219,8 @@ const eChartData = {
 		while (this.cclData.length > this.xAxisMax) {
 			this.cclData.shift();
 		}
-		while (this.hybridData.length > this.xAxisMax) {
-			this.hybridData.shift();
+		while (this.hgcmData.length > this.xAxisMax) {
+			this.hgcmData.shift();
 		}
 	},
 	updateAxes: function (axisSizes) {
@@ -236,14 +236,14 @@ const eChartData = {
 		// Update chart data
 		echart.data.labels = this.labels;
 		echart.data.datasets[0].data = this.cclData;
-		echart.data.datasets[1].data = this.hybridData;
+		echart.data.datasets[1].data = this.hgcmData;
 		echart.update("none");
 	},
 };
 
 const averageCount = {
 	prevCCLCounts: [],
-	prevHybridCounts: [],
+	prevHGCMCounts: [],
 	prevTotalCounts: [],
 	prevTotalOnCounts: [], // Keeping track of IR on/off counts
 	prevTotalOffCounts: [],
@@ -252,11 +252,11 @@ const averageCount = {
 	updateFrequency: 10, // Number of frames before updating display
 	update: function (centroid_results) {
 		let ccl = centroid_results.ccl_centers.length;
-		let hybrid = centroid_results.hybrid_centers.length;
-		let total = ccl + hybrid;
+		let hgcm = centroid_results.hgcm_centers.length;
+		let total = ccl + hgcm;
 		// Add to respective arrays
 		this.prevCCLCounts.push(ccl);
-		this.prevHybridCounts.push(hybrid);
+		this.prevHGCMCounts.push(hgcm);
 		this.prevTotalCounts.push(total);
 		if (centroid_results.is_led_on) {
 			this.prevTotalOnCounts.push(total);
@@ -268,8 +268,8 @@ const averageCount = {
 		while (this.prevCCLCounts.length > 10) {
 			this.prevCCLCounts.shift();
 		}
-		while (this.prevHybridCounts.length > 10) {
-			this.prevHybridCounts.shift();
+		while (this.prevHGCMCounts.length > 10) {
+			this.prevHGCMCounts.shift();
 		}
 		while (this.prevTotalCounts.length > 10) {
 			this.prevTotalCounts.shift();
@@ -310,7 +310,7 @@ const scanInfo = {
 	method: "normal", // Can be "normal" or "ir" // Need to add this in
 	frameCount: 0,
 	cclCount: 0,
-	hybridCount: 0,
+	hgcmCount: 0,
 	totalCount: 0,
 	startScan: function () {
 		this.running = true;
@@ -320,18 +320,18 @@ const scanInfo = {
 	},
 	update: function (centroid_results) {
 		let ccl = centroid_results.ccl_centers.length;
-		let hybrid = centroid_results.hybrid_centers.length;
-		let total = ccl + hybrid;
+		let hgcm = centroid_results.hgcm_centers.length;
+		let total = ccl + hgcm;
 		// Add to counts
 		this.cclCount += ccl;
-		this.hybridCount += hybrid;
+		this.hgcmCount += hgcm;
 		this.totalCount += total;
 		this.frameCount++;
 	},
 	reset: function () {
 		this.frameCount = 0;
 		this.cclCount = 0;
-		this.hybridCount = 0;
+		this.hgcmCount = 0;
 		this.totalCount = 0;
 	},
 	getFrames: function () {

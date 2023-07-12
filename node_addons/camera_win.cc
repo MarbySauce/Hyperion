@@ -546,7 +546,7 @@ void sendCentroids() {
 	Napi::Object centroidResults = Napi::Object::New(env);
 	// Contains:
 	// 		ccl_centers				-	Array		- Connect component labeling centroids
-	//		hybrid_centers			-	Array		- Hybrid method centroids
+	//		hgcm_centers			-	Array		- HGCM method centroids
 	//		computation_time		-	Float		- Time to calculate centroids (ms)
 	//		is_led_on				- 	Boolean		- Whether IR LED was on in image
 	//		avg_led_intensity		-	Float		- Average intensity of pixels in LED region
@@ -602,7 +602,7 @@ void sendCentroids() {
 			centroidCounter++;
 		}
 	}
-	centroidResults["hybrid_centers"] = centroidList;
+	centroidResults["hgcm_centers"] = centroidList;
 
 	// Add the other important values
 	centroidResults["computation_time"] = Napi::Number::New(env, img.computationTime);
