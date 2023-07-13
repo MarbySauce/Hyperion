@@ -53,9 +53,9 @@ class Image {
 	}
 
 	update_counts(centroid_results) {
-		let ccl_count = centroid_results.ccl_centers.length;
+		let com_count = centroid_results.com_centers.length;
 		let hgcm_count = centroid_results.hgcm_centers.length;
-		let total_count = ccl_count + hgcm_count;
+		let total_count = com_count + hgcm_count;
 
 		if (centroid_results.is_led_on) {
 			this.counts.electrons.on += total_count;
@@ -85,7 +85,7 @@ class Image {
 
 	update_image(centroid_results) {
 		// Update image with electrons
-		Image_update_image(this.image, centroid_results.ccl_centers); // CCL Centroids
+		Image_update_image(this.image, centroid_results.com_centers); // CoM Centroids
 		Image_update_image(this.image, centroid_results.hgcm_centers); // HGCM Centroids
 	}
 
@@ -135,7 +135,7 @@ class IRImage extends Image {
 			difference_increment = -1;
 		}
 		// Update image with electrons
-		Image_update_image(image_to_update, centroid_results.ccl_centers, this.images.difference, difference_increment); // CCL Centroids
+		Image_update_image(image_to_update, centroid_results.com_centers, this.images.difference, difference_increment); // CoM Centroids
 		Image_update_image(image_to_update, centroid_results.hgcm_centers, this.images.difference, difference_increment); // HGCM Centroids
 	}
 

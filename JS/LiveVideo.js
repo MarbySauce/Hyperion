@@ -55,7 +55,7 @@ function UpdateScanDisplays() {
 ipc.on(IPCMessages.UPDATE.NEWFRAME, function (event, centroid_results) {
 	// centroid_results is an object containing:
 	//		image_buffer			-	Uint8Buffer - Current image frame
-	// 		ccl_centers				-	Array		- Connect component labeling centroids
+	// 		com_centers				-	Array		- Center of Mass centroids
 	//		hgcm_centers			-	Array		- HGCM method centroids
 	//		computation_time		-	Float		- Time to calculate centroids (ms)
 	//		is_led_on				- 	Boolean		- Whether IR LED was on in image
@@ -189,7 +189,7 @@ const eChartData = {
 	xAxisMax: 30,
 	yAxisMax: 50,
 	labels: [],
-	cclData: [],
+	comData: [],
 	hgcmData: [],
 	frameCount: 0,
 	start: function () {
@@ -200,14 +200,14 @@ const eChartData = {
 	},
 	reset: function () {
 		this.labels = [];
-		this.cclData = [];
+		this.comData = [];
 		this.hgcmData = [];
 		this.frameCount = 0;
 	},
 	updateData: function (centroid_results) {
 		this.labels.push(this.frameCount);
-		this.cclData.push(centroid_results.ccl_centers.length);
-		this.hgcmData.push(centroid_results.ccl_centers.length + centroid_results.hgcm_centers.length);
+		this.comData.push(centroid_results.com_centers.length);
+		this.hgcmData.push(centroid_results.com_centers.length + centroid_results.hgcm_centers.length);
 		this.frameCount++;
 		this.cleaveData();
 	},
@@ -217,8 +217,8 @@ const eChartData = {
 		while (this.labels.length > this.xAxisMax) {
 			this.labels.shift();
 		}
-		while (this.cclData.length > this.xAxisMax) {
-			this.cclData.shift();
+		while (this.comData.length > this.xAxisMax) {
+			this.comData.shift();
 		}
 		while (this.hgcmData.length > this.xAxisMax) {
 			this.hgcmData.shift();
@@ -236,14 +236,14 @@ const eChartData = {
 		//echart.options.scales.y.max = this.yAxisMax;
 		// Update chart data
 		echart.data.labels = this.labels;
-		echart.data.datasets[0].data = this.cclData;
+		echart.data.datasets[0].data = this.comData;
 		echart.data.datasets[1].data = this.hgcmData;
 		echart.update("none");
 	},
 };
 
 const averageCount = {
-	prevCCLCounts: [],
+	prevCOMCounts: [],
 	prevHGCMCounts: [],
 	prevTotalCounts: [],
 	prevTotalOnCounts: [], // Keeping track of IR on/off counts
@@ -252,11 +252,11 @@ const averageCount = {
 	// been processed since the last time avg display was updated
 	updateFrequency: 10, // Number of frames before updating display
 	update: function (centroid_results) {
-		let ccl = centroid_results.ccl_centers.length;
+		let com = centroid_results.com_centers.length;
 		let hgcm = centroid_results.hgcm_centers.length;
-		let total = ccl + hgcm;
+		let total = com + hgcm;
 		// Add to respective arrays
-		this.prevCCLCounts.push(ccl);
+		this.prevCOMCounts.push(com);
 		this.prevHGCMCounts.push(hgcm);
 		this.prevTotalCounts.push(total);
 		if (centroid_results.is_led_on) {
@@ -266,8 +266,8 @@ const averageCount = {
 		}
 		// Make sure arrays are only 10 frames long
 		// by removing earliest frame
-		while (this.prevCCLCounts.length > 10) {
-			this.prevCCLCounts.shift();
+		while (this.prevCOMCounts.length > 10) {
+			this.prevCOMCounts.shift();
 		}
 		while (this.prevHGCMCounts.length > 10) {
 			this.prevHGCMCounts.shift();
@@ -292,8 +292,8 @@ const averageCount = {
 		});
 		return sum / arr.length;
 	},
-	getCCLAverage: function () {
-		return this.getAverage(this.prevCCLCounts).toFixed(2);
+	getCOMAverage: function () {
+		return this.getAverage(this.prevCOMCounts).toFixed(2);
 	},
 	getHybridAverage: function () {
 		return this.getAverage(this.prevHybridCounts).toFixed(2);
@@ -310,7 +310,7 @@ const scanInfo = {
 	running: false, // running does not change if scan is paused
 	method: "normal", // Can be "normal" or "ir" // Need to add this in
 	frameCount: 0,
-	cclCount: 0,
+	comCount: 0,
 	hgcmCount: 0,
 	totalCount: 0,
 	startScan: function () {
@@ -320,18 +320,18 @@ const scanInfo = {
 		this.running = false;
 	},
 	update: function (centroid_results) {
-		let ccl = centroid_results.ccl_centers.length;
+		let com = centroid_results.com_centers.length;
 		let hgcm = centroid_results.hgcm_centers.length;
-		let total = ccl + hgcm;
+		let total = com + hgcm;
 		// Add to counts
-		this.cclCount += ccl;
+		this.comCount += com;
 		this.hgcmCount += hgcm;
 		this.totalCount += total;
 		this.frameCount++;
 	},
 	reset: function () {
 		this.frameCount = 0;
-		this.cclCount = 0;
+		this.comCount = 0;
 		this.hgcmCount = 0;
 		this.totalCount = 0;
 	},

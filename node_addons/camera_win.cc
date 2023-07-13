@@ -3,7 +3,7 @@
 #endif
 
 #include "camera.h"
-#include "centroid2.h"
+#include "centroid.h"
 #include <string>
 #include <napi.h>
 #include <windows.h>
@@ -545,14 +545,14 @@ void sendCentroids() {
 	// Package centroid information into an object to send to JS
 	Napi::Object centroidResults = Napi::Object::New(env);
 	// Contains:
-	// 		ccl_centers				-	Array		- Connect component labeling centroids
+	// 		com_centers				-	Array		- Center of mass centroids
 	//		hgcm_centers			-	Array		- HGCM method centroids
 	//		computation_time		-	Float		- Time to calculate centroids (ms)
 	//		is_led_on				- 	Boolean		- Whether IR LED was on in image
 	//		avg_led_intensity		-	Float		- Average intensity of pixels in LED region
 	//		avg_noise_intensity		-	Float		- Average intensity of pixels in noise region
 
-	// First add the connected-component-labeling (CCL) centroids
+	// First add the center of mass (CoM) centroids
 	Napi::Array centroidList = Napi::Array::New(env);
 	int centroidCounter = 0; // To keep track of how many center were found
 	for (int center = 0; center < img.Centroids[0].width(); center++) {
@@ -576,9 +576,9 @@ void sendCentroids() {
 			centroidCounter++;
 		}
 	}
-	centroidResults["ccl_centers"] = centroidList;
+	centroidResults["com_centers"] = centroidList;
 
-	// Next add the hybrid method centroids
+	// Next add the hybrid gradient CoM (HGCM) method centroids
 	centroidList = Napi::Array::New(env);
 	centroidCounter = 0; // To keep track of how many center were found
 	for (int center = 0; center < img.Centroids[1].width(); center++) {
