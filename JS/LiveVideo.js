@@ -1,5 +1,6 @@
 const ipc = require("electron").ipcRenderer;
 const Chart = require("chart.js");
+const { IPCMessages } = require("../JS/Messages.js");
 
 ////
 let DOIT = false;
@@ -51,7 +52,7 @@ function UpdateScanDisplays() {
 }
 
 // Receive message with centroid data
-ipc.on("new-camera-frame", function (event, centroid_results) {
+ipc.on(IPCMessages.UPDATE.NEWFRAME, function (event, centroid_results) {
 	// centroid_results is an object containing:
 	//		image_buffer			-	Uint8Buffer - Current image frame
 	// 		ccl_centers				-	Array		- Connect component labeling centroids

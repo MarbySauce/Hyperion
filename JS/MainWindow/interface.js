@@ -38,6 +38,17 @@ document.getElementById("Settings").onclick = function () {
 uiEmitter.on(UI.CHANGE.TAB, change_tab);
 
 /****
+		SEVI Event Listeners
+****/
+
+// Highlight tab of scan that is running so it's clear to user
+seviEmitter.on(SEVI.ALERT.SCAN.STARTED, add_tab_highlight);
+seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, add_tab_highlight);
+// If scan is stopped or canceled, remove tab highlight
+seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, remove_tab_highlight);
+seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, remove_tab_highlight);
+
+/****
 		Functions
 ****/
 
@@ -82,6 +93,32 @@ function load_tab(tab) {
 	}
 }
 
+// Add highlights to SEVI or IRSEVI tabs if a respective scan is being taken
+function add_tab_highlight() {
+	// Figure out whether it was a SEVI scan or an IR-SEVI scan
+	// (set up listener with .once(), then ask if it's IR with .emit() )
+	seviEmitter.once(SEVI.RESPONSE.SCAN.ISIR, (is_ir) => {
+		if (is_ir) {
+			// Highlight IR-SEVI tab to show an IR-SEVI scan is running
+			let tab = document.getElementById(UI.TAB.IRSEVI);
+			if (tab) tab.classList.add("highlighted-tab");
+		} else {
+			// Highlight SEVI tab to show an SEVI scan is running
+			let tab = document.getElementById(UI.TAB.SEVI);
+			if (tab) tab.classList.add("highlighted-tab");
+		}
+	});
+	seviEmitter.emit(SEVI.QUERY.SCAN.ISIR);
+}
+
+// Remove tab highlight for SEVI and IRSEVI tabs
+function remove_tab_highlight() {
+	let tab = document.getElementById(UI.TAB.SEVI);
+	if (tab) tab.classList.remove("highlighted-tab");
+	tab = document.getElementById(UI.TAB.IRSEVI);
+	if (tab) tab.classList.remove("highlighted-tab");
+}
+
 /*****************************************************************************
 
 						IMAGE ID INFORMATION
@@ -102,6 +139,31 @@ uiEmitter.on(UI.INFO.QUERY.IMAGEID, send_image_id_info);
 
 uiEmitter.on(UI.CHANGE.IMAGEID.INCREASE, ImageIDInfo.increase);
 uiEmitter.on(UI.CHANGE.IMAGEID.DECREASE, ImageIDInfo.decrease);
+
+uiEmitter.on(UI.CHANGE.IMAGEID.RESUMEDIMAGE, () => {
+	// An image that was stopped (canceled or saved) has been resumed
+	// The Image ID should be changed to match that of the current image
+	// (set up listener with .once(), then ask for ID with .emit() )
+	seviEmitter.once(SEVI.RESPONSE.SCAN.CURRENTID, (image_id) => {
+		ImageIDInfo.image_id = image_id;
+		send_image_id_info();
+	});
+	seviEmitter.emit(SEVI.QUERY.SCAN.CURRENTID);
+});
+
+/****
+		SEVI Event Listeners
+****/
+
+// When a scan is saved, increment the Image ID counter
+seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, () => {
+	uiEmitter.emit(UI.CHANGE.IMAGEID.INCREASE);
+});
+// When a scan is resumed, update image ID to that of the current image
+// (in case a previously saved image has been resumed)
+seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
+	uiEmitter.emit(UI.CHANGE.IMAGEID.RESUMEDIMAGE);
+});
 
 /****
 		Functions
@@ -167,6 +229,31 @@ function update_vmi_info(selected_index) {
 	VMIInfo.selected_mode = vmi_mode;
 	send_vmi_info();
 }
+
+/*****************************************************************************
+
+						IMAGE DISPLAY SLIDER
+
+*****************************************************************************/
+
+const DisplaySlider = {
+	value: 0.5,
+};
+
+/****
+		UI Event Listeners
+****/
+
+uiEmitter.on(UI.INFO.QUERY.DISPLAYSLIDERVALUE, () => {
+	uiEmitter.emit(UI.INFO.RESPONSE.DISPLAYSLIDERVALUE, DisplaySlider.value);
+});
+uiEmitter.on(UI.CHANGE.DISPLAYSLIDERVALUE, (value) => {
+	DisplaySlider.value = value;
+});
+
+/****
+		Functions
+****/
 
 /*****************************************************************************
 

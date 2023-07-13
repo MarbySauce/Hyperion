@@ -3,6 +3,7 @@
 const ipc = require("electron").ipcRenderer;
 const EventEmitter = require("events").EventEmitter;
 const camera = require("bindings")("camera");
+const { IPCMessages } = require("../JS/Messages.js");
 
 //
 /*			Event Listeners				*/
@@ -44,7 +45,7 @@ function startup() {
 		centroid_results.image_buffer = buffer;
 
 		// Send data to other renderer windows
-		ipc.send("new-camera-frame", centroid_results);
+		ipc.send(IPCMessages.UPDATE.NEWFRAME, centroid_results);
 	});
 
 	// Initialize emitter

@@ -461,11 +461,11 @@ ipcMain.on("scan-update", function (event, update) {
 // Message received from invisible window
 // Relay centroid data to main and live view windows
 let main_window_failed = false;
-ipcMain.on("new-camera-frame", function (event, info) {
+ipcMain.on(IPCMessages.UPDATE.NEWFRAME, function (event, info) {
 	// Send data to main window if it's open
 	if (main_window && !main_window_failed) {
 		try {
-			main_window.webContents.send("new-camera-frame", info);
+			main_window.webContents.send(IPCMessages.UPDATE.NEWFRAME, info);
 		} catch (error) {
 			console.log("No main window:", error);
 			main_window_failed = true;
@@ -474,7 +474,7 @@ ipcMain.on("new-camera-frame", function (event, info) {
 
 	// Send data to live view window if it's open
 	if (live_view_window) {
-		live_view_window.webContents.send("new-camera-frame", info);
+		live_view_window.webContents.send(IPCMessages.UPDATE.NEWFRAME, info);
 	}
 });
 
