@@ -28,6 +28,12 @@ let settings;
 let check_messages = false;
 let buffer;
 
+// Don't send centroid info for the first 5s so that the rest of the program can load
+let send_centroid_info = false;
+setTimeout(() => {
+	send_centroid_info = true;
+}, 5000);
+
 //
 /*			Centroid functions			*/
 //
@@ -45,7 +51,9 @@ function startup() {
 		centroid_results.image_buffer = buffer;
 
 		// Send data to other renderer windows
-		ipc.send(IPCMessages.UPDATE.NEWFRAME, centroid_results);
+		if (send_centroid_info) {
+			ipc.send(IPCMessages.UPDATE.NEWFRAME, centroid_results);
+		}
 	});
 
 	// Initialize emitter

@@ -262,7 +262,7 @@ uiEmitter.on(UI.CHANGE.DISPLAYSLIDERVALUE, (value) => {
 *****************************************************************************/
 
 const PageInfo = {
-	current_tab: UI.TAB.SEVI,
+	current_tab: UI.TAB.NONE,
 };
 
 /****

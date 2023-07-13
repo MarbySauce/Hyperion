@@ -129,6 +129,7 @@ const UI = {
 		IRSEVI: "IRSeviMode",
 		IRACTION: "IRActionMode",
 		SETTINGS: "Settings",
+		NONE: "UI-TAB-NONE",
 	},
 };
 

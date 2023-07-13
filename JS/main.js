@@ -10,6 +10,9 @@ let invisible_window; // Hidden window used to communicate with camera and centr
 const open_live_view_window = true;
 const open_invisible_window = true;
 
+let main_window_loaded = false;
+let lv_window_loaded = false;
+
 const settings = {
 	file_name: path.join(".", "Settings", "Settings.JSON"),
 	information: {
@@ -368,21 +371,22 @@ function get_folder_names() {
 // Message received from main window
 // Main window is loaded, send the settings info
 ipcMain.on(IPCMessages.READY.MAINWINDOW, function (event, arg) {
-	console.log("Main window ready!");
 	send_settings("main");
 });
 
 ipcMain.on(IPCMessages.LOADED.MAINWINDOW, function (event, arg) {
 	// Change window sizes and positions based on saved settings and show windows
-	if (main_window) {
-		main_window.setPosition(settings.information.windows.main_window.x, settings.information.windows.main_window.y);
-		main_window.setSize(settings.information.windows.main_window.width, settings.information.windows.main_window.height);
-		main_window.show();
-	}
 	if (live_view_window) {
 		live_view_window.setPosition(settings.information.windows.live_view_window.x, settings.information.windows.live_view_window.y);
 		live_view_window.setSize(settings.information.windows.live_view_window.width, settings.information.windows.live_view_window.height);
 		live_view_window.show();
+		lv_window_loaded = true;
+	}
+	if (main_window) {
+		main_window.setPosition(settings.information.windows.main_window.x, settings.information.windows.main_window.y);
+		main_window.setSize(settings.information.windows.main_window.width, settings.information.windows.main_window.height);
+		main_window.show();
+		main_window_loaded = true;
 	}
 });
 
@@ -463,17 +467,20 @@ ipcMain.on("scan-update", function (event, update) {
 let main_window_failed = false;
 ipcMain.on(IPCMessages.UPDATE.NEWFRAME, function (event, info) {
 	// Send data to main window if it's open
-	if (main_window && !main_window_failed) {
+	/*if (main_window && !main_window_failed) {
 		try {
 			main_window.webContents.send(IPCMessages.UPDATE.NEWFRAME, info);
 		} catch (error) {
 			console.log("No main window:", error);
 			main_window_failed = true;
 		}
+	}*/
+	if (main_window && main_window_loaded) {
+		main_window.webContents.send(IPCMessages.UPDATE.NEWFRAME, info);
 	}
 
 	// Send data to live view window if it's open
-	if (live_view_window) {
+	if (live_view_window && lv_window_loaded) {
 		live_view_window.webContents.send(IPCMessages.UPDATE.NEWFRAME, info);
 	}
 });

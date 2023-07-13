@@ -18,11 +18,19 @@ const uiEmitter = new EventEmitter();
 const msgEmitter = new EventEmitter();
 // NOTE TO MARTY: I might need to worry about max listeners for emitters
 
-// Window loaded
+// ORDER OF OPERATIONS WHEN LOADING PROGRAM
+// Main renderer (main.js) creates the MainWindow
+// Once the MainWindow window is ready, it notifies the main renderer
+// Main then sends the settings to MainWindow
+// Settings are received & processed, then startup() is called
+// At the end of startup(), main is notified of window being loaded
+// Main then shows the MainWindow window to the user
+
+// Window is ready
 window.onload = function () {
 	// Send message to main process that the window is ready
 	ipc.send(IPCMessages.READY.MAINWINDOW, null);
-	uiEmitter.emit(UI.CHANGE.TAB);
+	//uiEmitter.emit(UI.CHANGE.TAB);
 };
 
 // Recieve setting information and go through startup procedure
@@ -37,7 +45,7 @@ ipc.on("settings-information", (event, settings_information) => {
 	startup();
 });
 
-function startup() {
+async function startup() {
 	// Go to Sevi Mode tab
 	uiEmitter.emit(UI.CHANGE.TAB, UI.TAB.SEVI);
 
