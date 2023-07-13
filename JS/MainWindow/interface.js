@@ -264,3 +264,11 @@ uiEmitter.on(UI.CHANGE.DISPLAYSLIDERVALUE, (value) => {
 const PageInfo = {
 	current_tab: UI.TAB.SEVI,
 };
+
+/****
+		UI Event Listeners
+****/
+
+uiEmitter.on(UI.INFO.QUERY.CURRENTTAB, () => {
+	uiEmitter.emit(UI.INFO.RESPONSE.CURRENTTAB, PageInfo.current_tab);
+});

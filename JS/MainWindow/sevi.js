@@ -235,6 +235,13 @@ function ImageManager_get_image_info() {
 }
 
 function ImageManager_get_image_display(which_image) {
+	// Only update the accumulated image display 4x a second -> once every 5 camera frames
+	// Unless the current image's frame count is a multiple of 5 + 1, return undefined
+	// (subtract 1 so that total frames == 0 doesn't trigger display update)
+	/*if ((ImageManager.current_image.counts.frames.total - 1) % 5) {
+		seviEmitter.emit(SEVI.RESPONSE.IMAGE);
+		return;
+	}*/
 	// First, get the display slider contrast from UI
 	uiEmitter.once(UI.INFO.RESPONSE.DISPLAYSLIDERVALUE, (slider_value) => {
 		// If there is a (non-empty) image in current_image, send that image

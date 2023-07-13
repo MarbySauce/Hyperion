@@ -3,7 +3,7 @@ const { performance } = require("perf_hooks");
 const fs = require("fs");
 const path = require("path");
 const ipc = require("electron").ipcRenderer;
-const EventEmitter = require("events").EventEmitter;
+const { EventEmitter, once } = require("events").EventEmitter;
 const Chart = require("chart.js");
 // OPO/A is controlled through TCP communication, which is done through JS module Net
 const net = require("net");
@@ -51,4 +51,27 @@ function startup() {
  */
 async function sleep(delay_ms) {
 	return new Promise((resolve) => setTimeout(resolve, delay_ms));
+}
+
+/*
+
+Here is an example of how to wait for multiple pieces of information at once
+values will be an array with the returned values from t1 and t2
+
+*/
+
+const bsEmitter = new EventEmitter();
+
+async function testbs() {
+	let t1 = once(bsEmitter, "test1");
+	let t2 = once(bsEmitter, "test2");
+	[t1, t2] = await Promise.all([t1, t2]); // Promises are replaced with the returned values
+	console.log(t1, t2);
+}
+
+function test1() {
+	bsEmitter.emit("test1", "this is test 1");
+}
+function test2() {
+	bsEmitter.emit("test2", "this is test 2");
 }

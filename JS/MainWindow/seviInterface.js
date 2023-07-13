@@ -217,13 +217,34 @@ function update_sevi_vmi(vmi_info) {
 document.getElementById("SeviDisplaySlider").oninput = function () {
 	const display_slider = document.getElementById("SeviDisplaySlider");
 	uiEmitter.emit(UI.CHANGE.DISPLAYSLIDERVALUE, display_slider.value);
+	// Update image display
+	update_sevi_accumulated_image_display();
 };
 
 /****
 		IPC Event Listeners
 ****/
 
-ipc.on(IPCMessages.UPDATE.NEWFRAME, () => {
+ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
+	// We only want to update the image on a new camera frame if
+	// (a) the user is on the SEVI tab AND
+	// (b) an image is currently being run AND
+	// (c) that image is not currently paused
+	let current_tab = once(uiEmitter, UI.INFO.RESPONSE.CURRENTTAB); // (a)
+	let image_running = once(seviEmitter, SEVI.RESPONSE.SCAN.RUNNING); // (b)
+	let image_paused = once(seviEmitter, SEVI.RESPONSE.SCAN.PAUSED); // (c)
+	// Send query requests
+	uiEmitter.emit(UI.INFO.QUERY.CURRENTTAB);
+	seviEmitter.emit(SEVI.QUERY.SCAN.RUNNING);
+	seviEmitter.emit(SEVI.QUERY.SCAN.PAUSED);
+	// Wait for messages to be received (for promises to be resolved)
+	// and replace variables with the returned values from each message
+	[[current_tab], [image_running], [image_paused]] = await Promise.all([current_tab, image_running, image_paused]);
+	// Make sure all values are correct
+	if (current_tab !== UI.TAB.SEVI) return;
+	if (!image_running) return;
+	if (image_paused) return;
+	// If everything passed, update display
 	update_sevi_accumulated_image_display();
 });
 
@@ -248,6 +269,7 @@ function update_sevi_accumulated_image_display() {
 	const image_display = document.getElementById("SeviDisplay");
 	const ctx = image_display.getContext("2d");
 	seviEmitter.once(SEVI.RESPONSE.IMAGE, (image_data) => {
+		if (!image_data) return; // No ImageData object was sent
 		// Clear the current image
 		ctx.clearRect(0, 0, image_display.width, image_display.height);
 		// Put image_data on the display
