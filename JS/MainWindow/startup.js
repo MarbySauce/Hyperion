@@ -9,7 +9,7 @@ const Chart = require("chart.js");
 const net = require("net");
 // Addon libraries
 const wavemeter = require("bindings")("wavemeter");
-const { IPCMessages, UI, SEVI, MSG } = require("../JS/Messages.js");
+const { IPCMessages, UI, SEVI, LASER, MSG } = require("../JS/Messages.js");
 
 let settings; // Global variable, to be filled in on startup
 
