@@ -34,6 +34,7 @@ const ImageManager = {
 	stop_scan: () => ImageManager_stop_scan(),
 	pause_resume_scan: () => ImageManager_pause_resume_scan(),
 	cancel_scan: () => ImageManager_cancel_scan(),
+	reset_scan: () => ImageManager_reset_scan(),
 	get_image_info: () => ImageManager_get_image_info(),
 	get_image_display: (which_image) => ImageManager_get_image_display(which_image),
 };
@@ -89,6 +90,8 @@ seviEmitter.on(SEVI.SCAN.PAUSERESUME, () => {
 });
 // Cancel scan
 seviEmitter.on(SEVI.SCAN.CANCEL, ImageManager.cancel_scan);
+// Reset scan
+seviEmitter.on(SEVI.SCAN.RESET, ImageManager.reset_scan);
 
 /* Scan Status */
 
@@ -146,13 +149,15 @@ function ImageManager_start_scan(is_ir) {
 		// Image is already running, do nothing
 		return;
 	}
-	let new_image;
+	let new_image, update_message;
 	if (is_ir) {
 		new_image = new IRImage();
 		ImageManager.status.isIR = true;
+		update_message = "New IR SEVI Scan Started!";
 	} else {
 		new_image = new Image();
 		ImageManager.status.isIR = false;
+		update_message = "New SEVI Scan Started!";
 	}
 	ImageManager.all_images.push(new_image);
 	ImageManager.current_image = new_image;
@@ -161,6 +166,7 @@ function ImageManager_start_scan(is_ir) {
 	ImageManager.status.running = true;
 	// Alert that a new image has been started
 	seviEmitter.emit(SEVI.ALERT.SCAN.STARTED);
+	msgEmitter.emit(MSG.UPDATE, update_message);
 	// Get info about image
 	ImageManager.get_image_info();
 }
@@ -182,6 +188,7 @@ function ImageManager_stop_scan() {
 	ImageManager.current_image = EmptyImage;
 	// Alert that the scan has been stopped
 	seviEmitter.emit(SEVI.ALERT.SCAN.STOPPED);
+	msgEmitter.emit(MSG.UPDATE, "(IR) SEVI Scan Stopped!");
 }
 
 function ImageManager_pause_resume_scan() {
@@ -233,6 +240,15 @@ function ImageManager_cancel_scan() {
 	ImageManager.current_image = EmptyImage;
 	// Alert that the scan has been stopped
 	seviEmitter.emit(SEVI.ALERT.SCAN.CANCELED);
+	msgEmitter.emit(MSG.UPDATE, "(IR) SEVI Scan Canceled!");
+}
+
+function ImageManager_reset_scan() {
+	ImageManager.current_image.reset_image();
+	ImageManager.current_image.reset_counts();
+	// Alert that the scan has been reset
+	seviEmitter.emit(SEVI.ALERT.SCAN.RESET);
+	msgEmitter.emit(MSG.UPDATE, "(IR) SEVI Scan Reset!");
 }
 
 function ImageManager_get_image_info() {
