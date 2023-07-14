@@ -156,6 +156,8 @@ function ImageManager_start_scan(is_ir) {
 	}
 	ImageManager.all_images.push(new_image);
 	ImageManager.current_image = new_image;
+	// Delete the accumulated image in last_image to save memory
+	ImageManager.last_image.delete_image();
 	ImageManager.status.running = true;
 	// Alert that a new image has been started
 	seviEmitter.emit(SEVI.ALERT.SCAN.STARTED);
@@ -171,11 +173,13 @@ function ImageManager_stop_scan() {
 	// Stop scan
 	ImageManager.status.running = false;
 	ImageManager.status.paused = false;
+	// Save image to file
+	ImageManager.current_image.save_image();
 	// Move current image to last image, and empty current image
+	// But first, delete the accumulated image in last_image to save memory
+	ImageManager.last_image.delete_image();
 	ImageManager.last_image = ImageManager.current_image;
 	ImageManager.current_image = EmptyImage;
-	// Save image to file
-	ImageManager.last_image.save_image();
 	// Alert that the scan has been stopped
 	seviEmitter.emit(SEVI.ALERT.SCAN.STOPPED);
 }
@@ -223,6 +227,8 @@ function ImageManager_cancel_scan() {
 	ImageManager.status.running = false;
 	ImageManager.status.paused = false;
 	// Move current image to last image, and empty current image
+	// But first, delete the accumulated image in last_image to save memory
+	ImageManager.last_image.delete_image();
 	ImageManager.last_image = ImageManager.current_image;
 	ImageManager.current_image = EmptyImage;
 	// Alert that the scan has been stopped
@@ -260,3 +266,58 @@ function ImageManager_get_image_display(which_image) {
 							AVERAGE ELECTRON MANAGER 
 
 *****************************************************************************/
+
+async function test_memory(delete_img, num_images = 10) {
+	if (delete_img) delete_image = true;
+
+	let starting_memory = process.memoryUsage().heapUsed;
+
+	for (let i = 0; i < num_images; i++) {
+		seviEmitter.emit(SEVI.SCAN.STARTIR);
+		await sleep(5000);
+		seviEmitter.emit(SEVI.SCAN.STOP);
+		await sleep(1000);
+	}
+
+	let final_memory = process.memoryUsage().heapUsed;
+	return final_memory - starting_memory;
+}
+
+async function test_memory_2() {
+	let starting_memory, final_memory;
+	let withdel, withoutdel;
+	// Run 5 SEVI images
+	starting_memory = process.memoryUsage().heapUsed;
+	for (let i = 0; i < 5; i++) {
+		seviEmitter.emit(SEVI.SCAN.START);
+		await sleep(5000);
+		seviEmitter.emit(SEVI.SCAN.STOP);
+		await sleep(1000);
+	}
+	final_memory = process.memoryUsage().heapUsed;
+	console.log("5 SEVI images:", final_memory - starting_memory);
+	// Run 20 IR images w/out deleting
+	starting_memory = process.memoryUsage().heapUsed;
+	for (let i = 0; i < 20; i++) {
+		seviEmitter.emit(SEVI.SCAN.STARTIR);
+		await sleep(5000);
+		seviEmitter.emit(SEVI.SCAN.STOP);
+		await sleep(1000);
+	}
+	final_memory = process.memoryUsage().heapUsed;
+	withdel = final_memory - starting_memory;
+	console.log("20 w/out deleting:", withdel);
+	// Run 20 IR images w/out deleting
+	delete_image = true;
+	starting_memory = process.memoryUsage().heapUsed;
+	for (let i = 0; i < 20; i++) {
+		seviEmitter.emit(SEVI.SCAN.STARTIR);
+		await sleep(5000);
+		seviEmitter.emit(SEVI.SCAN.STOP);
+		await sleep(1000);
+	}
+	final_memory = process.memoryUsage().heapUsed;
+	withoutdel = final_memory - starting_memory;
+	console.log("20 w/ deleting:", withoutdel);
+	return withdel / withoutdel;
+}

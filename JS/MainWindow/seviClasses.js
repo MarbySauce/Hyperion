@@ -96,6 +96,11 @@ class Image {
 		this.image = Array.from(Array(bin_size), () => new Array(bin_size).fill(0));
 	}
 
+	delete_image() {
+		// In order to save memory, delete the accumulated image when scan is complete
+		this.image = [[]];
+	}
+
 	save_image() {
 		console.log(`Image i${this.id_str} has been saved! (Not really)`);
 	}
@@ -147,6 +152,13 @@ class IRImage extends Image {
 		this.images.ir_off = Array.from(Array(bin_size), () => new Array(bin_size).fill(0));
 		this.images.ir_on = Array.from(Array(bin_size), () => new Array(bin_size).fill(0));
 		this.images.difference = Array.from(Array(bin_size), () => new Array(bin_size).fill(0));
+	}
+
+	delete_image() {
+		// In order to save memory, delete the accumulated image when scan is complete
+		this.images.ir_off = [[]];
+		this.images.ir_on = [[]];
+		this.images.difference = [[]];
 	}
 
 	save_image() {
