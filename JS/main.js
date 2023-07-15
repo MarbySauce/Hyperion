@@ -39,6 +39,11 @@ const settings = {
 				wavemeter_channel: 0,
 			},
 		},
+		wavemeter: {
+			collection_length: 50,
+			max_fail_count: 50,
+			max_bad_measurements: 100,
+		},
 		opo: {
 			host: "localhost",
 		},
