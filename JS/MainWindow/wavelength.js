@@ -48,12 +48,23 @@ const WavelengthManager = {
 		mode: LASER.MODE.EXCITATION.NIR,
 		stored: new ExcitationWavelength(),
 		conversion: new ExcitationWavelength(),
+		send_stored_info: () => WavelengthManager_excitation_send_stored_info(),
 	},
 };
 
 /****
 		Laser Event Listeners
 ****/
+
+laserEmitter.on(LASER.UPDATE.DETACHMENT.MODE, (mode) => {
+	WavelengthManager.detachment.mode = mode;
+	WavelengthManager.detachment.send_stored_info();
+});
+
+laserEmitter.on(LASER.UPDATE.EXCITATION.MODE, (mode) => {
+	WavelengthManager.excitation.mode = mode;
+	WavelengthManager.excitation.send_stored_info();
+});
 
 laserEmitter.on(LASER.UPDATE.DETACHMENT.STANDARDWL, (wavelength) => {
 	if (wavelength) {
@@ -65,9 +76,14 @@ laserEmitter.on(LASER.UPDATE.DETACHMENT.STANDARDWL, (wavelength) => {
 	WavelengthManager.detachment.send_stored_info();
 });
 
-laserEmitter.on(LASER.UPDATE.DETACHMENT.MODE, (mode) => {
-	WavelengthManager.detachment.mode = mode;
-	WavelengthManager.detachment.send_stored_info();
+laserEmitter.on(LASER.UPDATE.EXCITATION.NIRWL, (wavelength) => {
+	if (wavelength) {
+		WavelengthManager.excitation.stored.nIR.wavelength = wavelength;
+	} else {
+		WavelengthManager.excitation.stored.nIR.wavelength = 0;
+	}
+	// Send back converted values
+	WavelengthManager.excitation.send_stored_info();
 });
 
 /****
@@ -84,4 +100,16 @@ function WavelengthManager_detachment_send_stored_info() {
 		wavenumber: energy.wavenumber,
 	};
 	laserEmitter.emit(LASER.RESPONSE.DETACHMENT.INFO, converted_values);
+}
+
+function WavelengthManager_excitation_send_stored_info() {
+	let energy = WavelengthManager.excitation.stored.get_energy(WavelengthManager.excitation.mode);
+	let input_energy = WavelengthManager.excitation.stored.get_energy(LASER.MODE.EXCITATION.NIR);
+	let converted_values = {
+		mode: WavelengthManager.excitation.mode,
+		input: input_energy.wavelength,
+		wavelength: energy.wavelength,
+		wavenumber: energy.wavenumber,
+	};
+	laserEmitter.emit(LASER.RESPONSE.EXCITATION.INFO, converted_values);
 }
