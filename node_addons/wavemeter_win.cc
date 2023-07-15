@@ -87,19 +87,38 @@ Napi::Number NapiStopMeasurement(const Napi::CallbackInfo& info) {
 	return Napi::Number::New(env, retVal);
 }
 
-// Get wavelength
+// Get wavelength of the first channel
 Napi::Number NapiGetWavelength(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env(); // Napi local environment
 
-    // Initialize variable to fill with wavelength
-    double lambda = 0.0;
-
     // Get wavelength
-    lambda = GetWavelength(lambda);
+    double lambda = GetWavelength(0);
 
     // Return wavelength
     return Napi::Number::New(env, lambda);
 }
+
+// Get wavelength of the specified channel
+// This is the preferred function to use
+Napi::Number NapiGetWavelengthNum(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env(); // Napi local environment
+
+	// Get the user specified channel
+	// First, make sure (first) argument passed is a number (we don't care about the other arguments if there are any)
+	if (!info[0].IsNumber()) {
+		Napi::Error::New(env, "getWavelengthNum: Wavemeter channel must be a number").ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+	// Convert Napi number to C++ long
+	long channel = (long)info[0].ToNumber().Int64Value();
+
+    // Get wavelength
+    double lambda = GetWavelengthNum(channel, 0);
+
+    // Return wavelength
+    return Napi::Number::New(env, lambda);
+}
+
 
 // On Mac, this sets up function to simulate wavelength
 // 		here it does nothing
@@ -115,6 +134,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	exports["startMeasurement"] = Napi::Function::New(env, NapiStartMeasurement);
 	exports["stopMeasurement"] = Napi::Function::New(env, NapiStopMeasurement);
 	exports["getWavelength"] = Napi::Function::New(env, NapiGetWavelength);
+	exports["getWavelengthNum"] = Napi::Function::New(env, NapiGetWavelengthNum);
 	exports["setUpFunction"] = Napi::Function::New(env, NapiSetUpFunction);
 
     return exports;

@@ -3,6 +3,7 @@
 #endif
 
 #include <string>
+#include <vector>
 #include <napi.h>
 
 // Global variables
@@ -58,6 +59,16 @@ Napi::Value GetWavelength(const Napi::CallbackInfo& info) {
 	return macWavelengthFn.Call({});
 }
 
+// Get wavelength (from JS) of the specified channel
+// This is the preferred function to use
+Napi::Value NapiGetWavelengthNum(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env(); // Napi local environment
+
+	Napi::Number channel = info[0].ToNumber();
+
+	return macWavelengthFn.Call({channel});
+}
+
 // Set up Mac simulation wavelength function
 void SetUpFunction(const Napi::CallbackInfo& info) {
 	macWavelengthFn = Napi::Persistent(info[0].As<Napi::Function>());
@@ -71,6 +82,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	exports["startMeasurement"] = Napi::Function::New(env, NapiStartMeasurement);
 	exports["stopMeasurement"] = Napi::Function::New(env, NapiStopMeasurement);
 	exports["getWavelength"] = Napi::Function::New(env, GetWavelength);
+	exports["getWavelengthNum"] = Napi::Function::New(env, NapiGetWavelengthNum);
 	exports["setUpFunction"] = Napi::Function::New(env, SetUpFunction);
 
     return exports;
