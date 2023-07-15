@@ -5,6 +5,7 @@
 **************************************************/
 
 const { DetachmentWavelength, ExcitationWavelength } = require("../JS/MainWindow/wavelengthClasses.js");
+const { WavemeterMeasurement } = require("../JS/MainWindow/wavemeterClasses.js");
 
 // Required functionality:
 
@@ -112,4 +113,64 @@ function WavelengthManager_excitation_send_stored_info() {
 		wavenumber: energy.wavenumber,
 	};
 	laserEmitter.emit(LASER.RESPONSE.EXCITATION.INFO, converted_values);
+}
+
+/*****************************************************************************
+
+								WAVEMETER MANAGER
+
+*****************************************************************************/
+
+function wavemeter_startup() {
+	// Start wavemeter application
+	//wavemeter.startApplication();
+
+	// Set up Mac wavemeter simulation function
+	initialize_mac_fn();
+}
+
+/* Functions for simulating wavemeter on Mac */
+
+/**
+ * This function is called solely from C++ file (wavemeter_mac.cc)
+ * 	to simulate the wavemeter
+ * Return a wavelength close to OPO's wavelength
+ */
+function mac_wavelength() {
+	// Get the OPO's wavelength
+	let wl = opo.status.current_wavelength;
+	// Add a bias
+	//wl -= 0.2565;
+	// Add some noise
+	wl += norm_rand(0, 0.001);
+	// Small chance of wavelength being very far off
+	if (Math.random() < 0.1) {
+		wl -= 20;
+	}
+	return wl;
+}
+
+function mac_wavelength_2(...args) {
+	console.log(args);
+}
+
+/**
+ * Initialize JS function on C++ side
+ */
+function initialize_mac_fn() {
+	wavemeter.setUpFunction(mac_wavelength_2);
+}
+
+/**
+ * Random number with normal distribution
+ * @param {Number} mu - center of normal distribution (mean)
+ * @param {Number} sigma - width of normal distribution (sqrt(variance))
+ * @returns {Number} random number
+ */
+function norm_rand(mu, sigma) {
+	let u = 0,
+		v = 0;
+	while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+	while (v === 0) v = Math.random();
+	return sigma * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) + mu;
 }
