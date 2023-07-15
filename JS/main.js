@@ -32,9 +32,11 @@ const settings = {
 		laser: {
 			detachment: {
 				yag_fundamental: 1064.0,
+				wavemeter_channel: 0,
 			},
 			excitation: {
 				yag_fundamental: 1064.5,
+				wavemeter_channel: 0,
 			},
 		},
 		opo: {
@@ -118,7 +120,10 @@ const settings = {
 					console.log("Could not find settings file at ", settings.file_name);
 				} else {
 					let saved_settings = JSON.parse(data);
-					settings.information = saved_settings;
+					//settings.information = saved_settings;
+					for (let [key, value] of Object.entries(saved_settings)) {
+						settings.information[key] = value;
+					}
 					// Create folder to store data
 					create_folders();
 				}
@@ -131,7 +136,10 @@ const settings = {
 			if (fs.existsSync(settings.file_name)) {
 				let data = fs.readFileSync(settings.file_name);
 				let saved_settings = JSON.parse(data);
-				settings.information = saved_settings;
+				//settings.information = saved_settings;
+				for (let [key, value] of Object.entries(saved_settings)) {
+					settings.information[key] = value;
+				}
 			}
 		},
 		get_full_dir: function () {
