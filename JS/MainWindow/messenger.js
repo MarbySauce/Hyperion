@@ -1,3 +1,5 @@
+// NOTE TO MARTY: Add a fast display system if there are a lot of messages?
+
 const Messenger = {
 	messages: [],
 	going_through_msgs: false,
