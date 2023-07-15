@@ -252,6 +252,7 @@ function update_sevi_detachment_mode() {
 }
 
 function update_sevi_detachment_energies(energy) {
+	const input_wavelength = document.getElementById("SeviDetachmentWavelength");
 	const converted_wavelength = document.getElementById("SeviConvertedWavelength");
 	const converted_wavenumber = document.getElementById("SeviDetachmentWavenumber");
 	const detachment_mode = document.getElementById("SeviWavelengthMode");
@@ -270,6 +271,9 @@ function update_sevi_detachment_energies(energy) {
 		converted_wavelength.value = energy.wavelength.toFixed(3);
 		converted_wavenumber.value = energy.wavenumber.toFixed(3);
 	}
+
+	// Update the input box too (in case the values were changed on the IR-SEVI tab)
+	input_wavelength.value = energy.input; //.toFixed(3);
 
 	// Update selected mode
 	switch (energy.mode) {

@@ -199,6 +199,94 @@ function update_irsevi_vmi(vmi_info) {
 
 /*****************************************************************************
 
+							LASER CONTROL
+
+*****************************************************************************/
+
+/****
+		HTML Element Listeners
+****/
+
+document.getElementById("IRSeviWavelengthMode").oninput = function () {
+	update_irsevi_detachment_mode();
+};
+
+// Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
+// (that way it doesn't execute for each character inputted)
+
+const update_irsevi_detachment_wavelength_delay = new InputDelay(update_irsevi_detachment_wavelength);
+document.getElementById("IRSeviDetachmentWavelength").oninput = function () {
+	update_irsevi_detachment_wavelength_delay.start_timer();
+};
+
+/****
+		UI Event Listeners
+****/
+
+/****
+		Laser Event Listeners
+****/
+
+laserEmitter.on(LASER.RESPONSE.DETACHMENT.INFO, update_irsevi_detachment_energies);
+
+/****
+		Functions
+****/
+
+function update_irsevi_detachment_wavelength() {
+	const detachment_wavelength = document.getElementById("IRSeviDetachmentWavelength");
+	laserEmitter.emit(LASER.UPDATE.DETACHMENT.STANDARDWL, parseFloat(detachment_wavelength.value));
+}
+
+function update_irsevi_detachment_mode() {
+	const detachment_mode = document.getElementById("IRSeviWavelengthMode");
+	const mode_list = [LASER.MODE.DETACHMENT.STANDARD, LASER.MODE.DETACHMENT.DOUBLED, LASER.MODE.DETACHMENT.RAMAN, LASER.MODE.DETACHMENT.IRDFG];
+	laserEmitter.emit(LASER.UPDATE.DETACHMENT.MODE, mode_list[detachment_mode.selectedIndex]);
+}
+
+function update_irsevi_detachment_energies(energy) {
+	const input_wavelength = document.getElementById("IRSeviDetachmentWavelength");
+	const converted_wavelength = document.getElementById("IRSeviConvertedWavelength");
+	const converted_wavenumber = document.getElementById("IRSeviDetachmentWavenumber");
+	const detachment_mode = document.getElementById("IRSeviWavelengthMode");
+	// If the sent energy values are 0, leave both boxes blank
+	if (energy.wavelength === 0) {
+		converted_wavelength.value = "";
+		converted_wavenumber.value = "";
+	}
+	// If the sent energy mode is Standard, don't leave the converted_wavelength box blank
+	else if (energy.mode === LASER.MODE.DETACHMENT.STANDARD) {
+		converted_wavelength.value = "";
+		converted_wavenumber.value = energy.wavenumber.toFixed(3);
+	}
+	// Update the boxes with the sent energies
+	else {
+		converted_wavelength.value = energy.wavelength.toFixed(3);
+		converted_wavenumber.value = energy.wavenumber.toFixed(3);
+	}
+
+	// Update the input box too (in case the values were changed on the SEVI tab)
+	input_wavelength.value = energy.input; //.toFixed(3);
+
+	// Update selected mode
+	switch (energy.mode) {
+		case LASER.MODE.DETACHMENT.STANDARD:
+			detachment_mode.selectedIndex = 0;
+			break;
+		case LASER.MODE.DETACHMENT.DOUBLED:
+			detachment_mode.selectedIndex = 1;
+			break;
+		case LASER.MODE.DETACHMENT.RAMAN:
+			detachment_mode.selectedIndex = 2;
+			break;
+		case LASER.MODE.DETACHMENT.IRDFG:
+			detachment_mode.selectedIndex = 3;
+			break;
+	}
+}
+
+/*****************************************************************************
+
 						ACCUMULATED IMAGE DISPLAY
 
 *****************************************************************************/

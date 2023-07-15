@@ -76,8 +76,10 @@ laserEmitter.on(LASER.UPDATE.DETACHMENT.MODE, (mode) => {
 
 function WavelengthManager_detachment_send_stored_info() {
 	let energy = WavelengthManager.detachment.stored.get_energy(WavelengthManager.detachment.mode);
+	let input_energy = WavelengthManager.detachment.stored.get_energy(LASER.MODE.DETACHMENT.STANDARD);
 	let converted_values = {
 		mode: WavelengthManager.detachment.mode,
+		input: input_energy.wavelength,
 		wavelength: energy.wavelength,
 		wavenumber: energy.wavenumber,
 	};
