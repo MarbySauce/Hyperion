@@ -107,7 +107,7 @@ Napi::Number NapiGetWavelengthNum(const Napi::CallbackInfo& info) {
 	// First, make sure (first) argument passed is a number (we don't care about the other arguments if there are any)
 	if (!info[0].IsNumber()) {
 		Napi::Error::New(env, "getWavelengthNum: Wavemeter channel must be a number").ThrowAsJavaScriptException();
-		return Napi::Boolean::New(env, false);
+		return Napi::Number::New(env, 0);
 	}
 	// Convert Napi number to C++ long
 	long channel = (long)info[0].ToNumber().Int64Value();
