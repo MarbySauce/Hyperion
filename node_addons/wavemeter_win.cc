@@ -54,6 +54,30 @@ Napi::Number NapiStopApplication(const Napi::CallbackInfo& info) {
 	return Napi::Number::New(env, retVal);
 }
 
+// Set Return Mode such that the GetWavelength function only returns the 
+// latest calculated wavelength value if it hasn't previously been requested,
+// otherwise it returns 0. E.g. if the wavelength was measured once but GetWavelength was
+// called twice in a row, it will return the wavelength the first time, then return 0
+Napi::Number NapiSetReturnModeNew(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	long retVal = Instantiate(cInstReturnMode, 1, 0, 0);
+
+	// Return error value
+	return Napi::Number::New(env, retVal);
+}
+
+// Set Return Mode such that the GetWavelength function always returns the 
+// latest calculated wavelength value
+Napi::Number NapiSetReturnModeAll(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	long retVal = Instantiate(cInstReturnMode, 0, 0, 0);
+
+	// Return error value
+	return Napi::Number::New(env, retVal);
+}
+
 // Start a wavelength measurement
 Napi::Number NapiStartMeasurement(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
@@ -87,20 +111,9 @@ Napi::Number NapiStopMeasurement(const Napi::CallbackInfo& info) {
 	return Napi::Number::New(env, retVal);
 }
 
-// Get wavelength of the first channel
-Napi::Number NapiGetWavelength(const Napi::CallbackInfo& info) {
-    Napi::Env env = info.Env(); // Napi local environment
-
-    // Get wavelength
-    double lambda = GetWavelength(0);
-
-    // Return wavelength
-    return Napi::Number::New(env, lambda);
-}
-
 // Get wavelength of the specified channel
-// This is the preferred function to use
-Napi::Number NapiGetWavelengthNum(const Napi::CallbackInfo& info) {
+// @param {int} channel - Which channel to measure wavelength of (1, 2, ...etc)
+Napi::Number NapiGetWavelength(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env(); // Napi local environment
 
 	// Get the user specified channel
@@ -114,6 +127,8 @@ Napi::Number NapiGetWavelengthNum(const Napi::CallbackInfo& info) {
 
     // Get wavelength
     double lambda = GetWavelengthNum(channel, 0);
+	// Note: Wavemeter also has GetWavelength() function, however this only measures the first channel
+	// GetWavelength(0) is equivalent to GetWavelengthNum(1, 0)
 
     // Return wavelength
     return Napi::Number::New(env, lambda);
@@ -131,10 +146,11 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	// Fill exports object with addon functions
 	exports["startApplication"] = Napi::Function::New(env, NapiStartApplication);
 	exports["stopApplication"] = Napi::Function::New(env, NapiStopApplication);
+	exports["setReturnModeNew"] = Napi::Function::New(env, NapiSetReturnModeNew);
+	exports["setReturnModeAll"] = Napi::Function::New(env, NapiSetReturnModeAll);
 	exports["startMeasurement"] = Napi::Function::New(env, NapiStartMeasurement);
 	exports["stopMeasurement"] = Napi::Function::New(env, NapiStopMeasurement);
 	exports["getWavelength"] = Napi::Function::New(env, NapiGetWavelength);
-	exports["getWavelengthNum"] = Napi::Function::New(env, NapiGetWavelengthNum);
 	exports["setUpFunction"] = Napi::Function::New(env, NapiSetUpFunction);
 
     return exports;

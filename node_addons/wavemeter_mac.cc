@@ -31,6 +31,32 @@ Napi::Number NapiStopApplication(const Napi::CallbackInfo& info) {
 	return Napi::Number::New(env, retVal);
 }
 
+// Set Return Mode such that the GetWavelength function only returns the 
+// latest calculated wavelength value if it hasn't previously been requested,
+// otherwise it returns 0. E.g. if the wavelength was measured once but GetWavelength was
+// called twice in a row, it will return the wavelength the first time, then return 0
+Napi::Number NapiSetReturnModeNew(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Error return value
+	long retVal = 0; // No error
+
+	// Return error value
+	return Napi::Number::New(env, retVal);
+}
+
+// Set Return Mode such that the GetWavelength function always returns the 
+// latest calculated wavelength value
+Napi::Number NapiSetReturnModeAll(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Error return value
+	long retVal = 0; // No error
+
+	// Return error value
+	return Napi::Number::New(env, retVal);
+}
+
 // Start a wavelength measurement
 Napi::Number NapiStartMeasurement(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
@@ -53,15 +79,9 @@ Napi::Number NapiStopMeasurement(const Napi::CallbackInfo& info) {
 	return Napi::Number::New(env, retVal);
 }
 
-// Get wavelength (from JS)
-Napi::Value GetWavelength(const Napi::CallbackInfo& info) {
-     // Get wavelength from JS and return back
-	return macWavelengthFn.Call({});
-}
-
-// Get wavelength (from JS) of the specified channel
-// This is the preferred function to use
-Napi::Value NapiGetWavelengthNum(const Napi::CallbackInfo& info) {
+// Get wavelength of the specified channel
+// @param {int} channel - Which channel to measure wavelength of (1, 2, ...etc)
+Napi::Value NapiGetWavelength(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env(); // Napi local environment
 
 	Napi::Number channel = info[0].ToNumber();
@@ -79,10 +99,11 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	// Fill exports object with addon functions
 	exports["startApplication"] = Napi::Function::New(env, NapiStartApplication);
 	exports["stopApplication"] = Napi::Function::New(env, NapiStopApplication);
+	exports["setReturnModeNew"] = Napi::Function::New(env, NapiSetReturnModeNew);
+	exports["setReturnModeAll"] = Napi::Function::New(env, NapiSetReturnModeAll);
 	exports["startMeasurement"] = Napi::Function::New(env, NapiStartMeasurement);
 	exports["stopMeasurement"] = Napi::Function::New(env, NapiStopMeasurement);
-	exports["getWavelength"] = Napi::Function::New(env, GetWavelength);
-	exports["getWavelengthNum"] = Napi::Function::New(env, NapiGetWavelengthNum);
+	exports["getWavelength"] = Napi::Function::New(env, NapiGetWavelength);
 	exports["setUpFunction"] = Napi::Function::New(env, SetUpFunction);
 
     return exports;
