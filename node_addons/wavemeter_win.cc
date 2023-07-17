@@ -101,6 +101,56 @@ Napi::Number NapiGetWavelength(const Napi::CallbackInfo& info) {
     return Napi::Number::New(env, lambda);
 }
 
+// Get wavelength of the specified channel
+// This is the preferred function to use
+Napi::Number NapiGetWavelengthNum(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env(); // Napi local environment
+
+	// Get the user specified channel
+	// First, make sure (first) argument passed is a number (we don't care about the other arguments if there are any)
+	if (!info[0].IsNumber()) {
+		Napi::Error::New(env, "getWavelengthNum: Wavemeter channel must be a number").ThrowAsJavaScriptException();
+		return Napi::Number::New(env, 0);
+	}
+	// Convert Napi number to C++ long
+	long channel = (long)info[0].ToNumber().Int64Value();
+
+    // Get wavelength
+    double lambda = GetWavelengthNum(channel, 0);
+
+    // Return wavelength
+    return Napi::Number::New(env, lambda);
+}
+
+Napi::Number NapiGetPowerNum(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env(); // Napi local environment
+
+	// Get the user specified channel
+	// First, make sure (first) argument passed is a number (we don't care about the other arguments if there are any)
+	if (!info[0].IsNumber()) {
+		Napi::Error::New(env, "getPowerNum: Wavemeter channel must be a number").ThrowAsJavaScriptException();
+		return Napi::Number::New(env, 0);
+	}
+	// Convert Napi number to C++ long
+	long channel = (long)info[0].ToNumber().Int64Value();
+
+    // Get power
+    double power = GetPowerNum(channel, 0);
+
+    // Return wavelength
+    return Napi::Number::New(env, power);
+}
+
+Napi::Number NapiGetDistance(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env(); // Napi local environment
+
+    // Get distance
+    double distance = GetDistance(0);
+
+    // Return wavelength
+    return Napi::Number::New(env, distance);
+}
+
 // On Mac, this sets up function to simulate wavelength
 // 		here it does nothing
 void NapiSetUpFunction(const Napi::CallbackInfo& info) {
@@ -115,6 +165,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	exports["startMeasurement"] = Napi::Function::New(env, NapiStartMeasurement);
 	exports["stopMeasurement"] = Napi::Function::New(env, NapiStopMeasurement);
 	exports["getWavelength"] = Napi::Function::New(env, NapiGetWavelength);
+	exports["getWavelengthNum"] = Napi::Function::New(env, NapiGetWavelengthNum);
+	exports["getPowerNum"] = Napi::Function::New(env, NapiGetPowerNum);
+	exports["getDistance"] = Napi::Function::New(env, NapiGetDistance);
 	exports["setUpFunction"] = Napi::Function::New(env, NapiSetUpFunction);
 
     return exports;
