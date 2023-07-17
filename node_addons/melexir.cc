@@ -263,7 +263,7 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
     global_count++;
     printf("MLXR - times run: %d \n", global_count);
     if (global_count > 50) {
-        printf("WARNING: Melexir crashes on the 68th time used! Restart Hyperion to prevent this"); // Idk why this happens or how to prevent it...
+        printf("WARNING: Melexir crashes on the 68th time used! Restart Hyperion to prevent this. \n"); // Idk why this happens or how to prevent it...
     }
     image2data_(flat_image, &nrow, &nrow, &ncol, lp_image, &ldd);
 
