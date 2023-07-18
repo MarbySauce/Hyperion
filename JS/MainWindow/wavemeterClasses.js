@@ -77,10 +77,10 @@ function average(array) {
 	let sum2 = 0; // Sum of elements^2
 	for (let i = 0; i < len; i++) {
 		sum += array[i];
-		sum2 += array[i] * array[i];
+		sum2 += array[i] ** 2;
 	}
 	const average = sum / len;
-	const stdev = Math.sqrt(sum2 / len - average * average);
+	const stdev = Math.sqrt(sum2 / len - average ** 2);
 	return { average: average, stdev: stdev };
 }
 
