@@ -96,7 +96,7 @@
 /* Sevi Mode - Left Side - Laser Setup */
 #SeviLaserSetup {
 	grid-area: LaserSetup;
-	grid-template-rows: 0.5fr 1fr 1fr 2fr;
+	grid-template-rows: 0.5fr 1fr 0.5fr 2.5fr;
 	grid-template-areas:
 		"LaserSetupTitle"
 		"DetachmentLaserReadout"
@@ -139,7 +139,7 @@
 }
 
 /* Sevi Mode - Left Side - Laser Setup - Laser Measurement Button */
-#SeviLaserMeasurement {
+#SeviDetachmentLaserMeasurement {
 	grid-area: LaserMeasurement;
 	grid-template-columns: 6fr 2fr;
 	grid-template-areas: "blank1 MeasureDetachmentWavelength";

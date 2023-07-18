@@ -57,7 +57,10 @@
 	text-align: center;
 }
 
-#IRSeviLaserMeasurement {
+#IRSeviDetachmentLaserMeasurement {
+	align-items: center;
+}
+#IRSeviExcitationLaserMeasurement {
 	align-items: center;
 }
 

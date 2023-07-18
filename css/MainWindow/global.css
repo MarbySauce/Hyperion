@@ -120,6 +120,10 @@ label {
 	opacity: 0.6;
 }
 
+.laser-measurement-button {
+	height: 100%;
+}
+
 .input-change,
 .input-read {
 	background: hsla(225, 20%, 80%, 1);
