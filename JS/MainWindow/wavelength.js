@@ -150,6 +150,12 @@ const WavemeterManager = {
 		Laser Event Listeners
 ****/
 
+// NOTE FOR MARTY: This is probably a bad way to set it up. For instance, when moving OPO,
+// we will likely want to measure the wavelength 2-3x, but we only want to update
+// the wavelength on the final measurement
+//
+// Likely need 2 different measurement calls
+
 laserEmitter.on(LASER.MEASURE.DETACHMENT, async () => {
 	await WavemeterManager.detachment.measure();
 	laserEmitter.emit(LASER.UPDATE.DETACHMENT.STANDARDWL, WavemeterManager.detachment.measurement.wavelength);

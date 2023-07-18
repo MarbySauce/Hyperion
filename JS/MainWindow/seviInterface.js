@@ -84,6 +84,7 @@ document.getElementById("SeviScanReset").onclick = function () {
 };
 document.getElementById("SeviScanSingleShot").onclick = function () {
 	seviEmitter.emit(SEVI.SCAN.SINGLESHOT);
+	msgEmitter.emit(MSG.ERROR, "Single Shot functionality not set up yet!");
 };
 
 /****

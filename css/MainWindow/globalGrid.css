@@ -6,7 +6,7 @@
 
 body {
 	display: grid;
-	grid-template-rows: 1fr 40fr;
+	grid-template-rows: 1.75fr 39.25fr;
 	grid-template-columns: 1fr 15fr;
 	grid-template-areas:
 		"TabBar MsgBar"

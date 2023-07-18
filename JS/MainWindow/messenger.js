@@ -2,6 +2,7 @@
 
 const Messenger = {
 	messages: [],
+	colors: { UPDATE: "white", ERROR: "#ff5353" },
 	going_through_msgs: false,
 	go_through_msgs: async () => {
 		if (Messenger.going_through_msgs) {
@@ -9,11 +10,10 @@ const Messenger = {
 		}
 		Messenger.going_through_msgs = true;
 		const message_display = document.getElementById("MessageDisplay");
-		const msg_color = { UPDATE: "white", ERROR: "red" };
 		while (Messenger.messages.length > 0) {
 			let this_msg = Messenger.messages.shift();
-			if (msg_color[this_msg.type]) {
-				message_display.style.color = msg_color[this_msg.type];
+			if (Messenger.colors[this_msg.type]) {
+				message_display.style.color = Messenger.colors[this_msg.type];
 			}
 			message_display.innerText = this_msg.msg;
 			await sleep(2000); // Show message for 2 seconds
