@@ -76,8 +76,9 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, function (event, centroid_results) {
 	LiveViewContext.putImageData(LVData, -xOffset, -yOffset);
 
 	// Add counts to chart
-	eChartData.updateData(centroid_results);
-	eChartData.updateChart(eChart);
+	//eChartData.updateData(centroid_results);
+	//eChartData.updateChart(eChart);
+	newChart.update(centroid_results);
 
 	// Update average counters
 	averageCount.update(centroid_results);
@@ -173,7 +174,7 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 					color: "black",
 					display: false,
 				},
-				display: false,
+				//display: false,
 			},
 		},
 		aspectRatio: 1.2,
@@ -368,4 +369,68 @@ function doit() {
 
 	LiveViewContext.fillStyle = "red";
 	LiveViewContext.fillRect(392, 386, 5, 5);
+}
+
+const newChart = {
+	frames: [],
+	electrons: [],
+	temp_electron_count: 0,
+	resets: 0,
+	skip_counter: 0,
+	frame_counter: 0,
+	display_limit: 32,
+	update: (centroid_results) => newChartUpdate(centroid_results),
+	check: () => newChartCheck(),
+	update_chart: () => newChartUpdateChart(),
+	reset: () => newChartReset(),
+};
+
+function newChartUpdate(centroid_results) {
+	let com = centroid_results.com_centers.length;
+	let hgcm = centroid_results.hgcm_centers.length;
+	let total = com + hgcm;
+	newChart.temp_electron_count += total;
+	if (newChart.skip_counter >= Math.pow(2, newChart.resets) - 1) {
+		newChart.frames.push(newChart.frame_counter);
+		let avg = newChart.temp_electron_count / (newChart.skip_counter + 1);
+		newChart.electrons.push(avg);
+		newChart.temp_electron_count = 0;
+		newChart.skip_counter = 0;
+		newChart.check();
+		newChart.update_chart();
+	} else {
+		newChart.skip_counter++;
+	}
+	newChart.frame_counter++;
+}
+
+function newChartCheck() {
+	if (newChart.frames.length < newChart.display_limit) return;
+
+	// Shorten list so that every 2 data points become 1 data point
+	let new_frames = [];
+	let new_electrons = [];
+	for (let i = 0; i < newChart.frames.length / 2; i++) {
+		new_frames[i] = newChart.frames[2 * i];
+		new_electrons[i] = (newChart.electrons[2 * i] + newChart.electrons[2 * i + 1]) / 2;
+	}
+	newChart.frames = new_frames;
+	newChart.electrons = new_electrons;
+	newChart.resets++;
+}
+
+function newChartUpdateChart() {
+	eChart.data.labels = newChart.frames;
+	eChart.data.datasets[0].data = newChart.electrons;
+	//eChart.data.datasets[1].data = this.hgcmData;
+	eChart.update("none");
+}
+
+function newChartReset() {
+	newChart.frames = [];
+	newChart.electrons = [];
+	newChart.temp_electron_count = 0;
+	newChart.resets = 0;
+	newChart.skip_counter = 0;
+	newChart.frame_counter = 0;
 }
