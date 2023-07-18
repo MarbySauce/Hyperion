@@ -121,9 +121,182 @@ function WavelengthManager_excitation_send_stored_info() {
 
 *****************************************************************************/
 
+const WavemeterManager = {
+	detachment: {
+		measurement: new WavemeterMeasurement(),
+		expected_wavelength: undefined,
+		measure: async () => WavemeterManager_detachment_measure(),
+	},
+	excitation: {
+		measurement: new WavemeterMeasurement(),
+		expected_wavelength: undefined,
+		measure: async () => WavemeterManager_excitation_measure(),
+	},
+	params: {
+		cancel: false, // whether to cancel the measurement
+		wavelength_range: 1, // nm, how close the measured value needs to be to the expected wavelength
+	},
+};
+
+/****
+		UI Event Listeners
+****/
+
+/****
+		SEVI Event Listeners
+****/
+
+/****
+		Laser Event Listeners
+****/
+
+laserEmitter.on(LASER.MEASURE.DETACHMENT, async () => {
+	await WavemeterManager.detachment.measure();
+	laserEmitter.emit(LASER.UPDATE.DETACHMENT.STANDARDWL, WavemeterManager.detachment.measurement.wavelength);
+});
+
+laserEmitter.on(LASER.MEASURE.EXCITATION, async () => {
+	await WavemeterManager.excitation.measure();
+	laserEmitter.emit(LASER.UPDATE.EXCITATION.NIRWL, WavemeterManager.excitation.measurement.wavelength);
+});
+
+/****
+		Functions
+****/
+
+// Returned value of -6 means that channel is not available
+async function WavemeterManager_detachment_measure() {
+	if (settings.laser.detachment.wavemeter_channel === -1) {
+		// No wavemeter channel saved for the detachment laser, cancel
+		msgEmitter.emit(MSG.ERROR, "No wavemeter channel selected for detachment - canceling measurement");
+		return;
+	}
+
+	// Start a new wavemeter measurement
+	let measurement = new WavemeterMeasurement();
+	// Start a measurement on wavemeter software
+	wavemeter.startMeasurement();
+
+	let channel = settings.laser.detachment.wavemeter_channel;
+	let expected_wl = WavemeterManager.detachment.expected_wavelength;
+	let wavelength_range = WavemeterManager.params.wavelength_range;
+	let max_fail_count = settings.wavemeter.max_fail_count;
+	let max_bad_measurements = settings.wavemeter.max_bad_measurements;
+	let collection_length = settings.wavemeter.collection_length;
+	let fail_count = 0;
+	let bad_measurement_count = 0;
+	let wavelength;
+
+	while (measurement.wavelength_values.length < collection_length) {
+		if (WavemeterManager.params.cancel) {
+			WavemeterManager.params.cancel = false;
+			return;
+		}
+		wavelength = wavemeter.getWavelength(channel);
+		// Make sure a wavelength was returned
+		if (wavelength <= 0) {
+			fail_count++;
+			continue;
+		}
+		// If expected wavelength was given, make sure measured wavelength is within range
+		if (expected_wl && Math.abs(wavelength - expected_wl) > wavelength_range) {
+			bad_measurement_count++;
+			continue;
+		}
+		// Check if there were too many failed measurements
+		if (fail_count > max_fail_count) {
+			// Stop measurement
+			wavemeter.stopMeasurement();
+			msgEmitter.emit(MSG.ERROR, `Detachment wavelength measurement had ${fail_count} failed measurements - canceled`);
+			return;
+		}
+		// Check if there were too many bad measurements
+		if (bad_measurement_count > max_bad_measurements) {
+			// Stop measurement
+			wavemeter.stopMeasurement();
+			msgEmitter.emit(MSG.ERROR, `Detachment wavelength measurement had ${bad_measurement_count} bad measurements - canceled`);
+			return;
+		}
+		// Record wavelength
+		measurement.add(wavelength);
+		// Wait for next laser pulse (50ms / 20Hz)
+		await sleep(50);
+	}
+	// Stop wavemeter measurement
+	wavemeter.stopMeasurement();
+	// Calculate (reduced) average wavelength and update
+	measurement.get_average();
+	WavemeterManager.detachment.measurement = measurement;
+}
+
+async function WavemeterManager_excitation_measure() {
+	if (settings.laser.excitation.wavemeter_channel === -1) {
+		// No wavemeter channel saved for the excitation laser, cancel
+		msgEmitter.emit(MSG.ERROR, "No wavemeter channel selected for excitation - canceling measurement");
+		return;
+	}
+
+	// Start a new wavemeter measurement
+	let measurement = new WavemeterMeasurement();
+	// Start a measurement on wavemeter software
+	wavemeter.startMeasurement();
+
+	let channel = settings.laser.excitation.wavemeter_channel;
+	let expected_wl = WavemeterManager.excitation.expected_wavelength;
+	let wavelength_range = WavemeterManager.params.wavelength_range;
+	let max_fail_count = settings.wavemeter.max_fail_count;
+	let max_bad_measurements = settings.wavemeter.max_bad_measurements;
+	let collection_length = settings.wavemeter.collection_length;
+	let fail_count = 0;
+	let bad_measurement_count = 0;
+	let wavelength;
+
+	while (measurement.wavelength_values.length < collection_length) {
+		if (WavemeterManager.params.cancel) {
+			WavemeterManager.params.cancel = false;
+			return;
+		}
+		wavelength = wavemeter.getWavelength(channel);
+		// Make sure a wavelength was returned
+		if (wavelength <= 0) {
+			fail_count++;
+			continue;
+		}
+		// If expected wavelength was given, make sure measured wavelength is within range
+		if (expected_wl && Math.abs(wavelength - expected_wl) > wavelength_range) {
+			bad_measurement_count++;
+			continue;
+		}
+		// Check if there were too many failed measurements
+		if (fail_count > max_fail_count) {
+			// Stop measurement
+			wavemeter.stopMeasurement();
+			msgEmitter.emit(MSG.ERROR, `Excitation wavelength measurement had ${fail_count} failed measurements - canceled`);
+			return;
+		}
+		// Check if there were too many bad measurements
+		if (bad_measurement_count > max_bad_measurements) {
+			// Stop measurement
+			wavemeter.stopMeasurement();
+			msgEmitter.emit(MSG.ERROR, `Excitation wavelength measurement had ${bad_measurement_count} bad measurements - canceled`);
+			return;
+		}
+		// Record wavelength
+		measurement.add(wavelength);
+		// Wait for next laser pulse (50ms / 20Hz)
+		await sleep(50);
+	}
+	// Stop wavemeter measurement
+	wavemeter.stopMeasurement();
+	// Calculate (reduced) average wavelength and update
+	measurement.get_average();
+	WavemeterManager.excitation.measurement = measurement;
+}
+
 function wavemeter_startup() {
 	// Start wavemeter application
-	//wavemeter.startApplication();
+	wavemeter.startApplication();
+	wavemeter.setReturnModeNew();
 
 	// Set up Mac wavemeter simulation function
 	initialize_mac_fn();
@@ -136,29 +309,30 @@ function wavemeter_startup() {
  * 	to simulate the wavemeter
  * Return a wavelength close to OPO's wavelength
  */
-function mac_wavelength() {
-	// Get the OPO's wavelength
-	let wl = opo.status.current_wavelength;
-	// Add a bias
-	//wl -= 0.2565;
-	// Add some noise
-	wl += norm_rand(0, 0.001);
-	// Small chance of wavelength being very far off
-	if (Math.random() < 0.1) {
-		wl -= 20;
+function mac_wavelength(channel) {
+	if (channel === settings.laser.detachment.wavemeter_channel) {
+		// Just send 650nm (with some noise) as the detachment laser wavelength
+		return 650 + norm_rand(0, 0.001);
+	} else if (channel === settings.laser.excitation.wavemeter_channel) {
+		// Send wavelength as the OPO's wavelength with some noise added
+		let wl = 750; //opo.status.current_wavelength;
+		// Add some noise
+		wl += norm_rand(0, 0.5);
+		// Small chance of wavelength being very far off
+		if (Math.random() < 0.1) {
+			wl -= 20;
+		}
+		return wl;
+	} else {
+		return -6; // Wavemeter's error for channel not available
 	}
-	return wl;
-}
-
-function mac_wavelength_2(...args) {
-	console.log(args);
 }
 
 /**
  * Initialize JS function on C++ side
  */
 function initialize_mac_fn() {
-	wavemeter.setUpFunction(mac_wavelength_2);
+	wavemeter.setUpFunction(mac_wavelength);
 }
 
 /**

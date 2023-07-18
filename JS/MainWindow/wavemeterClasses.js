@@ -43,6 +43,10 @@ class WavemeterMeasurement {
 		return this.reduced_stats.average - this.laser_wavelength;
 	}
 
+	get wavelength() {
+		return this.reduced_stats.average;
+	}
+
 	add(wavelength) {
 		this.wavelength_values.push(wavelength);
 	}

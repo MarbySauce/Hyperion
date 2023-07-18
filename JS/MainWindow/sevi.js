@@ -249,6 +249,8 @@ function ImageManager_reset_scan() {
 	// Alert that the scan has been reset
 	seviEmitter.emit(SEVI.ALERT.SCAN.RESET);
 	msgEmitter.emit(MSG.UPDATE, "(IR) SEVI Scan Reset!");
+	// Also update electron counters
+	seviEmitter.emit(SEVI.RESPONSE.COUNTS.TOTAL, ImageManager.current_image.counts);
 }
 
 function ImageManager_get_image_info() {

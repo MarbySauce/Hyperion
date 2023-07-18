@@ -215,6 +215,18 @@ document.getElementById("IRSeviIRWavelengthMode").oninput = function () {
 	update_irsevi_excitation_mode();
 };
 
+document.getElementById("IRSeviMeasureDetachmentWavelength").onclick = function () {
+	const measure_button = document.getElementById("IRSeviMeasureDetachmentWavelength");
+	laserEmitter.emit(LASER.MEASURE.DETACHMENT);
+	measure_button.disabled = true;
+};
+
+document.getElementById("IRSeviMeasureExcitationWavelength").onclick = function () {
+	const measure_button = document.getElementById("IRSeviMeasureExcitationWavelength");
+	laserEmitter.emit(LASER.MEASURE.EXCITATION);
+	measure_button.disabled = true;
+};
+
 // Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
 // (that way it doesn't execute for each character inputted)
 
@@ -260,8 +272,9 @@ function update_irsevi_detachment_energies(energy) {
 	const converted_wavelength = document.getElementById("IRSeviConvertedWavelength");
 	const converted_wavenumber = document.getElementById("IRSeviDetachmentWavenumber");
 	const detachment_mode = document.getElementById("IRSeviWavelengthMode");
-	// If the sent energy values are 0, leave both boxes blank
+	// If the sent energy values are 0, leave all boxes blank
 	if (energy.wavelength === 0) {
+		input_wavelength.value = "";
 		converted_wavelength.value = "";
 		converted_wavenumber.value = "";
 	}
@@ -278,7 +291,7 @@ function update_irsevi_detachment_energies(energy) {
 
 	// Update the input box too (in case the values were changed on the SEVI tab)
 	if (energy.input === 0) input_wavelength.value = "";
-	else input_wavelength.value = energy.input;
+	else input_wavelength.value = energy.input.toFixed(3);
 
 	// Update selected mode
 	switch (energy.mode) {
@@ -295,6 +308,9 @@ function update_irsevi_detachment_energies(energy) {
 			detachment_mode.selectedIndex = 3;
 			break;
 	}
+
+	// Enable measure button if it was disabled
+	document.getElementById("IRSeviMeasureDetachmentWavelength").disabled = false;
 }
 
 function update_irsevi_excitation_wavelength() {
@@ -313,13 +329,14 @@ function update_irsevi_excitation_energies(energy) {
 	const converted_wavelength = document.getElementById("IRSeviIRConvertedWavelength");
 	const converted_wavenumber = document.getElementById("IRSeviIRWavenumber");
 	const excitation_mode = document.getElementById("IRSeviIRWavelengthMode");
-	// If the sent energy values are 0, leave both boxes blank
+	// If the sent energy values are 0, leave all boxes blank
 	if (energy.wavelength === 0) {
+		input_wavelength.value = "";
 		converted_wavelength.value = "";
 		converted_wavenumber.value = "";
 	}
 	// If the sent energy mode is Standard, don't leave the converted_wavelength box blank
-	else if (energy.mode === LASER.MODE.DETACHMENT.NIR) {
+	else if (energy.mode === LASER.MODE.EXCITATION.NIR) {
 		converted_wavelength.value = "";
 		converted_wavenumber.value = energy.wavenumber.toFixed(3);
 	}
@@ -331,7 +348,7 @@ function update_irsevi_excitation_energies(energy) {
 
 	// Update the input box too (in case the values were changed on the SEVI tab)
 	if (energy.input === 0) input_wavelength.value = "";
-	else input_wavelength.value = energy.input;
+	else input_wavelength.value = energy.input.toFixed(3);
 
 	// Update selected mode
 	switch (energy.mode) {
@@ -348,6 +365,9 @@ function update_irsevi_excitation_energies(energy) {
 			excitation_mode.selectedIndex = 3;
 			break;
 	}
+
+	// Enable measure button if it was disabled
+	document.getElementById("IRSeviMeasureExcitationWavelength").disabled = false;
 }
 
 /*****************************************************************************
@@ -410,6 +430,9 @@ uiEmitter.on(UI.INFO.RESPONSE.DISPLAYSLIDERVALUE, (value) => {
 /****
 		SEVI Event Listeners
 ****/
+
+// Update accumulated image display when scan is reset
+seviEmitter.on(SEVI.ALERT.SCAN.RESET, update_irsevi_accumulated_image_display);
 
 /****
 		Functions

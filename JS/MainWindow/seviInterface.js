@@ -218,6 +218,12 @@ document.getElementById("SeviWavelengthMode").oninput = function () {
 	update_sevi_detachment_mode();
 };
 
+document.getElementById("SeviMeasureDetachmentWavelength").onclick = function () {
+	const measure_button = document.getElementById("SeviMeasureDetachmentWavelength");
+	laserEmitter.emit(LASER.MEASURE.DETACHMENT);
+	measure_button.disabled = true;
+};
+
 // Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
 // (that way it doesn't execute for each character inputted)
 
@@ -256,8 +262,9 @@ function update_sevi_detachment_energies(energy) {
 	const converted_wavelength = document.getElementById("SeviConvertedWavelength");
 	const converted_wavenumber = document.getElementById("SeviDetachmentWavenumber");
 	const detachment_mode = document.getElementById("SeviWavelengthMode");
-	// If the sent energy values are 0, leave both boxes blank
+	// If the sent energy values are 0, leave all boxes blank
 	if (energy.wavelength === 0) {
+		input_wavelength.value = "";
 		converted_wavelength.value = "";
 		converted_wavenumber.value = "";
 	}
@@ -273,7 +280,8 @@ function update_sevi_detachment_energies(energy) {
 	}
 
 	// Update the input box too (in case the values were changed on the IR-SEVI tab)
-	input_wavelength.value = energy.input; //.toFixed(3);
+	if (energy.input === 0) input_wavelength.value = "";
+	else input_wavelength.value = energy.input.toFixed(3);
 
 	// Update selected mode
 	switch (energy.mode) {
@@ -290,6 +298,9 @@ function update_sevi_detachment_energies(energy) {
 			detachment_mode.selectedIndex = 3;
 			break;
 	}
+
+	// Enable measure button if it was disabled
+	document.getElementById("SeviMeasureDetachmentWavelength").disabled = false;
 }
 
 /*****************************************************************************
@@ -348,6 +359,9 @@ uiEmitter.on(UI.INFO.RESPONSE.DISPLAYSLIDERVALUE, (value) => {
 /****
 		SEVI Event Listeners
 ****/
+
+// Update accumulated image display when scan is reset
+seviEmitter.on(SEVI.ALERT.SCAN.RESET, update_sevi_accumulated_image_display);
 
 /****
 		Functions

@@ -38,6 +38,12 @@ window.onload = function () {
 ipc.on("settings-information", (event, settings_information) => {
 	settings = settings_information;
 
+	// Start wavemeter application
+	wavemeter.startApplication();
+	wavemeter.setReturnModeNew();
+	// Set up Mac wavemeter simulation function
+	initialize_mac_fn();
+
 	// Process settings (should make its own function)
 	//if (settings.opo.host) {
 	//	opo.network.config.host = settings.opo.host;
@@ -64,23 +70,15 @@ async function sleep(delay_ms) {
 
 /*
 
-Here is an example of how to wait for multiple pieces of information at once
-values will be an array with the returned values from t1 and t2
 
 */
 
-const bsEmitter = new EventEmitter();
-
 async function testbs() {
-	let t1 = once(bsEmitter, "test1");
-	let t2 = once(bsEmitter, "test2");
-	[t1, t2] = await Promise.all([t1, t2]); // Promises are replaced with the returned values
-	console.log(t1, t2);
-}
+	const NOTIFICATION_TITLE = "Title";
+	const NOTIFICATION_BODY = "Notification from the Renderer process. Click to log to console.";
+	const CLICK_MESSAGE = "Notification clicked!";
 
-function test1() {
-	bsEmitter.emit("test1", "this is test 1");
-}
-function test2() {
-	bsEmitter.emit("test2", "this is test 2");
+	new window.Notification(NOTIFICATION_TITLE, { body: NOTIFICATION_BODY }).onclick = () => {
+		console.log(CLICK_MESSAGE);
+	};
 }
