@@ -95,6 +95,9 @@ async function ExcitationLaserManager_measure(expected_wavelength) {
 		return measurement;
 	}
 
+	// Send alert that wavelength measurement has started
+	laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STARTED);
+
 	let fail_count = 0;
 	let bad_measurement_count = 0;
 
@@ -102,6 +105,7 @@ async function ExcitationLaserManager_measure(expected_wavelength) {
 		if (ExcitationLaserManager.cancel) {
 			ExcitationLaserManager.cancel = false;
 			wavemeter.stopMeasurement();
+			laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED);
 			return measurement;
 		}
 		wavelength = wavemeter.getWavelength(channel);
@@ -119,6 +123,7 @@ async function ExcitationLaserManager_measure(expected_wavelength) {
 		if (fail_count > max_fail_count) {
 			// Stop measurement
 			wavemeter.stopMeasurement();
+			laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED);
 			msgEmitter.emit(MSG.ERROR, `Excitation wavelength measurement had ${fail_count} failed measurements - canceled`);
 			return measurement;
 		}
@@ -126,6 +131,7 @@ async function ExcitationLaserManager_measure(expected_wavelength) {
 		if (bad_measurement_count > max_bad_measurements) {
 			// Stop measurement
 			wavemeter.stopMeasurement();
+			laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED);
 			msgEmitter.emit(MSG.ERROR, `Excitation wavelength measurement had ${bad_measurement_count} bad measurements - canceled`);
 			return measurement;
 		}
@@ -136,6 +142,8 @@ async function ExcitationLaserManager_measure(expected_wavelength) {
 	}
 	// Stop wavemeter measurement
 	wavemeter.stopMeasurement();
+	// Send alert that wavelength measurement has stopped
+	laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED);
 	// Calculate (reduced) average wavelength and update
 	measurement.get_average();
 	ExcitationLaserManager.measurement = measurement;
@@ -146,7 +154,7 @@ async function ExcitationLaserManager_measure(expected_wavelength) {
 async function measure_opo_wavelength() {
 	// Request current wavelength from OPO
 	opo.get_wavelength();
-	await once(opoEmitter, OPO.RESPONSE.WAVELENGTH);
+	await once(laserEmitter, LASER.RESPONSE.OPO.WAVELENGTH);
 	let opo_wavelength = opo.status.current_wavelength;
 	// Measure wavelength
 	let measurement = await ExcitationLaserManager.measure(opo_wavelength);
@@ -169,8 +177,8 @@ async function move_opo_wavelength(desired_energy) {
 	let desired_mode = desired_wavelength.get_nir({ wavenumber: desired_energy });
 	if (!desired_mode) {
 		// IR energy is not possible, send error alert
-		msgEmitter.emit(MSG.ERROR, `IR Energy of ${IR_energy}cm-1 is not attainable`);
-		laserEmitter.emit(LASER.GOTO.ALERT.CANCELED);
+		msgEmitter.emit(MSG.ERROR, `IR Energy of ${desired_energy}cm-1 is not attainable`);
+		laserEmitter.emit(LASER.ALERT.GOTO.CANCELED);
 		return;
 	}
 	let desired_nir = desired_wavelength.nIR.wavelength;
@@ -185,6 +193,7 @@ async function move_opo_wavelength(desired_energy) {
 	let goto_wavelength = desired_nir - ExcitationLaserManager.last_offset;
 	for (let i = 0; i < ExcitationLaserManager.params.move_attempts; i++) {
 		if (ExcitationLaserManager.cancel) {
+			laserEmitter.emit(LASER.ALERT.GOTO.CANCELED);
 			return;
 		}
 		// If the wavelength is more than 10nm away from where we are, have OPO move quickly (3 nm/sec)
@@ -352,7 +361,7 @@ opo.network.client.on("error", (error) => {
 		OPO Event listeners
 ****/
 
-opoEmitter.on(OPO.QUERY.WAVELENGTH, () => {
+laserEmitter.on(LASER.QUERY.OPO.WAVELENGTH, () => {
 	opo.get_wavelength();
 });
 
@@ -405,12 +414,13 @@ function process_opo_data(data) {
 
 function opo_update_wavelength(wavelength) {
 	opo.status.current_wavelength = wavelength;
-	opoEmitter.emit(OPO.RESPONSE.WAVELENGTH, wavelength);
+	laserEmitter.emit(LASER.RESPONSE.OPO.WAVELENGTH, wavelength);
 }
 
 // Tell OPO to move to nIR wavelength
 async function opo_goto_nir(nir_wavelength) {
 	opo.status.motors_moving = true;
+	laserEmitter.emit(LASER.ALERT.OPO.MOTORS.MOVING);
 	opo.network.client.write(opo.network.command.move(nir_wavelength), () => {});
 	await wait_for_opo_motors(); // Send an update when motors have stopped
 }
@@ -423,7 +433,7 @@ async function wait_for_opo_motors() {
 		await sleep(250);
 	}
 	// Send alert that motors have stopped
-	opoEmitter.emit(OPO.ALERT.MOTORS.STOPPED);
+	laserEmitter.emit(LASER.ALERT.OPO.MOTORS.STOPPED);
 	return true;
 }
 
@@ -508,6 +518,9 @@ async function DetachmentLaserManager_measure(expected_wavelength) {
 		return measurement;
 	}
 
+	// Send alert that wavelength measurement has started
+	laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.DETACHMENT.STARTED);
+
 	let fail_count = 0;
 	let bad_measurement_count = 0;
 
@@ -515,6 +528,7 @@ async function DetachmentLaserManager_measure(expected_wavelength) {
 		if (DetachmentLaserManager.cancel) {
 			DetachmentLaserManager.cancel = false;
 			wavemeter.stopMeasurement();
+			laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.DETACHMENT.STOPPED);
 			return measurement;
 		}
 		wavelength = wavemeter.getWavelength(channel);
@@ -532,6 +546,7 @@ async function DetachmentLaserManager_measure(expected_wavelength) {
 		if (fail_count > max_fail_count) {
 			// Stop measurement
 			wavemeter.stopMeasurement();
+			laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.DETACHMENT.STOPPED);
 			msgEmitter.emit(MSG.ERROR, `Detachment wavelength measurement had ${fail_count} failed measurements - canceled`);
 			return measurement;
 		}
@@ -539,6 +554,7 @@ async function DetachmentLaserManager_measure(expected_wavelength) {
 		if (bad_measurement_count > max_bad_measurements) {
 			// Stop measurement
 			wavemeter.stopMeasurement();
+			laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.DETACHMENT.STOPPED);
 			msgEmitter.emit(MSG.ERROR, `Detachment wavelength measurement had ${bad_measurement_count} bad measurements - canceled`);
 			return measurement;
 		}
@@ -549,6 +565,8 @@ async function DetachmentLaserManager_measure(expected_wavelength) {
 	}
 	// Stop wavemeter measurement
 	wavemeter.stopMeasurement();
+	// Send alert that wavelength measurement has stopped
+	laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.DETACHMENT.STOPPED);
 	// Calculate (reduced) average wavelength and update
 	measurement.get_average();
 	DetachmentLaserManager.measurement = measurement;

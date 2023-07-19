@@ -256,7 +256,7 @@ laserEmitter.on(LASER.RESPONSE.DETACHMENT.INFO, update_irsevi_detachment_energie
 
 laserEmitter.on(LASER.RESPONSE.EXCITATION.INFO, update_irsevi_excitation_energies);
 
-laserEmitter.on(LASER.GOTO.ALERT.CANCELED, () => {
+laserEmitter.on(LASER.ALERT.GOTO.CANCELED, () => {
 	// Re-enable GoTo button
 	document.getElementById("IRSeviMoveIRButton").disabled = false;
 });
