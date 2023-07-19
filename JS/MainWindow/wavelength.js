@@ -14,7 +14,6 @@ const { WavemeterMeasurement } = require("../JS/MainWindow/wavemeterClasses.js")
 *****************************************************************************/
 
 const ExcitationLaserManager = {
-	mode: LASER.MODE.EXCITATION.NIR,
 	stored: new ExcitationWavelength(),
 	conversion: new ExcitationWavelength(),
 	measurement: new WavemeterMeasurement(),
@@ -43,7 +42,7 @@ const ExcitationLaserManager = {
 
 // Update the excitation laser mode (e.g. NIR, IIR, MIR, or FIR)
 laserEmitter.on(LASER.UPDATE.EXCITATION.MODE, (mode) => {
-	ExcitationLaserManager.mode = mode;
+	ExcitationLaserManager.stored.selected_mode = mode;
 	ExcitationLaserManager.send_stored_info();
 });
 
@@ -79,15 +78,7 @@ laserEmitter.on(LASER.GOTO.EXCITATION, move_opo_wavelength);
 ****/
 
 function ExcitationLaserManager_send_stored_info() {
-	let energy = ExcitationLaserManager.stored.get_energy(ExcitationLaserManager.mode);
-	let input_energy = ExcitationLaserManager.stored.get_energy(LASER.MODE.EXCITATION.NIR);
-	let converted_values = {
-		mode: ExcitationLaserManager.mode,
-		input: input_energy.wavelength,
-		wavelength: energy.wavelength,
-		wavenumber: energy.wavenumber,
-	};
-	laserEmitter.emit(LASER.RESPONSE.EXCITATION.INFO, converted_values);
+	laserEmitter.emit(LASER.RESPONSE.EXCITATION.INFO, ExcitationLaserManager.stored);
 }
 
 async function ExcitationLaserManager_measure(expected_wavelength) {
@@ -171,7 +162,6 @@ async function measure_opo_wavelength() {
 /**
  *
  * @param {number} desired_energy Desired IR energy in cm-1
- * @returns
  */
 async function move_opo_wavelength(desired_energy) {
 	let energy_error;
@@ -188,6 +178,7 @@ async function move_opo_wavelength(desired_energy) {
 	let measurement = await measure_opo_wavelength();
 	let converted_measurement = new ExcitationWavelength();
 	converted_measurement.nIR.wavelength = measurement.wavelength;
+	converted_measurement.selected_mode = desired_mode;
 	// If the wavelength was successfully measured, account for offset and tell OPO where to go
 	// If it was not measured, take the last offset and ^
 	// In either case, the offset we want to use is stored in ExcitationLaserManager.last_offset
@@ -210,7 +201,7 @@ async function move_opo_wavelength(desired_energy) {
 		measurement = await measure_opo_wavelength();
 		converted_measurement.nIR.wavelength = measurement.wavelength;
 		// If the energy is close enough, stop here
-		energy_error = Math.abs(converted_measurement.get_energy(desired_mode).wavenumber - desired_energy);
+		energy_error = Math.abs(converted_measurement.energy.wavenumber - desired_energy);
 		if (energy_error <= ExcitationLaserManager.params.acceptance_range) {
 			break;
 		}
@@ -220,14 +211,7 @@ async function move_opo_wavelength(desired_energy) {
 	// Reset OPO speed
 	opo.set_speed();
 	// Send update of current wavelength
-	let energy = converted_measurement.get_energy(desired_mode);
-	let converted_values = {
-		mode: desired_mode,
-		input: converted_measurement.nIR.wavelength,
-		wavelength: energy.wavelength,
-		wavenumber: energy.wavenumber,
-	};
-	laserEmitter.emit(LASER.RESPONSE.EXCITATION.INFO, converted_values);
+	laserEmitter.emit(LASER.RESPONSE.EXCITATION.INFO, converted_measurement);
 }
 
 /*****************************************************************************
@@ -376,6 +360,7 @@ opoEmitter.on(OPO.QUERY.WAVELENGTH, () => {
 		Functions
 ****/
 
+// Startup function, called from startup.js to initialize OPO
 function opo_startup() {
 	// Update OPO settings
 	if (settings) {
@@ -384,6 +369,7 @@ function opo_startup() {
 	}
 
 	opo.network.connect();
+	opo.get_wavelength();
 }
 
 function process_opo_data(data) {
@@ -448,7 +434,6 @@ async function wait_for_opo_motors() {
 *****************************************************************************/
 
 const DetachmentLaserManager = {
-	mode: LASER.MODE.DETACHMENT.STANDARD,
 	stored: new DetachmentWavelength(),
 	conversion: new DetachmentWavelength(),
 	measurement: new WavemeterMeasurement(),
@@ -475,7 +460,7 @@ const DetachmentLaserManager = {
 ****/
 
 laserEmitter.on(LASER.UPDATE.DETACHMENT.MODE, (mode) => {
-	DetachmentLaserManager.mode = mode;
+	DetachmentLaserManager.stored.selected_mode = mode;
 	DetachmentLaserManager.send_stored_info();
 });
 
@@ -506,15 +491,7 @@ laserEmitter.on(LASER.MEASURE.DETACHMENT, async () => {
 ****/
 
 function DetachmentLaserManager_send_stored_info() {
-	let energy = DetachmentLaserManager.stored.get_energy(DetachmentLaserManager.mode);
-	let input_energy = DetachmentLaserManager.stored.get_energy(LASER.MODE.DETACHMENT.STANDARD);
-	let converted_values = {
-		mode: DetachmentLaserManager.mode,
-		input: input_energy.wavelength,
-		wavelength: energy.wavelength,
-		wavenumber: energy.wavenumber,
-	};
-	laserEmitter.emit(LASER.RESPONSE.DETACHMENT.INFO, converted_values);
+	laserEmitter.emit(LASER.RESPONSE.DETACHMENT.INFO, DetachmentLaserManager.stored);
 }
 
 async function DetachmentLaserManager_measure(expected_wavelength) {
@@ -588,7 +565,7 @@ async function DetachmentLaserManager_measure(expected_wavelength) {
 function mac_wavelength(channel) {
 	if (channel === settings.laser.detachment.wavemeter_channel) {
 		// Just send 650nm (with some noise) as the detachment laser wavelength
-		return 650 + norm_rand(0, 0.001);
+		return 650 + norm_rand(0, 0.01);
 	} else if (channel === settings.laser.excitation.wavemeter_channel) {
 		// Send wavelength as the OPO's wavelength with some noise added
 		let wl = opo.status.current_wavelength;

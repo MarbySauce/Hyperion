@@ -50,6 +50,8 @@ async function startup() {
 	wavemeter.setReturnModeNew();
 	// Set up Mac wavemeter simulation function
 	initialize_mac_fn(); // From wavelength.js
+	// Initialize OPO
+	opo_startup(); // From wavelength.js
 
 	ipc.send(IPCMessages.LOADED.MAINWINDOW, null);
 }

@@ -276,34 +276,34 @@ function update_irsevi_detachment_mode() {
 	laserEmitter.emit(LASER.UPDATE.DETACHMENT.MODE, mode_list[detachment_mode.selectedIndex]);
 }
 
-function update_irsevi_detachment_energies(energy) {
+function update_irsevi_detachment_energies(detachment_wl_class) {
 	const input_wavelength = document.getElementById("IRSeviDetachmentWavelength");
 	const converted_wavelength = document.getElementById("IRSeviConvertedWavelength");
 	const converted_wavenumber = document.getElementById("IRSeviDetachmentWavenumber");
 	const detachment_mode = document.getElementById("IRSeviWavelengthMode");
 	// If the sent energy values are 0, leave all boxes blank
-	if (energy.wavelength === 0) {
+	if (detachment_wl_class.energy.wavelength === 0) {
 		input_wavelength.value = "";
 		converted_wavelength.value = "";
 		converted_wavenumber.value = "";
 	}
 	// If the sent energy mode is Standard, don't leave the converted_wavelength box blank
-	else if (energy.mode === LASER.MODE.DETACHMENT.STANDARD) {
+	else if (detachment_wl_class.selected_mode === LASER.MODE.DETACHMENT.STANDARD) {
 		converted_wavelength.value = "";
-		converted_wavenumber.value = energy.wavenumber.toFixed(3);
+		converted_wavenumber.value = detachment_wl_class.energy.wavenumber.toFixed(3);
 	}
 	// Update the boxes with the sent energies
 	else {
-		converted_wavelength.value = energy.wavelength.toFixed(3);
-		converted_wavenumber.value = energy.wavenumber.toFixed(3);
+		converted_wavelength.value = detachment_wl_class.energy.wavelength.toFixed(3);
+		converted_wavenumber.value = detachment_wl_class.energy.wavenumber.toFixed(3);
 	}
 
 	// Update the input box too (in case the values were changed on the SEVI tab)
-	if (energy.input === 0) input_wavelength.value = "";
-	else input_wavelength.value = energy.input.toFixed(3);
+	if (detachment_wl_class.standard.wavelength === 0) input_wavelength.value = "";
+	else input_wavelength.value = detachment_wl_class.standard.wavelength.toFixed(3);
 
 	// Update selected mode
-	switch (energy.mode) {
+	switch (detachment_wl_class.selected_mode) {
 		case LASER.MODE.DETACHMENT.STANDARD:
 			detachment_mode.selectedIndex = 0;
 			break;
@@ -336,34 +336,34 @@ function update_irsevi_excitation_mode() {
 	laserEmitter.emit(LASER.UPDATE.EXCITATION.MODE, mode_list[excitation_mode.selectedIndex]);
 }
 
-function update_irsevi_excitation_energies(energy) {
+function update_irsevi_excitation_energies(excitation_wl_class) {
 	const input_wavelength = document.getElementById("IRSeviIRWavelength");
 	const converted_wavelength = document.getElementById("IRSeviIRConvertedWavelength");
 	const converted_wavenumber = document.getElementById("IRSeviIRWavenumber");
 	const excitation_mode = document.getElementById("IRSeviIRWavelengthMode");
 	// If the sent energy values are 0, leave all boxes blank
-	if (energy.wavelength === 0) {
+	if (excitation_wl_class.energy.wavelength === 0) {
 		input_wavelength.value = "";
 		converted_wavelength.value = "";
 		converted_wavenumber.value = "";
 	}
 	// If the sent energy mode is Standard, don't leave the converted_wavelength box blank
-	else if (energy.mode === LASER.MODE.EXCITATION.NIR) {
+	else if (excitation_wl_class.selected_mode === LASER.MODE.EXCITATION.NIR) {
 		converted_wavelength.value = "";
-		converted_wavenumber.value = energy.wavenumber.toFixed(3);
+		converted_wavenumber.value = excitation_wl_class.energy.wavenumber.toFixed(3);
 	}
 	// Update the boxes with the sent energies
 	else {
-		converted_wavelength.value = energy.wavelength.toFixed(3);
-		converted_wavenumber.value = energy.wavenumber.toFixed(3);
+		converted_wavelength.value = excitation_wl_class.energy.wavelength.toFixed(3);
+		converted_wavenumber.value = excitation_wl_class.energy.wavenumber.toFixed(3);
 	}
 
 	// Update the input box too (in case the values were changed on the SEVI tab)
-	if (energy.input === 0) input_wavelength.value = "";
-	else input_wavelength.value = energy.input.toFixed(3);
+	if (excitation_wl_class.nIR.wavelength === 0) input_wavelength.value = "";
+	else input_wavelength.value = excitation_wl_class.nIR.wavelength.toFixed(3);
 
 	// Update selected mode
-	switch (energy.mode) {
+	switch (excitation_wl_class.selected_mode) {
 		case LASER.MODE.EXCITATION.NIR:
 			excitation_mode.selectedIndex = 0;
 			break;

@@ -62,6 +62,9 @@ class DetachmentWavelength {
 		this.doubled = new LaserModeEnergy(this_instance, this.MODE.DOUBLED);
 		this.raman = new LaserModeEnergy(this_instance, this.MODE.RAMAN);
 		this.irdfg = new LaserModeEnergy(this_instance, this.MODE.IRDFG);
+		this.none = new LaserModeEnergy(this_instance, this.MODE.NONE);
+
+		this._selected_mode = this.MODE.STANDARD;
 	}
 
 	/* Static Methods */
@@ -113,6 +116,34 @@ class DetachmentWavelength {
 		return this.constructor.H2_wn;
 	}
 
+	get selected_mode() {
+		return this._selected_mode;
+	}
+
+	set selected_mode(mode) {
+		switch (mode) {
+			case LASER.MODE.DETACHMENT.STANDARD:
+				this._selected_mode = LASER.MODE.DETACHMENT.STANDARD;
+				break;
+			case LASER.MODE.DETACHMENT.DOUBLED:
+				this._selected_mode = LASER.MODE.DETACHMENT.DOUBLED;
+				break;
+			case LASER.MODE.DETACHMENT.RAMAN:
+				this._selected_mode = LASER.MODE.DETACHMENT.RAMAN;
+				break;
+			case LASER.MODE.DETACHMENT.IRDFG:
+				this._selected_mode = LASER.MODE.DETACHMENT.IRDFG;
+				break;
+			default:
+				this._selected_mode = LASER.MODE.DETACHMENT.NONE;
+				break;
+		}
+	}
+
+	get energy() {
+		return this.get_energy(this.selected_mode);
+	}
+
 	get_energy(mode) {
 		switch (mode) {
 			case LASER.MODE.DETACHMENT.STANDARD:
@@ -123,6 +154,8 @@ class DetachmentWavelength {
 				return this.raman;
 			case LASER.MODE.DETACHMENT.IRDFG:
 				return this.irdfg;
+			default:
+				return this.none;
 		}
 	}
 
@@ -224,6 +257,9 @@ class ExcitationWavelength {
 		this.iIR = new LaserModeEnergy(this_instance, this.MODE.IIR);
 		this.mIR = new LaserModeEnergy(this_instance, this.MODE.MIR);
 		this.fIR = new LaserModeEnergy(this_instance, this.MODE.FIR);
+		this.none = new LaserModeEnergy(this_instance, this.MODE.NONE);
+
+		this._selected_mode = this.MODE.NIR;
 	}
 
 	/* Static Methods */
@@ -261,6 +297,34 @@ class ExcitationWavelength {
 
 	get YAG_wn() {
 		return this.constructor.YAG_wn;
+	}
+
+	get selected_mode() {
+		return this._selected_mode;
+	}
+
+	set selected_mode(mode) {
+		switch (mode) {
+			case LASER.MODE.EXCITATION.NIR:
+				this._selected_mode = LASER.MODE.EXCITATION.NIR;
+				break;
+			case LASER.MODE.EXCITATION.IIR:
+				this._selected_mode = LASER.MODE.EXCITATION.IIR;
+				break;
+			case LASER.MODE.EXCITATION.MIR:
+				this._selected_mode = LASER.MODE.EXCITATION.MIR;
+				break;
+			case LASER.MODE.EXCITATION.FIR:
+				this._selected_mode = LASER.MODE.EXCITATION.FIR;
+				break;
+			default:
+				this._selected_mode = LASER.MODE.EXCITATION.NONE;
+				break;
+		}
+	}
+
+	get energy() {
+		return this.get_energy(this.selected_mode);
 	}
 
 	/**
@@ -320,6 +384,8 @@ class ExcitationWavelength {
 				return this.mIR;
 			case LASER.MODE.EXCITATION.FIR:
 				return this.fIR;
+			default:
+				return this.none;
 		}
 	}
 
