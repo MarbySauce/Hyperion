@@ -202,6 +202,7 @@ async function measure_opo_wavelength() {
 async function move_opo_wavelength(desired_energy) {
 	laserEmitter.emit(LASER.ALERT.GOTO.STARTED);
 	let energy_error;
+	let move_attempts = ExcitationLaserManager.params.move_attempts;
 	let desired_wavelength = new ExcitationWavelength();
 	let desired_mode = desired_wavelength.get_nir({ wavenumber: desired_energy });
 	if (!desired_mode) {
@@ -209,6 +210,11 @@ async function move_opo_wavelength(desired_energy) {
 		msgEmitter.emit(MSG.ERROR, `IR Energy of ${desired_energy}cm-1 is not attainable`);
 		laserEmitter.emit(LASER.ALERT.GOTO.CANCELED);
 		return;
+	}
+	// If the excitation wavemeter channel is not set, then we should move OPO without
+	//	automatically measuring wavelength -> should move to desired wavelength in one attempt
+	if (settings.laser.excitation.wavemeter_channel === -1) {
+		move_attempts = 1;
 	}
 	let desired_nir = desired_wavelength.nIR.wavelength;
 	// First, measure current wavelength and OPO offset
@@ -220,7 +226,9 @@ async function move_opo_wavelength(desired_energy) {
 	// If it was not measured, take the last offset and ^
 	// In either case, the offset we want to use is stored in ExcitationLaserManager.last_offset
 	let goto_wavelength = desired_nir - ExcitationLaserManager.last_offset;
-	for (let i = 0; i < ExcitationLaserManager.params.move_attempts; i++) {
+	for (let i = 0; i < move_attempts; i++) {
+		console.log(desired_nir, ExcitationLaserManager.last_offset, goto_wavelength);
+		console.log(converted_measurement.energy);
 		// Check if GoTo was canceled or paused
 		if (ExcitationLaserManager.cancel) {
 			laserEmitter.emit(LASER.ALERT.GOTO.CANCELED);
@@ -260,9 +268,11 @@ async function move_opo_wavelength(desired_energy) {
 	}
 	// Reset OPO speed
 	opo.set_speed();
+	// Replace stored wavelength with what's currently measured
+	ExcitationLaserManager.stored = converted_measurement;
 	// Send update of current wavelength
 	laserEmitter.emit(LASER.ALERT.GOTO.STOPPED);
-	laserEmitter.emit(LASER.RESPONSE.EXCITATION.INFO, converted_measurement);
+	ExcitationLaserManager.send_stored_info();
 }
 
 /*****************************************************************************

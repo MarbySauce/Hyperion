@@ -348,30 +348,32 @@ class ExcitationWavelength {
 		}
 		// Neither were given or they were zero, return NONE
 		else {
-			return this.MODE.NONE;
+			this.selected_mode = this.MODE.NONE;
+			return this.selected_mode;
 		}
 
 		// Figure out which energy regime wavenumber energy is in
 		if (11355 < given_energy.wavenumber && given_energy.wavenumber < 14080) {
 			// Near IR
 			this.nIR.wavenumber = given_energy.wavenumber;
-			return this.MODE.NIR;
+			this.selected_mode = this.MODE.NIR;
 		} else if (4500 < given_energy.wavenumber && given_energy.wavenumber < 7400) {
 			// Intermediate IR
 			this.iIR.wavenumber = given_energy.wavenumber;
-			return this.MODE.IIR;
+			this.selected_mode = this.MODE.IIR;
 		} else if (2000 < given_energy.wavenumber && given_energy.wavenumber < 4500) {
 			// Mid IR
 			this.mIR.wavenumber = given_energy.wavenumber;
-			return this.MODE.MIR;
+			this.selected_mode = this.MODE.MIR;
 		} else if (625 < given_energy.wavenumber && given_energy.wavenumber < 2000) {
 			// Far IR
 			this.fIR.wavenumber = given_energy.wavenumber;
-			return this.MODE.FIR;
+			this.selected_mode = this.MODE.FIR;
 		} else {
-			// Energy is out of range, return NONE
-			return this.MODE.NONE;
+			// Energy is out of range, this.selected_mode = NONE
+			this.selected_mode = this.MODE.NONE;
 		}
+		return this.selected_mode;
 	}
 
 	get_energy(mode) {
