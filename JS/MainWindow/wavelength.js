@@ -19,6 +19,7 @@ const ExcitationLaserManager = {
 	measurement: new WavemeterMeasurement(),
 	last_offset: 0,
 	cancel: false,
+	pause: false,
 	params: {
 		move_attempts: 2,
 		wavelength_range: 1, // nm, how close the measured value needs to be to the expected wavelength
@@ -73,6 +74,29 @@ laserEmitter.on(LASER.MEASURE.EXCITATION, async () => {
 // @param: desired_energy should be a number corresponding to the desired IR energy in wavenumbers (cm-1)
 laserEmitter.on(LASER.GOTO.EXCITATION, move_opo_wavelength);
 
+// Pause OPO GoTo wavelength movement
+laserEmitter.on(LASER.GOTO.PAUSE, () => {
+	ExcitationLaserManager.pause = true;
+	laserEmitter.emit(LASER.ALERT.GOTO.PAUSED);
+});
+
+// Resume OPO GoTo wavelength movement
+laserEmitter.on(LASER.GOTO.RESUME, () => {
+	if (!ExcitationLaserManager.pause) return; // GoTo is not paused, do nothing
+	ExcitationLaserManager.pause = false;
+	laserEmitter.emit(LASER.ALERT.GOTO.RESUMED);
+});
+
+// Cancel OPO GoTo wavelength movement
+laserEmitter.on(LASER.GOTO.CANCEL, () => {
+	ExcitationLaserManager.cancel = true;
+});
+
+// If OPO GoTo movement canceled, update check bool
+laserEmitter.on(LASER.ALERT.GOTO.CANCELED, () => {
+	ExcitationLaserManager.cancel = false;
+});
+
 /****
 		Functions
 ****/
@@ -109,6 +133,10 @@ async function ExcitationLaserManager_measure(expected_wavelength) {
 			wavemeter.stopMeasurement();
 			laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED);
 			return measurement;
+		}
+		// If measurement is paused, stay in loop until it's resumed
+		if (ExcitationLaserManager.pause) {
+			continue;
 		}
 		// Check if there were too many failed measurements
 		if (fail_count > max_fail_count) {
@@ -193,9 +221,14 @@ async function move_opo_wavelength(desired_energy) {
 	// In either case, the offset we want to use is stored in ExcitationLaserManager.last_offset
 	let goto_wavelength = desired_nir - ExcitationLaserManager.last_offset;
 	for (let i = 0; i < ExcitationLaserManager.params.move_attempts; i++) {
+		// Check if GoTo was canceled or paused
 		if (ExcitationLaserManager.cancel) {
 			laserEmitter.emit(LASER.ALERT.GOTO.CANCELED);
 			return;
+		}
+		if (ExcitationLaserManager.pause) {
+			// Wait for it to be unpaused
+			await once(laserEmitter, LASER.ALERT.GOTO.RESUMED);
 		}
 		// If the wavelength is more than 10nm away from where we are, have OPO move quickly (3 nm/sec)
 		// If it's within 1nm, move slowly (0.05 nm/sec)
@@ -205,10 +238,14 @@ async function move_opo_wavelength(desired_energy) {
 		else opo.set_speed(); // Default speed
 		// Tell OPO to move and wait
 		await opo.goto_nir(goto_wavelength);
-		// Check that scan wasn't canceled
+		// Check if GoTo was canceled or paused
 		if (ExcitationLaserManager.cancel) {
 			laserEmitter.emit(LASER.ALERT.GOTO.CANCELED);
 			return;
+		}
+		if (ExcitationLaserManager.pause) {
+			// Wait for it to be unpaused
+			await once(laserEmitter, LASER.ALERT.GOTO.RESUMED);
 		}
 		// Once done moving, remeasure wavelength
 		measurement = await measure_opo_wavelength();
