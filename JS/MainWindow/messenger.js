@@ -16,6 +16,7 @@ const Messenger = {
 				message_display.style.color = Messenger.colors[this_msg.type];
 			}
 			message_display.innerText = this_msg.msg;
+			console.log(`${this_msg.type}: ${this_msg.msg}`); // Also send message to console
 			await sleep(2000); // Show message for 2 seconds
 			message_display.innerText = "";
 			await sleep(100);

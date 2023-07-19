@@ -102,22 +102,13 @@ async function ExcitationLaserManager_measure(expected_wavelength) {
 	let bad_measurement_count = 0;
 
 	while (measurement.wavelength_values.length < collection_length) {
+		// Wait for next laser pulse (100ms / 10Hz)
+		await sleep(100);
 		if (ExcitationLaserManager.cancel) {
 			ExcitationLaserManager.cancel = false;
 			wavemeter.stopMeasurement();
 			laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED);
 			return measurement;
-		}
-		wavelength = wavemeter.getWavelength(channel);
-		// Make sure a wavelength was returned
-		if (wavelength <= 0) {
-			fail_count++;
-			continue;
-		}
-		// If expected wavelength was given, make sure measured wavelength is within range
-		if (expected_wavelength && Math.abs(wavelength - expected_wavelength) > wavelength_range) {
-			bad_measurement_count++;
-			continue;
 		}
 		// Check if there were too many failed measurements
 		if (fail_count > max_fail_count) {
@@ -135,10 +126,19 @@ async function ExcitationLaserManager_measure(expected_wavelength) {
 			msgEmitter.emit(MSG.ERROR, `Excitation wavelength measurement had ${bad_measurement_count} bad measurements - canceled`);
 			return measurement;
 		}
+		wavelength = wavemeter.getWavelength(channel);
+		// Make sure a wavelength was returned
+		if (wavelength <= 0) {
+			fail_count++;
+			continue;
+		}
+		// If expected wavelength was given, make sure measured wavelength is within range
+		if (expected_wavelength && Math.abs(wavelength - expected_wavelength) > wavelength_range) {
+			bad_measurement_count++;
+			continue;
+		}
 		// Record wavelength
 		measurement.add(wavelength);
-		// Wait for next laser pulse (100ms / 10Hz)
-		await sleep(100);
 	}
 	// Stop wavemeter measurement
 	wavemeter.stopMeasurement();
@@ -172,6 +172,7 @@ async function measure_opo_wavelength() {
  * @param {number} desired_energy Desired IR energy in cm-1
  */
 async function move_opo_wavelength(desired_energy) {
+	laserEmitter.emit(LASER.ALERT.GOTO.STARTED);
 	let energy_error;
 	let desired_wavelength = new ExcitationWavelength();
 	let desired_mode = desired_wavelength.get_nir({ wavenumber: desired_energy });
@@ -205,7 +206,10 @@ async function move_opo_wavelength(desired_energy) {
 		// Tell OPO to move and wait
 		await opo.goto_nir(goto_wavelength);
 		// Check that scan wasn't canceled
-		if (ExcitationLaserManager.cancel) return;
+		if (ExcitationLaserManager.cancel) {
+			laserEmitter.emit(LASER.ALERT.GOTO.CANCELED);
+			return;
+		}
 		// Once done moving, remeasure wavelength
 		measurement = await measure_opo_wavelength();
 		converted_measurement.nIR.wavelength = measurement.wavelength;
@@ -220,6 +224,7 @@ async function move_opo_wavelength(desired_energy) {
 	// Reset OPO speed
 	opo.set_speed();
 	// Send update of current wavelength
+	laserEmitter.emit(LASER.ALERT.GOTO.STOPPED);
 	laserEmitter.emit(LASER.RESPONSE.EXCITATION.INFO, converted_measurement);
 }
 
@@ -525,22 +530,13 @@ async function DetachmentLaserManager_measure(expected_wavelength) {
 	let bad_measurement_count = 0;
 
 	while (measurement.wavelength_values.length < collection_length) {
+		// Wait for next laser pulse (50ms / 20Hz)
+		await sleep(50);
 		if (DetachmentLaserManager.cancel) {
 			DetachmentLaserManager.cancel = false;
 			wavemeter.stopMeasurement();
 			laserEmitter.emit(LASER.ALERT.WAVEMETER.MEASURING.DETACHMENT.STOPPED);
 			return measurement;
-		}
-		wavelength = wavemeter.getWavelength(channel);
-		// Make sure a wavelength was returned
-		if (wavelength <= 0) {
-			fail_count++;
-			continue;
-		}
-		// If expected wavelength was given, make sure measured wavelength is within range
-		if (expected_wavelength && Math.abs(wavelength - expected_wavelength) > wavelength_range) {
-			bad_measurement_count++;
-			continue;
 		}
 		// Check if there were too many failed measurements
 		if (fail_count > max_fail_count) {
@@ -558,10 +554,19 @@ async function DetachmentLaserManager_measure(expected_wavelength) {
 			msgEmitter.emit(MSG.ERROR, `Detachment wavelength measurement had ${bad_measurement_count} bad measurements - canceled`);
 			return measurement;
 		}
+		wavelength = wavemeter.getWavelength(channel);
+		// Make sure a wavelength was returned
+		if (wavelength <= 0) {
+			fail_count++;
+			continue;
+		}
+		// If expected wavelength was given, make sure measured wavelength is within range
+		if (expected_wavelength && Math.abs(wavelength - expected_wavelength) > wavelength_range) {
+			bad_measurement_count++;
+			continue;
+		}
 		// Record wavelength
 		measurement.add(wavelength);
-		// Wait for next laser pulse (50ms / 20Hz)
-		await sleep(50);
 	}
 	// Stop wavemeter measurement
 	wavemeter.stopMeasurement();
@@ -580,6 +585,8 @@ async function DetachmentLaserManager_measure(expected_wavelength) {
  * 	to simulate the wavemeter
  * Return a wavelength close to OPO's wavelength
  */
+let failed_measurement_bool = false;
+let bad_measurement_bool = false;
 function mac_wavelength(channel) {
 	if (channel === settings.laser.detachment.wavemeter_channel) {
 		// Just send 650nm (with some noise) as the detachment laser wavelength
@@ -592,6 +599,10 @@ function mac_wavelength(channel) {
 		// Small chance of wavelength being very far off
 		if (Math.random() < 0.1) {
 			wl -= 20;
+		}
+		if (failed_measurement_bool) wl = 0;
+		if (bad_measurement_bool) {
+			if (Math.random() < 0.8) wl -= 20;
 		}
 		return wl;
 	} else {
@@ -618,4 +629,28 @@ function norm_rand(mu, sigma) {
 	while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
 	while (v === 0) v = Math.random();
 	return sigma * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) + mu;
+}
+
+async function test_wavelength_measurement(measurement_count, fail_type) {
+	// fail_type is either "fail" (or 1) or "bad" (or 2)
+	let start, stop;
+	for (let i = 0; i < measurement_count; i++) {
+		start = once(laserEmitter, LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STARTED);
+		stop = once(laserEmitter, LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED);
+		await start;
+		await stop;
+	}
+	if (fail_type === "fail" || fail_type === 1) {
+		failed_measurement_bool = true;
+	} else if (fail_type === "bad" || fail_type === 2) {
+		bad_measurement_bool = true;
+	}
+	start = once(laserEmitter, LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STARTED);
+	stop = once(laserEmitter, LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED);
+	await start;
+	await stop;
+	failed_measurement_bool = false;
+	bad_measurement_bool = false;
+	console.log("Test Done!");
+	return "Test Done!";
 }

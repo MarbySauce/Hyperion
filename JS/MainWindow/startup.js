@@ -17,7 +17,6 @@ const seviEmitter = new EventEmitter();
 const uiEmitter = new EventEmitter();
 const msgEmitter = new EventEmitter();
 const laserEmitter = new EventEmitter();
-const opoEmitter = new EventEmitter();
 // NOTE TO MARTY: I might need to worry about max listeners for emitters
 
 // ORDER OF OPERATIONS WHEN LOADING PROGRAM

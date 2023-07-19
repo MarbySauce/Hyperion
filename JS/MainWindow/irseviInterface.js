@@ -554,3 +554,31 @@ function update_irsevi_counters(counts) {
 	total_electrons_off.value = formatted_electrons_off;
 	total_electrons_on.value = formatted_electrons_on;
 }
+
+laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STARTED, () => {
+	console.log("Measuring excitation wavelength!");
+});
+
+laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED, () => {
+	console.log("Excitation measurement stopped!");
+});
+
+laserEmitter.on(LASER.ALERT.GOTO.STARTED, () => {
+	console.log("GoTo started!");
+});
+
+laserEmitter.on(LASER.ALERT.GOTO.STOPPED, () => {
+	console.log("GoTo stopped!");
+});
+
+laserEmitter.on(LASER.ALERT.GOTO.CANCELED, () => {
+	console.log("GoTo canceled!");
+});
+
+laserEmitter.on(LASER.ALERT.OPO.MOTORS.MOVING, () => {
+	console.log("Moving OPO!");
+});
+
+laserEmitter.on(LASER.ALERT.OPO.MOTORS.STOPPED, () => {
+	console.log("OPO finished moving!");
+});
