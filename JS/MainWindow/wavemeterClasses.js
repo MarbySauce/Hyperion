@@ -24,6 +24,7 @@ class WavemeterMeasurement {
 		};
 
 		this.laser_wavelength; // Wavelength the laser thinks it's at (this will likely only apply to OPO/A)
+		this.last_offset; // The last stored offset between laser and actual value
 	}
 
 	static get minimum_stdev() {

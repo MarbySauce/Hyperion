@@ -46,6 +46,7 @@ const settings = {
 		},
 		opo: {
 			host: "localhost",
+			port: 1315,
 		},
 		centroid: {
 			accumulation: "Centroid",

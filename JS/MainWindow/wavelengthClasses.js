@@ -267,51 +267,47 @@ class ExcitationWavelength {
 	 * Convert a desired energy (nm or cm-1) to nIR
 	 * @param {Object} energy energy to convert to nIR - needs to contain .wavelength or .wavenumber elements
 	 * containing the energy to convert (in nm for .wavelength or in cm-1 for .wavenumber)
-	 * @returns {Object} nIR energy as {wavelength: value (nm), wavenumber: value (cm-1), mode: ExcitationWavelength.MODE element}
+	 * @returns {ExcitationWavelength.MODE} the IR Mode needed to acheive this IR energy
 	 */
 	get_nir(energy) {
-		let nir_energy = { wavelength: 0, wavenumber: 0, mode: this.MODE.NONE };
 		let given_energy = { wavelength: 0, wavenumber: 0 };
-		// Check if the wavelength is given and is nonzero
-		if (energy?.wavelength) {
+		// We will be working in wavenumbers, so first check if that was given
+		if (energy?.wavenumber) {
+			given_energy.wavenumber = energy.wavenumber;
+			// If wavelength is also given, use that, otherwise convert
+			given_energy.wavelength = energy?.wavelength || 1e7 / energy.wavenumber;
+		}
+		// Check if only the wavelength is given (and is nonzero)
+		else if (energy?.wavelength) {
 			given_energy.wavelength = energy.wavelength;
 			given_energy.wavenumber = 1e7 / energy.wavelength;
 		}
-		// If not, check if the wavenumber is given and is nonzero
-		else if (energy?.wavenumber) {
-			given_energy.wavelength = 1e7 / energy.wavenumber;
-			given_energy.wavenumber = energy.wavenumber;
-		}
-		// Neither were given or they were zero, return 0
+		// Neither were given or they were zero, return NONE
 		else {
-			return nir_energy;
+			return this.MODE.NONE;
 		}
 
-		// Working in wavenumbers bc it makes things way easier
 		// Figure out which energy regime wavenumber energy is in
 		if (11355 < given_energy.wavenumber && given_energy.wavenumber < 14080) {
 			// Near IR
-			nir_energy.mode = this.MODE.NIR;
-			nir_energy.wavenumber = given_energy.wavenumber;
+			this.nIR.wavenumber = given_energy.wavenumber;
+			return this.MODE.NIR;
 		} else if (4500 < given_energy.wavenumber && given_energy.wavenumber < 7400) {
 			// Intermediate IR
-			nir_energy.mode = this.MODE.IIR;
-			nir_energy.wavenumber = 2 * this.YAG_wn - given_energy.wavenumber;
+			this.iIR.wavenumber = given_energy.wavenumber;
+			return this.MODE.IIR;
 		} else if (2000 < given_energy.wavenumber && given_energy.wavenumber < 4500) {
 			// Mid IR
-			nir_energy.mode = this.MODE.MIR;
-			nir_energy.wavenumber = this.YAG_wn + given_energy.wavenumber;
+			this.mIR.wavenumber = given_energy.wavenumber;
+			return this.MODE.MIR;
 		} else if (625 < given_energy.wavenumber && given_energy.wavenumber < 2000) {
 			// Far IR
-			nir_energy.mode = this.MODE.FIR;
-			nir_energy.wavenumber = (3 * this.YAG_wn - given_energy.wavenumber) / 2;
+			this.fIR.wavenumber = given_energy.wavenumber;
+			return this.MODE.FIR;
 		} else {
-			// Energy is out of range, return 0
-			return nir_energy;
+			// Energy is out of range, return NONE
+			return this.MODE.NONE;
 		}
-		// Convert wavenumber to wavelength
-		nir_energy.wavelength = 1e7 / nir_energy.wavenumber;
-		return nir_energy;
 	}
 
 	get_energy(mode) {

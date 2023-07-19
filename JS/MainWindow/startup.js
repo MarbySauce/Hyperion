@@ -9,7 +9,7 @@ const Chart = require("chart.js");
 const net = require("net");
 // Addon libraries
 const wavemeter = require("bindings")("wavemeter");
-const { IPCMessages, UI, SEVI, LASER, MSG } = require("../JS/Messages.js");
+const { IPCMessages, UI, SEVI, LASER, OPO, MSG } = require("../JS/Messages.js");
 
 let settings; // Global variable, to be filled in on startup
 
@@ -17,6 +17,7 @@ const seviEmitter = new EventEmitter();
 const uiEmitter = new EventEmitter();
 const msgEmitter = new EventEmitter();
 const laserEmitter = new EventEmitter();
+const opoEmitter = new EventEmitter();
 // NOTE TO MARTY: I might need to worry about max listeners for emitters
 
 // ORDER OF OPERATIONS WHEN LOADING PROGRAM
@@ -37,24 +38,18 @@ window.onload = function () {
 // Recieve setting information and go through startup procedure
 ipc.on("settings-information", (event, settings_information) => {
 	settings = settings_information;
-
-	// Start wavemeter application
-	wavemeter.startApplication();
-	wavemeter.setReturnModeNew();
-	// Set up Mac wavemeter simulation function
-	initialize_mac_fn();
-
-	// Process settings (should make its own function)
-	//if (settings.opo.host) {
-	//	opo.network.config.host = settings.opo.host;
-	//}
-
 	startup();
 });
 
 async function startup() {
 	// Go to Sevi Mode tab
 	uiEmitter.emit(UI.CHANGE.TAB, UI.TAB.SEVI);
+
+	// Start wavemeter application
+	wavemeter.startApplication();
+	wavemeter.setReturnModeNew();
+	// Set up Mac wavemeter simulation function
+	initialize_mac_fn(); // From wavelength.js
 
 	ipc.send(IPCMessages.LOADED.MAINWINDOW, null);
 }

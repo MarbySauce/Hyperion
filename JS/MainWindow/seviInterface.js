@@ -298,6 +298,9 @@ function update_sevi_detachment_energies(energy) {
 		case LASER.MODE.DETACHMENT.IRDFG:
 			detachment_mode.selectedIndex = 3;
 			break;
+		default:
+			detachment_mode.selectedIndex = 0;
+			break;
 	}
 
 	// Enable measure button if it was disabled

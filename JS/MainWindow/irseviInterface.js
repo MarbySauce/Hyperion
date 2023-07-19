@@ -227,6 +227,10 @@ document.getElementById("IRSeviMeasureExcitationWavelength").onclick = function 
 	measure_button.disabled = true;
 };
 
+document.getElementById("IRSeviMoveIRButton").onclick = function () {
+	irsevi_goto_ir();
+};
+
 // Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
 // (that way it doesn't execute for each character inputted)
 
@@ -251,6 +255,11 @@ document.getElementById("IRSeviIRWavelength").oninput = function () {
 laserEmitter.on(LASER.RESPONSE.DETACHMENT.INFO, update_irsevi_detachment_energies);
 
 laserEmitter.on(LASER.RESPONSE.EXCITATION.INFO, update_irsevi_excitation_energies);
+
+laserEmitter.on(LASER.GOTO.ALERT.CANCELED, () => {
+	// Re-enable GoTo button
+	document.getElementById("IRSeviMoveIRButton").disabled = false;
+});
 
 /****
 		Functions
@@ -306,6 +315,9 @@ function update_irsevi_detachment_energies(energy) {
 			break;
 		case LASER.MODE.DETACHMENT.IRDFG:
 			detachment_mode.selectedIndex = 3;
+			break;
+		default:
+			detachment_mode.selectedIndex = 0;
 			break;
 	}
 
@@ -364,10 +376,36 @@ function update_irsevi_excitation_energies(energy) {
 		case LASER.MODE.EXCITATION.FIR:
 			excitation_mode.selectedIndex = 3;
 			break;
+		default:
+			excitation_mode.selectedIndex = 0;
+			break;
 	}
 
-	// Enable measure button if it was disabled
+	// Enable measure button and GoTo button if disabled
 	document.getElementById("IRSeviMeasureExcitationWavelength").disabled = false;
+	document.getElementById("IRSeviMoveIRButton").disabled = false;
+}
+
+// Go to desired IR Energy
+function irsevi_goto_ir() {
+	const energy_input = document.getElementById("IRSeviDesiredEnergy");
+	const energy_unit = document.getElementById("IRSeviDesiredEnergyUnit");
+	let energy_input_value = parseFloat(energy_input.value);
+	// Need to send energy in cm-1, so we might need to convert
+	switch (energy_unit.selectedIndex) {
+		case 0: // cm-1
+			break;
+		case 1: // nm
+			energy_input_value = 1e7 / energy_input_value;
+			break;
+		case 2: // um
+			energy_input_value = 1e4 / energy_input_value;
+			break;
+	}
+	// Disable GoTo button
+	document.getElementById("IRSeviMoveIRButton").disabled = true;
+
+	laserEmitter.emit(LASER.GOTO.EXCITATION, energy_input_value);
 }
 
 /*****************************************************************************
