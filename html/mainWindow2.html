@@ -361,6 +361,66 @@
 			</div>
 		</div>
 		<!-- IR Action Mode -->
+		<div id="IRActionModeContent">
+			<!-- IR Action Mode - First Page -->
+			<div class="first-page page grid" id="IRActionFirstPage">
+				<!-- IR Action Mode - First Page - Title Section -->
+				<div class="grid background-lighter-blue title-section" id="IRActionTitleSection">
+					<h1 class="white-text title">Hyperion</h1>
+				</div>
+				<!-- IR Action Mode - First Page - Controls -->
+				<div class="grid background-lighter-blue scan-controls" id="IRActionControls">
+					<button class="scan-control-button square-button white-text" id="IRActionScanStartSave">
+						<span class="scan-button-text" id="IRActionScanStartSaveText">Start</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionScanPauseResume">
+						<span class="scan-button-text" id="IRActionScanPauseResumeText">Pause</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionScanCancel">
+						<span class="scan-button-text" id="IRActionScanCancelText">Cancel</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionImageSave">
+						<span class="scan-button-text" id="IRActionImageSaveText">Save Image<br />& Continue</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionImageReset">
+						<span class="scan-button-text" id="IRActionImageResetText">Reset Image</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionRemeasureWavelength">
+						<span class="scan-button-text" id="IRActionRemeasureWavelengthText">Remeasure<br />Wavelength</span>
+					</button>
+				</div>
+				<!-- IR Action Mode - First Page - Scan Options -->
+				<div class="grid background-lighter-blue" id="IRActionScanOptions">
+					<div class="grid background-lighter-blue" id="IRActionScanOptionsTitleSection">
+						<h3 class="white-text" id="IRActionScanOptionsTitle">Action Scan Parameters</h3>
+					</div>
+					<!-- Energy Range Selection -->
+					<div class="grid background-lighter-blue" id="IRActionEnergySelection">
+						<label class="white-text right-align" id="IRActionEnergyLabel">Energy: </label>
+						<input class="input-change action-options-input" id="IRActionIntitialEnergy" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="IRActionOptionsHyphen">-</label>
+						<input class="input-read action-options-input" id="IRActionFinalEnergy" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="IRActionWNLabel1">cm<sup>-1</sup> @ </label>
+						<input class="input-read action-options-input" id="IRActionEnergyStep" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="IRActionWNLabel2">cm<sup>-1</sup> steps</label>
+					</div>
+					<!-- Autostop Selection -->
+					<div class="grid background-lighter-blue" id="IRActionAutostopSelection"></div>
+					<!-- Images / Energy Step -->
+					<div class="grid background-lighter-blue" id="IRActionImageAmount"></div>
+					<!-- VMI Selection -->
+					<div class="grid background-lighter-blue" id="IRActionVMISelection"></div>
+				</div>
+				<!-- IR Action Mode - First Page - Scan Status -->
+				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionScanStatus"></div>
+				<!-- IR Action Mode - First Page - Image Display -->
+				<div class="grid background-lighter-blue" id="IRActionImageDisplay"></div>
+				<!-- IR Action Mode - First Page - Electron Counters -->
+				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionElectronCounters"></div>
+				<!-- Page Down Button -->
+				<button class="page-down page-button" id="IRActionPageDown"><i class="arrow arrow-down"></i></button>
+			</div>
+		</div>
 
 		<!-- Future tabs should be added here (before settings section) -->
 		<!-- Settings Section -->

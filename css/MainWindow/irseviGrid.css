@@ -22,27 +22,6 @@
 		"IRSeviPageDown IRSeviPageDown";
 }
 
-/*#IRSeviFirstPage {
-	grid-template-columns: 1fr 1fr;
-	grid-template-rows: 1fr 2fr 3fr 1fr 3fr 30px;
-	grid-template-areas:
-		"LaserSetup ImageDisplay"
-		"LaserSetup ImageDisplay"
-		"LaserSetup ImageDisplay"
-		"LaserSetup ImageDisplay"
-		"LaserSetup Counters"
-		"IRSeviPageDown IRSeviPageDown";
-}
-#IRSeviTitleSection {
-	display: none;
-}
-#IRSeviScanControls {
-	display: none;
-}
-#IRSeviFileNaming {
-	display: none;
-}*/
-
 /* IR-Sevi Mode - Left Side */
 
 #IRSeviTitleSection {
