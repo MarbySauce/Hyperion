@@ -58,13 +58,13 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, (event, centroid_results) => {
 		UI Event Listeners
 ****/
 
-uiEmitter.on(UI.INFO.RESPONSE.IMAGEID, (image_id) => {
+uiEmitter.on(UI.RESPONSE.IMAGEID, (image_id) => {
 	ImageManager.current_image.id = image_id;
 	// Make sure file names also get updated
 	seviEmitter.emit(SEVI.QUERY.SCAN.FILENAME);
 	seviEmitter.emit(SEVI.QUERY.SCAN.FILENAMEIR);
 });
-uiEmitter.on(UI.INFO.RESPONSE.VMIINFO, (vmi_info) => {
+uiEmitter.on(UI.RESPONSE.VMIINFO, (vmi_info) => {
 	ImageManager.current_image.vmi_info = vmi_info;
 });
 
@@ -254,8 +254,8 @@ function ImageManager_reset_scan() {
 }
 
 function ImageManager_get_image_info() {
-	uiEmitter.emit(UI.INFO.QUERY.IMAGEID);
-	uiEmitter.emit(UI.INFO.QUERY.VMIINFO);
+	uiEmitter.emit(UI.QUERY.IMAGEID);
+	uiEmitter.emit(UI.QUERY.VMIINFO);
 }
 
 function ImageManager_get_image_display(which_image) {
@@ -267,7 +267,7 @@ function ImageManager_get_image_display(which_image) {
 		return;
 	}*/
 	// First, get the display slider contrast from UI
-	uiEmitter.once(UI.INFO.RESPONSE.DISPLAYSLIDERVALUE, (slider_value) => {
+	uiEmitter.once(UI.RESPONSE.DISPLAY.SLIDERVALUE, (slider_value) => {
 		// If there is a (non-empty) image in current_image, send that image
 		// otherwise send the image from last_image
 		let image_obj;
@@ -276,7 +276,7 @@ function ImageManager_get_image_display(which_image) {
 
 		seviEmitter.emit(SEVI.RESPONSE.IMAGE, image_obj.get_image_display(which_image, slider_value));
 	});
-	uiEmitter.emit(UI.INFO.QUERY.DISPLAYSLIDERVALUE);
+	uiEmitter.emit(UI.QUERY.DISPLAY.SLIDERVALUE);
 }
 
 /*****************************************************************************

@@ -61,7 +61,7 @@ document.getElementById("Settings").onclick = function () {
 		UI Event Listeners
 ****/
 
-uiEmitter.on(UI.CHANGE.TAB, change_tab);
+uiEmitter.on(UI.UPDATE.TAB, change_tab);
 
 /****
 		SEVI Event Listeners
@@ -161,12 +161,12 @@ const ImageIDInfo = {
 		UI Event Listeners
 ****/
 
-uiEmitter.on(UI.INFO.QUERY.IMAGEID, send_image_id_info);
+uiEmitter.on(UI.QUERY.IMAGEID, send_image_id_info);
 
-uiEmitter.on(UI.CHANGE.IMAGEID.INCREASE, ImageIDInfo.increase);
-uiEmitter.on(UI.CHANGE.IMAGEID.DECREASE, ImageIDInfo.decrease);
+uiEmitter.on(UI.UPDATE.IMAGEID.INCREASE, ImageIDInfo.increase);
+uiEmitter.on(UI.UPDATE.IMAGEID.DECREASE, ImageIDInfo.decrease);
 
-uiEmitter.on(UI.CHANGE.IMAGEID.RESUMEDIMAGE, () => {
+uiEmitter.on(UI.UPDATE.IMAGEID.RESUMEDIMAGE, () => {
 	// An image that was stopped (canceled or saved) has been resumed
 	// The Image ID should be changed to match that of the current image
 	// (set up listener with .once(), then ask for ID with .emit() )
@@ -183,12 +183,12 @@ uiEmitter.on(UI.CHANGE.IMAGEID.RESUMEDIMAGE, () => {
 
 // When a scan is saved, increment the Image ID counter
 seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, () => {
-	uiEmitter.emit(UI.CHANGE.IMAGEID.INCREASE);
+	uiEmitter.emit(UI.UPDATE.IMAGEID.INCREASE);
 });
 // When a scan is resumed, update image ID to that of the current image
 // (in case a previously saved image has been resumed)
 seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
-	uiEmitter.emit(UI.CHANGE.IMAGEID.RESUMEDIMAGE);
+	uiEmitter.emit(UI.UPDATE.IMAGEID.RESUMEDIMAGE);
 });
 
 /****
@@ -209,7 +209,7 @@ function ImageIDInfo_decrease() {
 }
 
 function send_image_id_info() {
-	uiEmitter.emit(UI.INFO.RESPONSE.IMAGEID, ImageIDInfo.image_id);
+	uiEmitter.emit(UI.RESPONSE.IMAGEID, ImageIDInfo.image_id);
 }
 
 /*****************************************************************************
@@ -227,8 +227,8 @@ const VMIInfo = {
 		UI Event Listeners
 ****/
 
-uiEmitter.on(UI.INFO.QUERY.VMI, send_vmi_info);
-uiEmitter.on(UI.CHANGE.VMI.INDEX, update_vmi_info);
+uiEmitter.on(UI.QUERY.VMI, send_vmi_info);
+uiEmitter.on(UI.UPDATE.VMI.INDEX, update_vmi_info);
 
 /****
 		Functions
@@ -241,7 +241,7 @@ function send_vmi_info() {
 		mode: VMIInfo.selected_mode,
 		calibration_constants: settings.vmi[VMIInfo.selected_mode],
 	};
-	uiEmitter.emit(UI.INFO.RESPONSE.VMI, vmi_info);
+	uiEmitter.emit(UI.RESPONSE.VMI, vmi_info);
 }
 
 function update_vmi_info(selected_index) {
@@ -258,23 +258,31 @@ function update_vmi_info(selected_index) {
 
 /*****************************************************************************
 
-						IMAGE DISPLAY SLIDER
+						ACCUMULATED IMAGE DISPLAYS
 
 *****************************************************************************/
 
-const DisplaySlider = {
-	value: 0.5,
+const DisplayInfo = {
+	selected_index: 0, // Which accumulated image to display (IR Off = 0, IR On = 1, etc)
+	slider_value: 0.5,
 };
 
 /****
 		UI Event Listeners
 ****/
 
-uiEmitter.on(UI.INFO.QUERY.DISPLAYSLIDERVALUE, () => {
-	uiEmitter.emit(UI.INFO.RESPONSE.DISPLAYSLIDERVALUE, DisplaySlider.value);
+uiEmitter.on(UI.QUERY.DISPLAY.SELECTEDINDEX, () => {
+	uiEmitter.emit(UI.RESPONSE.DISPLAY.SELECTEDINDEX, DisplayInfo.selected_index);
 });
-uiEmitter.on(UI.CHANGE.DISPLAYSLIDERVALUE, (value) => {
-	DisplaySlider.value = value;
+uiEmitter.on(UI.UPDATE.DISPLAY.SELECTEDINDEX, (value) => {
+	DisplayInfo.selected_index = value;
+});
+
+uiEmitter.on(UI.QUERY.DISPLAY.SLIDERVALUE, () => {
+	uiEmitter.emit(UI.RESPONSE.DISPLAY.SLIDERVALUE, DisplayInfo.slider_value);
+});
+uiEmitter.on(UI.UPDATE.DISPLAY.SLIDERVALUE, (value) => {
+	DisplayInfo.slider_value = value;
 });
 
 /****
@@ -295,6 +303,6 @@ const PageInfo = {
 		UI Event Listeners
 ****/
 
-uiEmitter.on(UI.INFO.QUERY.CURRENTTAB, () => {
-	uiEmitter.emit(UI.INFO.RESPONSE.CURRENTTAB, PageInfo.current_tab);
+uiEmitter.on(UI.QUERY.CURRENTTAB, () => {
+	uiEmitter.emit(UI.RESPONSE.CURRENTTAB, PageInfo.current_tab);
 });

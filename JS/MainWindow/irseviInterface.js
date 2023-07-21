@@ -21,8 +21,9 @@ function load_irsevi_info() {
 	//		Electron Info
 	//		PES Display
 
-	uiEmitter.emit(UI.INFO.QUERY.IMAGEID);
-	uiEmitter.emit(UI.INFO.QUERY.VMI);
+	uiEmitter.emit(UI.QUERY.IMAGEID);
+	uiEmitter.emit(UI.QUERY.VMI);
+	uiEmitter.emit(UI.QUERY.DISPLAY.SELECTEDINDEX);
 
 	seviEmitter.emit(SEVI.QUERY.SCAN.FILENAME);
 	seviEmitter.emit(SEVI.QUERY.SCAN.FILENAMEIR);
@@ -149,22 +150,22 @@ function change_irsevi_button_to_resume() {
 ****/
 
 document.getElementById("IRSeviImageCounterUp").onclick = function () {
-	uiEmitter.emit(UI.CHANGE.IMAGEID.INCREASE);
+	uiEmitter.emit(UI.UPDATE.IMAGEID.INCREASE);
 };
 document.getElementById("IRSeviImageCounterDown").onclick = function () {
-	uiEmitter.emit(UI.CHANGE.IMAGEID.DECREASE);
+	uiEmitter.emit(UI.UPDATE.IMAGEID.DECREASE);
 };
 document.getElementById("IRSeviVMIMode").oninput = function () {
 	const vmi_mode = document.getElementById("IRSeviVMIMode");
-	uiEmitter.emit(UI.CHANGE.VMI.INDEX, vmi_mode.selectedIndex);
+	uiEmitter.emit(UI.UPDATE.VMI.INDEX, vmi_mode.selectedIndex);
 };
 
 /****
 		UI Event Listeners
 ****/
 
-uiEmitter.on(UI.INFO.RESPONSE.IMAGEID, update_irsevi_image_id);
-uiEmitter.on(UI.INFO.RESPONSE.VMI, update_irsevi_vmi);
+uiEmitter.on(UI.RESPONSE.IMAGEID, update_irsevi_image_id);
+uiEmitter.on(UI.RESPONSE.VMI, update_irsevi_vmi);
 
 /****
 		SEVI Event Listeners
@@ -419,12 +420,14 @@ function irsevi_goto_ir() {
 ****/
 
 document.getElementById("IRSeviImageDisplaySelect").oninput = function () {
+	const image_display_select = document.getElementById("IRSeviImageDisplaySelect");
+	uiEmitter.emit(UI.UPDATE.DISPLAY.SELECTEDINDEX, image_display_select.selectedIndex);
 	update_irsevi_accumulated_image_display();
 };
 
 document.getElementById("IRSeviDisplaySlider").oninput = function () {
 	const display_slider = document.getElementById("IRSeviDisplaySlider");
-	uiEmitter.emit(UI.CHANGE.DISPLAYSLIDERVALUE, display_slider.value);
+	uiEmitter.emit(UI.UPDATE.DISPLAY.SLIDERVALUE, display_slider.value);
 	// Update image display
 	update_irsevi_accumulated_image_display();
 };
@@ -438,11 +441,11 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
 	// (a) the user is on the IR-SEVI tab AND
 	// (b) an image is currently being run AND
 	// (c) that image is not currently paused
-	let current_tab = once(uiEmitter, UI.INFO.RESPONSE.CURRENTTAB); // (a)
+	let current_tab = once(uiEmitter, UI.RESPONSE.CURRENTTAB); // (a)
 	let image_running = once(seviEmitter, SEVI.RESPONSE.SCAN.RUNNING); // (b)
 	let image_paused = once(seviEmitter, SEVI.RESPONSE.SCAN.PAUSED); // (c)
 	// Send query requests
-	uiEmitter.emit(UI.INFO.QUERY.CURRENTTAB);
+	uiEmitter.emit(UI.QUERY.CURRENTTAB);
 	seviEmitter.emit(SEVI.QUERY.SCAN.RUNNING);
 	seviEmitter.emit(SEVI.QUERY.SCAN.PAUSED);
 	// Wait for messages to be received (for promises to be resolved)
@@ -460,7 +463,12 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
 		UI Event Listeners
 ****/
 
-uiEmitter.on(UI.INFO.RESPONSE.DISPLAYSLIDERVALUE, (value) => {
+uiEmitter.on(UI.RESPONSE.DISPLAY.SELECTEDINDEX, (value) => {
+	const image_display_select = document.getElementById("IRSeviImageDisplaySelect");
+	image_display_select.selectedIndex = value;
+});
+
+uiEmitter.on(UI.RESPONSE.DISPLAY.SLIDERVALUE, (value) => {
 	const display_slider = document.getElementById("IRSeviDisplaySlider");
 	display_slider.value = value;
 });

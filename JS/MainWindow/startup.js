@@ -31,7 +31,6 @@ const laserEmitter = new EventEmitter();
 window.onload = function () {
 	// Send message to main process that the window is ready
 	ipc.send(IPCMessages.READY.MAINWINDOW, null);
-	//uiEmitter.emit(UI.CHANGE.TAB);
 };
 
 // Recieve setting information and go through startup procedure
@@ -42,7 +41,7 @@ ipc.on("settings-information", (event, settings_information) => {
 
 async function startup() {
 	// Go to Sevi Mode tab
-	uiEmitter.emit(UI.CHANGE.TAB, UI.TAB.SEVI);
+	uiEmitter.emit(UI.UPDATE.TAB, UI.TAB.SEVI);
 
 	// Start wavemeter application
 	wavemeter.startApplication();

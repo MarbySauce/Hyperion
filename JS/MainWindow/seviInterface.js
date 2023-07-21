@@ -37,8 +37,8 @@ function load_sevi_info() {
 	//		Electron Info
 	//		PES Display
 
-	uiEmitter.emit(UI.INFO.QUERY.IMAGEID);
-	uiEmitter.emit(UI.INFO.QUERY.VMI);
+	uiEmitter.emit(UI.QUERY.IMAGEID);
+	uiEmitter.emit(UI.QUERY.VMI);
 
 	seviEmitter.emit(SEVI.QUERY.SCAN.FILENAME);
 
@@ -163,22 +163,22 @@ function change_sevi_button_to_resume() {
 ****/
 
 document.getElementById("SeviImageCounterUp").onclick = function () {
-	uiEmitter.emit(UI.CHANGE.IMAGEID.INCREASE);
+	uiEmitter.emit(UI.UPDATE.IMAGEID.INCREASE);
 };
 document.getElementById("SeviImageCounterDown").onclick = function () {
-	uiEmitter.emit(UI.CHANGE.IMAGEID.DECREASE);
+	uiEmitter.emit(UI.UPDATE.IMAGEID.DECREASE);
 };
 document.getElementById("SeviVMIMode").oninput = function () {
 	const vmi_mode = document.getElementById("SeviVMIMode");
-	uiEmitter.emit(UI.CHANGE.VMI.INDEX, vmi_mode.selectedIndex);
+	uiEmitter.emit(UI.UPDATE.VMI.INDEX, vmi_mode.selectedIndex);
 };
 
 /****
 		UI Event Listeners
 ****/
 
-uiEmitter.on(UI.INFO.RESPONSE.IMAGEID, update_sevi_image_id);
-uiEmitter.on(UI.INFO.RESPONSE.VMI, update_sevi_vmi);
+uiEmitter.on(UI.RESPONSE.IMAGEID, update_sevi_image_id);
+uiEmitter.on(UI.RESPONSE.VMI, update_sevi_vmi);
 
 /****
 		SEVI Event Listeners
@@ -319,7 +319,7 @@ function update_sevi_detachment_energies(detachment_wl_class) {
 
 document.getElementById("SeviDisplaySlider").oninput = function () {
 	const display_slider = document.getElementById("SeviDisplaySlider");
-	uiEmitter.emit(UI.CHANGE.DISPLAYSLIDERVALUE, display_slider.value);
+	uiEmitter.emit(UI.UPDATE.DISPLAY.SLIDERVALUE, display_slider.value);
 	// Update image display
 	update_sevi_accumulated_image_display();
 };
@@ -333,11 +333,11 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
 	// (a) the user is on the SEVI tab AND
 	// (b) an image is currently being run AND
 	// (c) that image is not currently paused
-	let current_tab = once(uiEmitter, UI.INFO.RESPONSE.CURRENTTAB); // (a)
+	let current_tab = once(uiEmitter, UI.RESPONSE.CURRENTTAB); // (a)
 	let image_running = once(seviEmitter, SEVI.RESPONSE.SCAN.RUNNING); // (b)
 	let image_paused = once(seviEmitter, SEVI.RESPONSE.SCAN.PAUSED); // (c)
 	// Send query requests
-	uiEmitter.emit(UI.INFO.QUERY.CURRENTTAB);
+	uiEmitter.emit(UI.QUERY.CURRENTTAB);
 	seviEmitter.emit(SEVI.QUERY.SCAN.RUNNING);
 	seviEmitter.emit(SEVI.QUERY.SCAN.PAUSED);
 	// Wait for messages to be received (for promises to be resolved)
@@ -355,7 +355,7 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
 		UI Event Listeners
 ****/
 
-uiEmitter.on(UI.INFO.RESPONSE.DISPLAYSLIDERVALUE, (value) => {
+uiEmitter.on(UI.RESPONSE.DISPLAY.SLIDERVALUE, (value) => {
 	const display_slider = document.getElementById("SeviDisplaySlider");
 	display_slider.value = value;
 });
