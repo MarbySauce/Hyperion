@@ -141,8 +141,11 @@
 /* Sevi Mode - Left Side - Laser Setup - Laser Measurement Button */
 #SeviDetachmentLaserMeasurement {
 	grid-area: LaserMeasurement;
-	grid-template-columns: 6fr 2fr;
-	grid-template-areas: "blank1 MeasureDetachmentWavelength";
+	grid-template-columns: 3.5fr 2fr 0.5fr 2fr;
+	grid-template-areas: "blank1 CancelMeasurement blank2 MeasureDetachmentWavelength";
+}
+#SeviMeasureDetachmentWavelengthCancel {
+	grid-area: CancelMeasurement;
 }
 #SeviMeasureDetachmentWavelength {
 	grid-area: MeasureDetachmentWavelength;

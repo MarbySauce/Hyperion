@@ -145,8 +145,11 @@
 /* IR-Sevi Mode - Left Side - Laser Setup - Detachment Laser Measurement Button */
 #IRSeviDetachmentLaserMeasurement {
 	grid-area: DetachmentMeasurement;
-	grid-template-columns: 6fr 2fr;
-	grid-template-areas: "blank MeasureDetachmentWavelength";
+	grid-template-columns: 3.5fr 2fr 0.5fr 2fr;
+	grid-template-areas: "blank1 CancelMeasurement blank2 MeasureDetachmentWavelength";
+}
+#IRSeviMeasureDetachmentWavelengthCancel {
+	grid-area: CancelMeasurement;
 }
 #IRSeviMeasureDetachmentWavelength {
 	grid-area: MeasureDetachmentWavelength;
@@ -186,8 +189,11 @@
 /* IR-Sevi Mode - Left Side - Laser Setup - Laser Measurement Button */
 #IRSeviExcitationLaserMeasurement {
 	grid-area: ExcitationMeasurement;
-	grid-template-columns: 6fr 2fr;
-	grid-template-areas: "blank MeasureExcitationWavelength";
+	grid-template-columns: 3.5fr 2fr 0.5fr 2fr;
+	grid-template-areas: "blank1 CancelMeasurement blank2 MeasureExcitationWavelength";
+}
+#IRSeviMeasureExcitationWavelengthCancel {
+	grid-area: CancelMeasurement;
 }
 #IRSeviMeasureExcitationWavelength {
 	grid-area: MeasureExcitationWavelength;
@@ -196,8 +202,8 @@
 /* IR-Sevi Mode - Left Side - Laser Setup - Move Excitation Laser */
 #IRSeviIRLaserControl {
 	grid-area: IRLaserControl;
-	grid-template-columns: 2.4fr 1.4fr 1.2fr 1fr 1.3fr;
-	grid-template-areas: "IRLaserControlLabel DesiredEnergy DesiredEnergyUnit DesiredIRRangeMessage MoveIRButton";
+	grid-template-columns: 2.1fr 1.4fr 1fr 0.1fr 1.3fr 1.3fr;
+	grid-template-areas: "IRLaserControlLabel DesiredEnergy DesiredEnergyUnit blank MoveIRCancel MoveIRButton";
 }
 #IRSeviIRLaserControlLabel {
 	grid-area: IRLaserControlLabel;
@@ -208,8 +214,8 @@
 #IRSeviDesiredEnergyUnit {
 	grid-area: DesiredEnergyUnit;
 }
-#IRSeviDesiredIRRangeMessage {
-	grid-area: DesiredIRRangeMessage;
+#IRSeviMoveIRButtonCancel {
+	grid-area: MoveIRCancel;
 }
 #IRSeviMoveIRButton {
 	grid-area: MoveIRButton;
