@@ -55,7 +55,7 @@
 }
 #IRActionAutomaticStopUnit {
 	width: 100%;
-	height: 90%;
+	height: 70%;
 }
 #IRActionImageAmountSelection {
 	grid-gap: 10px;
@@ -68,7 +68,7 @@
 }
 #IRActionVMIMode {
 	width: 100%;
-	height: 90%;
+	height: 70%;
 	padding-left: 30%;
 }
 
