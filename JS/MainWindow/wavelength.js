@@ -219,6 +219,8 @@ async function move_opo_wavelength(desired_energy) {
 		return;
 	}
 	laserEmitter.emit(LASER.ALERT.GOTO.STARTED);
+	// Make sure the OPO is in wavelength mode (since we specify to go to nIR wavelength)
+	opo.wavelength_mode();
 	// If the excitation wavemeter channel is not set, then we should move OPO without
 	//	automatically measuring wavelength -> should move to desired wavelength in one attempt
 	if (settings.laser.excitation.wavemeter_channel === -1) {
@@ -297,6 +299,7 @@ const opo = {
 		command: {
 			get_wavelength: "TELLWL",
 			get_motor_status: "TELLSTAT",
+			set_to_wavelength_mode: "SETWL",
 			stop_all: "STOP ALL",
 			move: (val) => {
 				// val should be nIR wavelength in nm
@@ -366,6 +369,12 @@ const opo = {
 	set_speed: (speed) => {
 		let nIR_speed = speed || 1.0; // Default value of 1 nm/sec
 		opo.network.client.write(`SETSPD ${nIR_speed.toFixed(3)}`, () => {});
+	},
+	/**
+	 * Set OPO to work in wavelength mode (as opposed to wavenumber mode)
+	 */
+	wavelength_mode: () => {
+		opo.network.client.write(opo.network.command.set_to_wavelength_mode, () => {});
 	},
 	/**
 	 * Stop OPO movement

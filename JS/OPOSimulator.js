@@ -71,6 +71,10 @@ function parse_data(data) {
 		case "TELLSTAT":
 			tell_stat();
 			break;
+		case "SETWL":
+			// Set to wavelength mode - don't need to do anything
+			send_success();
+			break;
 		case "STOP":
 			stop_movement();
 			break;
@@ -177,4 +181,5 @@ function tell_stat() {
 
 function stop_movement() {
 	opo.motors_moving = false;
+	send_success();
 }
