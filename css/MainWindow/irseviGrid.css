@@ -145,7 +145,7 @@
 /* IR-Sevi Mode - Left Side - Laser Setup - Detachment Laser Measurement Button */
 #IRSeviDetachmentLaserMeasurement {
 	grid-area: DetachmentMeasurement;
-	grid-template-columns: 3.5fr 2fr 0.5fr 2fr;
+	grid-template-columns: 3.8fr 2fr 0.2fr 2fr;
 	grid-template-areas: "blank1 CancelMeasurement blank2 MeasureDetachmentWavelength";
 }
 #IRSeviMeasureDetachmentWavelengthCancel {
@@ -189,7 +189,7 @@
 /* IR-Sevi Mode - Left Side - Laser Setup - Laser Measurement Button */
 #IRSeviExcitationLaserMeasurement {
 	grid-area: ExcitationMeasurement;
-	grid-template-columns: 3.5fr 2fr 0.5fr 2fr;
+	grid-template-columns: 3.8fr 2fr 0.2fr 2fr;
 	grid-template-areas: "blank1 CancelMeasurement blank2 MeasureExcitationWavelength";
 }
 #IRSeviMeasureExcitationWavelengthCancel {

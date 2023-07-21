@@ -217,19 +217,27 @@ document.getElementById("IRSeviIRWavelengthMode").oninput = function () {
 };
 
 document.getElementById("IRSeviMeasureDetachmentWavelength").onclick = function () {
-	const measure_button = document.getElementById("IRSeviMeasureDetachmentWavelength");
 	laserEmitter.emit(LASER.MEASURE.DETACHMENT);
-	measure_button.disabled = true;
+};
+
+document.getElementById("IRSeviMeasureDetachmentWavelengthCancel").onclick = function () {
+	laserEmitter.emit(LASER.MEASURE.CANCEL.DETACHMENT);
 };
 
 document.getElementById("IRSeviMeasureExcitationWavelength").onclick = function () {
-	const measure_button = document.getElementById("IRSeviMeasureExcitationWavelength");
 	laserEmitter.emit(LASER.MEASURE.EXCITATION);
-	measure_button.disabled = true;
+};
+
+document.getElementById("IRSeviMeasureExcitationWavelengthCancel").onclick = function () {
+	laserEmitter.emit(LASER.MEASURE.CANCEL.EXCITATION);
 };
 
 document.getElementById("IRSeviMoveIRButton").onclick = function () {
 	irsevi_goto_ir();
+};
+
+document.getElementById("IRSeviMoveIRButtonCancel").onclick = function () {
+	laserEmitter.emit(LASER.GOTO.CANCEL);
 };
 
 // Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
@@ -257,9 +265,60 @@ laserEmitter.on(LASER.RESPONSE.DETACHMENT.INFO, update_irsevi_detachment_energie
 
 laserEmitter.on(LASER.RESPONSE.EXCITATION.INFO, update_irsevi_excitation_energies);
 
+laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.DETACHMENT.STARTED, () => {
+	// Disable measure button and show cancel measurement button
+	const measure_button = document.getElementById("IRSeviMeasureDetachmentWavelength");
+	const cancel_button = document.getElementById("IRSeviMeasureDetachmentWavelengthCancel");
+	measure_button.disabled = true;
+	cancel_button.classList.remove("hidden");
+});
+
+laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.DETACHMENT.STOPPED, () => {
+	// Re-enable measure button and hide cancel measurement button
+	const measure_button = document.getElementById("IRSeviMeasureDetachmentWavelength");
+	const cancel_button = document.getElementById("IRSeviMeasureDetachmentWavelengthCancel");
+	measure_button.disabled = false;
+	cancel_button.classList.add("hidden");
+});
+
+laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STARTED, () => {
+	// Disable measure button and show cancel measurement button
+	const measure_button = document.getElementById("IRSeviMeasureExcitationWavelength");
+	const cancel_button = document.getElementById("IRSeviMeasureExcitationWavelengthCancel");
+	measure_button.disabled = true;
+	cancel_button.classList.remove("hidden");
+});
+
+laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED, () => {
+	// Re-enable measure button and hide cancel measurement button
+	const measure_button = document.getElementById("IRSeviMeasureExcitationWavelength");
+	const cancel_button = document.getElementById("IRSeviMeasureExcitationWavelengthCancel");
+	measure_button.disabled = false;
+	cancel_button.classList.add("hidden");
+});
+
+laserEmitter.on(LASER.ALERT.GOTO.STARTED, () => {
+	// Disable GoTo button and show cancel button
+	const goto_button = document.getElementById("IRSeviMoveIRButton");
+	const cancel_button = document.getElementById("IRSeviMoveIRButtonCancel");
+	goto_button.disabled = true;
+	cancel_button.classList.remove("hidden");
+});
+
+laserEmitter.on(LASER.ALERT.GOTO.STOPPED, () => {
+	// Re-enable GoTo button and hide cancel button
+	const goto_button = document.getElementById("IRSeviMoveIRButton");
+	const cancel_button = document.getElementById("IRSeviMoveIRButtonCancel");
+	goto_button.disabled = false;
+	cancel_button.classList.add("hidden");
+});
+
 laserEmitter.on(LASER.ALERT.GOTO.CANCELED, () => {
-	// Re-enable GoTo button
-	document.getElementById("IRSeviMoveIRButton").disabled = false;
+	// Re-enable GoTo button and hide cancel button
+	const goto_button = document.getElementById("IRSeviMoveIRButton");
+	const cancel_button = document.getElementById("IRSeviMoveIRButtonCancel");
+	goto_button.disabled = false;
+	cancel_button.classList.add("hidden");
 });
 
 /****
@@ -321,9 +380,6 @@ function update_irsevi_detachment_energies(detachment_wl_class) {
 			detachment_mode.selectedIndex = 0;
 			break;
 	}
-
-	// Enable measure button if it was disabled
-	document.getElementById("IRSeviMeasureDetachmentWavelength").disabled = false;
 }
 
 function update_irsevi_excitation_wavelength() {
@@ -381,10 +437,6 @@ function update_irsevi_excitation_energies(excitation_wl_class) {
 			excitation_mode.selectedIndex = 0;
 			break;
 	}
-
-	// Enable measure button and GoTo button if disabled
-	document.getElementById("IRSeviMeasureExcitationWavelength").disabled = false;
-	document.getElementById("IRSeviMoveIRButton").disabled = false;
 }
 
 // Go to desired IR Energy
@@ -403,9 +455,6 @@ function irsevi_goto_ir() {
 			energy_input_value = 1e4 / energy_input_value;
 			break;
 	}
-	// Disable GoTo button
-	document.getElementById("IRSeviMoveIRButton").disabled = true;
-
 	laserEmitter.emit(LASER.GOTO.EXCITATION, energy_input_value);
 }
 

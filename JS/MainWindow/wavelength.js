@@ -19,6 +19,7 @@ const ExcitationLaserManager = {
 	measurement: new WavemeterMeasurement(),
 	last_offset: 0,
 	cancel: false,
+	cancel_goto: false,
 	pause: false,
 	params: {
 		move_attempts: 2,
@@ -70,6 +71,10 @@ laserEmitter.on(LASER.MEASURE.EXCITATION, async () => {
 	ExcitationLaserManager.send_stored_info();
 });
 
+laserEmitter.on(LASER.MEASURE.CANCEL.EXCITATION, () => {
+	ExcitationLaserManager.cancel = true;
+});
+
 // GoTo IR Energy requested
 // @param: desired_energy should be a number corresponding to the desired IR energy in wavenumbers (cm-1)
 laserEmitter.on(LASER.GOTO.EXCITATION, move_opo_wavelength);
@@ -90,11 +95,12 @@ laserEmitter.on(LASER.GOTO.RESUME, () => {
 // Cancel OPO GoTo wavelength movement
 laserEmitter.on(LASER.GOTO.CANCEL, () => {
 	ExcitationLaserManager.cancel = true;
+	ExcitationLaserManager.cancel_goto = true;
 });
 
 // If OPO GoTo movement canceled, update check bool
 laserEmitter.on(LASER.ALERT.GOTO.CANCELED, () => {
-	ExcitationLaserManager.cancel = false;
+	ExcitationLaserManager.cancel_goto = false;
 });
 
 /****
@@ -200,7 +206,6 @@ async function measure_opo_wavelength() {
  * @param {number} desired_energy Desired IR energy in cm-1
  */
 async function move_opo_wavelength(desired_energy) {
-	laserEmitter.emit(LASER.ALERT.GOTO.STARTED);
 	let energy_error;
 	let move_attempts = ExcitationLaserManager.params.move_attempts;
 	let desired_wavelength = new ExcitationWavelength();
@@ -208,9 +213,9 @@ async function move_opo_wavelength(desired_energy) {
 	if (!desired_mode) {
 		// IR energy is not possible, send error alert
 		msgEmitter.emit(MSG.ERROR, `IR Energy of ${desired_energy}cm-1 is not attainable`);
-		laserEmitter.emit(LASER.ALERT.GOTO.CANCELED);
 		return;
 	}
+	laserEmitter.emit(LASER.ALERT.GOTO.STARTED);
 	// If the excitation wavemeter channel is not set, then we should move OPO without
 	//	automatically measuring wavelength -> should move to desired wavelength in one attempt
 	if (settings.laser.excitation.wavemeter_channel === -1) {
@@ -227,10 +232,8 @@ async function move_opo_wavelength(desired_energy) {
 	// In either case, the offset we want to use is stored in ExcitationLaserManager.last_offset
 	let goto_wavelength = desired_nir - ExcitationLaserManager.last_offset;
 	for (let i = 0; i < move_attempts; i++) {
-		console.log(desired_nir, ExcitationLaserManager.last_offset, goto_wavelength);
-		console.log(converted_measurement.energy);
 		// Check if GoTo was canceled or paused
-		if (ExcitationLaserManager.cancel) {
+		if (ExcitationLaserManager.cancel_goto) {
 			laserEmitter.emit(LASER.ALERT.GOTO.CANCELED);
 			return;
 		}
@@ -247,7 +250,7 @@ async function move_opo_wavelength(desired_energy) {
 		// Tell OPO to move and wait
 		await opo.goto_nir(goto_wavelength);
 		// Check if GoTo was canceled or paused
-		if (ExcitationLaserManager.cancel) {
+		if (ExcitationLaserManager.cancel_goto) {
 			laserEmitter.emit(LASER.ALERT.GOTO.CANCELED);
 			return;
 		}
@@ -546,6 +549,10 @@ laserEmitter.on(LASER.MEASURE.DETACHMENT, async () => {
 	}
 	// Send back converted values
 	DetachmentLaserManager.send_stored_info();
+});
+
+laserEmitter.on(LASER.MEASURE.CANCEL.DETACHMENT, () => {
+	DetachmentLaserManager.cancel = true;
 });
 
 /****

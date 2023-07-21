@@ -220,9 +220,11 @@ document.getElementById("SeviWavelengthMode").oninput = function () {
 };
 
 document.getElementById("SeviMeasureDetachmentWavelength").onclick = function () {
-	const measure_button = document.getElementById("SeviMeasureDetachmentWavelength");
 	laserEmitter.emit(LASER.MEASURE.DETACHMENT);
-	measure_button.disabled = true;
+};
+
+document.getElementById("SeviMeasureDetachmentWavelengthCancel").onclick = function () {
+	laserEmitter.emit(LASER.MEASURE.CANCEL.DETACHMENT);
 };
 
 // Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
@@ -242,6 +244,22 @@ document.getElementById("SeviDetachmentWavelength").oninput = function () {
 ****/
 
 laserEmitter.on(LASER.RESPONSE.DETACHMENT.INFO, update_sevi_detachment_energies);
+
+laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.DETACHMENT.STARTED, () => {
+	// Disable measure button and show cancel measurement button
+	const measure_button = document.getElementById("SeviMeasureDetachmentWavelength");
+	const cancel_button = document.getElementById("SeviMeasureDetachmentWavelengthCancel");
+	measure_button.disabled = true;
+	cancel_button.classList.remove("hidden");
+});
+
+laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.DETACHMENT.STOPPED, () => {
+	// Re-enable measure button and hide cancel measurement button
+	const measure_button = document.getElementById("SeviMeasureDetachmentWavelength");
+	const cancel_button = document.getElementById("SeviMeasureDetachmentWavelengthCancel");
+	measure_button.disabled = false;
+	cancel_button.classList.add("hidden");
+});
 
 /****
 		Functions
@@ -302,9 +320,6 @@ function update_sevi_detachment_energies(detachment_wl_class) {
 			detachment_mode.selectedIndex = 0;
 			break;
 	}
-
-	// Enable measure button if it was disabled
-	document.getElementById("SeviMeasureDetachmentWavelength").disabled = false;
 }
 
 /*****************************************************************************
