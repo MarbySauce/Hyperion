@@ -386,37 +386,128 @@
 						<span class="scan-button-text" id="IRActionImageResetText">Reset Image</span>
 					</button>
 					<button class="scan-control-button square-button white-text" id="IRActionRemeasureWavelength">
-						<span class="scan-button-text" id="IRActionRemeasureWavelengthText">Remeasure<br />Wavelength</span>
+						<span class="scan-button-text" id="IRActionRemeasureWavelengthText">Remeasure<br />IR Wavelength</span>
 					</button>
 				</div>
 				<!-- IR Action Mode - First Page - Scan Options -->
 				<div class="grid background-lighter-blue" id="IRActionScanOptions">
-					<div class="grid background-lighter-blue" id="IRActionScanOptionsTitleSection">
+					<div class="grid background-lighter-blue justify-align-center" id="IRActionScanOptionsTitleSection">
 						<h3 class="white-text" id="IRActionScanOptionsTitle">Action Scan Parameters</h3>
 					</div>
 					<!-- Energy Range Selection -->
-					<div class="grid background-lighter-blue" id="IRActionEnergySelection">
-						<label class="white-text right-align" id="IRActionEnergyLabel">Energy: </label>
+					<div class="grid background-lighter-blue justify-align-center" id="IRActionEnergySelection">
+						<label class="white-text text-box-label" id="IRActionEnergyLabel">Energy: </label>
 						<input class="input-change action-options-input" id="IRActionIntitialEnergy" type="number" min="0" placeholder="-" />
 						<label class="white-text" id="IRActionOptionsHyphen">-</label>
-						<input class="input-read action-options-input" id="IRActionFinalEnergy" type="number" min="0" placeholder="-" />
+						<input class="input-change action-options-input" id="IRActionFinalEnergy" type="number" min="0" placeholder="-" />
 						<label class="white-text" id="IRActionWNLabel1">cm<sup>-1</sup> @ </label>
-						<input class="input-read action-options-input" id="IRActionEnergyStep" type="number" min="0" placeholder="-" />
+						<input class="input-change action-options-input" id="IRActionEnergyStep" type="number" min="0" placeholder="-" />
 						<label class="white-text" id="IRActionWNLabel2">cm<sup>-1</sup> steps</label>
 					</div>
 					<!-- Autostop Selection -->
-					<div class="grid background-lighter-blue" id="IRActionAutostopSelection"></div>
+					<div class="grid background-lighter-blue justify-align-center" id="IRActionAutomaticStopSelection">
+						<label class="white-text text-box-label" id="IRActionAutomaticStopLabel">Stop Scan After:</label>
+						<input class="input-change action-options-input" id="IRActionAutomaticStop" placeholder="-" />
+						<select class="white-text square-button drop-down" name="AutomaticStopUnit" id="IRActionAutomaticStopUnit">
+							<option value="Electrons">x1e5 Electrons</option>
+							<option value="Frames">x1000 Frames</option>
+						</select>
+					</div>
 					<!-- Images / Energy Step -->
-					<div class="grid background-lighter-blue" id="IRActionImageAmount"></div>
-					<!-- VMI Selection -->
-					<div class="grid background-lighter-blue" id="IRActionVMISelection"></div>
+					<div class="grid background-lighter-blue justify-align-center" id="IRActionImageAmountSelection">
+						<label class="white-text text-box-label" id="IRActionImageAmountLabel">Images / energy step:</label>
+						<input class="input-change action-options-input" id="IRActionImageAmount" value="1" />
+					</div>
+					<!-- VMI Selection & Reset/Update Buttons -->
+					<div class="grid background-lighter-blue" id="IRActionVMISelection">
+						<label class="white-text text-box-label" id="IRActionVMILabel">VMI Setting:</label>
+						<select class="white-text square-button drop-down" name="IRActionVMIMode" id="IRActionVMIMode">
+							<option value="V1">V1</option>
+							<option value="V2">V2</option>
+							<option value="V3">V3</option>
+							<option value="V4">V4</option>
+						</select>
+						<button class="white-text square-button scan-control-button hidden" id="IRActionResetOptions">Reset</button>
+						<button class="white-text square-button scan-control-button hidden" id="IRActionUpdateOptions">Update</button>
+					</div>
 				</div>
 				<!-- IR Action Mode - First Page - Scan Status -->
-				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionScanStatus"></div>
+				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionScanStatus">
+					<div class="grid action-status-row justify-align-center" id="IRActionScanStatusTitleSection">
+						<h3 class="white-text" id="IRActionScanStatusTitle">Action Scan Status</h3>
+					</div>
+					<div class="grid action-status-row justify-align-center" id="IRActionStatusCurrentImage">
+						<label class="white-text action-status-label status-label left-align" id="IRActionStatusCurrentImageLabel">Current Image:</label>
+						<label class="white-text action-status-label center-align" id="IRActionStatusCurrentImageValues">i05 (3 of 25)</label>
+					</div>
+					<div class="grid action-status-row justify-align-center" id="IRActionStatusCurrentEnergy">
+						<label class="white-text action-status-label status-label left-align" id="IRActionStatusCurrentEnergyLabel">Current Energy:</label>
+						<label class="white-text action-status-label right-align" id="IRActionStatusCurrentEnergyNIRLabel">nIR</label>
+						<input class="input-read action-status-hv" id="IRActionCurrentWavelength" type="number" min="0" placeholder="-" readonly />
+						<label class="white-text action-status-label" id="IRActionStatusNMLabel1">nm</label>
+						<!-- &#x2192; is the hex code for a right pointing arrow -->
+						<label class="white-text action-status-label center-align" id="IRActionStatusArrow1">&#x2192;</label>
+						<label class="white-text action-status-label right-align" id="IRActionStatusCurrentEnergyIRLabel">mIR</label>
+						<input class="input-read action-status-hv" id="IRActionCurrentWavenumber" type="number" min="0" placeholder="-" readonly />
+						<label class="white-text action-status-label" id="IRActionStatusWNLabel1">cm<sup>-1</sup></label>
+					</div>
+					<div class="grid action-status-row justify-align-center" id="IRActionStatusNextEnergy">
+						<label class="white-text action-status-label status-label left-align" id="IRActionStatusNextEnergyLabel">Next Energy:</label>
+						<label class="white-text action-status-label right-align" id="IRActionStatusNextEnergyNIRLabel">nIR</label>
+						<input class="input-read action-status-hv" id="IRActionNextWavelength" type="number" min="0" placeholder="-" readonly />
+						<label class="white-text action-status-label" id="IRActionStatusNMLabel2">nm</label>
+						<!-- &#x2192; is the hex code for a right pointing arrow -->
+						<label class="white-text action-status-label center-align" id="IRActionStatusArrow2">&#x2192;</label>
+						<label class="white-text action-status-label right-align" id="IRActionStatusNextEnergyIRLabel">mIR</label>
+						<input class="input-read action-status-hv" id="IRActionNextWavenumber" type="number" min="0" placeholder="-" readonly />
+						<label class="white-text action-status-label" id="IRActionStatusWNLabel2">cm<sup>-1</sup></label>
+					</div>
+					<div class="grid action-status-row justify-align-center" id="IRActionStatusScanDuration">
+						<label class="white-text action-status-label status-label left-align" id="IRActionStatusScanDurationLabel">Scan Duration:</label>
+						<label class="white-text action-status-label center-align" id="IRActionStatusScanDurationValues">1 hour 20 min 35 sec</label>
+					</div>
+					<div class="grid action-status-row justify-align-center" id="IRActionStatusCurrentStep">
+						<label class="white-text action-status-label status-label left-align" id="IRActionStatusCurrentStepLabel">Current Step:</label>
+						<label class="white-text action-status-label center-align" id="IRActionStatusCurrentStepValues">Collecting IR-SEVI Image</label>
+					</div>
+				</div>
 				<!-- IR Action Mode - First Page - Image Display -->
-				<div class="grid background-lighter-blue" id="IRActionImageDisplay"></div>
-				<!-- IR Action Mode - First Page - Electron Counters -->
-				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionElectronCounters"></div>
+				<div class="grid background-lighter-blue" id="IRActionImageDisplay">
+					<h3 class="white-text">Accumulated View</h3>
+					<select class="white-text square-button drop-down" name="IRActionImageDisplaySelect" id="IRActionImageDisplaySelect">
+						<option value="IROff">IR Off</option>
+						<option value="IROn">IR On</option>
+						<option value="DifferencePos">Difference (Pos.)</option>
+						<option value="DifferenceNeg">Difference (Neg.)</option>
+					</select>
+					<div class="grid" id="IRActionDisplayWrapper">
+						<canvas class="accumulated-image" id="IRActionDisplay" width="2000" height="2000"></canvas>
+					</div>
+
+					<input class="display-slider" id="IRActionDisplaySlider" type="range" min="0.05" max="1" step="0.05" value="0.5" />
+				</div>
+				<!-- IR Action Mode - First Page - Electron Counters & Image Progress Bar -->
+				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionElectronCounters">
+					<h3 class="white-text" id="IRActionIROffCountersTitle">IR Off</h3>
+					<h3 class="white-text" id="IRActionIROnCountersTitle">IR On</h3>
+					<label class="white-text text-box-label" id="IRActionTotalFramesLabel" for="IRActionTotalFrames">Total Frames:</label>
+					<input class="input-read e-counter-box" id="IRActionTotalFrames" type="number" value="0" readonly />
+					<input class="input-read e-counter-box" id="IRActionTotalFramesIROn" type="number" value="0" readonly />
+					<label class="white-text text-box-label" id="IRActionTotalECountLabel" for="IRActionTotalECount">Total e<sup>-</sup> Count:</label>
+					<input class="input-read e-counter-box" id="IRActionTotalECount" type="text" value="0" readonly />
+					<input class="input-read e-counter-box" id="IRActionTotalECountIROn" type="text" value="0" readonly />
+					<label class="white-text text-box-label" id="IRActionAvgECountLabel" for="IRActionAvgECount">Average e<sup>-</sup>/Shot:</label>
+					<input class="input-read e-counter-box" id="IRActionAvgECount" type="number" value="0" readonly />
+					<input class="input-read e-counter-box" id="IRActionAvgECountIROn" type="number" value="0" readonly />
+					<div class="divider-line" id="IRActionECountersDivLine"></div>
+					<div class="grid justify-align-center" id="IRActionImageProgressBarBackground">
+						<label class="white-text" id="IRActionImageProgressLabel">Image Progress:</label>
+						<div id="IRActionImageProgressBarOuter">
+							<div class="white-text" id="IRActionImageProgressBar"></div>
+						</div>
+						<label class="white-text" id="IRActionImageProgressPercentLabel">100%</label>
+					</div>
+				</div>
 				<!-- Page Down Button -->
 				<button class="page-down page-button" id="IRActionPageDown"><i class="arrow arrow-down"></i></button>
 			</div>
@@ -504,6 +595,7 @@
 		<script src="../JS/MainWindow/interface.js"></script>
 		<script src="../JS/MainWindow/seviInterface.js"></script>
 		<script src="../JS/MainWindow/irseviInterface.js"></script>
+		<script src="../JS/MainWindow/iractionInterface.js"></script>
 		<script src="../JS/MainWindow/sevi.js"></script>
 		<script src="../JS/MainWindow/wavelength.js"></script>
 		<script src="../JS/MainWindow/messenger.js"></script>

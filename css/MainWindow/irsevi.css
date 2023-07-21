@@ -78,7 +78,7 @@ Right Side
 #IRSeviImageDisplaySelect {
 	height: 80%;
 }
-#IRImageDisplay:focus-visible {
+#IRSeviImageDisplay:focus-visible {
 	outline: none;
 }
 #IRSeviDisplayWrapper {
@@ -87,7 +87,6 @@ Right Side
 	justify-self: center;
 	border-radius: 10px;
 }
-
 #IRSeviImageDisplay h3 {
 	padding-right: 10%;
 	text-align: right;
