@@ -49,6 +49,22 @@ function load_iraction_info() {
 
 *****************************************************************************/
 
+/****
+		HTML Element Listeners
+****/
+
+/****
+		UI Event Listeners
+****/
+
+/****
+		SEVI Event Listeners
+****/
+
+/****
+		Functions
+****/
+
 /*****************************************************************************
 
 							SCAN OPTIONS
@@ -88,6 +104,22 @@ function update_iraction_vmi(vmi_info) {
 							SCAN STATUS
 
 *****************************************************************************/
+
+/****
+		HTML Element Listeners
+****/
+
+/****
+		UI Event Listeners
+****/
+
+/****
+		SEVI Event Listeners
+****/
+
+/****
+		Functions
+****/
 
 /*****************************************************************************
 
