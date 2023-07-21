@@ -96,11 +96,14 @@ laserEmitter.on(LASER.GOTO.RESUME, () => {
 laserEmitter.on(LASER.GOTO.CANCEL, () => {
 	ExcitationLaserManager.cancel = true;
 	ExcitationLaserManager.cancel_goto = true;
+	// Send message to OPO to stop moving
+	opo.stop_movement();
 });
 
 // If OPO GoTo movement canceled, update check bool
 laserEmitter.on(LASER.ALERT.GOTO.CANCELED, () => {
 	ExcitationLaserManager.cancel_goto = false;
+	ExcitationLaserManager.cancel = false;
 });
 
 /****
@@ -294,6 +297,7 @@ const opo = {
 		command: {
 			get_wavelength: "TELLWL",
 			get_motor_status: "TELLSTAT",
+			stop_all: "STOP ALL",
 			move: (val) => {
 				// val should be nIR wavelength in nm
 				return `GOTO ${val.toFixed(3)}`;
@@ -362,6 +366,12 @@ const opo = {
 	set_speed: (speed) => {
 		let nIR_speed = speed || 1.0; // Default value of 1 nm/sec
 		opo.network.client.write(`SETSPD ${nIR_speed.toFixed(3)}`, () => {});
+	},
+	/**
+	 * Stop OPO movement
+	 */
+	stop_movement: () => {
+		opo.network.client.write(opo.network.command.stop_all, () => {});
 	},
 	/**
 	 * Parse error returned by OPO

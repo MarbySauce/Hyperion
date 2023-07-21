@@ -71,6 +71,12 @@ function parse_data(data) {
 		case "TELLSTAT":
 			tell_stat();
 			break;
+		case "STOP":
+			stop_movement();
+			break;
+		case "SCOFF":
+			stop_movement();
+			break;
 		case "CLOSE":
 			close_server();
 			break;
@@ -167,4 +173,8 @@ function tell_stat() {
 		motor_mvmt += "0";
 	}
 	opo.send_msg(motor_mvmt);
+}
+
+function stop_movement() {
+	opo.motors_moving = false;
 }
