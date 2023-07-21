@@ -151,6 +151,32 @@ Napi::Number NapiGetDistance(const Napi::CallbackInfo& info) {
     return Napi::Number::New(env, distance);
 }
 
+Napi::Number NapiReturnMode0(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Error return value
+	long retVal;
+
+	// Check if the program is already running
+	retVal = Instantiate(cInstReturnMode, 0, 0, 0);
+
+	// Return error value
+	return Napi::Number::New(env, retVal);
+}
+
+Napi::Number NapiReturnMode1(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Error return value
+	long retVal;
+
+	// Check if the program is already running
+	retVal = Instantiate(cInstReturnMode, 1, 0, 0);
+
+	// Return error value
+	return Napi::Number::New(env, retVal);
+}
+
 // On Mac, this sets up function to simulate wavelength
 // 		here it does nothing
 void NapiSetUpFunction(const Napi::CallbackInfo& info) {
@@ -168,6 +194,8 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	exports["getWavelengthNum"] = Napi::Function::New(env, NapiGetWavelengthNum);
 	exports["getPowerNum"] = Napi::Function::New(env, NapiGetPowerNum);
 	exports["getDistance"] = Napi::Function::New(env, NapiGetDistance);
+	exports["returnMode0"] = Napi::Function::New(env, NapiReturnMode0);
+	exports["returnMode1"] = Napi::Function::New(env, NapiReturnMode1);
 	exports["setUpFunction"] = Napi::Function::New(env, NapiSetUpFunction);
 
     return exports;
