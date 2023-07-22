@@ -112,6 +112,7 @@ laserEmitter.on(LASER.ALERT.GOTO.CANCELED, () => {
 
 function ExcitationLaserManager_send_stored_info() {
 	laserEmitter.emit(LASER.RESPONSE.EXCITATION.INFO, ExcitationLaserManager.stored);
+	laserEmitter.emit(LASER.RESPONSE.EXCITATION.MEASUREMENT, ExcitationLaserManager.measurement);
 }
 
 async function ExcitationLaserManager_measure(expected_wavelength) {
@@ -299,13 +300,14 @@ const opo = {
 			port: 1315,
 		},
 		command: {
-			get_wavelength: "TELLWL",
-			get_motor_status: "TELLSTAT",
-			set_to_wavelength_mode: "SETWL",
-			stop_all: "STOP ALL",
+			get_wavelength: "TELLWL ",
+			get_motor_status: "TELLSTAT ",
+			set_to_wavelength_mode: "SETWL ",
+			stop_all: "STOP ALL ",
+			scanning_off: "SCOFF ",
 			move: (val) => {
 				// val should be nIR wavelength in nm
-				return `GOTO ${val.toFixed(3)}`;
+				return `GOTO ${val.toFixed(3)} `;
 			},
 		},
 		/**
@@ -370,7 +372,7 @@ const opo = {
 	 */
 	set_speed: (speed) => {
 		let nIR_speed = speed || 1.0; // Default value of 1 nm/sec
-		opo.network.client.write(`SETSPD ${nIR_speed.toFixed(3)}`, () => {});
+		opo.network.client.write(`SETSPD ${nIR_speed.toFixed(3)} `, () => {});
 	},
 	/**
 	 * Set OPO to work in wavelength mode (as opposed to wavenumber mode)
@@ -382,7 +384,8 @@ const opo = {
 	 * Stop OPO movement
 	 */
 	stop_movement: () => {
-		opo.network.client.write(opo.network.command.stop_all, () => {});
+		// Either "SCOFF" or "STOP ALL" should work - not sure which is the better choice
+		opo.network.client.write(opo.network.command.scanning_off, () => {});
 	},
 	/**
 	 * Parse error returned by OPO
@@ -583,6 +586,7 @@ laserEmitter.on(LASER.MEASURE.CANCEL.DETACHMENT, () => {
 
 function DetachmentLaserManager_send_stored_info() {
 	laserEmitter.emit(LASER.RESPONSE.DETACHMENT.INFO, DetachmentLaserManager.stored);
+	laserEmitter.emit(LASER.RESPONSE.DETACHMENT.MEASUREMENT, DetachmentLaserManager.measurement);
 }
 
 async function DetachmentLaserManager_measure(expected_wavelength) {

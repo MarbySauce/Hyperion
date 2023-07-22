@@ -69,6 +69,30 @@ uiEmitter.on(UI.RESPONSE.VMIINFO, (vmi_info) => {
 });
 
 /****
+		Laser Event Listeners
+****/
+
+// detachment_info will be a DetachmentWavelength class object
+laserEmitter.on(LASER.RESPONSE.DETACHMENT.INFO, (detachment_info) => {
+	ImageManager.current_image.detachment_wavelength = detachment_info;
+});
+
+// detachment_measurement will be a WavemeterMeasurement class object
+laserEmitter.on(LASER.RESPONSE.DETACHMENT.MEASUREMENT, (detachment_measurement) => {
+	ImageManager.current_image.detachment_measurement = detachment_measurement;
+});
+
+// excitation_info will be a ExcitationWavelength class object
+laserEmitter.on(LASER.RESPONSE.EXCITATION.INFO, (excitation_info) => {
+	ImageManager.current_image.excitation_wavelength = excitation_info;
+});
+
+// excitation_measurement will be a WavemeterMeasurement class object
+laserEmitter.on(LASER.RESPONSE.EXCITATION.MEASUREMENT, (excitation_measurement) => {
+	ImageManager.current_image.excitation_measurement = excitation_measurement;
+});
+
+/****
 		SEVI Event Listeners
 ****/
 
@@ -161,6 +185,11 @@ function ImageManager_start_scan(is_ir) {
 	}
 	ImageManager.all_images.push(new_image);
 	ImageManager.current_image = new_image;
+	// Update current image laser info with that from last image
+	ImageManager.current_image.detachment_wavelength = ImageManager.last_image.detachment_wavelength;
+	ImageManager.current_image.detachment_measurement = ImageManager.last_image.detachment_measurement;
+	ImageManager.current_image.excitation_wavelength = ImageManager.last_image.excitation_wavelength;
+	ImageManager.current_image.excitation_measurement = ImageManager.last_image.excitation_measurement;
 	// Delete the accumulated image in last_image to save memory
 	ImageManager.last_image.delete_image();
 	ImageManager.status.running = true;

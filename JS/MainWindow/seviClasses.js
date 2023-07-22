@@ -1,3 +1,6 @@
+const { DetachmentWavelength, ExcitationWavelength } = require("../MainWindow/wavelengthClasses.js");
+const { WavemeterMeasurement } = require("../MainWindow/wavemeterClasses.js");
+
 /************************************************** 
 
 				VMI Image Classes
@@ -8,7 +11,6 @@
 class Image {
 	constructor() {
 		this.id = 1;
-		this.is_ir = false;
 
 		this.counts = {
 			electrons: {
@@ -22,6 +24,11 @@ class Image {
 				total: 0,
 			},
 		};
+
+		this.detachment_wavelength = new DetachmentWavelength();
+		this.detachment_measurement = new WavemeterMeasurement();
+		this.excitation_wavelength = new ExcitationWavelength();
+		this.excitation_measurement = new WavemeterMeasurement();
 
 		this.reset_image();
 	}
@@ -46,6 +53,14 @@ class Image {
 
 	get file_name_ir() {
 		return "";
+	}
+
+	get is_ir() {
+		return false;
+	}
+
+	get is_empty() {
+		return false;
 	}
 
 	update_id(id) {
@@ -120,11 +135,14 @@ class Image {
 class IRImage extends Image {
 	constructor() {
 		super();
-		this.is_ir = true;
 	}
 
 	get file_name_ir() {
 		return `${this.formatted_date}i${this.id_str}_IR.i0N`;
+	}
+
+	get is_ir() {
+		return true;
 	}
 
 	update_image(centroid_results) {
@@ -189,8 +207,10 @@ class IRImage extends Image {
 class EmptyIRImage extends IRImage {
 	constructor() {
 		super();
+	}
 
-		this.is_empty = true;
+	get is_empty() {
+		return true;
 	}
 
 	update_counts() {
