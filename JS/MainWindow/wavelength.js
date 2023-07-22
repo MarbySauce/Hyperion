@@ -134,6 +134,7 @@ async function ExcitationLaserManager_measure(expected_wavelength) {
 	let fail_count = 0;
 	let bad_measurement_count = 0;
 
+	wavemeter.startMeasurement();
 	while (measurement.wavelength_values.length < collection_length) {
 		// Wait for next laser pulse (100ms / 10Hz)
 		await sleep(100);
@@ -253,6 +254,7 @@ async function move_opo_wavelength(desired_energy) {
 		else if (distance < 1) opo.set_speed(0.05);
 		else opo.set_speed(); // Default speed
 		// Tell OPO to move and wait
+		await sleep(500);
 		await opo.goto_nir(goto_wavelength);
 		// Check if GoTo was canceled or paused
 		if (ExcitationLaserManager.cancel_goto) {
@@ -495,6 +497,7 @@ function opo_update_wavelength(wavelength) {
 async function opo_goto_nir(nir_wavelength) {
 	opo.status.motors_moving = true;
 	laserEmitter.emit(LASER.ALERT.OPO.MOTORS.MOVING);
+	console.log(opo.network.command.move(nir_wavelength));
 	opo.network.client.write(opo.network.command.move(nir_wavelength), () => {});
 	await wait_for_opo_motors(); // Send an update when motors have stopped
 }
@@ -602,6 +605,7 @@ async function DetachmentLaserManager_measure(expected_wavelength) {
 	let fail_count = 0;
 	let bad_measurement_count = 0;
 
+	wavemeter.startMeasurement();
 	while (measurement.wavelength_values.length < collection_length) {
 		// Wait for next laser pulse (50ms / 20Hz)
 		await sleep(50);
