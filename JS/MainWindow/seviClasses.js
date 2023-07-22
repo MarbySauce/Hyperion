@@ -25,6 +25,15 @@ class Image {
 			},
 		};
 
+		this.vmi_info = {
+			index: 0,
+			mode: "V1",
+			calibration_constants: {
+				a: 0,
+				b: 0,
+			},
+		};
+
 		this.detachment_wavelength = new DetachmentWavelength();
 		this.detachment_measurement = new WavemeterMeasurement();
 		this.excitation_wavelength = new ExcitationWavelength();
@@ -64,6 +73,7 @@ class Image {
 	}
 
 	update_id(id) {
+		console.log("Image class: update_id called!");
 		this.id = id;
 	}
 
@@ -129,6 +139,20 @@ class Image {
 	get_image_display(which_image, contrast) {
 		// For the Image class, there is only one image to return so which_image is ignored
 		return Image_get_image_display(this.image, contrast);
+	}
+
+	/**
+	 * Update the relevant information with info from different Image class object
+	 * @param {Image} image_class
+	 */
+	update_information(image_class) {
+		// Update VMI
+		this.vmi_info = image_class.vmi_info;
+		// Update stored laser info
+		this.detachment_wavelength = image_class.detachment_wavelength;
+		this.detachment_measurement = image_class.detachment_measurement;
+		this.excitation_wavelength = image_class.excitation_wavelength;
+		this.excitation_measurement = image_class.excitation_measurement;
 	}
 }
 
@@ -207,6 +231,7 @@ class IRImage extends Image {
 class EmptyIRImage extends IRImage {
 	constructor() {
 		super();
+		this.id = 0;
 	}
 
 	get is_empty() {
