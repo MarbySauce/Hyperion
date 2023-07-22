@@ -231,7 +231,6 @@ class IRImage extends Image {
 class EmptyIRImage extends IRImage {
 	constructor() {
 		super();
-		this.id = 0;
 	}
 
 	get is_empty() {
