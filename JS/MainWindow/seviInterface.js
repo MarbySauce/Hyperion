@@ -412,6 +412,17 @@ function update_sevi_accumulated_image_display() {
 		HTML Element Listeners
 ****/
 
+// Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
+// (that way it doesn't execute for each character inputted)
+const send_sevi_autostop_value_update_delay = new InputDelay(send_sevi_autostop_value_update);
+document.getElementById("SeviAutomaticStop").oninput = function () {
+	send_sevi_autostop_value_update_delay.start_timer();
+};
+
+document.getElementById("SeviAutomaticStopUnit").oninput = function () {
+	send_sevi_autostop_unit_update();
+};
+
 /****
 		UI Event Listeners
 ****/
@@ -421,6 +432,8 @@ function update_sevi_accumulated_image_display() {
 ****/
 
 seviEmitter.on(SEVI.RESPONSE.COUNTS.TOTAL, update_sevi_counters);
+
+seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PARAMETERS, update_sevi_autostop);
 
 /****
 		Functions
@@ -440,4 +453,38 @@ function update_sevi_counters(counts) {
 
 	total_frames.value = counts.frames.total;
 	total_electrons.value = formatted_electrons;
+}
+
+function send_sevi_autostop_value_update() {
+	const autostop_value = document.getElementById("SeviAutomaticStop");
+	let value = autostop_value.value;
+	seviEmitter.emit(SEVI.UPDATE.AUTOSTOP, { value: value });
+}
+
+function send_sevi_autostop_unit_update() {
+	const autostop_unit = document.getElementById("SeviAutomaticStopUnit");
+	const methods = [SEVI.AUTOSTOP.METHOD.NONE, SEVI.AUTOSTOP.METHOD.ELECTRONS, SEVI.AUTOSTOP.METHOD.FRAMES];
+	let method = methods[autostop_unit.selectedIndex] || SEVI.AUTOSTOP.METHOD.NONE; // If selectedIndex is (somehow) out of range, send NONE as method
+	seviEmitter.emit(SEVI.UPDATE.AUTOSTOP, { method: method });
+}
+
+function update_sevi_autostop(autostop_params) {
+	const autostop_value = document.getElementById("SeviAutomaticStop");
+	const autostop_unit = document.getElementById("SeviAutomaticStopUnit");
+	if (autostop_params.value === Infinity) autostop_value.value = "";
+	else autostop_value.value = autostop_params.value;
+	switch (autostop_params.method) {
+		case SEVI.AUTOSTOP.METHOD.NONE:
+			autostop_unit.selectedIndex = 0;
+			break;
+		case SEVI.AUTOSTOP.METHOD.ELECTRONS:
+			autostop_unit.selectedIndex = 1;
+			break;
+		case SEVI.AUTOSTOP.METHOD.FRAMES:
+			autostop_unit.selectedIndex = 2;
+			break;
+		default:
+			autostop_unit.selectedIndex = 0;
+			break;
+	}
 }

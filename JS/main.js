@@ -16,6 +16,9 @@ let lv_window_loaded = false;
 const settings = {
 	file_name: path.join(".", "Settings", "Settings.JSON"),
 	information: {
+		autostop: {
+			both_images: true,
+		},
 		camera: {
 			width: 1024,
 			height: 768,

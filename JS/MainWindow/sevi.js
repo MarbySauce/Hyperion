@@ -27,6 +27,20 @@ const ImageManager = {
 	params: {
 		display_slider_value: 0.5,
 	},
+	autostop: {
+		method: SEVI.AUTOSTOP.METHOD.NONE,
+		value: {
+			electrons: Infinity,
+			frames: Infinity,
+		},
+		both: false, // Whether both images (in IR-SEVI scan) need to meet autostop condition or just one
+		progress: 0, // Percent completion, as value between 0 and 100
+		check: () => ImageManager_autostop_check(),
+		send_progress: () => {
+			seviEmitter.emit(SEVI.RESPONSE.AUTOSTOP.PROGRESS, ImageManager.autostop.progress);
+		},
+		send_info: () => ImageManager_autostop_send_info(),
+	},
 	all_images: [],
 	current_image: EmptyImage, // Image that is currently being taken
 	last_image: EmptyImage, // Last image that was taken
@@ -50,8 +64,9 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, (event, centroid_results) => {
 	ImageManager.current_image.update_counts(centroid_results);
 	ImageManager.current_image.update_image(centroid_results);
 	// Send updates about image and electron count information
-	// NOTE TO MARTY: Add image update here
 	seviEmitter.emit(SEVI.RESPONSE.COUNTS.TOTAL, ImageManager.current_image.counts);
+	// Check if autostop condition has been met
+	ImageManager.autostop.check();
 });
 
 /****
@@ -64,7 +79,7 @@ uiEmitter.on(UI.RESPONSE.IMAGEID, (image_id) => {
 	seviEmitter.emit(SEVI.QUERY.SCAN.FILENAME);
 	seviEmitter.emit(SEVI.QUERY.SCAN.FILENAMEIR);
 });
-uiEmitter.on(UI.RESPONSE.VMIINFO, (vmi_info) => {
+uiEmitter.on(UI.RESPONSE.VMI, (vmi_info) => {
 	ImageManager.current_image.vmi_info = vmi_info;
 });
 
@@ -117,6 +132,39 @@ seviEmitter.on(SEVI.SCAN.CANCEL, ImageManager.cancel_scan);
 // Reset scan
 seviEmitter.on(SEVI.SCAN.RESET, ImageManager.reset_scan);
 
+// Update autostop parameters
+seviEmitter.on(SEVI.UPDATE.AUTOSTOP, (autostop_params) => {
+	// autostop_params will look like {method: (SEVI.AUTOSTOP.METHOD), value: (number)}
+	// If only updating the method, autostop_params.value should be undefined
+	// If only updating the value, autostop_params.method should be undefined
+	// If updating both, neither .value or .method should be undefined
+	if (autostop_params.method && autostop_params.value) {
+		// Update both
+		ImageManager.autostop.method = autostop_params.method;
+		if (autostop_params.method === SEVI.AUTOSTOP.METHOD.ELECTRONS) {
+			ImageManager.autostop.value.electrons = autostop_params.value;
+		} else if (autostop_params.method === SEVI.AUTOSTOP.METHOD.FRAMES) {
+			ImageManager.autostop.value.frames = autostop_params.value;
+		}
+	} else if (autostop_params.method) {
+		// Only update method
+		ImageManager.autostop.method = autostop_params.method;
+	} else if (autostop_params.value) {
+		// Only update value
+		if (ImageManager.autostop.method === SEVI.AUTOSTOP.METHOD.ELECTRONS) {
+			ImageManager.autostop.value.electrons = autostop_params.value;
+		} else if (ImageManager.autostop.method === SEVI.AUTOSTOP.METHOD.FRAMES) {
+			ImageManager.autostop.value.frames = autostop_params.value;
+		}
+	}
+	// Send current autostop information back
+	ImageManager.autostop.send_info();
+});
+// Send autostop parameters
+seviEmitter.on(SEVI.QUERY.AUTOSTOP.PARAMETERS, ImageManager.autostop.send_info);
+// Send autostop progress
+seviEmitter.on(SEVI.QUERY.AUTOSTOP.PROGRESS, ImageManager.autostop.send_progress);
+
 /* Scan Status */
 
 seviEmitter.on(SEVI.QUERY.SCAN.RUNNING, () => {
@@ -168,6 +216,10 @@ seviEmitter.on(SEVI.QUERY.IMAGE.DIFFNEG, () => {
 		Functions
 ****/
 
+function ImageManager_startup() {
+	ImageManager.autostop.both = settings?.autostop?.both_images || false;
+}
+
 function ImageManager_start_scan(is_ir) {
 	if (ImageManager.status.running) {
 		// Image is already running, do nothing
@@ -185,11 +237,8 @@ function ImageManager_start_scan(is_ir) {
 	}
 	ImageManager.all_images.push(new_image);
 	ImageManager.current_image = new_image;
-	// Update current image laser info with that from last image
-	ImageManager.current_image.detachment_wavelength = ImageManager.last_image.detachment_wavelength;
-	ImageManager.current_image.detachment_measurement = ImageManager.last_image.detachment_measurement;
-	ImageManager.current_image.excitation_wavelength = ImageManager.last_image.excitation_wavelength;
-	ImageManager.current_image.excitation_measurement = ImageManager.last_image.excitation_measurement;
+	// Update current image info with that from last image
+	ImageManager.current_image.update_information(ImageManager.last_image);
 	// Delete the accumulated image in last_image to save memory
 	ImageManager.last_image.delete_image();
 	ImageManager.status.running = true;
@@ -284,17 +333,10 @@ function ImageManager_reset_scan() {
 
 function ImageManager_get_image_info() {
 	uiEmitter.emit(UI.QUERY.IMAGEID);
-	uiEmitter.emit(UI.QUERY.VMIINFO);
+	uiEmitter.emit(UI.QUERY.VMI);
 }
 
 function ImageManager_get_image_display(which_image) {
-	// Only update the accumulated image display 4x a second -> once every 5 camera frames
-	// Unless the current image's frame count is a multiple of 5 + 1, return undefined
-	// (subtract 1 so that total frames == 0 doesn't trigger display update)
-	/*if ((ImageManager.current_image.counts.frames.total - 1) % 5) {
-		seviEmitter.emit(SEVI.RESPONSE.IMAGE);
-		return;
-	}*/
 	// First, get the display slider contrast from UI
 	uiEmitter.once(UI.RESPONSE.DISPLAY.SLIDERVALUE, (slider_value) => {
 		// If there is a (non-empty) image in current_image, send that image
@@ -306,6 +348,151 @@ function ImageManager_get_image_display(which_image) {
 		seviEmitter.emit(SEVI.RESPONSE.IMAGE, image_obj.get_image_display(which_image, slider_value));
 	});
 	uiEmitter.emit(UI.QUERY.DISPLAY.SLIDERVALUE);
+}
+
+function ImageManager_autostop_check() {
+	// First and second check will be IR Off and On if image is IRSEVI image and both = true
+	let first_value = 0;
+	let second_value = 0;
+	let first_match_value;
+	let second_match_value;
+	let counts = ImageManager.current_image.counts;
+	let progress = 0;
+	let to_stop = false;
+	switch (ImageManager.autostop.method) {
+		case SEVI.AUTOSTOP.METHOD.ELECTRONS:
+			first_match_value = ImageManager.autostop.value.electrons * 1e5; // Convert to 1e5 electrons
+			second_match_value = first_match_value;
+			first_value = counts.electrons.off;
+			second_value = counts.electrons.on;
+			break;
+		case SEVI.AUTOSTOP.METHOD.FRAMES:
+			first_match_value = ImageManager.autostop.value.frames * 1e3; // Convert to 1k frames
+			second_match_value = first_match_value;
+			first_value = counts.frames.off;
+			second_value = counts.frames.on;
+			break;
+		case SEVI.AUTOSTOP.METHOD.NONE:
+			first_match_value = Infinity; // Make it impossible to match
+			second_match_value = first_match_value;
+			// Keep first_ and second_value at 0
+			break;
+	}
+	// If the current image is SEVI, need to check image totals
+	// If the current image is IR-SEVI, need to check each image individually
+	if (ImageManager.current_image.is_ir) {
+		if (!ImageManager.autostop.both) {
+			// While image is IR-SEVI, user only wants to stop if one image meets autostop conditions
+			first_value = Math.max(first_value, second_value);
+			// Don't check second value (second_value = second_match_value is all that matters for next steps)
+			second_value = 1e10;
+			second_match_value = 1e10;
+		}
+		// User wants to check both images, no need to do anything
+	} else {
+		// Image is SEVI, need to check totals
+		first_value += second_value;
+		// Don't check second value (second_value = second_match_value is all that matters for next steps)
+		second_value = 1e10;
+		second_match_value = 1e10;
+	}
+	// Update progress to whatever image is further away from completion
+	progress = 100 * Math.min(first_value / first_match_value, second_value / second_match_value);
+	// Check if conditions were met
+	if (first_value >= first_match_value && second_value >= second_match_value) {
+		progress = 100;
+		// Stop image
+		to_stop = true;
+		ImageManager.stop_scan();
+	}
+	// Update ImageManager
+	ImageManager.autostop.progress = progress;
+	// Send progress update
+	ImageManager.autostop.send_progress();
+	return { progress: progress, to_stop: to_stop };
+}
+
+function ImageManager_autostop_send_info() {
+	let autostop_params = {
+		method: ImageManager.autostop.method,
+		value: Infinity,
+	};
+	if (ImageManager.autostop.method === SEVI.AUTOSTOP.METHOD.ELECTRONS) {
+		autostop_params.value = ImageManager.autostop.value.electrons;
+	} else if (ImageManager.autostop.method === SEVI.AUTOSTOP.METHOD.FRAMES) {
+		autostop_params.value = ImageManager.autostop.value.frames;
+	}
+	seviEmitter.emit(SEVI.RESPONSE.AUTOSTOP.PARAMETERS, autostop_params);
+}
+
+function test_auto_stop() {
+	console.log("IRSEVI test, both = true");
+	ImageManager.autostop.both = true;
+	console.log("	First test, value == Infinity, counts = 0");
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.NONE;
+	console.log("NONE", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.ELECTRONS;
+	console.log("ELECTRONS", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.FRAMES;
+	console.log("FRAMES", ImageManager.autostop.check());
+
+	console.log("	Second test, value == 1, counts = 0");
+	ImageManager.autostop.value.electrons = 1;
+	ImageManager.autostop.value.frames = 1;
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.NONE;
+	console.log("NONE", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.ELECTRONS;
+	console.log("ELECTRONS", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.FRAMES;
+	console.log("FRAMES", ImageManager.autostop.check());
+
+	console.log("	Third test, value == 1, counts = 0.5 and 0");
+	ImageManager.current_image.counts.electrons.off = 0.5 * 1e5;
+	ImageManager.current_image.counts.frames.off = 0.5 * 1e3;
+	ImageManager.current_image.counts.electrons.on = 0 * 1e5;
+	ImageManager.current_image.counts.frames.on = 0 * 1e3;
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.NONE;
+	console.log("NONE", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.ELECTRONS;
+	console.log("ELECTRONS", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.FRAMES;
+	console.log("FRAMES", ImageManager.autostop.check());
+
+	console.log("	Fourth test, value == 1, counts = 0.5 and 0.7");
+	ImageManager.current_image.counts.electrons.off = 0.5 * 1e5;
+	ImageManager.current_image.counts.frames.off = 0.5 * 1e3;
+	ImageManager.current_image.counts.electrons.on = 0.7 * 1e5;
+	ImageManager.current_image.counts.frames.on = 0.7 * 1e3;
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.NONE;
+	console.log("NONE", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.ELECTRONS;
+	console.log("ELECTRONS", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.FRAMES;
+	console.log("FRAMES", ImageManager.autostop.check());
+
+	console.log("	Fifth test, value == 1, counts = 1.5 and 0.7");
+	ImageManager.current_image.counts.electrons.off = 1.5 * 1e5;
+	ImageManager.current_image.counts.frames.off = 1.5 * 1e3;
+	ImageManager.current_image.counts.electrons.on = 0.7 * 1e5;
+	ImageManager.current_image.counts.frames.on = 0.7 * 1e3;
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.NONE;
+	console.log("NONE", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.ELECTRONS;
+	console.log("ELECTRONS", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.FRAMES;
+	console.log("FRAMES", ImageManager.autostop.check());
+
+	console.log("	Sixth test, value == 1, counts = 1.5 and 1.7");
+	ImageManager.current_image.counts.electrons.off = 1.5 * 1e5;
+	ImageManager.current_image.counts.frames.off = 1.5 * 1e3;
+	ImageManager.current_image.counts.electrons.on = 1.7 * 1e5;
+	ImageManager.current_image.counts.frames.on = 1.7 * 1e3;
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.NONE;
+	console.log("NONE", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.ELECTRONS;
+	console.log("ELECTRONS", ImageManager.autostop.check());
+	ImageManager.autostop.method = SEVI.AUTOSTOP.METHOD.FRAMES;
+	console.log("FRAMES", ImageManager.autostop.check());
 }
 
 /*****************************************************************************
