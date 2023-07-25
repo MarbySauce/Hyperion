@@ -223,6 +223,7 @@ async function move_opo_wavelength(desired_energy) {
 	laserEmitter.emit(LASER.ALERT.GOTO.STARTED);
 	// Make sure the OPO is in wavelength mode (since we specify to go to nIR wavelength)
 	opo.wavelength_mode();
+	await sleep(50);
 	// If the excitation wavemeter channel is not set, then we should move OPO without
 	//	automatically measuring wavelength -> should move to desired wavelength in one attempt
 	if (settings.laser.excitation.wavemeter_channel === -1) {

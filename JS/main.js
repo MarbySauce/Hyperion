@@ -19,6 +19,9 @@ const settings = {
 		autostop: {
 			both_images: true,
 		},
+		action: {
+			move_wavelength_every_time: false,
+		},
 		camera: {
 			width: 1024,
 			height: 768,
@@ -40,6 +43,7 @@ const settings = {
 			excitation: {
 				yag_fundamental: 1064.5,
 				wavemeter_channel: 0,
+				acceptance_range: 0.75,
 			},
 		},
 		wavemeter: {

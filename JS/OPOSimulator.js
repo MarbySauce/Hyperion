@@ -51,9 +51,9 @@ function parse_data(data) {
 	// Used commands are SETSPD, TELLWL, TELLSTAT, and GOTO
 	//		No argument should take more than 1 argument
 	// Also added in command CLOSE which closes the server
-	if (passed_data.length > 2) {
-		send_error(1);
-	}
+	//if (passed_data.length > 2) {
+	//	send_error(1);
+	//}
 	let [cmd, val] = passed_data;
 	switch (cmd) {
 		case "GOTO":

@@ -90,9 +90,29 @@ uiEmitter.on(UI.RESPONSE.VMI, update_iraction_vmi);
 		SEVI Event Listeners
 ****/
 
+seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PARAMETERS, update_iraction_autostop);
+
 /****
 		Functions
 ****/
+
+function update_iraction_autostop(autostop_params) {
+	const autostop_value = document.getElementById("IRActionAutomaticStop");
+	const autostop_unit = document.getElementById("IRActionAutomaticStopUnit");
+	if (autostop_params.value === Infinity) autostop_value.value = "";
+	else autostop_value.value = autostop_params.value;
+	switch (autostop_params.method) {
+		case SEVI.AUTOSTOP.METHOD.ELECTRONS:
+			autostop_unit.selectedIndex = 0;
+			break;
+		case SEVI.AUTOSTOP.METHOD.FRAMES:
+			autostop_unit.selectedIndex = 1;
+			break;
+		default:
+			autostop_unit.selectedIndex = 0;
+			break;
+	}
+}
 
 function update_iraction_vmi(vmi_info) {
 	const vmi_mode = document.getElementById("IRActionVMIMode");
@@ -245,6 +265,11 @@ function update_iraction_accumulated_image_display() {
 ****/
 
 seviEmitter.on(SEVI.RESPONSE.COUNTS.TOTAL, update_iraction_counters);
+
+seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PROGRESS, (progress) => {
+	// Here is where you would check if an action scan is taking place
+	update_action_image_progress_bar(progress);
+});
 
 /****
 		Functions
