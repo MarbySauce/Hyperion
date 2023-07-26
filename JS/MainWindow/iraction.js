@@ -139,6 +139,8 @@ function ActionManager_start_scan() {
 	// Reset completed image list and image queue
 	ActionManager.completed_images = [];
 	ActionManager.image_queue = [];
+	// Make sure image series collection length is set to 1
+	seviEmitter.emit(SEVI.UPDATE.SERIES, 1);
 	initialize_action_queue();
 	run_action_scan();
 }
