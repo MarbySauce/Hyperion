@@ -361,9 +361,12 @@ function ImageManager_cancel_scan() {
 	ImageManager.last_image.delete_image();
 	ImageManager.last_image = ImageManager.current_image;
 	ImageManager.current_image = EmptyImage;
+	// Reset image series progress
+	ImageManager.series.progress = 0;
 	// Alert that the scan has been stopped
 	seviEmitter.emit(SEVI.ALERT.SCAN.CANCELED);
-	msgEmitter.emit(MSG.UPDATE, "(IR) SEVI Scan Canceled!");
+	if (ImageManager.status.isIR) msgEmitter.emit(MSG.UPDATE, "IR-SEVI Scan Canceled!");
+	else msgEmitter.emit(MSG.UPDATE, "SEVI Scan Canceled!");
 }
 
 function ImageManager_reset_scan() {
@@ -371,7 +374,8 @@ function ImageManager_reset_scan() {
 	ImageManager.current_image.reset_counts();
 	// Alert that the scan has been reset
 	seviEmitter.emit(SEVI.ALERT.SCAN.RESET);
-	msgEmitter.emit(MSG.UPDATE, "(IR) SEVI Scan Reset!");
+	if (ImageManager.status.isIR) msgEmitter.emit(MSG.UPDATE, "IR-SEVI Scan Reset!");
+	else msgEmitter.emit(MSG.UPDATE, "SEVI Scan Reset!");
 	// Also update electron counters
 	seviEmitter.emit(SEVI.RESPONSE.COUNTS.TOTAL, ImageManager.current_image.counts);
 }
@@ -397,7 +401,7 @@ function ImageManager_get_image_display(which_image) {
 
 // Update the image series collection length
 function ImageManager_series_update(collection_length) {
-	if (!ImageManager.autostop.use_autostop) {
+	if (!ImageManager.autostop.use_autostop && collection_length > 1) {
 		// Override collection length (can't take series of images if no autostop)
 		collection_length = 1;
 		msgEmitter.emit(MSG.ERROR, "Image Series Collection Requires 'Stop Scan After' Parameters To Be Set");
@@ -409,7 +413,8 @@ function ImageManager_series_update(collection_length) {
 // Send info about how many images in series are left
 function ImageManager_series_send_progress() {
 	let remaining = ImageManager.series.collection_length - ImageManager.series.progress;
-	if (!ImageManager.autostop.use_autostop) remaining = 1;
+	if (!ImageManager.autostop.use_autostop) remaining = 0;
+	if (remaining < 0) remaining = 0;
 	seviEmitter.emit(SEVI.RESPONSE.SERIES.REMAINING, remaining);
 }
 
