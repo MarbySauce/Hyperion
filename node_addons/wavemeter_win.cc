@@ -54,6 +54,17 @@ Napi::Number NapiStopApplication(const Napi::CallbackInfo& info) {
 	return Napi::Number::New(env, retVal);
 }
 
+// Check if the Wavemeter Application is open
+Napi::Boolean NapiIsOpen(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Check if the program is already running
+	long retVal = Instantiate(cInstCheckForWLM, 0, 0, 0);
+	// retVal == 0 if closed, else > 0
+
+	return Napi::Boolean::New(env, (retVal > 0));
+}
+
 // Set Return Mode such that the GetWavelength function only returns the 
 // latest calculated wavelength value if it hasn't previously been requested,
 // otherwise it returns 0. E.g. if the wavelength was measured once but GetWavelength was
@@ -88,9 +99,9 @@ Napi::Number NapiStartMeasurement(const Napi::CallbackInfo& info) {
 	// Check if the program is already running
 	retVal = Instantiate(cInstCheckForWLM, 0, 0, 0);
 
-	// Program is not running, return -1 error code
+	// Program is not running, open new window
 	if (retVal == 0) {
-		return Napi::Number::New(env, -1);
+		retVal = ControlWLM(cCtrlWLMShow, 0, 0);
 	}
 
 	// Start measurement
@@ -146,6 +157,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	// Fill exports object with addon functions
 	exports["startApplication"] = Napi::Function::New(env, NapiStartApplication);
 	exports["stopApplication"] = Napi::Function::New(env, NapiStopApplication);
+	exports["isOpen"] = Napi::Function::New(env, NapiIsOpen);
 	exports["setReturnModeNew"] = Napi::Function::New(env, NapiSetReturnModeNew);
 	exports["setReturnModeAll"] = Napi::Function::New(env, NapiSetReturnModeAll);
 	exports["startMeasurement"] = Napi::Function::New(env, NapiStartMeasurement);
