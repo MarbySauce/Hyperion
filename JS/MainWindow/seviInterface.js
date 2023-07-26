@@ -43,6 +43,10 @@ function load_sevi_info() {
 	seviEmitter.emit(SEVI.QUERY.SCAN.FILENAME);
 
 	seviEmitter.emit(SEVI.QUERY.COUNTS.TOTAL);
+
+	const sevi_controls = document.getElementById("SeviScanControls");
+	if (settings?.image_series.show_menu) sevi_controls.classList.remove("hide-image-series");
+	else sevi_controls.classList.add("hide-image-series");
 }
 
 /*****************************************************************************
@@ -87,6 +91,10 @@ document.getElementById("SeviScanSingleShot").onclick = function () {
 	msgEmitter.emit(MSG.ERROR, "Single Shot functionality not set up yet!");
 };
 
+document.getElementById("SeviImageSeries").oninput = function () {
+	seviEmitter.emit(SEVI.UPDATE.SERIES.LENGTH, document.getElementById("SeviImageSeries").selectedIndex + 1);
+};
+
 /****
 		UI Event Listeners
 ****/
@@ -99,11 +107,15 @@ document.getElementById("SeviScanSingleShot").onclick = function () {
 seviEmitter.on(SEVI.ALERT.SCAN.STARTED, () => {
 	change_sevi_button_to_save();
 	change_sevi_button_to_pause();
+	// Add scan-running class to controls section when a scan starts (used for image series collection)
+	add_scan_running_to_sevi_controls();
 });
 // When a scan is saved, change Start/Save to Start and Pause/Resume to Resume
 seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, () => {
 	change_sevi_button_to_start();
 	change_sevi_button_to_resume();
+	// Remove scan-running class from controls section when a scan stops (used for image series collection)
+	remove_scan_running_from_sevi_controls();
 });
 // When a scan is paused, change Pause/Resume to Resume and add pause overlay
 seviEmitter.on(SEVI.ALERT.SCAN.PAUSED, () => {
@@ -115,6 +127,8 @@ seviEmitter.on(SEVI.ALERT.SCAN.PAUSED, () => {
 seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
 	change_sevi_button_to_pause();
 	change_sevi_button_to_save();
+	// Add scan-running class to controls section when a scan starts (used for image series collection)
+	add_scan_running_to_sevi_controls();
 	// NOTE TO Marty: Need to add stuff for pause animation
 });
 // When a scan is canceled, change Start/Save to Start
@@ -122,6 +136,17 @@ seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
 seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, () => {
 	change_sevi_button_to_start();
 	change_sevi_button_to_resume();
+	// Remove scan-running class from controls section when a scan stops (used for image series collection)
+	remove_scan_running_from_sevi_controls();
+});
+
+seviEmitter.on(SEVI.RESPONSE.SERIES.LENGTH, (collection_length) => {
+	document.getElementById("SeviImageSeries").selectedIndex = collection_length - 1;
+});
+
+seviEmitter.on(SEVI.RESPONSE.SERIES.REMAINING, (remaining) => {
+	const remaining_text = document.getElementById("SeviImageSeriesRemainingText");
+	remaining_text.innerText = `(${remaining})`;
 });
 
 /****
@@ -150,6 +175,18 @@ function change_sevi_button_to_pause() {
 function change_sevi_button_to_resume() {
 	const pause_button_text = document.getElementById("SeviScanPauseResumeText");
 	pause_button_text.innerText = "Resume";
+}
+
+// Add "scan-running" class to controls section (used for image series collection)
+function add_scan_running_to_sevi_controls() {
+	const sevi_controls = document.getElementById("SeviScanControls");
+	sevi_controls.classList.add("scan-running");
+}
+
+// Remove "scan-running" class from controls section (used for image series collection)
+function remove_scan_running_from_sevi_controls() {
+	const sevi_controls = document.getElementById("SeviScanControls");
+	sevi_controls.classList.remove("scan-running");
 }
 
 /*****************************************************************************
@@ -447,24 +484,20 @@ seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PARAMETERS, update_sevi_autostop);
 
 // Add scan-running class to counters section when a scan starts (used for image progress bar)
 seviEmitter.on(SEVI.ALERT.SCAN.STARTED, () => {
-	const sevi_counters = document.getElementById("SeviCounters");
-	sevi_counters.classList.add("scan-running");
+	add_scan_running_to_sevi_counters();
 	show_sevi_image_progress_bar();
 });
 seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
-	const sevi_counters = document.getElementById("SeviCounters");
-	sevi_counters.classList.add("scan-running");
+	add_scan_running_to_sevi_counters();
 	show_sevi_image_progress_bar();
 });
 // Remove scan-running class from counters section when a scan stops (used for image progress bar)
 seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, () => {
-	const sevi_counters = document.getElementById("SeviCounters");
-	sevi_counters.classList.remove("scan-running");
+	remove_scan_running_from_sevi_counters();
 	hide_sevi_image_progress_bar();
 });
 seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, () => {
-	const sevi_counters = document.getElementById("SeviCounters");
-	sevi_counters.classList.remove("scan-running");
+	remove_scan_running_from_sevi_counters();
 	hide_sevi_image_progress_bar();
 });
 
@@ -473,6 +506,18 @@ seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PROGRESS, update_sevi_image_progress_bar);
 /****
 		Functions
 ****/
+
+// Add "scan-running" class to counters section (used for image progress bar)
+function add_scan_running_to_sevi_counters() {
+	const sevi_counters = document.getElementById("SeviCounters");
+	sevi_counters.classList.add("scan-running");
+}
+
+// Remove "scan-running" class from counters section (used for image progress bar)
+function remove_scan_running_from_sevi_counters() {
+	const sevi_counters = document.getElementById("SeviCounters");
+	sevi_counters.classList.remove("scan-running");
+}
 
 function update_sevi_counters(counts) {
 	// counts should look like Image.counts

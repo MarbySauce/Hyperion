@@ -35,6 +35,9 @@ const settings = {
 			trigger: "Rising Edge",
 			trigger_delay: 0,
 		},
+		image_series: {
+			show_menu: false,
+		},
 		laser: {
 			detachment: {
 				yag_fundamental: 1064.0,

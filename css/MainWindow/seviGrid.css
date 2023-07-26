@@ -56,6 +56,12 @@
 #SeviScanSingleShot {
 	grid-area: ScanSingleShot;
 }
+#SeviImageSeries {
+	grid-area: ScanStartSave;
+}
+#SeviImageSeriesRemaining {
+	grid-area: ScanStartSave;
+}
 
 /* Sevi Mode - Left Side - File Naming */
 #SeviFileNaming {

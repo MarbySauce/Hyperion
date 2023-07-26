@@ -33,6 +33,7 @@ const ImageManager = {
 			electrons: Infinity,
 			frames: Infinity,
 		},
+		use_autostop: false,
 		both: false, // Whether both images (in IR-SEVI scan) need to meet autostop condition or just one
 		progress: 0, // Percent completion, as value between 0 and 100
 		check: () => ImageManager_autostop_check(),
@@ -40,6 +41,12 @@ const ImageManager = {
 			seviEmitter.emit(SEVI.RESPONSE.AUTOSTOP.PROGRESS, ImageManager.autostop.progress);
 		},
 		send_info: () => ImageManager_autostop_send_info(),
+	},
+	series: {
+		collection_length: 1,
+		progress: 0, // # of images in series taken
+		update: (collection_length) => ImageManager_series_update(collection_length),
+		send_progress: () => ImageManager_series_send_progress(),
 	},
 	all_images: [],
 	current_image: EmptyImage, // Image that is currently being taken
@@ -132,6 +139,9 @@ seviEmitter.on(SEVI.SCAN.CANCEL, ImageManager.cancel_scan);
 // Reset scan
 seviEmitter.on(SEVI.SCAN.RESET, ImageManager.reset_scan);
 
+// Update image series collection parameter
+seviEmitter.on(SEVI.UPDATE.SERIES.LENGTH, ImageManager.series.update);
+
 // Update autostop parameters
 seviEmitter.on(SEVI.UPDATE.AUTOSTOP, (autostop_params) => {
 	// autostop_params will look like {method: (SEVI.AUTOSTOP.METHOD), value: (number)}
@@ -156,6 +166,20 @@ seviEmitter.on(SEVI.UPDATE.AUTOSTOP, (autostop_params) => {
 		} else if (ImageManager.autostop.method === SEVI.AUTOSTOP.METHOD.FRAMES) {
 			ImageManager.autostop.value.frames = autostop_params.value;
 		}
+	}
+	// Update status of whether autostop is being used (method != none and value != infinity)
+	switch (ImageManager.autostop.method) {
+		case SEVI.AUTOSTOP.METHOD.ELECTRONS:
+			if (ImageManager.autostop.value.electrons === Infinity) ImageManager.autostop.use_autostop = false;
+			else ImageManager.autostop.use_autostop = true;
+			break;
+		case SEVI.AUTOSTOP.METHOD.FRAMES:
+			if (ImageManager.autostop.value.frames === Infinity) ImageManager.autostop.use_autostop = false;
+			else ImageManager.autostop.use_autostop = true;
+			break;
+		default:
+			ImageManager.autostop.use_autostop = false;
+			break;
 	}
 	// Send current autostop information back
 	ImageManager.autostop.send_info();
@@ -247,6 +271,11 @@ function ImageManager_start_scan(is_ir) {
 	msgEmitter.emit(MSG.UPDATE, update_message);
 	// Get info about image
 	ImageManager.get_image_info();
+	// Uptick image series progression
+	ImageManager.series.progress++;
+	// Send image series update
+	ImageManager.series.update();
+	ImageManager.series.send_progress();
 }
 
 function ImageManager_stop_scan() {
@@ -266,7 +295,23 @@ function ImageManager_stop_scan() {
 	ImageManager.current_image = EmptyImage;
 	// Alert that the scan has been stopped
 	seviEmitter.emit(SEVI.ALERT.SCAN.STOPPED);
-	msgEmitter.emit(MSG.UPDATE, "(IR) SEVI Scan Stopped!");
+	if (ImageManager.status.isIR) msgEmitter.emit(MSG.UPDATE, "IR-SEVI Scan Stopped!");
+	else msgEmitter.emit(MSG.UPDATE, "SEVI Scan Stopped!");
+	// Check if another image in series should be collected
+	if (ImageManager.autostop.use_autostop) {
+		// Check how many image in series have been collected
+		if (ImageManager.series.progress < ImageManager.series.collection_length) {
+			// Start another scan
+			ImageManager.start_scan(ImageManager.status.isIR);
+		} else {
+			// Reset series progress
+			ImageManager.series.progress = 0;
+		}
+	} else {
+		// Reset series parameters
+		ImageManager.series.update(1); // Set collection length to 1
+		ImageManager.series.progress = 0;
+	}
 }
 
 function ImageManager_pause_resume_scan() {
@@ -348,6 +393,24 @@ function ImageManager_get_image_display(which_image) {
 		seviEmitter.emit(SEVI.RESPONSE.IMAGE, image_obj.get_image_display(which_image, slider_value));
 	});
 	uiEmitter.emit(UI.QUERY.DISPLAY.SLIDERVALUE);
+}
+
+// Update the image series collection length
+function ImageManager_series_update(collection_length) {
+	if (!ImageManager.autostop.use_autostop) {
+		// Override collection length (can't take series of images if no autostop)
+		collection_length = 1;
+		msgEmitter.emit(MSG.ERROR, "Image Series Collection Requires 'Stop Scan After' Parameters To Be Set");
+	}
+	if (collection_length) ImageManager.series.collection_length = collection_length;
+	seviEmitter.emit(SEVI.RESPONSE.SERIES.LENGTH, ImageManager.series.collection_length);
+}
+
+// Send info about how many images in series are left
+function ImageManager_series_send_progress() {
+	let remaining = ImageManager.series.collection_length - ImageManager.series.progress;
+	if (!ImageManager.autostop.use_autostop) remaining = 1;
+	seviEmitter.emit(SEVI.RESPONSE.SERIES.REMAINING, remaining);
 }
 
 function ImageManager_autostop_check() {

@@ -55,6 +55,12 @@
 #IRSeviScanSingleShot {
 	grid-area: ScanSingleShot;
 }
+#IRSeviImageSeries {
+	grid-area: ScanStartSave;
+}
+#IRSeviImageSeriesRemaining {
+	grid-area: ScanStartSave;
+}
 
 /* IR-Sevi Mode - Left Side - File Naming */
 #IRSeviFileNaming {

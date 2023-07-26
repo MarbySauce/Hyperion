@@ -234,6 +234,35 @@ label {
 	width: 10px;
 	height: 10px;
 }
+.image-series {
+	position: relative;
+	left: 33%;
+	width: 25%;
+	font-size: 1.2vw;
+}
+.scan-running .image-series {
+	display: none;
+}
+.hide-image-series .image-series {
+	display: none;
+}
+.image-series-remaining {
+	display: none;
+}
+.scan-running .image-series-remaining {
+	position: relative;
+	left: 33%;
+	width: 25%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.hide-image-series .image-series-remaining {
+	display: none;
+}
+.image-series-text {
+	font-size: 1.2vw;
+}
 
 .save-control-title {
 	text-align: center;

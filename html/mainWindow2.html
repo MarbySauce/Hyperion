@@ -38,10 +38,20 @@
 					<h1 class="white-text title">Hyperion</h1>
 				</div>
 				<!-- SEVI Mode - First Page - Scan Controls -->
-				<div class="grid background-lighter-blue scan-controls" id="SeviScanControls">
+				<div class="grid background-lighter-blue scan-controls hide-image-series" id="SeviScanControls">
 					<button class="scan-control-button square-button white-text" id="SeviScanStartSave">
 						<span class="scan-button-text" id="SeviScanStartSaveText">Start</span>
 					</button>
+					<select class="white-text square-button drop-down image-series" id="SeviImageSeries">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+					</select>
+					<div class="square-button image-series-remaining" id="SeviImageSeriesRemaining">
+						<div class="white-text image-series-text" id="SeviImageSeriesRemainingText">(0)</div>
+					</div>
 					<button class="scan-control-button square-button white-text" id="SeviScanPauseResume">
 						<span class="scan-button-text" id="SeviScanPauseResumeText">Pause</span>
 					</button>
@@ -190,6 +200,16 @@
 					<button class="scan-control-button square-button white-text" id="IRSeviScanStartSave">
 						<span class="scan-button-text" id="IRSeviScanStartSaveText">Start</span>
 					</button>
+					<select class="white-text square-button drop-down image-series" id="IRSeviImageSeries">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+					</select>
+					<div class="square-button image-series-remaining" id="IRSeviImageSeriesRemaining">
+						<div class="white-text image-series-text" id="IRSeviImageSeriesRemainingText">(0)</div>
+					</div>
 					<button class="scan-control-button square-button white-text" id="IRSeviScanPauseResume">
 						<span class="scan-button-text" id="IRSeviScanPauseResumeText">Pause</span>
 					</button>

@@ -29,6 +29,10 @@ function load_irsevi_info() {
 	seviEmitter.emit(SEVI.QUERY.SCAN.FILENAMEIR);
 
 	seviEmitter.emit(SEVI.QUERY.COUNTS.TOTAL);
+
+	const irsevi_controls = document.getElementById("IRSeviScanControls");
+	if (settings?.image_series.show_menu) irsevi_controls.classList.remove("hide-image-series");
+	else irsevi_controls.classList.add("hide-image-series");
 }
 
 /*****************************************************************************
@@ -72,6 +76,10 @@ document.getElementById("IRSeviScanSingleShot").onclick = function () {
 	seviEmitter.emit(SEVI.SCAN.SINGLESHOT);
 };
 
+document.getElementById("IRSeviImageSeries").oninput = function () {
+	seviEmitter.emit(SEVI.UPDATE.SERIES.LENGTH, document.getElementById("IRSeviImageSeries").selectedIndex + 1);
+};
+
 /****
 		UI Event Listeners
 ****/
@@ -84,11 +92,15 @@ document.getElementById("IRSeviScanSingleShot").onclick = function () {
 seviEmitter.on(SEVI.ALERT.SCAN.STARTED, () => {
 	change_irsevi_button_to_save();
 	change_irsevi_button_to_pause();
+	// Add scan-running class to controls section when a scan starts (used for image series collection)
+	add_scan_running_to_irsevi_controls();
 });
 // When a scan is saved, change Start/Save to Start and Pause/Resume to Resume
 seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, () => {
 	change_irsevi_button_to_start();
 	change_irsevi_button_to_resume();
+	// Remove scan-running class from controls section when a scan stops (used for image series collection)
+	remove_scan_running_from_irsevi_controls();
 });
 // When a scan is paused, change Pause/Resume to Resume and add pause overlay
 seviEmitter.on(SEVI.ALERT.SCAN.PAUSED, () => {
@@ -100,6 +112,8 @@ seviEmitter.on(SEVI.ALERT.SCAN.PAUSED, () => {
 seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
 	change_irsevi_button_to_pause();
 	change_irsevi_button_to_save();
+	// Add scan-running class to controls section when a scan starts (used for image series collection)
+	add_scan_running_to_irsevi_controls();
 	// NOTE TO Marty: Need to add stuff for pause animation
 });
 // When a scan is canceled, change Start/Save to Start
@@ -107,9 +121,18 @@ seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
 seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, () => {
 	change_irsevi_button_to_start();
 	change_irsevi_button_to_resume();
+	// Remove scan-running class from controls section when a scan stops (used for image series collection)
+	remove_scan_running_from_irsevi_controls();
 });
 
-// It's updating the Image ID twice here... Need to think of best practice to avoid this.
+seviEmitter.on(SEVI.RESPONSE.SERIES.LENGTH, (collection_length) => {
+	document.getElementById("IRSeviImageSeries").selectedIndex = collection_length - 1;
+});
+
+seviEmitter.on(SEVI.RESPONSE.SERIES.REMAINING, (remaining) => {
+	const remaining_text = document.getElementById("IRSeviImageSeriesRemainingText");
+	remaining_text.innerText = `(${remaining})`;
+});
 
 /****
 		Functions
@@ -137,6 +160,18 @@ function change_irsevi_button_to_pause() {
 function change_irsevi_button_to_resume() {
 	const pause_button_text = document.getElementById("IRSeviScanPauseResumeText");
 	pause_button_text.innerText = "Resume";
+}
+
+// Add "scan-running" class to controls section (used for image series collection)
+function add_scan_running_to_irsevi_controls() {
+	const irsevi_controls = document.getElementById("IRSeviScanControls");
+	irsevi_controls.classList.add("scan-running");
+}
+
+// Remove "scan-running" class from controls section (used for image series collection)
+function remove_scan_running_from_irsevi_controls() {
+	const irsevi_controls = document.getElementById("IRSeviScanControls");
+	irsevi_controls.classList.remove("scan-running");
 }
 
 /*****************************************************************************
@@ -608,24 +643,20 @@ seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PARAMETERS, update_irsevi_autostop);
 
 // Add scan-running class to counters section when a scan starts (used for image progress bar)
 seviEmitter.on(SEVI.ALERT.SCAN.STARTED, () => {
-	const irsevi_counters = document.getElementById("IRSeviCounters");
-	irsevi_counters.classList.add("scan-running");
+	add_scan_running_to_irsevi_counters();
 	show_irsevi_image_progress_bar();
 });
 seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
-	const irsevi_counters = document.getElementById("IRSeviCounters");
-	irsevi_counters.classList.add("scan-running");
+	add_scan_running_to_irsevi_counters();
 	show_irsevi_image_progress_bar();
 });
 // Remove scan-running class from counters section when a scan stops (used for image progress bar)
 seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, () => {
-	const irsevi_counters = document.getElementById("IRSeviCounters");
-	irsevi_counters.classList.remove("scan-running");
+	remove_scan_running_from_irsevi_counters();
 	hide_irsevi_image_progress_bar();
 });
 seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, () => {
-	const irsevi_counters = document.getElementById("IRSeviCounters");
-	irsevi_counters.classList.remove("scan-running");
+	remove_scan_running_from_irsevi_counters();
 	hide_irsevi_image_progress_bar();
 });
 
@@ -634,6 +665,18 @@ seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PROGRESS, update_irsevi_image_progress_bar
 /****
 		Functions
 ****/
+
+// Add "scan-running" class to counters section (used for image progress bar)
+function add_scan_running_to_irsevi_counters() {
+	const irsevi_counters = document.getElementById("IRSeviCounters");
+	irsevi_counters.classList.add("scan-running");
+}
+
+// Remove "scan-running" class from counters section (used for image progress bar)
+function remove_scan_running_from_irsevi_counters() {
+	const irsevi_counters = document.getElementById("IRSeviCounters");
+	irsevi_counters.classList.remove("scan-running");
+}
 
 function update_irsevi_counters(counts) {
 	// counts should look like Image.counts
