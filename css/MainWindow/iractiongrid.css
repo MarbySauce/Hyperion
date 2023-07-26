@@ -147,7 +147,7 @@
 /* IR Action Mode - First Page - Scan Status */
 #IRActionScanStatus {
 	grid-area: IRActionScanStatus;
-	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1.5fr;
+	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
 	grid-template-areas:
 		"Title"
 		"CurrentImage"
@@ -162,7 +162,7 @@
 /* Current Image */
 #IRActionStatusCurrentImage {
 	grid-area: CurrentImage;
-	grid-template-columns: 2fr 3fr 2fr;
+	grid-template-columns: 2fr 4fr 1fr;
 	grid-template-areas: "Label Values blank";
 }
 #IRActionStatusCurrentImageLabel {
@@ -234,7 +234,7 @@
 /* Scan Duration */
 #IRActionStatusScanDuration {
 	grid-area: ScanDuration;
-	grid-template-columns: 2fr 3fr 2fr;
+	grid-template-columns: 2fr 4fr 1fr;
 	grid-template-areas: "Label Values blank";
 }
 #IRActionStatusScanDurationLabel {
@@ -246,7 +246,7 @@
 /* Current Step */
 #IRActionStatusCurrentStep {
 	grid-area: CurrentStep;
-	grid-template-columns: 2fr 3fr 2fr;
+	grid-template-columns: 2fr 4fr 1fr;
 	grid-template-areas: "Label Values blank";
 }
 #IRActionStatusCurrentStepLabel {

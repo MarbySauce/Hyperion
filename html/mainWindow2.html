@@ -376,19 +376,19 @@
 					<button class="scan-control-button square-button white-text" id="IRActionScanStartSave">
 						<span class="scan-button-text" id="IRActionScanStartSaveText">Start</span>
 					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionScanPauseResume">
+					<button class="scan-control-button square-button white-text" id="IRActionScanPauseResume" disabled>
 						<span class="scan-button-text" id="IRActionScanPauseResumeText">Pause</span>
 					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionScanCancel">
+					<button class="scan-control-button square-button white-text" id="IRActionScanCancel" disabled>
 						<span class="scan-button-text" id="IRActionScanCancelText">Cancel</span>
 					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionImageSave">
+					<button class="scan-control-button square-button white-text" id="IRActionImageSave" disabled>
 						<span class="scan-button-text" id="IRActionImageSaveText">Save Image<br />& Continue</span>
 					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionImageReset">
+					<button class="scan-control-button square-button white-text" id="IRActionImageReset" disabled>
 						<span class="scan-button-text" id="IRActionImageResetText">Reset Image</span>
 					</button>
-					<button class="scan-control-button square-button white-text" id="IRActionRemeasureWavelength">
+					<button class="scan-control-button square-button white-text" id="IRActionRemeasureWavelength" disabled>
 						<span class="scan-button-text" id="IRActionRemeasureWavelengthText">Remeasure<br />IR Wavelength</span>
 					</button>
 				</div>
@@ -400,17 +400,17 @@
 					<!-- Energy Range Selection -->
 					<div class="grid background-lighter-blue justify-align-center" id="IRActionEnergySelection">
 						<label class="white-text text-box-label" id="IRActionEnergyLabel">Energy: </label>
-						<input class="input-change action-options-input" id="IRActionIntitialEnergy" type="number" min="0" placeholder="-" />
+						<input class="input-change action-options-input" id="IRActionInitialEnergy" type="number" min="0" placeholder="-" />
 						<label class="white-text" id="IRActionOptionsHyphen">-</label>
 						<input class="input-change action-options-input" id="IRActionFinalEnergy" type="number" min="0" placeholder="-" />
 						<label class="white-text" id="IRActionWNLabel1">cm<sup>-1</sup> @ </label>
-						<input class="input-change action-options-input" id="IRActionEnergyStep" type="number" min="0" placeholder="-" />
+						<input class="input-change action-options-input" id="IRActionEnergyStep" type="number" placeholder="-" />
 						<label class="white-text" id="IRActionWNLabel2">cm<sup>-1</sup> steps</label>
 					</div>
 					<!-- Autostop Selection -->
 					<div class="grid background-lighter-blue justify-align-center" id="IRActionAutomaticStopSelection">
 						<label class="white-text text-box-label" id="IRActionAutomaticStopLabel">Stop Scan After:</label>
-						<input class="input-change action-options-input" id="IRActionAutomaticStop" placeholder="-" />
+						<input class="input-change action-options-input" id="IRActionAutomaticStop" type="number" min="0" placeholder="-" />
 						<select class="white-text square-button drop-down" name="AutomaticStopUnit" id="IRActionAutomaticStopUnit">
 							<option value="Electrons">x1e5 Electrons</option>
 							<option value="Frames">x1000 Frames</option>
@@ -419,7 +419,7 @@
 					<!-- Images / Energy Step -->
 					<div class="grid background-lighter-blue justify-align-center" id="IRActionImageAmountSelection">
 						<label class="white-text text-box-label" id="IRActionImageAmountLabel">Images / energy step:</label>
-						<input class="input-change action-options-input" id="IRActionImageAmount" value="1" />
+						<input class="input-change action-options-input" id="IRActionImageAmount" type="number" value="1" min="1" />
 					</div>
 					<!-- VMI Selection & Reset/Update Buttons -->
 					<div class="grid background-lighter-blue" id="IRActionVMISelection">
@@ -441,7 +441,7 @@
 					</div>
 					<div class="grid action-status-row justify-align-center" id="IRActionStatusCurrentImage">
 						<label class="white-text action-status-label status-label left-align" id="IRActionStatusCurrentImageLabel">Current Image:</label>
-						<label class="white-text action-status-label center-align" id="IRActionStatusCurrentImageValues">i05 (3 of 25)</label>
+						<label class="white-text action-status-label center-align" id="IRActionStatusCurrentImageValues"></label>
 					</div>
 					<div class="grid action-status-row justify-align-center" id="IRActionStatusCurrentEnergy">
 						<label class="white-text action-status-label status-label left-align" id="IRActionStatusCurrentEnergyLabel">Current Energy:</label>
@@ -450,7 +450,7 @@
 						<label class="white-text action-status-label" id="IRActionStatusNMLabel1">nm</label>
 						<!-- &#x2192; is the hex code for a right pointing arrow -->
 						<label class="white-text action-status-label center-align" id="IRActionStatusArrow1">&#x2192;</label>
-						<label class="white-text action-status-label right-align" id="IRActionStatusCurrentEnergyIRLabel">mIR</label>
+						<label class="white-text action-status-label right-align" id="IRActionStatusCurrentEnergyIRLabel"></label>
 						<input class="input-read action-status-hv" id="IRActionCurrentWavenumber" type="number" min="0" placeholder="-" readonly />
 						<label class="white-text action-status-label" id="IRActionStatusWNLabel1">cm<sup>-1</sup></label>
 					</div>
@@ -461,17 +461,17 @@
 						<label class="white-text action-status-label" id="IRActionStatusNMLabel2">nm</label>
 						<!-- &#x2192; is the hex code for a right pointing arrow -->
 						<label class="white-text action-status-label center-align" id="IRActionStatusArrow2">&#x2192;</label>
-						<label class="white-text action-status-label right-align" id="IRActionStatusNextEnergyIRLabel">mIR</label>
+						<label class="white-text action-status-label right-align" id="IRActionStatusNextEnergyIRLabel"></label>
 						<input class="input-read action-status-hv" id="IRActionNextWavenumber" type="number" min="0" placeholder="-" readonly />
 						<label class="white-text action-status-label" id="IRActionStatusWNLabel2">cm<sup>-1</sup></label>
 					</div>
 					<div class="grid action-status-row justify-align-center" id="IRActionStatusScanDuration">
 						<label class="white-text action-status-label status-label left-align" id="IRActionStatusScanDurationLabel">Scan Duration:</label>
-						<label class="white-text action-status-label center-align" id="IRActionStatusScanDurationValues">1 hour 20 min 35 sec</label>
+						<label class="white-text action-status-label center-align" id="IRActionStatusScanDurationValues"></label>
 					</div>
 					<div class="grid action-status-row justify-align-center" id="IRActionStatusCurrentStep">
 						<label class="white-text action-status-label status-label left-align" id="IRActionStatusCurrentStepLabel">Current Step:</label>
-						<label class="white-text action-status-label center-align" id="IRActionStatusCurrentStepValues">Collecting IR-SEVI Image</label>
+						<label class="white-text action-status-label center-align" id="IRActionStatusCurrentStepValues"></label>
 					</div>
 				</div>
 				<!-- IR Action Mode - First Page - Image Display -->
