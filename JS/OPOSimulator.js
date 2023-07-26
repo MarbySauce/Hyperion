@@ -54,18 +54,19 @@ function parse_data(data) {
 	//if (passed_data.length > 2) {
 	//	send_error(1);
 	//}
+	console.log(`Message received: ${passed_data}`);
 	let [cmd, val] = passed_data;
 	switch (cmd) {
 		case "GOTO":
-			console.log(`Command '${cmd} ${val}' recieved`);
+			console.log(`Command '${cmd} ${val}' received`);
 			go_to(val);
 			break;
 		case "SETSPD":
-			console.log(`Command '${cmd} ${val}' recieved`);
+			console.log(`Command '${cmd} ${val}' received`);
 			set_speed(val);
 			break;
 		case "TELLWL":
-			console.log(`Command '${cmd}' recieved`);
+			console.log(`Command '${cmd}' received`);
 			tell_wl();
 			break;
 		case "TELLSTAT":

@@ -256,7 +256,7 @@ async function move_opo_wavelength(desired_energy) {
 		else if (distance < 1) opo.set_speed(0.05);
 		else opo.set_speed(); // Default speed
 		// Tell OPO to move and wait
-		await sleep(500);
+		//await sleep(500);
 		await opo.goto_nir(goto_wavelength);
 		// Check if GoTo was canceled or paused
 		if (ExcitationLaserManager.cancel_goto) {
@@ -386,6 +386,7 @@ const opo = {
 	 */
 	stop_movement: () => {
 		// Either "SCOFF" or "STOP ALL" should work - not sure which is the better choice
+		// Dean Guyer said they're basically equivalent but he'd choose "SCOFF"
 		opo.network.client.write(opo.network.command.scanning_off, () => {});
 	},
 	/**

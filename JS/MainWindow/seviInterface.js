@@ -131,25 +131,25 @@ seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, () => {
 // Change SEVI Start/Save button to Start
 function change_sevi_button_to_start() {
 	const start_button_text = document.getElementById("SeviScanStartSaveText");
-	if (start_button_text) start_button_text.innerText = "Start";
+	start_button_text.innerText = "Start";
 }
 
 // Change SEVI Start/Save button to Save
 function change_sevi_button_to_save() {
 	const start_button_text = document.getElementById("SeviScanStartSaveText");
-	if (start_button_text) start_button_text.innerText = "Save";
+	start_button_text.innerText = "Save";
 }
 
 // Change SEVI Pause/Resume button to Pause
 function change_sevi_button_to_pause() {
 	const pause_button_text = document.getElementById("SeviScanPauseResumeText");
-	if (pause_button_text) pause_button_text.innerText = "Pause";
+	pause_button_text.innerText = "Pause";
 }
 
 // Change SEVI Pause/Resume button to Resume
 function change_sevi_button_to_resume() {
 	const pause_button_text = document.getElementById("SeviScanPauseResumeText");
-	if (pause_button_text) pause_button_text.innerText = "Resume";
+	pause_button_text.innerText = "Resume";
 }
 
 /*****************************************************************************

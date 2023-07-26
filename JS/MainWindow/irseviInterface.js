@@ -118,25 +118,25 @@ seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, () => {
 // Change SEVI Start/Save button to Start
 function change_irsevi_button_to_start() {
 	const start_button_text = document.getElementById("IRSeviScanStartSaveText");
-	if (start_button_text) start_button_text.innerText = "Start";
+	start_button_text.innerText = "Start";
 }
 
 // Change SEVI Start/Save button to Save
 function change_irsevi_button_to_save() {
 	const start_button_text = document.getElementById("IRSeviScanStartSaveText");
-	if (start_button_text) start_button_text.innerText = "Save";
+	start_button_text.innerText = "Save";
 }
 
 // Change SEVI Pause/Resume button to Pause
 function change_irsevi_button_to_pause() {
 	const pause_button_text = document.getElementById("IRSeviScanPauseResumeText");
-	if (pause_button_text) pause_button_text.innerText = "Pause";
+	pause_button_text.innerText = "Pause";
 }
 
 // Change SEVI Pause/Resume button to Resume
 function change_irsevi_button_to_resume() {
 	const pause_button_text = document.getElementById("IRSeviScanPauseResumeText");
-	if (pause_button_text) pause_button_text.innerText = "Resume";
+	pause_button_text.innerText = "Resume";
 }
 
 /*****************************************************************************
@@ -659,13 +659,13 @@ function update_irsevi_autostop(autostop_params) {
 	}
 }
 
-laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STARTED, () => {
-	console.log("Measuring excitation wavelength!");
-});
+//laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STARTED, () => {
+//	console.log("Measuring excitation wavelength!");
+//});
 
-laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED, () => {
-	console.log("Excitation measurement stopped!");
-});
+//laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED, () => {
+//	console.log("Excitation measurement stopped!");
+//});
 
 laserEmitter.on(LASER.ALERT.GOTO.STARTED, () => {
 	console.log("GoTo started!");
@@ -679,10 +679,18 @@ laserEmitter.on(LASER.ALERT.GOTO.CANCELED, () => {
 	console.log("GoTo canceled!");
 });
 
-laserEmitter.on(LASER.ALERT.OPO.MOTORS.MOVING, () => {
-	console.log("Moving OPO!");
+//laserEmitter.on(LASER.ALERT.OPO.MOTORS.MOVING, () => {
+//	console.log("Moving OPO!");
+//});
+
+//laserEmitter.on(LASER.ALERT.OPO.MOTORS.STOPPED, () => {
+//	console.log("OPO finished moving!");
+//});
+
+actionEmitter.on(IRACTION.ALERT.SCAN.STARTED, () => {
+	console.log("IR Action scan started!");
 });
 
-laserEmitter.on(LASER.ALERT.OPO.MOTORS.STOPPED, () => {
-	console.log("OPO finished moving!");
+actionEmitter.on(IRACTION.ALERT.SCAN.STOPPED, () => {
+	console.log("IR Action scan stopped!");
 });

@@ -68,11 +68,21 @@ uiEmitter.on(UI.UPDATE.TAB, change_tab);
 ****/
 
 // Highlight tab of scan that is running so it's clear to user
-seviEmitter.on(SEVI.ALERT.SCAN.STARTED, add_tab_highlight);
-seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, add_tab_highlight);
+seviEmitter.on(SEVI.ALERT.SCAN.STARTED, add_sevi_tab_highlight);
+seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, add_sevi_tab_highlight);
 // If scan is stopped or canceled, remove tab highlight
-seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, remove_tab_highlight);
-seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, remove_tab_highlight);
+seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, remove_sevi_tab_highlight);
+seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, remove_sevi_tab_highlight);
+
+/****
+		IR Action Event Listeners
+****/
+
+// Highlight tab of scan that is running so it's clear to user
+actionEmitter.on(IRACTION.ALERT.SCAN.STARTED, add_iraction_tab_highlight);
+// If scan is stopped or canceled, remove tab highlight
+actionEmitter.on(IRACTION.ALERT.SCAN.STOPPED, remove_iraction_tab_highlight);
+actionEmitter.on(IRACTION.ALERT.SCAN.CANCELED, remove_iraction_tab_highlight);
 
 /****
 		Functions
@@ -120,7 +130,7 @@ function load_tab(tab) {
 }
 
 // Add highlights to SEVI or IRSEVI tabs if a respective scan is being taken
-function add_tab_highlight() {
+function add_sevi_tab_highlight() {
 	// Figure out whether it was a SEVI scan or an IR-SEVI scan
 	// (set up listener with .once(), then ask if it's IR with .emit() )
 	seviEmitter.once(SEVI.RESPONSE.SCAN.ISIR, (is_ir) => {
@@ -138,10 +148,22 @@ function add_tab_highlight() {
 }
 
 // Remove tab highlight for SEVI and IRSEVI tabs
-function remove_tab_highlight() {
+function remove_sevi_tab_highlight() {
 	let tab = document.getElementById(UI.TAB.SEVI);
 	if (tab) tab.classList.remove("highlighted-tab");
 	tab = document.getElementById(UI.TAB.IRSEVI);
+	if (tab) tab.classList.remove("highlighted-tab");
+}
+
+// Add highlights to IR Action tab if a scan is being taken
+function add_iraction_tab_highlight() {
+	let tab = document.getElementById(UI.TAB.IRACTION);
+	if (tab) tab.classList.add("highlighted-tab");
+}
+
+// Remove tab highlight for IR Action tab
+function remove_iraction_tab_highlight() {
+	let tab = document.getElementById(UI.TAB.IRACTION);
 	if (tab) tab.classList.remove("highlighted-tab");
 }
 
