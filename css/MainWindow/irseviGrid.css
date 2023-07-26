@@ -304,6 +304,24 @@
 #IRSeviAutomaticStopUnit {
 	grid-area: AutomaticStopUnit;
 }
+/* Image Progress Bar */
+/* Progress bar will be in the same location as the automatic stop stuff */
+#IRSeviImageProgressBarBackground {
+	/* grid-column-start: AutomaticStopLabel;
+	grid-column-end: AutomaticStopUnit; */
+	grid-area: AutomaticStopLabel / AutomaticStopLabel / AutomaticStopLabel / AutomaticStopUnit;
+	grid-template-columns: 4fr 8fr 1fr;
+	grid-template-areas: "Label ProgressBar PercentLabel";
+}
+#IRSeviImageProgressLabel {
+	grid-area: Label;
+}
+#IRSeviImageProgressBarOuter {
+	grid-area: ProgressBar;
+}
+#IRSeviImageProgressPercentLabel {
+	grid-area: PercentLabel;
+}
 
 #IRSeviPageDown {
 	grid-area: IRSeviPageDown;

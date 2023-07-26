@@ -215,6 +215,24 @@
 #SeviAutomaticStopUnit {
 	grid-area: AutomaticStopUnit;
 }
+/* Image Progress Bar */
+/* Progress bar will be in the same location as the automatic stop stuff */
+#SeviImageProgressBarBackground {
+	/* grid-column-start: AutomaticStopLabel;
+	grid-column-end: AutomaticStopUnit; */
+	grid-area: AutomaticStopLabel / AutomaticStopLabel / AutomaticStopLabel / AutomaticStopUnit;
+	grid-template-columns: 4fr 8fr 1fr;
+	grid-template-areas: "Label ProgressBar PercentLabel";
+}
+#SeviImageProgressLabel {
+	grid-area: Label;
+}
+#SeviImageProgressBarOuter {
+	grid-area: ProgressBar;
+}
+#SeviImageProgressPercentLabel {
+	grid-area: PercentLabel;
+}
 
 #SeviPageDown {
 	grid-area: SeviPageDown;

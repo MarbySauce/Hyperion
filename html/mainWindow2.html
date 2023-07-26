@@ -113,7 +113,7 @@
 					<input class="display-slider" id="SeviDisplaySlider" type="range" min="0.05" max="1" step="0.05" value="0.5" />
 				</div>
 				<!-- SEVI Mode - First Page - Electron Counters -->
-				<div class="grid background-lighter-blue negative-bottom-margin" id="SeviCounters">
+				<div class="grid background-lighter-blue negative-bottom-margin hide-progress-bar" id="SeviCounters">
 					<label class="white-text text-box-label" id="SeviTotalFramesLabel" for="TotalFrames">Total Frames:</label>
 					<input class="input-read e-counter-box" id="SeviTotalFrames" type="number" value="0" readonly />
 					<label class="white-text text-box-label" id="SeviTotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
@@ -121,13 +121,20 @@
 					<label class="white-text text-box-label" id="SeviAvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
 					<input class="input-read e-counter-box" id="SeviAvgECount" type="number" value="0" readonly />
 					<div class="divider-line" id="SeviECountersDivLine"></div>
-					<label class="white-text text-box-label" id="SeviAutomaticStopLabel">Stop Scan After:</label>
-					<input class="input-change e-counter-box" id="SeviAutomaticStop" placeholder="-" />
-					<select class="white-text square-button drop-down" name="AutomaticStopUnit" id="SeviAutomaticStopUnit">
+					<label class="white-text text-box-label progress-bar-hide" id="SeviAutomaticStopLabel">Stop Scan After:</label>
+					<input class="input-change e-counter-box progress-bar-hide" id="SeviAutomaticStop" placeholder="-" />
+					<select class="white-text square-button drop-down progress-bar-hide" name="AutomaticStopUnit" id="SeviAutomaticStopUnit">
 						<option value="None">None</option>
 						<option value="Electrons">x1e5 Electrons</option>
 						<option value="Frames">x1000 Frames</option>
 					</select>
+					<div class="grid justify-align-center progress-bar-background progress-bar-show" id="SeviImageProgressBarBackground">
+						<label class="white-text progress-bar-label" id="SeviImageProgressLabel">Image Progress:</label>
+						<div class="progress-bar-outer" id="SeviImageProgressBarOuter">
+							<div class="white-text progress-bar" id="SeviImageProgressBar"></div>
+						</div>
+						<label class="white-text progress-bar-label" id="SeviImageProgressPercentLabel">0%</label>
+					</div>
 				</div>
 				<button class="page-down page-button" id="SeviPageDown"><i class="arrow arrow-down"></i></button>
 				<!-- Pause Screen Animation Elements -->
@@ -297,7 +304,7 @@
 					<input class="display-slider" id="IRSeviDisplaySlider" type="range" min="0.05" max="1" step="0.05" value="0.5" />
 				</div>
 				<!-- IR-SEVI Mode - First Page - Electron Counters -->
-				<div class="grid background-lighter-blue negative-bottom-margin" id="IRSeviCounters">
+				<div class="grid background-lighter-blue negative-bottom-margin hide-progress-bar" id="IRSeviCounters">
 					<h3 class="white-text" id="IRSeviIROffCountersTitle">IR Off</h3>
 					<h3 class="white-text" id="IRSeviIROnCountersTitle">IR On</h3>
 					<label class="white-text text-box-label" id="IRSeviTotalFramesLabel" for="IRSeviTotalFrames">Total Frames:</label>
@@ -310,13 +317,20 @@
 					<input class="input-read e-counter-box" id="IRSeviAvgECount" type="number" value="0" readonly />
 					<input class="input-read e-counter-box" id="IRSeviAvgECountIROn" type="number" value="0" readonly />
 					<div class="divider-line" id="IRSeviECountersDivLine"></div>
-					<label class="white-text text-box-label" id="IRSeviAutomaticStopLabel">Stop Scan After:</label>
-					<input class="input-change e-counter-box" id="IRSeviAutomaticStop" placeholder="-" />
-					<select class="white-text square-button drop-down" name="AutomaticStopUnit" id="IRSeviAutomaticStopUnit">
+					<label class="white-text text-box-label progress-bar-hide" id="IRSeviAutomaticStopLabel">Stop Scan After:</label>
+					<input class="input-change e-counter-box progress-bar-hide" id="IRSeviAutomaticStop" placeholder="-" />
+					<select class="white-text square-button drop-down progress-bar-hide" name="AutomaticStopUnit" id="IRSeviAutomaticStopUnit">
 						<option value="None">None</option>
 						<option value="Electrons">x1e5 Electrons</option>
 						<option value="Frames">x1000 Frames</option>
 					</select>
+					<div class="grid justify-align-center progress-bar-background progress-bar-show" id="IRSeviImageProgressBarBackground">
+						<label class="white-text progress-bar-label" id="IRSeviImageProgressLabel">Image Progress:</label>
+						<div class="progress-bar-outer" id="IRSeviImageProgressBarOuter">
+							<div class="white-text progress-bar" id="IRSeviImageProgressBar"></div>
+						</div>
+						<label class="white-text progress-bar-label" id="IRSeviImageProgressPercentLabel">0%</label>
+					</div>
 				</div>
 				<button class="page-down page-button" id="IRSeviPageDown"><i class="arrow arrow-down"></i></button>
 				<!-- Pause Screen Animation Elements -->
@@ -503,12 +517,12 @@
 					<input class="input-read e-counter-box" id="IRActionAvgECount" type="number" value="0" readonly />
 					<input class="input-read e-counter-box" id="IRActionAvgECountIROn" type="number" value="0" readonly />
 					<div class="divider-line" id="IRActionECountersDivLine"></div>
-					<div class="grid justify-align-center" id="IRActionImageProgressBarBackground">
-						<label class="white-text" id="IRActionImageProgressLabel">Image Progress:</label>
-						<div id="IRActionImageProgressBarOuter">
-							<div class="white-text" id="IRActionImageProgressBar"></div>
+					<div class="grid justify-align-center progress-bar-background" id="IRActionImageProgressBarBackground">
+						<label class="white-text progress-bar-label" id="IRActionImageProgressLabel">Image Progress:</label>
+						<div class="progress-bar-outer" id="IRActionImageProgressBarOuter">
+							<div class="white-text progress-bar" id="IRActionImageProgressBar"></div>
 						</div>
-						<label class="white-text" id="IRActionImageProgressPercentLabel">100%</label>
+						<label class="white-text progress-bar-label" id="IRActionImageProgressPercentLabel">0%</label>
 					</div>
 				</div>
 				<!-- Page Down Button -->

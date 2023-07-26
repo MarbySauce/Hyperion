@@ -412,6 +412,16 @@ function update_sevi_accumulated_image_display() {
 		HTML Element Listeners
 ****/
 
+// If Image progress bar is shown (scan is running and autostop parameters set)
+// when user hovers mouse over counters section, autostop input section should be shown (so they can change it)
+document.getElementById("SeviCounters").onmouseenter = function () {
+	hide_sevi_image_progress_bar();
+};
+document.getElementById("SeviCounters").onmouseleave = function () {
+	send_sevi_autostop_value_update(); // In case user updated autostop value while mouse hovering over box
+	show_sevi_image_progress_bar();
+};
+
 // Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
 // (that way it doesn't execute for each character inputted)
 const send_sevi_autostop_value_update_delay = new InputDelay(send_sevi_autostop_value_update);
@@ -434,6 +444,31 @@ document.getElementById("SeviAutomaticStopUnit").oninput = function () {
 seviEmitter.on(SEVI.RESPONSE.COUNTS.TOTAL, update_sevi_counters);
 
 seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PARAMETERS, update_sevi_autostop);
+
+// Add scan-running class to counters section when a scan starts (used for image progress bar)
+seviEmitter.on(SEVI.ALERT.SCAN.STARTED, () => {
+	const sevi_counters = document.getElementById("SeviCounters");
+	sevi_counters.classList.add("scan-running");
+	show_sevi_image_progress_bar();
+});
+seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
+	const sevi_counters = document.getElementById("SeviCounters");
+	sevi_counters.classList.add("scan-running");
+	show_sevi_image_progress_bar();
+});
+// Remove scan-running class from counters section when a scan stops (used for image progress bar)
+seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, () => {
+	const sevi_counters = document.getElementById("SeviCounters");
+	sevi_counters.classList.remove("scan-running");
+	hide_sevi_image_progress_bar();
+});
+seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, () => {
+	const sevi_counters = document.getElementById("SeviCounters");
+	sevi_counters.classList.remove("scan-running");
+	hide_sevi_image_progress_bar();
+});
+
+seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PROGRESS, update_sevi_image_progress_bar);
 
 /****
 		Functions
@@ -487,4 +522,43 @@ function update_sevi_autostop(autostop_params) {
 			autostop_unit.selectedIndex = 0;
 			break;
 	}
+}
+
+function update_sevi_image_progress_bar(percent) {
+	const progress_bar = document.getElementById("SeviImageProgressBar");
+	const percent_label = document.getElementById("SeviImageProgressPercentLabel");
+	// Move progress bar
+	if (percent) {
+		if (percent > 100) percent = 100;
+		else if (percent < 0) percent = 0;
+		progress_bar.style.left = `-${100 - percent}%`;
+		percent_label.innerText = `${Math.round(percent)}%`;
+	} else {
+		progress_bar.style.left = "-100%";
+		percent_label.innerText = "0%";
+	}
+}
+
+function show_sevi_image_progress_bar() {
+	// Only show the image progress bar if the current scan is an IR-SEVI scan
+	let show_bar = false;
+	seviEmitter.once(SEVI.RESPONSE.SCAN.ISIR, (is_ir) => {
+		if (!is_ir) show_bar = true;
+	});
+	seviEmitter.emit(SEVI.QUERY.SCAN.ISIR);
+	// Only show the image progress bar if the autostop parameter is set (i.e. not "none")
+	seviEmitter.once(SEVI.RESPONSE.AUTOSTOP.PARAMETERS, (autostop_params) => {
+		if (autostop_params.method === SEVI.AUTOSTOP.METHOD.NONE || autostop_params.value === Infinity) return; // Don't show progress bar
+		if (!show_bar) return;
+		const sevi_counters = document.getElementById("SeviCounters");
+		sevi_counters.classList.remove("hide-progress-bar");
+		sevi_counters.classList.add("show-progress-bar");
+	});
+	seviEmitter.emit(SEVI.QUERY.AUTOSTOP.PARAMETERS);
+}
+
+function hide_sevi_image_progress_bar() {
+	const sevi_counters = document.getElementById("SeviCounters");
+	sevi_counters.classList.remove("show-progress-bar");
+	sevi_counters.classList.add("hide-progress-bar");
 }

@@ -573,6 +573,16 @@ function update_irsevi_accumulated_image_display() {
 		HTML Element Listeners
 ****/
 
+// If Image progress bar is shown (scan is running and autostop parameters set)
+// when user hovers mouse over counters section, autostop input section should be shown (so they can change it)
+document.getElementById("IRSeviCounters").onmouseenter = function () {
+	hide_irsevi_image_progress_bar();
+};
+document.getElementById("IRSeviCounters").onmouseleave = function () {
+	send_irsevi_autostop_value_update(); // In case user updated autostop value while mouse hovering over box
+	show_irsevi_image_progress_bar();
+};
+
 // Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
 // (that way it doesn't execute for each character inputted)
 const send_irsevi_autostop_value_update_delay = new InputDelay(send_irsevi_autostop_value_update);
@@ -595,6 +605,31 @@ document.getElementById("IRSeviAutomaticStopUnit").oninput = function () {
 seviEmitter.on(SEVI.RESPONSE.COUNTS.TOTAL, update_irsevi_counters);
 
 seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PARAMETERS, update_irsevi_autostop);
+
+// Add scan-running class to counters section when a scan starts (used for image progress bar)
+seviEmitter.on(SEVI.ALERT.SCAN.STARTED, () => {
+	const irsevi_counters = document.getElementById("IRSeviCounters");
+	irsevi_counters.classList.add("scan-running");
+	show_irsevi_image_progress_bar();
+});
+seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
+	const irsevi_counters = document.getElementById("IRSeviCounters");
+	irsevi_counters.classList.add("scan-running");
+	show_irsevi_image_progress_bar();
+});
+// Remove scan-running class from counters section when a scan stops (used for image progress bar)
+seviEmitter.on(SEVI.ALERT.SCAN.STOPPED, () => {
+	const irsevi_counters = document.getElementById("IRSeviCounters");
+	irsevi_counters.classList.remove("scan-running");
+	hide_irsevi_image_progress_bar();
+});
+seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, () => {
+	const irsevi_counters = document.getElementById("IRSeviCounters");
+	irsevi_counters.classList.remove("scan-running");
+	hide_irsevi_image_progress_bar();
+});
+
+seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PROGRESS, update_irsevi_image_progress_bar);
 
 /****
 		Functions
@@ -657,6 +692,45 @@ function update_irsevi_autostop(autostop_params) {
 			autostop_unit.selectedIndex = 0;
 			break;
 	}
+}
+
+function update_irsevi_image_progress_bar(percent) {
+	const progress_bar = document.getElementById("IRSeviImageProgressBar");
+	const percent_label = document.getElementById("IRSeviImageProgressPercentLabel");
+	// Move progress bar
+	if (percent) {
+		if (percent > 100) percent = 100;
+		else if (percent < 0) percent = 0;
+		progress_bar.style.left = `-${100 - percent}%`;
+		percent_label.innerText = `${Math.round(percent)}%`;
+	} else {
+		progress_bar.style.left = "-100%";
+		percent_label.innerText = "0%";
+	}
+}
+
+function show_irsevi_image_progress_bar() {
+	// Only show the image progress bar if the current scan is an IR-SEVI scan
+	let show_bar = false;
+	seviEmitter.once(SEVI.RESPONSE.SCAN.ISIR, (is_ir) => {
+		if (is_ir) show_bar = true;
+	});
+	seviEmitter.emit(SEVI.QUERY.SCAN.ISIR);
+	// Only show the image progress bar if the autostop parameter is set (i.e. not "none")
+	seviEmitter.once(SEVI.RESPONSE.AUTOSTOP.PARAMETERS, (autostop_params) => {
+		if (autostop_params.method === SEVI.AUTOSTOP.METHOD.NONE || autostop_params.value === Infinity) return; // Don't show progress bar
+		if (!show_bar) return;
+		const irsevi_counters = document.getElementById("IRSeviCounters");
+		irsevi_counters.classList.remove("hide-progress-bar");
+		irsevi_counters.classList.add("show-progress-bar");
+	});
+	seviEmitter.emit(SEVI.QUERY.AUTOSTOP.PARAMETERS);
+}
+
+function hide_irsevi_image_progress_bar() {
+	const irsevi_counters = document.getElementById("IRSeviCounters");
+	irsevi_counters.classList.remove("show-progress-bar");
+	irsevi_counters.classList.add("hide-progress-bar");
 }
 
 //laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STARTED, () => {
