@@ -140,6 +140,21 @@ class DetachmentWavelength {
 		}
 	}
 
+	get selected_mode_str() {
+		switch (this.selected_mode) {
+			case LASER.MODE.DETACHMENT.STANDARD:
+				return "standard";
+			case LASER.MODE.DETACHMENT.DOUBLED:
+				return "doubled";
+			case LASER.MODE.DETACHMENT.RAMAN:
+				return "raman";
+			case LASER.MODE.DETACHMENT.IRDFG:
+				return "irdfg";
+			default:
+				return "";
+		}
+	}
+
 	get energy() {
 		return this.get_energy(this.selected_mode);
 	}
@@ -320,6 +335,21 @@ class ExcitationWavelength {
 			default:
 				this._selected_mode = LASER.MODE.EXCITATION.NONE;
 				break;
+		}
+	}
+
+	get selected_mode_str() {
+		switch (this.selected_mode) {
+			case LASER.MODE.EXCITATION.NIR:
+				return "nir";
+			case LASER.MODE.EXCITATION.IIR:
+				return "iir";
+			case LASER.MODE.EXCITATION.MIR:
+				return "mir";
+			case LASER.MODE.EXCITATION.FIR:
+				return "fir";
+			default:
+				return "";
 		}
 	}
 

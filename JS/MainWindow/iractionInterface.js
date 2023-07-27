@@ -534,20 +534,10 @@ function update_iraction_status_current_energy(excitation_wavelength) {
 		if (excitation_wavelength.nIR.wavelength > 0) {
 			nir_wavelength.value = excitation_wavelength.nIR.wavelength.toFixed(3);
 			ir_wavenumber.value = excitation_wavelength.energy.wavenumber.toFixed(3);
-			let ir_mode_string = "";
-			switch (excitation_wavelength.selected_mode) {
-				case LASER.MODE.EXCITATION.NIR:
-					ir_mode_string = "nIR";
-					break;
-				case LASER.MODE.EXCITATION.IIR:
-					ir_mode_string = "iIR";
-					break;
-				case LASER.MODE.EXCITATION.MIR:
-					ir_mode_string = "mIR";
-					break;
-				case LASER.MODE.EXCITATION.FIR:
-					ir_mode_string = "fIR";
-					break;
+			let ir_mode_string = excitation_wavelength.selected_mode_str;
+			if (ir_mode_string) {
+				// Capitalize IR (I think it looks better)
+				ir_mode_string = ir_mode_string.charAt(0) + ir_mode_string.slice(1).toUpperCase();
 			}
 			ir_mode.innerText = ir_mode_string;
 		} else {
