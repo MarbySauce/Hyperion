@@ -8,6 +8,10 @@ const net = require("net");
 
 const end_cmd = "\r\n";
 
+// Overridding speed - ignore requests to change OPO speed (makes GoTo faster)
+const override_speed_bool = true;
+const override_speed_val = 10;
+
 // OPO Info
 const opo = {
 	motors_moving: false,
@@ -159,7 +163,8 @@ function set_speed(val) {
 		return;
 	}
 	// Update speed setting
-	opo.speed = val;
+	if (override_speed_bool) opo.speed = override_speed_val;
+	else opo.speed = val;
 	send_success();
 }
 
