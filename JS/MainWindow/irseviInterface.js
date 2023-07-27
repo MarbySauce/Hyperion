@@ -784,6 +784,10 @@ seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
 	console.log("SEVI Image Resumed!");
 });
 
+seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, () => {
+	console.log("SEVI Image Canceled!");
+});
+
 //laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STARTED, () => {
 //	console.log("Measuring excitation wavelength!");
 //});

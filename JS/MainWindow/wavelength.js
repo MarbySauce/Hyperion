@@ -536,7 +536,6 @@ function opo_update_wavelength(wavelength) {
 async function opo_goto_nir(nir_wavelength) {
 	opo.status.motors_moving = true;
 	laserEmitter.emit(LASER.ALERT.OPO.MOTORS.MOVING);
-	console.log(opo.network.command.move(nir_wavelength));
 	opo.network.client.write(opo.network.command.move(nir_wavelength), () => {});
 	await wait_for_opo_motors(); // Send an update when motors have stopped
 }
