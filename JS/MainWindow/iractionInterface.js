@@ -499,7 +499,10 @@ function flash_iraction_status_label(label_id) {
 
 /**
  * Update the "Current Image" portion of the status section
- * @param {Object} image_amount_info : {current_image_id: (number), current_image_number: (number), total_image_number: (number)}
+ * @param {Object} image_amount_info : { image_id: (number),
+ * 										image_id_str: (string),
+ * 										image_number: (number),
+ * 										total_image_number: (number) }
  */
 function update_iraction_status_image_amount(image_amount_info) {
 	const current_image = document.getElementById("IRActionStatusCurrentImageValues");
@@ -508,16 +511,12 @@ function update_iraction_status_image_amount(image_amount_info) {
 		current_image.innerText = "";
 		return;
 	}
-	// Stringify the ID
-	let id_string;
-	if (image_amount_info.current_image_id < 10) id_string = `i0${image_amount_info.current_image_id}`;
-	else id_string = `i${image_amount_info.current_image_id}`;
 	// Stringify image progress
-	let image_progress = `${image_amount_info.current_image_number} of ${image_amount_info.total_image_number}`;
+	let image_progress = `${image_amount_info.image_number} of ${image_amount_info.total_image_number}`;
 	// Put it all together
-	let current_image_string = `${id_string} (${image_progress})`;
+	let image_string = `i${image_amount_info.image_id_str} (${image_progress})`;
 	// Update text on UI
-	current_image.innerText = current_image_string;
+	current_image.innerText = image_string;
 	// Flash label as notification of change
 	flash_iraction_status_label("IRActionStatusCurrentImageLabel");
 }

@@ -12,6 +12,15 @@ class ActionImage {
 		this.step_image_number = 0; // Image number within set of images / step
 		//this.radial_values;						// Filled with analysis radial values
 	}
+
+	get image_id_str() {
+		if (this.image_id) {
+			if (this.image_id < 10) return `0${this.image_id}`;
+			else return this.image_id.toString();
+		} else {
+			return "";
+		}
+	}
 }
 
 /*****************************************************************************
@@ -266,9 +275,11 @@ function initialize_action_queue() {
 		for (let i = step_image_number; i < ActionManager.params.images_per_step; i++) {
 			action_image = new ActionImage();
 			action_image.expected_excitation_energy.get_nir({ wavenumber: energy });
-			console.log(energy);
-			console.log(action_image.expected_excitation_energy.energy);
-			console.log(" ");
+			console.log(
+				`New queued image: (${
+					action_image.expected_excitation_energy.selected_mode_str
+				}) ${action_image.expected_excitation_energy.energy.wavenumber.toFixed(3)} cm-1`
+			);
 			action_image.step_image_number = i;
 			ActionManager.image_queue.push(action_image);
 		}
@@ -300,6 +311,7 @@ async function run_action_scan() {
 			let image_queue_length = ActionManager.image_queue.length;
 			let image_amount_info = {
 				current_image_id: id,
+				current_image_id_str: current_image.image_id_str,
 				current_image_number: completed_image_length + 1,
 				total_image_number: completed_image_length + image_queue_length + 1, // +1 to account for this image
 			};
@@ -360,6 +372,11 @@ async function run_action_scan() {
 		actionEmitter.emit(IRACTION.RESPONSE.ENERGY.NEXT, ActionManager.image_queue[0]?.expected_excitation_energy);
 		// Start an IR SEVI scan and wait for it to complete (or be canceled)
 		seviEmitter.emit(SEVI.SCAN.STARTIR);
+		console.log(
+			`Collecting image i${current_image.image_id_str} - (${
+				current_image.excitation_energy.selected_mode_str
+			}) ${current_image.excitation_energy.energy.wavenumber.toFixed(3)} cm-1`
+		);
 		//seviEmitter.emit(SEVI.SCAN.START); // If, for whatever reason, you want to take SEVI images instead, this will work
 		await Promise.any([once(seviEmitter, SEVI.ALERT.SCAN.STOPPED), once(seviEmitter, SEVI.ALERT.SCAN.CANCELED)]);
 		// Check if action scan was canceled
