@@ -109,6 +109,7 @@ actionEmitter.on(IRACTION.ALERT.SCAN.STARTED, () => {
 	change_iraction_button_to_pause();
 	enable_iraction_pause_button();
 	enable_iraction_cancel_button();
+	remove_override_hide_iraction_update_reset_buttons();
 });
 
 // IR Action scan has been completed
@@ -117,6 +118,7 @@ actionEmitter.on(IRACTION.ALERT.SCAN.STOPPED, () => {
 	change_iraction_button_to_pause();
 	disable_iraction_pause_button();
 	disable_iraction_cancel_button();
+	add_override_hide_iraction_update_reset_buttons();
 });
 
 // IR Action scan has been paused
@@ -256,6 +258,33 @@ document.getElementById("IRActionVMIMode").oninput = function () {
 	uiEmitter.emit(UI.UPDATE.VMI.INDEX, vmi_mode.selectedIndex);
 };
 
+document.getElementById("IRActionInitialEnergy").oninput = function () {
+	show_iraction_update_reset_buttons();
+};
+document.getElementById("IRActionFinalEnergy").oninput = function () {
+	show_iraction_update_reset_buttons();
+};
+document.getElementById("IRActionEnergyStep").oninput = function () {
+	show_iraction_update_reset_buttons();
+};
+document.getElementById("IRActionAutomaticStop").oninput = function () {
+	show_iraction_update_reset_buttons();
+};
+document.getElementById("IRActionAutomaticStopUnit").oninput = function () {
+	show_iraction_update_reset_buttons();
+};
+document.getElementById("IRActionImageAmount").oninput = function () {
+	show_iraction_update_reset_buttons();
+};
+
+document.getElementById("IRActionResetOptions").onclick = function () {
+	reset_iraction_options();
+};
+
+document.getElementById("IRActionUpdateOptions").onclick = function () {
+	update_iraction_options();
+};
+
 /****
 		UI Event Listeners
 ****/
@@ -316,7 +345,39 @@ function update_iraction_options() {
 	let action_options = { initial_energy: initial_energy, final_energy: final_energy, step_size: step_size, images_per_step: images_per_step };
 	actionEmitter.emit(IRACTION.UPDATE.OPTIONS, action_options);
 	seviEmitter.emit(SEVI.UPDATE.AUTOSTOP, { value: autostop, method: autostop_unit });
+	// Hide update and reset options buttons
+	hide_iraction_update_reset_buttons();
 	return true;
+}
+
+function reset_iraction_options() {
+	const initial_energy_input = document.getElementById("IRActionInitialEnergy");
+	const final_energy_input = document.getElementById("IRActionFinalEnergy");
+	const step_size_input = document.getElementById("IRActionEnergyStep");
+	const autostop_input = document.getElementById("IRActionAutomaticStop");
+	const autostop_unit_input = document.getElementById("IRActionAutomaticStopUnit");
+	const images_per_step_input = document.getElementById("IRActionImageAmount");
+	actionEmitter.on(IRACTION.RESPONSE.OPTIONS, (action_options) => {
+		initial_energy_input.value = action_options.initial_energy;
+		final_energy_input.value = action_options.final_energy;
+		step_size_input.value = action_options.step_size;
+		images_per_step_input.value = action_options.images_per_step;
+	});
+	seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PARAMETERS, (autostop_parameters) => {
+		autostop_input.value = autostop_parameters.value;
+		switch (autostop_parameters.method) {
+			case SEVI.AUTOSTOP.METHOD.ELECTRONS:
+				autostop_unit_input.selectedIndex = 0;
+				break;
+			case SEVI.AUTOSTOP.METHOD.FRAMES:
+				autostop_unit_input.selectedIndex = 1;
+				break;
+		}
+	});
+	actionEmitter.emit(IRACTION.QUERY.OPTIONS);
+	seviEmitter.emit(SEVI.QUERY.AUTOSTOP.PARAMETERS);
+	// Hide update and reset options buttons
+	hide_iraction_update_reset_buttons();
 }
 
 function update_iraction_autostop(autostop_params) {
@@ -340,6 +401,34 @@ function update_iraction_autostop(autostop_params) {
 function update_iraction_vmi(vmi_info) {
 	const vmi_mode = document.getElementById("IRActionVMIMode");
 	vmi_mode.selectedIndex = vmi_info.index;
+}
+
+function show_iraction_update_reset_buttons() {
+	const reset = document.getElementById("IRActionResetOptions");
+	const update = document.getElementById("IRActionUpdateOptions");
+	reset.classList.remove("hidden");
+	update.classList.remove("hidden");
+}
+
+function hide_iraction_update_reset_buttons() {
+	const reset = document.getElementById("IRActionResetOptions");
+	const update = document.getElementById("IRActionUpdateOptions");
+	reset.classList.add("hidden");
+	update.classList.add("hidden");
+}
+
+function remove_override_hide_iraction_update_reset_buttons() {
+	const reset = document.getElementById("IRActionResetOptions");
+	const update = document.getElementById("IRActionUpdateOptions");
+	reset.classList.remove("stay-hidden");
+	update.classList.remove("stay-hidden");
+}
+
+function add_override_hide_iraction_update_reset_buttons() {
+	const reset = document.getElementById("IRActionResetOptions");
+	const update = document.getElementById("IRActionUpdateOptions");
+	reset.classList.add("stay-hidden");
+	update.classList.add("stay-hidden");
 }
 
 /*****************************************************************************

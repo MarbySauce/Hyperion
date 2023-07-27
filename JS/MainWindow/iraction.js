@@ -102,6 +102,7 @@ actionEmitter.on(IRACTION.UPDATE.OPTIONS, (action_options) => {
 	if (action_options.final_energy) ActionManager.params.final_energy = action_options.final_energy;
 	if (action_options.step_size) ActionManager.params.step_size = action_options.step_size;
 	if (action_options.images_per_step) ActionManager.params.images_per_step = action_options.images_per_step;
+	if (ActionManager.status.running) initialize_action_queue(); // Reinitialize queue
 });
 
 actionEmitter.on(IRACTION.SCAN.START, ActionManager.start_scan);
@@ -126,6 +127,18 @@ actionEmitter.on(IRACTION.SCAN.REMEASUREWL, ActionManager.remeasure_wavelength);
 
 actionEmitter.on(IRACTION.QUERY.SCAN.RUNNING, () => {
 	actionEmitter.emit(IRACTION.RESPONSE.SCAN.RUNNING, ActionManager.status.running);
+});
+
+/* Scan Information */
+
+actionEmitter.on(IRACTION.QUERY.OPTIONS, () => {
+	let action_options = {
+		initial_energy: ActionManager.params.initial_energy,
+		final_energy: ActionManager.params.final_energy,
+		step_size: ActionManager.params.step_size,
+		images_per_step: ActionManager.params.images_per_step,
+	};
+	actionEmitter.emit(IRACTION.RESPONSE.OPTIONS, action_options);
 });
 
 /****

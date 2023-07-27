@@ -16,6 +16,9 @@
 .hidden {
 	display: none;
 }
+.stay-hidden {
+	display: none;
+}
 
 .action-status-row {
 	width: 100%;
