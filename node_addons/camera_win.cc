@@ -691,7 +691,7 @@ Napi::Value InitBuffer(const Napi::CallbackInfo& info) {
 	}
 
 	// return buffer
-	return Napi::Buffer<unsigned char>::New(env, camera.buffer.data(), camera.buffer.size());
+	return Napi::Buffer<unsigned char>::NewOrCopy(env, camera.buffer.data(), camera.buffer.size());
 }
 
 // Set up module to export functions to JavaScript

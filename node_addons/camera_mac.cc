@@ -2,6 +2,7 @@
 #include "centroid.h"
 #include <napi.h>
 
+
 // Global variables
 Camera camera; 							// Contains important info about the camera
 Centroid img; 							// Variables and functions for centroiding image
@@ -526,7 +527,7 @@ Napi::Value InitBuffer(const Napi::CallbackInfo& info) {
 		camera.buffer[4*i + 3] = 255;
 	}
 	// return buffer
-	return Napi::Buffer<unsigned char>::New(env, camera.buffer.data(), camera.buffer.size());
+	return Napi::Buffer<unsigned char>::NewOrCopy(env, camera.buffer.data(), camera.buffer.size());
 }
 
 // Set up module to export to JavaScript
