@@ -26,7 +26,6 @@ window.onload = function () {
 let settings;
 
 let check_messages = false;
-let buffer;
 
 // Don't send centroid info for the first 5s so that the rest of the program can load
 let send_centroid_info = false;
@@ -48,7 +47,6 @@ function startup() {
 		if (!centroid_results) {
 			return;
 		}
-		centroid_results.image_buffer = buffer;
 
 		// Send data to other renderer windows
 		if (send_centroid_info) {
@@ -72,7 +70,7 @@ function startup() {
 	console.log("Apply settings:", nRet);
 
 	// Initialize buffer
-	buffer = camera.initBuffer();
+	camera.initBuffer();
 
 	// Create WinAPI Window (to receive camera trigger messages)
 	nRet = camera.createWinAPIWindow();

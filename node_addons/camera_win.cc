@@ -609,6 +609,7 @@ void sendCentroids() {
 	centroidResults["is_led_on"] = Napi::Boolean::New(env, img.isLEDon);
 	centroidResults["avg_led_intensity"] = Napi::Number::New(env, img.LEDIntensity / img.LEDCount);
 	centroidResults["avg_noise_intensity"] = Napi::Number::New(env, img.NoiseIntensity / img.NoiseCount);
+	centroidResults["image_buffer"] = Napi::Buffer<unsigned char>::Copy(env, camera.buffer.data(), camera.buffer.size());
 
 	// Send message to JavaScript with packaged results
 	eventEmitter.Call(
