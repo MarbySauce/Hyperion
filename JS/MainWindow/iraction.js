@@ -59,10 +59,15 @@ const ActionManager = {
 			return [ms, seconds, minutes, hours];
 		},
 	},
+	current_image: undefined,
 	image_queue: [],
 	completed_images: [],
 	start_scan: () => ActionManager_start_scan(),
 	stop_scan: () => ActionManager_stop_scan(),
+	pause_scan: () => ActionManager_pause_scan(),
+	resume_scan: () => ActionManager_resume_scan(),
+	cancel_scan: () => ActionManager_cancel_scan(),
+	remeasure_wavelength: () => ActionManager_remeasure_wavelength(),
 };
 
 /****
@@ -98,8 +103,24 @@ actionEmitter.on(IRACTION.UPDATE.OPTIONS, (action_options) => {
 	if (action_options.step_size) ActionManager.params.step_size = action_options.step_size;
 	if (action_options.images_per_step) ActionManager.params.images_per_step = action_options.images_per_step;
 });
+
 actionEmitter.on(IRACTION.SCAN.START, ActionManager.start_scan);
 actionEmitter.on(IRACTION.SCAN.STOP, ActionManager.stop_scan);
+actionEmitter.on(IRACTION.SCAN.CANCEL, ActionManager.cancel_scan);
+
+// Request to either pause or resume action scan
+actionEmitter.on(IRACTION.SCAN.PAUSERESUME, () => {
+	if (ActionManager.status.paused) {
+		// Already paused, resume scan
+		ActionManager.resume_scan();
+	} else {
+		// Pause scan
+		ActionManager.pause_scan();
+	}
+});
+
+// Request to remeasure excitation wavelength
+actionEmitter.on(IRACTION.SCAN.REMEASUREWL, ActionManager.remeasure_wavelength);
 
 /* Scan Status */
 
@@ -152,6 +173,52 @@ function ActionManager_stop_scan() {
 	// If we're collecting an IR-SEVI image, we should stop it
 	laserEmitter.emit(LASER.GOTO.CANCEL);
 	seviEmitter.emit(SEVI.SCAN.STOP);
+}
+
+function ActionManager_pause_scan() {
+	ActionManager.status.paused = true;
+	// Send alerts to pause image or goto movement
+	seviEmitter.emit(SEVI.SCAN.PAUSE);
+	laserEmitter.emit(LASER.GOTO.PAUSE);
+	actionEmitter.emit(IRACTION.ALERT.SCAN.PAUSED);
+}
+
+function ActionManager_resume_scan() {
+	ActionManager.status.paused = false;
+	// If we're remeasuring excitation wavelength, it should be canceled
+	laserEmitter.emit(LASER.MEASURE.CANCEL.EXCITATION);
+	// Send alerts to resume paused image or goto movement
+	seviEmitter.emit(SEVI.SCAN.RESUME);
+	laserEmitter.emit(LASER.GOTO.RESUME);
+	actionEmitter.emit(IRACTION.ALERT.SCAN.RESUMED);
+}
+
+function ActionManager_cancel_scan() {
+	ActionManager.status.cancel = true;
+	// Send alerts to cancel image or goto movement
+	seviEmitter.emit(SEVI.SCAN.CANCEL);
+	laserEmitter.emit(LASER.GOTO.CANCEL);
+}
+
+async function ActionManager_remeasure_wavelength() {
+	if (!ActionManager.current_image) return;
+	// Send alert that wavelength is being remeasured
+	actionEmitter.emit(IRACTION.ALERT.REMEASURING.STARTED);
+	// Pause IR Action scan
+	ActionManager.pause_scan();
+	// Tell excitation laser to measure wavelength and wait for its result
+	laserEmitter.emit(LASER.MEASURE.EXCITATION);
+	let [current_wavelength] = await once(laserEmitter, LASER.RESPONSE.EXCITATION.INFO);
+	// If the newly measured wavelength is 0 (i.e. failed measurement), don't update anything
+	if (current_wavelength.nIR.wavelength !== 0) {
+		ActionManager.current_image.excitation_energy.nIR.wavelength = current_wavelength.nIR.wavelength;
+		ActionManager.current_image.excitation_energy.selected_mode = current_wavelength.selected_mode;
+		actionEmitter.emit(IRACTION.RESPONSE.ENERGY.CURRENT, ActionManager.current_image.excitation_energy);
+	}
+	// Resume IR Action scan
+	ActionManager.resume_scan();
+	// Send alert that remeasurement is done
+	actionEmitter.emit(IRACTION.ALERT.REMEASURING.STOPPED);
 }
 
 // Action queue should not be reset until after the current image is done!
@@ -212,6 +279,7 @@ async function run_action_scan() {
 	while (ActionManager.image_queue.length > 0) {
 		// Get current image by removing it from beginning of queue
 		current_image = ActionManager.image_queue.shift();
+		ActionManager.current_image = current_image; // Store current image so we can access it outside of loop
 		// Update image ID info and send info
 		uiEmitter.once(UI.RESPONSE.IMAGEID, (id) => {
 			current_image.image_id = id;
@@ -255,11 +323,11 @@ async function run_action_scan() {
 				// GoTo was canceled, check if we should cancel action scan
 				if (ActionManager.status.cancel) {
 					// NOTE TO MARTY: Add cancel stuff in
-					console.log("Action scan canceled!");
+					console.log("Action scan canceled! (need to add stuff here)");
 					break;
 				} else {
 					// NOTE TO MARTY: Add stop stuff in
-					console.log("Action scan stopped!");
+					console.log("Action scan stopped! (need to add stuff here)");
 					break;
 				}
 			}
@@ -284,7 +352,7 @@ async function run_action_scan() {
 		// Check if action scan was canceled
 		if (ActionManager.status.cancel) {
 			// NOTE TO MARTY: Add cancel stuff in
-			console.log("Action scan canceled!");
+			console.log("Action scan canceled! (need to add stuff here)");
 			break;
 		}
 		// Add current image to completed_image list and move on

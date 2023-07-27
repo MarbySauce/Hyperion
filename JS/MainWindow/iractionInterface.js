@@ -75,6 +75,26 @@ document.getElementById("IRActionScanStartSave").onclick = function () {
 	actionEmitter.emit(IRACTION.QUERY.SCAN.RUNNING);
 };
 
+document.getElementById("IRActionScanPauseResume").onclick = function () {
+	actionEmitter.emit(IRACTION.SCAN.PAUSERESUME);
+};
+
+document.getElementById("IRActionScanCancel").onclick = function () {
+	actionEmitter.emit(IRACTION.SCAN.CANCEL);
+};
+
+document.getElementById("IRActionImageSave").onclick = function () {
+	seviEmitter.emit(SEVI.SCAN.STOP);
+};
+
+document.getElementById("IRActionImageReset").onclick = function () {
+	seviEmitter.emit(SEVI.SCAN.RESET);
+};
+
+document.getElementById("IRActionRemeasureWavelength").onclick = function () {
+	actionEmitter.emit(IRACTION.SCAN.REMEASUREWL);
+};
+
 /****
 		UI Event Listeners
 ****/
@@ -86,7 +106,7 @@ document.getElementById("IRActionScanStartSave").onclick = function () {
 // IR Action scan has been started
 actionEmitter.on(IRACTION.ALERT.SCAN.STARTED, () => {
 	change_iraction_button_to_save();
-	change_irsevi_button_to_pause();
+	change_iraction_button_to_pause();
 	enable_iraction_pause_button();
 	enable_iraction_cancel_button();
 });
@@ -94,9 +114,43 @@ actionEmitter.on(IRACTION.ALERT.SCAN.STARTED, () => {
 // IR Action scan has been completed
 actionEmitter.on(IRACTION.ALERT.SCAN.STOPPED, () => {
 	change_iraction_button_to_start();
-	change_irsevi_button_to_pause();
+	change_iraction_button_to_pause();
 	disable_iraction_pause_button();
 	disable_iraction_cancel_button();
+});
+
+// IR Action scan has been paused
+actionEmitter.on(IRACTION.ALERT.SCAN.PAUSED, () => {
+	change_iraction_button_to_resume();
+});
+
+// IR Action scan has been resumed
+actionEmitter.on(IRACTION.ALERT.SCAN.RESUMED, () => {
+	change_iraction_button_to_pause();
+});
+
+// IR-SEVI image has started (during an action scan)
+actionEmitter.on(IRACTION.ALERT.SEVI.STARTED, () => {
+	enable_iraction_save_continue_button();
+	enable_iraction_reset_image_button();
+	enable_iraction_remeasure_button();
+});
+
+// IR-SEVI image has stopped (during an action scan)
+actionEmitter.on(IRACTION.ALERT.SEVI.STOPPED, () => {
+	disable_iraction_save_continue_button();
+	disable_iraction_reset_image_button();
+	disable_iraction_remeasure_button();
+});
+
+// Excitation remeasuring has started
+actionEmitter.on(IRACTION.ALERT.REMEASURING.STARTED, () => {
+	disable_iraction_remeasure_button();
+});
+
+// Excitation remeasuring has stopped
+actionEmitter.on(IRACTION.ALERT.REMEASURING.STOPPED, () => {
+	enable_iraction_remeasure_button();
 });
 
 /****
@@ -149,6 +203,42 @@ function disable_iraction_cancel_button() {
 function enable_iraction_cancel_button() {
 	const cancel_button = document.getElementById("IRActionScanCancel");
 	cancel_button.disabled = false;
+}
+
+// Disable IR Action Save & Continue button
+function disable_iraction_save_continue_button() {
+	const save_continue_button = document.getElementById("IRActionImageSave");
+	save_continue_button.disabled = true;
+}
+
+// Enable IR Action Save & Continue button
+function enable_iraction_save_continue_button() {
+	const save_continue_button = document.getElementById("IRActionImageSave");
+	save_continue_button.disabled = false;
+}
+
+// Disable IR Action Reset Image button
+function disable_iraction_reset_image_button() {
+	const reset_image_button = document.getElementById("IRActionImageReset");
+	reset_image_button.disabled = true;
+}
+
+// Enable IR Action Reset Image button
+function enable_iraction_reset_image_button() {
+	const reset_image_button = document.getElementById("IRActionImageReset");
+	reset_image_button.disabled = false;
+}
+
+// Disable IR Action Remeasure Wavelength button
+function disable_iraction_remeasure_button() {
+	const remeasure_button = document.getElementById("IRActionRemeasureWavelength");
+	remeasure_button.disabled = true;
+}
+
+// Enable IR Action Remeasure Wavelength button
+function enable_iraction_remeasure_button() {
+	const remeasure_button = document.getElementById("IRActionRemeasureWavelength");
+	remeasure_button.disabled = false;
 }
 
 /*****************************************************************************
@@ -293,6 +383,16 @@ actionEmitter.on(IRACTION.RESPONSE.IMAGEAMOUNT, update_iraction_status_image_amo
 actionEmitter.on(IRACTION.RESPONSE.ENERGY.CURRENT, update_iraction_status_current_energy);
 actionEmitter.on(IRACTION.RESPONSE.ENERGY.NEXT, update_iraction_status_next_energy);
 actionEmitter.on(IRACTION.RESPONSE.DURATION, update_iraction_status_duration);
+
+// Excitation remeasuring has started
+actionEmitter.on(IRACTION.ALERT.REMEASURING.STARTED, () => {
+	update_iraction_status_current_step("Remeasuring OPO Wavelength");
+});
+
+// Excitation remeasuring has stopped
+actionEmitter.on(IRACTION.ALERT.REMEASURING.STOPPED, () => {
+	update_iraction_status_current_step("Collecting IR-SEVI Image");
+});
 
 /****
 		Functions

@@ -26,6 +26,10 @@ const ExcitationLaserManager = {
 		wavelength_range: 1, // nm, how close the measured value needs to be to the expected wavelength
 		acceptance_range: 0.75, // cm-1, how close actual IR energy should be do desired on GoTo call
 	},
+	status: {
+		measuring_wavelength: false,
+		goto_movement: false,
+	},
 	send_stored_info: () => ExcitationLaserManager_send_stored_info(),
 	measure: async (expected_wavelength) => ExcitationLaserManager_measure(expected_wavelength),
 };
@@ -72,7 +76,7 @@ laserEmitter.on(LASER.MEASURE.EXCITATION, async () => {
 });
 
 laserEmitter.on(LASER.MEASURE.CANCEL.EXCITATION, () => {
-	ExcitationLaserManager.cancel = true;
+	if (ExcitationLaserManager.status.measuring_wavelength) ExcitationLaserManager.cancel = true;
 });
 
 // GoTo IR Energy requested
@@ -81,8 +85,10 @@ laserEmitter.on(LASER.GOTO.EXCITATION, move_opo_wavelength);
 
 // Pause OPO GoTo wavelength movement
 laserEmitter.on(LASER.GOTO.PAUSE, () => {
-	ExcitationLaserManager.pause = true;
-	laserEmitter.emit(LASER.ALERT.GOTO.PAUSED);
+	if (ExcitationLaserManager.status.goto_movement) {
+		ExcitationLaserManager.pause = true;
+		laserEmitter.emit(LASER.ALERT.GOTO.PAUSED);
+	}
 });
 
 // Resume OPO GoTo wavelength movement
@@ -94,16 +100,44 @@ laserEmitter.on(LASER.GOTO.RESUME, () => {
 
 // Cancel OPO GoTo wavelength movement
 laserEmitter.on(LASER.GOTO.CANCEL, () => {
-	ExcitationLaserManager.cancel = true;
-	ExcitationLaserManager.cancel_goto = true;
-	// Send message to OPO to stop moving
-	opo.stop_movement();
+	if (ExcitationLaserManager.status.goto_movement) {
+		ExcitationLaserManager.cancel = true;
+		ExcitationLaserManager.cancel_goto = true;
+		// Send message to OPO to stop moving
+		opo.stop_movement();
+	}
 });
 
-// If OPO GoTo movement canceled, update check bool
+// If wavelength measurement was started, update status bool
+laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STARTED, () => {
+	ExcitationLaserManager.status.measuring_wavelength = true;
+});
+
+// If wavelength measurement was stopped, update status bool
+laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STOPPED, () => {
+	ExcitationLaserManager.status.measuring_wavelength = false;
+	ExcitationLaserManager.cancel = false;
+});
+
+// If OPO GoTo movement started, update check and status bools
+laserEmitter.on(LASER.ALERT.GOTO.STARTED, () => {
+	ExcitationLaserManager.status.goto_movement = true;
+});
+
+// If OPO GoTo movement stopped, update check and status bools
+laserEmitter.on(LASER.ALERT.GOTO.STOPPED, () => {
+	ExcitationLaserManager.cancel_goto = false;
+	ExcitationLaserManager.cancel = false;
+	ExcitationLaserManager.status.measuring_wavelength = false;
+	ExcitationLaserManager.status.goto_movement = false;
+});
+
+// If OPO GoTo movement canceled, update check and status bools
 laserEmitter.on(LASER.ALERT.GOTO.CANCELED, () => {
 	ExcitationLaserManager.cancel_goto = false;
 	ExcitationLaserManager.cancel = false;
+	ExcitationLaserManager.status.measuring_wavelength = false;
+	ExcitationLaserManager.status.goto_movement = false;
 });
 
 /****

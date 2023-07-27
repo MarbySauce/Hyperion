@@ -134,6 +134,19 @@ seviEmitter.on(SEVI.SCAN.PAUSERESUME, () => {
 	// Pause/Resume logic was moved here bc ImageManager should be figuring out what to do
 	ImageManager.pause_resume_scan();
 });
+// SEVI.SCAN.PAUSE and .RESUME are only used by IR Action mode
+seviEmitter.on(SEVI.SCAN.PAUSE, () => {
+	if (ImageManager.status.running) {
+		ImageManager.status.paused = true;
+		seviEmitter.emit(SEVI.ALERT.SCAN.PAUSED);
+	}
+});
+seviEmitter.on(SEVI.SCAN.RESUME, () => {
+	if (ImageManager.status.running) {
+		ImageManager.status.paused = false;
+		seviEmitter.emit(SEVI.ALERT.SCAN.RESUMED);
+	}
+});
 // Cancel scan
 seviEmitter.on(SEVI.SCAN.CANCEL, ImageManager.cancel_scan);
 // Reset scan

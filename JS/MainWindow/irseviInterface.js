@@ -776,6 +776,14 @@ function hide_irsevi_image_progress_bar() {
 	irsevi_counters.classList.add("hide-progress-bar");
 }
 
+seviEmitter.on(SEVI.ALERT.SCAN.PAUSED, () => {
+	console.log("SEVI Image Paused!");
+});
+
+seviEmitter.on(SEVI.ALERT.SCAN.RESUMED, () => {
+	console.log("SEVI Image Resumed!");
+});
+
 //laserEmitter.on(LASER.ALERT.WAVEMETER.MEASURING.EXCITATION.STARTED, () => {
 //	console.log("Measuring excitation wavelength!");
 //});
@@ -796,6 +804,14 @@ laserEmitter.on(LASER.ALERT.GOTO.CANCELED, () => {
 	console.log("GoTo canceled!");
 });
 
+laserEmitter.on(LASER.ALERT.GOTO.PAUSED, () => {
+	console.log("GoTo paused!");
+});
+
+laserEmitter.on(LASER.ALERT.GOTO.RESUMED, () => {
+	console.log("GoTo resumed!");
+});
+
 //laserEmitter.on(LASER.ALERT.OPO.MOTORS.MOVING, () => {
 //	console.log("Moving OPO!");
 //});
@@ -810,4 +826,16 @@ actionEmitter.on(IRACTION.ALERT.SCAN.STARTED, () => {
 
 actionEmitter.on(IRACTION.ALERT.SCAN.STOPPED, () => {
 	console.log("IR Action scan stopped!");
+});
+
+actionEmitter.on(IRACTION.ALERT.SCAN.PAUSED, () => {
+	console.log("IR Action scan paused!");
+});
+
+actionEmitter.on(IRACTION.ALERT.SCAN.RESUMED, () => {
+	console.log("IR Action scan resumed!");
+});
+
+actionEmitter.on(IRACTION.ALERT.SCAN.CANCELED, () => {
+	console.log("IR Action scan canceled!");
 });
