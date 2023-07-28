@@ -701,8 +701,6 @@ async function DetachmentLaserManager_measure(expected_wavelength) {
  * 	to simulate the wavemeter
  * Return a wavelength close to OPO's wavelength
  */
-let failed_measurement_bool = false;
-let bad_measurement_bool = false;
 function mac_wavelength(channel) {
 	if (channel === settings.laser.detachment.wavemeter_channel) {
 		// Just send 650nm (with some noise) as the detachment laser wavelength
@@ -711,14 +709,10 @@ function mac_wavelength(channel) {
 		// Send wavelength as the OPO's wavelength with some noise added
 		let wl = opo.status.current_wavelength;
 		// Add some noise
-		wl += norm_rand(0, 0.5);
+		wl += norm_rand(0, 0.1);
 		// Small chance of wavelength being very far off
 		if (Math.random() < 0.1) {
 			wl -= 20;
-		}
-		if (failed_measurement_bool) wl = 0;
-		if (bad_measurement_bool) {
-			if (Math.random() < 0.8) wl -= 20;
 		}
 		return wl;
 	} else {
