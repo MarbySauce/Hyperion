@@ -445,7 +445,7 @@
 					<div class="grid background-lighter-blue justify-align-center" id="IRActionAutomaticStopSelection">
 						<label class="white-text text-box-label" id="IRActionAutomaticStopLabel">Stop Scan After:</label>
 						<input class="input-change action-options-input" id="IRActionAutomaticStop" type="number" min="0" placeholder="-" />
-						<select class="white-text square-button drop-down" name="AutomaticStopUnit" id="IRActionAutomaticStopUnit">
+						<select class="white-text square-button action-options-drop-down" name="AutomaticStopUnit" id="IRActionAutomaticStopUnit">
 							<option value="Electrons">x1e5 Electrons</option>
 							<option value="Frames">x1000 Frames</option>
 						</select>
@@ -453,12 +453,18 @@
 					<!-- Images / Energy Step -->
 					<div class="grid background-lighter-blue justify-align-center" id="IRActionImageAmountSelection">
 						<label class="white-text text-box-label" id="IRActionImageAmountLabel">Images / energy step:</label>
-						<input class="input-change action-options-input" id="IRActionImageAmount" type="number" value="1" min="1" />
+						<select class="white-text square-button action-options-drop-down" name="IRActionImageAmount" id="IRActionImageAmount">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						</select>
 					</div>
 					<!-- VMI Selection & Reset/Update Buttons -->
 					<div class="grid background-lighter-blue" id="IRActionVMISelection">
 						<label class="white-text text-box-label" id="IRActionVMILabel">VMI Setting:</label>
-						<select class="white-text square-button drop-down" name="IRActionVMIMode" id="IRActionVMIMode">
+						<select class="white-text square-button action-options-drop-down" name="IRActionVMIMode" id="IRActionVMIMode">
 							<option value="V1">V1</option>
 							<option value="V2">V2</option>
 							<option value="V3">V3</option>

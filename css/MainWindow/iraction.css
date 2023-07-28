@@ -37,6 +37,15 @@
 	border-bottom: 1px solid white;
 }*/
 
+.action-options-drop-down {
+	width: 100%;
+	height: 70%;
+	text-align: center;
+}
+.action-options-drop-down:focus-visible {
+	outline: none;
+}
+
 /* First Page */
 #IRActionFirstPage {
 	padding: 10px 20px 0 20px;
@@ -56,10 +65,6 @@
 #IRActionAutomaticStopSelection {
 	grid-gap: 10px;
 }
-#IRActionAutomaticStopUnit {
-	width: 100%;
-	height: 70%;
-}
 #IRActionImageAmountSelection {
 	grid-gap: 10px;
 }
@@ -68,11 +73,6 @@
 }
 #IRActionVMILabel {
 	padding-right: 10px;
-}
-#IRActionVMIMode {
-	width: 100%;
-	height: 70%;
-	padding-left: 30%;
 }
 
 /* First Page - Scan Status */

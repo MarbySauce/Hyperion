@@ -318,9 +318,7 @@ function update_iraction_options() {
 	let step_size = parseFloat(step_size_input.value);
 	let autostop = parseFloat(autostop_input.value);
 	let autostop_unit = [SEVI.AUTOSTOP.METHOD.ELECTRONS, SEVI.AUTOSTOP.METHOD.FRAMES][autostop_unit_input.selectedIndex];
-	// Images per step needs to be an integer
-	let images_per_step = Math.round(images_per_step_input.value);
-	images_per_step_input.value = images_per_step;
+	let images_per_step = images_per_step_input.selectedIndex + 1;
 	// Make sure no options were blank
 	let exit_function = false;
 	if (isNaN(initial_energy) || isNaN(final_energy) || isNaN(step_size)) {
@@ -333,10 +331,6 @@ function update_iraction_options() {
 	}
 	if (isNaN(autostop) || autostop_unit === undefined) {
 		msgEmitter.emit(MSG.ERROR, "IR Action automatic stop values need to be specified");
-		exit_function = true;
-	}
-	if (images_per_step <= 0) {
-		msgEmitter.emit(MSG.ERROR, "IR Action - images per step must be a positive integer");
 		exit_function = true;
 	}
 	if (exit_function) return false;
@@ -361,7 +355,7 @@ function reset_iraction_options() {
 		initial_energy_input.value = action_options.initial_energy;
 		final_energy_input.value = action_options.final_energy;
 		step_size_input.value = action_options.step_size;
-		images_per_step_input.value = action_options.images_per_step;
+		images_per_step_input.selectedIndex = action_options.images_per_step - 1;
 	});
 	seviEmitter.on(SEVI.RESPONSE.AUTOSTOP.PARAMETERS, (autostop_parameters) => {
 		autostop_input.value = autostop_parameters.value;
