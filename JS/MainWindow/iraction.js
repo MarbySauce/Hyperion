@@ -323,7 +323,7 @@ async function run_action_scan() {
 
 	let current_image;
 	let last_image = ActionManager.completed_images[ActionManager.completed_images.length - 1];
-	let last_energy = last_image?.excitation_energy.energy.wavenumber; // Will be undefined if completed_images is blank
+	let last_energy = last_image?.excitation_energy.energy.wavenumber || 0; // Will be undefined if completed_images is blank
 	let desired_energy;
 	let move_wavelength = true;
 	while (ActionManager.image_queue.length > 0) {
@@ -345,11 +345,14 @@ async function run_action_scan() {
 		});
 		uiEmitter.emit(UI.QUERY.IMAGEID);
 		// Check whether to move OPO wavelength
+		last_image = ActionManager.completed_images[ActionManager.completed_images.length - 1];
+		last_energy = last_image?.excitation_energy.energy.wavenumber || 0;
 		desired_energy = current_image.expected_excitation_energy.energy.wavenumber;
 		if (settings?.action.move_wavelength_every_time) {
 			// If wavelength is within acceptance range of desired energy, don't move
 			let acceptance_range = settings?.laser.excitation.acceptance_range;
 			move_wavelength = Math.abs(desired_energy - last_energy) > acceptance_range;
+			console.log(Math.abs(desired_energy - last_energy), desired_energy, last_energy, acceptance_range, move_wavelength);
 		} else {
 			// Only want to move if we're on the first image in the series of images / step (i.e. step_image_number = 0)
 			move_wavelength = current_image.step_image_number === 0;

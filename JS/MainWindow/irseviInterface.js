@@ -798,10 +798,12 @@ seviEmitter.on(SEVI.ALERT.SCAN.CANCELED, () => {
 
 laserEmitter.on(LASER.ALERT.GOTO.STARTED, () => {
 	console.log("GoTo started!");
+	console.time("GoTo");
 });
 
 laserEmitter.on(LASER.ALERT.GOTO.STOPPED, () => {
 	console.log("GoTo stopped!");
+	console.timeEnd("GoTo");
 });
 
 laserEmitter.on(LASER.ALERT.GOTO.CANCELED, () => {

@@ -2,7 +2,7 @@ const ipc = require("electron").ipcRenderer;
 const { Chart, registerables } = require("chart.js");
 const { IPCMessages } = require("../JS/Messages.js");
 
-Chart.register(...registerables);
+if (registerables) Chart.register(...registerables);
 
 ////
 let DOIT = false;

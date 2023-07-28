@@ -528,7 +528,7 @@ Napi::Value InitBuffer(const Napi::CallbackInfo& info) {
 		camera.buffer[4*i + 3] = 255;
 	}
 	// return buffer
-	return Napi::Buffer<unsigned char>::NewOrCopy(env, camera.buffer.data(), camera.buffer.size());
+	return Napi::Buffer<unsigned char>::Copy(env, camera.buffer.data(), camera.buffer.size());
 }
 
 // Set up module to export to JavaScript
