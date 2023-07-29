@@ -6,6 +6,7 @@
 
 const ipc = require("electron").ipcRenderer;
 const { Image, IRImage, EmptyIRImage, ImageType } = require("./ImageClasses.js");
+const { ManagerAlert } = require("./ManagerAlert.js");
 
 // This image is a place holder for ImageManager.current_image whenever a scan is not currently being taken
 // That way the image functionality (such as returning file names) can still be used
@@ -461,62 +462,35 @@ function ImageManager_process_settings(settings) {
 
 *****************************************************************************/
 
-class ImageManagerAlert {
-	constructor() {
-		this.on = [];
-		this.once = [];
-	}
-
-	add_on(callback) {
-		this.on.push(callback);
-	}
-
-	add_once(callback) {
-		this.once.push(callback);
-	}
-
-	alert(...args) {
-		// Execute "on" functions first
-		for (let f of this.on) {
-			f(...args);
-		}
-		// Execute "once" functions and remove
-		for (let f of this.once) {
-			f(...args);
-		}
-		this.once = [];
-	}
-}
-
 const IMAlerts = {
 	event: {
 		scan: {
-			start: new ImageManagerAlert(),
-			stop: new ImageManagerAlert(),
-			pause: new ImageManagerAlert(),
-			resume: new ImageManagerAlert(),
-			cancel: new ImageManagerAlert(),
-			reset: new ImageManagerAlert(),
+			start: new ManagerAlert(),
+			stop: new ManagerAlert(),
+			pause: new ManagerAlert(),
+			resume: new ManagerAlert(),
+			cancel: new ManagerAlert(),
+			reset: new ManagerAlert(),
 		},
 	},
 	info_update: {
 		image: {
-			id: new ImageManagerAlert(),
-			file_name: new ImageManagerAlert(),
-			file_name_ir: new ImageManagerAlert(),
-			counts: new ImageManagerAlert(),
-			vmi_info: new ImageManagerAlert(),
+			id: new ManagerAlert(),
+			file_name: new ManagerAlert(),
+			file_name_ir: new ManagerAlert(),
+			counts: new ManagerAlert(),
+			vmi_info: new ManagerAlert(),
 		},
-		contrast: new ImageManagerAlert(),
+		contrast: new ManagerAlert(),
 		autostop: {
-			params: new ImageManagerAlert(),
-			progress: new ImageManagerAlert(),
+			params: new ManagerAlert(),
+			progress: new ManagerAlert(),
 		},
 		image_series: {
-			params: new ImageManagerAlert(),
-			remaining: new ImageManagerAlert(),
+			params: new ManagerAlert(),
+			remaining: new ManagerAlert(),
 		},
-		avg_electrons: new ImageManagerAlert(),
+		avg_electrons: new ManagerAlert(),
 	},
 };
 
