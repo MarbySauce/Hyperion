@@ -442,14 +442,38 @@ function Sevi_Counts() {
 
 function Sevi_Load_Page(PageInfo) {
 	const sevi_controls = document.getElementById("SeviScanControls");
-	if (settings?.image_series.show_menu) sevi_controls.classList.remove("hide-image-series");
-	else sevi_controls.classList.add("hide-image-series");
+	if (sevi_controls) {
+		if (settings?.image_series.show_menu) sevi_controls.classList.remove("hide-image-series");
+		else sevi_controls.classList.add("hide-image-series");
+	}
 
-	Sevi_Scan_Control();
-	Sevi_File_Naming();
-	Sevi_Laser_Control();
-	Sevi_Accumulated_Image_Display(PageInfo);
-	Sevi_Counts();
+	// Wrapping these in try/catch so that rest of program can still load
+	//	even if somemodules are buggy
+	try {
+		Sevi_Scan_Control();
+	} catch (error) {
+		console.log("Cannot load SEVI tab Scan Controls module:", error);
+	}
+	try {
+		Sevi_File_Naming();
+	} catch (error) {
+		console.log("Cannot load SEVI tab File Naming module:", error);
+	}
+	try {
+		Sevi_Laser_Control();
+	} catch (error) {
+		console.log("Cannot load SEVI tab Laser Controls module:", error);
+	}
+	try {
+		Sevi_Accumulated_Image_Display(PageInfo);
+	} catch (error) {
+		console.log("Cannot load SEVI tab Accumulated Image Display module:", error);
+	}
+	try {
+		Sevi_Counts();
+	} catch (error) {
+		console.log("Cannot load SEVI tab Electron/Frame Counts module:", error);
+	}
 }
 
 /*****************************************************************************
