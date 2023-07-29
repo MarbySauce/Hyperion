@@ -325,4 +325,4 @@ const MSG = {
 	ERROR: "MSG-ERROR",
 };
 
-module.exports = { IPCMessages, UI, SEVI, IRACTION, LASER, MSG };
+module.exports = { IPCMessages };

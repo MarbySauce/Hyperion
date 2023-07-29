@@ -1,8 +1,9 @@
 // Libraries
 const ipc = require("electron").ipcRenderer;
-const { EventEmitter } = require("events").EventEmitter;
-const { IPCMessages, UI } = require("../JS/Messages.js");
-const { ImageType } = require("../JS/MainWindow2/Libraries/ImageClasses.js");
+const { IPCMessages } = require("../JS/Messages.js");
+const { Tabs } = require("../JS/MainWindow2/Libraries/Tabs.js");
+const { Tab_Control, change_tab, PageInfo } = require("../JS/MainWindow2/tabInterface.js");
+const { Sevi_Load_Page } = require("../JS/MainWindow2/seviInterface.js");
 
 // Doing this so my IDE can get the class information
 // Couldn't figure out a better way to do it
@@ -13,8 +14,7 @@ const { ImageManagerMessenger } = require("../JS/MainWindow2/Libraries/ImageMana
 
 let settings; // Global variable, to be filled in on startup
 
-const uiEmitter = new EventEmitter();
-const IMMessenger_startup = new ImageManagerMessenger();
+const IMMessenger = new ImageManagerMessenger();
 
 // ORDER OF OPERATIONS WHEN LOADING PROGRAM
 // Main renderer (main.js) creates the MainWindow
@@ -38,19 +38,23 @@ ipc.on("settings-information", (event, settings_information) => {
 });
 
 async function startup() {
+	// Load Tab Content startup functions
+	Tab_Control();
+	Sevi_Load_Page(PageInfo);
+
 	// Go to Sevi Mode tab
-	change_tab(UI.TAB.SEVI); // From interface.js
+	change_tab(Tabs.SEVI); // From interface.js
 	//uiEmitter.emit(UI.UPDATE.TAB, UI.TAB.SEVI);
 
 	// Set starting image ID to 1
-	IMMessenger_startup.update.id.set(1);
+	IMMessenger.update.id.set(1);
 
 	ipc.send(IPCMessages.LOADED.MAINWINDOW, null);
 }
 
 function process_settings() {
 	// Send settings to each manager
-	IMMessenger_startup.update.process_settings(settings);
+	IMMessenger.update.process_settings(settings);
 }
 
 /**
