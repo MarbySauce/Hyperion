@@ -71,18 +71,17 @@ const ImageManager = {
 		use_autostop: false,
 		both: false, // Whether both images (in IR-SEVI scan) need to meet autostop condition or just one
 		progress: 0, // Percent completion, as value between 0 and 100
-		//check: () => ImageManager_autostop_check(),
-		//send_progress: () => {
-		//	seviEmitter.emit(SEVI.RESPONSE.AUTOSTOP.PROGRESS, ImageManager.autostop.progress);
-		//},
-		//send_info: () => ImageManager_autostop_send_info(),
+		check: () => ImageManager_autostop_check(),
+		update_info: (autostop_params) => ImageManager_autostop_update_info(autostop_params),
+		send_info: () => ImageManager_autostop_send_info(),
 	},
-	/*series: {
+	series: {
 		collection_length: 1,
 		progress: 0, // # of images in series taken
 		update: (collection_length) => ImageManager_series_update(collection_length),
+		check: () => ImageManager_series_check(),
 		send_progress: () => ImageManager_series_send_progress(),
-	},*/
+	},
 	all_images: [],
 	current_image: EmptyImage, // Image that is currently being taken
 	last_image: EmptyImage, // Last image that was taken
@@ -117,12 +116,169 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, (event, centroid_results) => {
 	// Send updates about electron count information
 	IMAlerts.info_update.image.counts.alert(ImageManager.current_image.counts);
 	// Check if autostop condition has been met
-	//ImageManager.autostop.check();
+	ImageManager.autostop.check();
 });
 
 /****
 		Functions
 ****/
+
+/* Automatic image stop */
+
+function ImageManager_autostop_check() {
+	// First and second check will be IR Off and On if image is IRSEVI image and both = true
+	let first_value = 0;
+	let second_value = 0;
+	let first_match_value, second_match_value;
+	let counts = ImageManager.current_image.counts;
+	let progress = 0;
+	let to_stop = false;
+	switch (ImageManager.autostop.method) {
+		case AutostopMethod.ELECTRONS:
+			first_match_value = ImageManager.autostop.value.electrons * AutostopMethod.ELECTRONS.multiplier; // Convert to 1e5 electrons
+			second_match_value = first_match_value;
+			first_value = counts.electrons.off;
+			second_value = counts.electrons.on;
+			break;
+		case AutostopMethod.FRAMES:
+			first_match_value = ImageManager.autostop.value.frames * AutostopMethod.FRAMES.multiplier; // Convert to 1k frames
+			second_match_value = first_match_value;
+			first_value = counts.frames.off;
+			second_value = counts.frames.on;
+			break;
+		case AutostopMethod.NONE:
+			first_match_value = Infinity; // Make it impossible to match
+			second_match_value = first_match_value;
+			break;
+	}
+	// If the current image is SEVI, need to check image totals
+	// If the current image is IR-SEVI, need to check each image individually
+	if (ImageManager.current_image.is_ir) {
+		if (!ImageManager.autostop.both) {
+			// While image is IR-SEVI, user only wants to stop if one image meets autostop conditions
+			first_value = Math.max(first_value, second_value);
+			// Don't check second value (second_value = second_match_value is all that matters for next steps)
+			second_value = 1e10;
+			second_match_value = 1e10;
+		}
+		// User wants to check both images, no need to do anything
+	} else {
+		// Image is SEVI, need to check totals
+		first_value += second_value;
+		// Don't check second value (second_value = second_match_value is all that matters for next steps)
+		second_value = 1e10;
+		second_match_value = 1e10;
+	}
+	// Update progress to whatever image is further away from completion
+	progress = 100 * Math.min(first_value / first_match_value, second_value / second_match_value);
+	// Check if conditions were met
+	if (first_value >= first_match_value && second_value >= second_match_value) {
+		progress = 100;
+		// Stop image
+		to_stop = true;
+		ImageManager.stop_scan();
+	}
+	// Update ImageManager
+	ImageManager.autostop.progress = progress;
+	// Send progress update
+	IMAlerts.info_update.autostop.progress.alert(progress);
+	return { progress: progress, to_stop: to_stop };
+}
+
+function ImageManager_autostop_update_info(autostop_params) {
+	// autostop_params will look like {method: (AutostopMethod), value: (number)}
+	// If only updating the method, autostop_params.value should be undefined
+	// If only updating the value, autostop_params.method should be undefined
+	// If updating both, neither .value or .method should be undefined
+	if (autostop_params.method && autostop_params.value) {
+		// Update both
+		ImageManager.autostop.method = autostop_params.method;
+		if (autostop_params.method === AutostopMethod.ELECTRONS) {
+			ImageManager.autostop.value.electrons = autostop_params.value;
+		} else if (autostop_params.method === AutostopMethod.FRAMES) {
+			ImageManager.autostop.value.frames = autostop_params.value;
+		}
+	} else if (autostop_params.method) {
+		// Only update method
+		ImageManager.autostop.method = autostop_params.method;
+	} else if (autostop_params.value) {
+		// Only update value
+		if (ImageManager.autostop.method === AutostopMethod.ELECTRONS) {
+			ImageManager.autostop.value.electrons = autostop_params.value;
+		} else if (ImageManager.autostop.method === AutostopMethod.FRAMES) {
+			ImageManager.autostop.value.frames = autostop_params.value;
+		}
+	}
+	// Update status of whether autostop is being used (method != none and value != infinity)
+	switch (ImageManager.autostop.method) {
+		case AutostopMethod.ELECTRONS:
+			if (ImageManager.autostop.value.electrons === Infinity) ImageManager.autostop.use_autostop = false;
+			else ImageManager.autostop.use_autostop = true;
+			break;
+		case AutostopMethod.FRAMES:
+			if (ImageManager.autostop.value.frames === Infinity) ImageManager.autostop.use_autostop = false;
+			else ImageManager.autostop.use_autostop = true;
+			break;
+		default:
+			ImageManager.autostop.use_autostop = false;
+			break;
+	}
+	// Send current autostop information back
+	ImageManager.autostop.send_info();
+}
+
+function ImageManager_autostop_send_info() {
+	let autostop_params = {
+		method: ImageManager.autostop.method,
+		value: Infinity,
+	};
+	if (ImageManager.autostop.method === AutostopMethod.ELECTRONS) {
+		autostop_params.value = ImageManager.autostop.value.electrons;
+	} else if (ImageManager.autostop.method === AutostopMethod.FRAMES) {
+		autostop_params.value = ImageManager.autostop.value.frames;
+	}
+	IMAlerts.info_update.autostop.params.alert(autostop_params);
+}
+
+/* Image series collection */
+
+// Update the image series collection length
+function ImageManager_series_update(collection_length) {
+	if (!ImageManager.autostop.use_autostop && collection_length > 1) {
+		// Override collection length (can't take series of images if no autostop)
+		collection_length = 1;
+		//msgEmitter.emit(MSG.ERROR, "Image Series Collection Requires 'Stop Scan After' Parameters To Be Set");
+	}
+	if (collection_length) ImageManager.series.collection_length = collection_length;
+	IMAlerts.info_update.image_series.params.alert(ImageManager.series.collection_length);
+}
+
+function ImageManager_series_check() {
+	if (ImageManager.autostop.use_autostop) {
+		// Check how many image in series have been collected
+		if (ImageManager.series.progress < ImageManager.series.collection_length) {
+			// Start another scan
+			ImageManager.start_scan(ImageManager.last_image.is_ir);
+		} else {
+			// Reset series progress
+			ImageManager.series.progress = 0;
+		}
+	} else {
+		// Reset series parameters
+		ImageManager.series.update(1); // Set collection length to 1
+		ImageManager.series.progress = 0;
+	}
+}
+
+// Send info about how many images in series are left
+function ImageManager_series_send_progress() {
+	let remaining = ImageManager.series.collection_length - ImageManager.series.progress;
+	if (!ImageManager.autostop.use_autostop) remaining = 0;
+	if (remaining < 0) remaining = 0;
+	IMAlerts.info_update.image_series.remaining.alert(remaining);
+}
+
+/* Scan control */
 
 function ImageManager_start_scan(is_ir) {
 	if (ImageManager.status === IMState.RUNNING) {
@@ -130,11 +286,8 @@ function ImageManager_start_scan(is_ir) {
 		return;
 	}
 	let new_image;
-	if (is_ir) {
-		new_image = new IRImage();
-	} else {
-		new_image = new Image();
-	}
+	if (is_ir) new_image = new IRImage();
+	else new_image = new Image();
 	// Update current image info with that from last image
 	new_image.update_information(ImageManager.last_image);
 	// Empty image in current_image will have correct id
@@ -146,6 +299,11 @@ function ImageManager_start_scan(is_ir) {
 	ImageManager.status = IMState.RUNNING;
 	// Alert that a new image has been started
 	IMAlerts.event.scan.start.alert();
+	// Uptick image series progression
+	ImageManager.series.progress++;
+	// Send image series update
+	ImageManager.series.update();
+	ImageManager.series.send_progress();
 }
 
 function ImageManager_stop_scan() {
@@ -167,6 +325,8 @@ function ImageManager_stop_scan() {
 	IMAlerts.event.scan.stop.alert();
 	IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);
 	IMAlerts.info_update.image.file_name.alert(ImageManager.current_image.file_name);
+	// Check if another image in series should be collected
+	ImageManager.series.check();
 }
 
 function ImageManager_pause_scan() {
@@ -424,8 +584,31 @@ class IMMessengerInformation {
 			},
 		};
 
-		// this._accumulated_image
-		// this._autostop
+		this._autostop = {
+			/** Get image automatic stop parameters
+			 * @returns `{ method: {AutostopMethod}, value: {number} }`
+			 */
+			get params() {
+				let autostop_params = {
+					method: ImageManager.autostop.method,
+					value: Infinity,
+				};
+				if (ImageManager.autostop.method === AutostopMethod.ELECTRONS) {
+					autostop_params.value = ImageManager.autostop.value.electrons;
+				} else if (ImageManager.autostop.method === AutostopMethod.FRAMES) {
+					autostop_params.value = ImageManager.autostop.value.frames;
+				}
+				return autostop_params;
+			},
+			/** Get image automatic stop progress as number between 0 - 100 */
+			get progress() {
+				return ImageManager.autostop.progress;
+			},
+			/** Whether the autostop functionality is currently in use */
+			get in_use() {
+				return ImageManager.autostop.use_autostop;
+			},
+		};
 	}
 
 	/** Status of Image Manager */
@@ -440,6 +623,10 @@ class IMMessengerInformation {
 
 	get image_contrast() {
 		return ImageManager.params.image_contrast;
+	}
+
+	get autostop() {
+		return this._autostop;
 	}
 
 	/**
@@ -587,6 +774,22 @@ class IMMessengerUpdate {
 			ImageManager.params.image_contrast = value;
 			IMAlerts.info_update.contrast.alert(value);
 		}
+	}
+
+	/**
+	 * Update autostop parameters
+	 * @param {Object} autostop_params { method: {AutostopMethod}, value: {number} } - at least 1 property has to be defined
+	 */
+	autostop(autostop_params) {
+		ImageManager.autostop.update_info(autostop_params);
+	}
+
+	/**
+	 * Take a series of SEVI or IR-SEVI images in a row
+	 * @param {Number} length Number of images to take in a row (default is 1)
+	 */
+	image_series(length) {
+		ImageManager.series.update(length);
 	}
 }
 
@@ -843,6 +1046,66 @@ class IMMessengerCallbackInfoUpdate {
 				IMAlerts.info_update.contrast.add_once(callback);
 			},
 		};
+
+		this._autostop = {
+			_params: {
+				/** Callback called with argument `autostop_params {Object: { method: {AutostopMethod}, value: {Number} }}` */
+				on: (callback) => {
+					IMAlerts.info_update.autostop.params.add_on(callback);
+				},
+				/** Callback called with argument `autostop_params {Object: { method: {AutostopMethod}, value: {Number} }}` */
+				once: (callback) => {
+					IMAlerts.info_update.autostop.params.add_once(callback);
+				},
+			},
+			_progress: {
+				/** Callback called with argument `progress {Number}` value between 0-100 */
+				on: (callback) => {
+					IMAlerts.info_update.autostop.progress.add_on(callback);
+				},
+				/** Callback called with argument `progress {Number}` value between 0-100 */
+				once: (callback) => {
+					IMAlerts.info_update.autostop.progress.add_once(callback);
+				},
+			},
+
+			get params() {
+				return this._params;
+			},
+			get progress() {
+				return this._progress;
+			},
+		};
+
+		this._image_series = {
+			_length: {
+				/** Callback called with argument `length {Number}` */
+				on: (callback) => {
+					IMAlerts.info_update.image_series.params.add_on(callback);
+				},
+				/** Callback called with argument `length {Number}` */
+				once: (callback) => {
+					IMAlerts.info_update.image_series.params.add_once(callback);
+				},
+			},
+			_remaining: {
+				/** Callback called with argument `remaining {Number}` */
+				on: (callback) => {
+					IMAlerts.info_update.image_series.remaining.add_on(callback);
+				},
+				/** Callback called with argument `remaining {Number}` */
+				once: (callback) => {
+					IMAlerts.info_update.image_series.remaining.add_once(callback);
+				},
+			},
+
+			get length() {
+				return this._length;
+			},
+			get remaining() {
+				return this._remaining;
+			},
+		};
 	}
 
 	get image() {
@@ -851,6 +1114,14 @@ class IMMessengerCallbackInfoUpdate {
 
 	get image_contrast() {
 		return this._image_contrast;
+	}
+
+	get autostop() {
+		return this._autostop;
+	}
+
+	get image_series() {
+		return this._image_series;
 	}
 }
 
