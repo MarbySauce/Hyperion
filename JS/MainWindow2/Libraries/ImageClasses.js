@@ -1,5 +1,9 @@
 const { DetachmentWavelength, ExcitationWavelength } = require("./WavelengthClasses.js");
 const { WavemeterMeasurement } = require("./WavemeterClasses.js");
+const { UpdateMessenger } = require("./UpdateMessenger.js");
+
+// Messenger used for displaying update or error messages to the Message Display
+const update_messenger = new UpdateMessenger();
 
 class ImageType {
 	static IROFF = new ImageType("IROFF");
@@ -184,7 +188,7 @@ class Image {
 	 * Save accumulated image to file
 	 */
 	save_image() {
-		console.log(`Image i${this.id_str} has been saved! (Not really)`);
+		update_messenger.update(`SEVI Image i${this.id_str} has been saved! (Not really)`);
 	}
 
 	/**
@@ -275,7 +279,7 @@ class IRImage extends Image {
 	 * Save accumulated images to file
 	 */
 	save_image() {
-		console.log(`IR Image i${this.id_str} has been saved! (Not really)`);
+		update_messenger.update(`IR-SEVI Image i${this.id_str} has been saved! (Not really)`);
 	}
 
 	/**

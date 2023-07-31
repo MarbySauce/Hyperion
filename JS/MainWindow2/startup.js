@@ -1,6 +1,7 @@
 // Libraries
 const ipc = require("electron").ipcRenderer;
 const { IPCMessages } = require("../JS/Messages.js");
+const { UpdateMessenger, initialize_message_display } = require("../JS/MainWindow2/Libraries/UpdateMessenger.js");
 const { Tabs } = require("../JS/MainWindow2/Libraries/Tabs.js");
 const { Tab_Control, change_tab, PageInfo } = require("../JS/MainWindow2/tabInterface.js");
 const { Sevi_Load_Page } = require("../JS/MainWindow2/seviInterface.js");
@@ -38,6 +39,8 @@ ipc.on("settings-information", (event, settings_information) => {
 });
 
 async function startup() {
+	// Initialize message display
+	initialize_message_display(document.getElementById("MessageDisplay"));
 	// Load Tab Content startup functions
 	Tab_Control();
 	Sevi_Load_Page(PageInfo);

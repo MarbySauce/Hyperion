@@ -1,6 +1,33 @@
+/************************************************** 
+
+		Control for IR Excitation Laser
+
+**************************************************/
+
 const { ManagerAlert } = require("./ManagerAlert.js");
-const { DetachmentWavelength, ExcitationWavelength } = require("./WavelengthClasses.js");
+const { ExcitationWavelength } = require("./WavelengthClasses.js");
 const { WavemeterMeasurement } = require("./WavemeterClasses.js");
+
+/**
+ * Go To Status Enums
+ */
+class GoToState {
+	/** GoTo movement in progress */
+	static RUNNING = new GoToState("RUNNING");
+	/** GoTo movement paused */
+	static PAUSED = new GoToState("PAUSED");
+	/** GoTo movement is not taking place */
+	static STOPPED = new GoToState("STOPPED");
+}
+
+class GoToStep {
+	/** Wavelength is being measured */
+	static MEASURING = new GoToStep("MEASURING");
+	/** Laser is moving wavelength */
+	static MOVING = new GoToStep("MOVING");
+	/** GoTo movement is not taking place */
+	static NONE = new GoToStep("NONE");
+}
 
 /*****************************************************************************
 
@@ -18,7 +45,6 @@ const ExcitationLaserManager = {
 	pause: false,
 	params: {
 		move_attempts: 2,
-		wavelength_range: 1, // nm, how close the measured value needs to be to the expected wavelength
 		acceptance_range: 0.75, // cm-1, how close actual IR energy should be do desired on GoTo call
 	},
 	status: {

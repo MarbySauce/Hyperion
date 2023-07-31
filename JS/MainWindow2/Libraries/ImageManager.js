@@ -7,6 +7,10 @@
 const ipc = require("electron").ipcRenderer;
 const { Image, IRImage, EmptyIRImage, ImageType } = require("./ImageClasses.js");
 const { ManagerAlert } = require("./ManagerAlert.js");
+const { UpdateMessenger } = require("./UpdateMessenger.js");
+
+// Messenger used for displaying update or error messages to the Message Display
+const update_messenger = new UpdateMessenger();
 
 // This image is a place holder for ImageManager.current_image whenever a scan is not currently being taken
 // That way the image functionality (such as returning file names) can still be used
@@ -16,12 +20,11 @@ const EmptyImage = new EmptyIRImage();
  * Autostop Method Enums
  */
 class AutostopMethod {
-	static ELECTRONS = new AutostopMethod("ELECTRONS", 1e5);
-	static FRAMES = new AutostopMethod("FRAMES", 1e3);
-	static NONE = new AutostopMethod("NONE", Infinity);
+	static ELECTRONS = new AutostopMethod(1e5);
+	static FRAMES = new AutostopMethod(1e3);
+	static NONE = new AutostopMethod(Infinity);
 
-	constructor(name, multiplier) {
-		this.name = name;
+	constructor(multiplier) {
 		this.multiplier = multiplier;
 	}
 }
@@ -31,15 +34,11 @@ class AutostopMethod {
  */
 class IMState {
 	/** Image is being collected */
-	static RUNNING = new IMState("RUNNING");
+	static RUNNING = new IMState();
 	/** Image collection is paused */
-	static PAUSED = new IMState("PAUSED");
+	static PAUSED = new IMState();
 	/** No image is being collected */
-	static STOPPED = new IMState("STOPPED");
-
-	constructor(name) {
-		this.name = name;
-	}
+	static STOPPED = new IMState();
 }
 
 /*****************************************************************************
@@ -248,7 +247,7 @@ function ImageManager_series_update(collection_length) {
 	if (!ImageManager.autostop.use_autostop && collection_length > 1) {
 		// Override collection length (can't take series of images if no autostop)
 		collection_length = 1;
-		//msgEmitter.emit(MSG.ERROR, "Image Series Collection Requires 'Stop Scan After' Parameters To Be Set");
+		update_messenger.error("Image Series Collection Requires 'Stop Scan After' Parameters To Be Set");
 	}
 	if (collection_length) ImageManager.series.collection_length = collection_length;
 	IMAlerts.info_update.image_series.params.alert(ImageManager.series.collection_length);
@@ -287,8 +286,13 @@ function ImageManager_start_scan(is_ir) {
 		return;
 	}
 	let new_image;
-	if (is_ir) new_image = new IRImage();
-	else new_image = new Image();
+	if (is_ir) {
+		new_image = new IRImage();
+		update_messenger.update("New IR-SEVI Scan Started!");
+	} else {
+		new_image = new Image();
+		update_messenger.update("New SEVI Scan Started!");
+	}
 	// Update current image info with that from last image
 	new_image.update_information(ImageManager.last_image);
 	// Empty image in current_image will have correct id
@@ -337,6 +341,7 @@ function ImageManager_pause_scan() {
 	}
 	ImageManager.status = IMState.PAUSED;
 	IMAlerts.event.scan.pause.alert();
+	update_messenger.update("(IR) SEVI Scan Paused!");
 }
 
 function ImageManager_resume_scan(resume_last) {
@@ -348,6 +353,7 @@ function ImageManager_resume_scan(resume_last) {
 		case IMState.PAUSED: // (1)
 			ImageManager.status = IMState.RUNNING;
 			IMAlerts.event.scan.resume.alert();
+			update_messenger.update("(IR) SEVI Scan Resumed!");
 			break;
 		case IMState.STOPPED: // (2) or (3)
 			if (ImageManager.last_image.is_empty) break; // (3) Do nothing
@@ -359,6 +365,7 @@ function ImageManager_resume_scan(resume_last) {
 				IMAlerts.event.scan.resume.alert();
 				IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);
 				IMAlerts.info_update.image.file_name.alert(ImageManager.current_image.file_name);
+				update_messenger.update("(IR) SEVI Scan Resumed!");
 			}
 			break;
 	}
@@ -379,6 +386,7 @@ function ImageManager_cancel_scan() {
 	ImageManager.current_image = EmptyImage;
 	// Alert that image was canceled
 	IMAlerts.event.scan.cancel.alert();
+	update_messenger.update("(IR) SEVI Scan Canceled!");
 }
 
 function ImageManager_reset_scan() {
@@ -388,6 +396,7 @@ function ImageManager_reset_scan() {
 	IMAlerts.event.scan.reset.alert();
 	// Also update electron counters
 	IMAlerts.info_update.image.counts.alert(ImageManager.current_image.counts);
+	update_messenger.update("(IR) SEVI Scan Reset!");
 }
 
 function ImageManager_increase_id() {

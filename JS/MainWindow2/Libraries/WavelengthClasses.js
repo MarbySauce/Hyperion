@@ -4,7 +4,16 @@
 
 **************************************************/
 
-class ExcitationMode {
+class WavelengthMode {
+	constructor(name, pretty_name) {
+		/** Mode name */
+		this.name = name;
+		/** For printing mode name in a nice way */
+		this.pretty_name = pretty_name;
+	}
+}
+
+class ExcitationMode extends WavelengthMode {
 	/** Near Infrared */
 	static NIR = new ExcitationMode("nir", "nIR");
 	/** Intermediate Infrared */
@@ -15,14 +24,11 @@ class ExcitationMode {
 	static FIR = new ExcitationMode("fir", "fIR");
 
 	constructor(name, pretty_name) {
-		/** Mode name */
-		this.name = name;
-		/** For printing mode name in a nice way */
-		this.pretty_name = pretty_name;
+		super(name, pretty_name);
 	}
 }
 
-class DetachmentMode {
+class DetachmentMode extends WavelengthMode {
 	/**  Standard Dye Laser Setup */
 	static STANDARD = new DetachmentMode("standard", "Standard");
 	/**  Frequency Doubled Dye Laser Setup */
@@ -33,10 +39,7 @@ class DetachmentMode {
 	static IRDFG = new DetachmentMode("irdfg", "IRDFG");
 
 	constructor(name, pretty_name) {
-		/** Mode name */
-		this.name = name;
-		/** For printing mode name in a nice way */
-		this.pretty_name = pretty_name;
+		super(name, pretty_name);
 	}
 }
 
@@ -522,4 +525,4 @@ ExcitationWavelength.YAG_wl = 1064;
 // Set H2 Raman frequency
 DetachmentWavelength.H2_wn = 4055.201;
 
-module.exports = { DetachmentMode, DetachmentWavelength, ExcitationMode, ExcitationWavelength };
+module.exports = { WavelengthMode, DetachmentMode, DetachmentWavelength, ExcitationMode, ExcitationWavelength };
