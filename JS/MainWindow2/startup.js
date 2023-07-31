@@ -2,9 +2,6 @@
 const ipc = require("electron").ipcRenderer;
 const { IPCMessages } = require("../JS/Messages.js");
 const { UpdateMessenger, initialize_message_display } = require("../JS/MainWindow2/Libraries/UpdateMessenger.js");
-const { Tabs } = require("../JS/MainWindow2/Libraries/Tabs.js");
-const { Tab_Control, change_tab, PageInfo } = require("../JS/MainWindow2/tabInterface.js");
-const { Sevi_Load_Page } = require("../JS/MainWindow2/seviInterface.js");
 
 // Doing this so my IDE can get the class information
 // Couldn't figure out a better way to do it
@@ -39,11 +36,17 @@ ipc.on("settings-information", (event, settings_information) => {
 });
 
 async function startup() {
+	const { Tabs } = require("../JS/MainWindow2/Libraries/Tabs.js");
+	const { Tab_Control, change_tab, PageInfo } = require("../JS/MainWindow2/tabInterface.js");
+	const { Sevi_Load_Page } = require("../JS/MainWindow2/seviInterface.js");
+	const { IRSevi_Load_Page } = require("../JS/MainWindow2/irseviInterface.js");
+
 	// Initialize message display
 	initialize_message_display(document.getElementById("MessageDisplay"));
 	// Load Tab Content startup functions
 	Tab_Control();
 	Sevi_Load_Page(PageInfo);
+	IRSevi_Load_Page(PageInfo);
 
 	// Go to Sevi Mode tab
 	change_tab(Tabs.SEVI); // From interface.js

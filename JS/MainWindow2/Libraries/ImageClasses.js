@@ -6,9 +6,13 @@ const { UpdateMessenger } = require("./UpdateMessenger.js");
 const update_messenger = new UpdateMessenger();
 
 class ImageType {
+	/* IR Off Image */
 	static IROFF = new ImageType("IROFF");
+	/* IR On Image */
 	static IRON = new ImageType("IRON");
+	/* IR On - IR Off, only values ≥ 0 */
 	static DIFFPOS = new ImageType("DIFFPOS");
+	/* IR On - IR Off, only value ≤ 0 */
 	static DIFFNEG = new ImageType("DIFFNEG");
 
 	constructor(name) {

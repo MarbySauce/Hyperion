@@ -330,6 +330,7 @@ function ImageManager_stop_scan() {
 	IMAlerts.event.scan.stop.alert();
 	IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);
 	IMAlerts.info_update.image.file_name.alert(ImageManager.current_image.file_name);
+	IMAlerts.info_update.image.file_name_ir.alert(ImageManager.current_image.file_name_ir);
 	// Check if another image in series should be collected
 	ImageManager.series.check();
 }
@@ -403,6 +404,7 @@ function ImageManager_increase_id() {
 	ImageManager.current_image.id++;
 	IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);
 	IMAlerts.info_update.image.file_name.alert(ImageManager.current_image.file_name);
+	IMAlerts.info_update.image.file_name_ir.alert(ImageManager.current_image.file_name_ir);
 }
 
 function ImageManager_decrease_id() {
@@ -410,6 +412,7 @@ function ImageManager_decrease_id() {
 	if (ImageManager.current_image.id < 1) ImageManager.current_image.id = 1;
 	IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);
 	IMAlerts.info_update.image.file_name.alert(ImageManager.current_image.file_name);
+	IMAlerts.info_update.image.file_name_ir.alert(ImageManager.current_image.file_name_ir);
 }
 
 function ImageManager_set_id(id) {
@@ -418,6 +421,7 @@ function ImageManager_set_id(id) {
 	ImageManager.current_image.id = id;
 	IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);
 	IMAlerts.info_update.image.file_name.alert(ImageManager.current_image.file_name);
+	IMAlerts.info_update.image.file_name_ir.alert(ImageManager.current_image.file_name_ir);
 }
 
 function ImageManager_update_vmi(vmi_info) {
