@@ -233,7 +233,7 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 
 	ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
 		// If user is not on SEVI tab, ignore
-		if (PageInfo.current_tab !== Tabs.SEVI) return; // PageInfo is from interface.js
+		if (PageInfo.current_tab !== Tabs.SEVI) return;
 		// Only update display if image is being taken
 		if (IMMessenger.information.status.running) {
 			update_sevi_accumulated_image_display();
@@ -476,10 +476,33 @@ function Sevi_Load_Page(PageInfo) {
 	}
 }
 
+/**
+ * Functions to execute every time the SEVI tab is loaded - should only be used by Tab Manager
+ */
+function Sevi_Load_Tab() {
+	const { ImageType } = require("./Libraries/ImageClasses.js");
+
+	function update_sevi_accumulated_image_display() {
+		const image_display = document.getElementById("SeviDisplay");
+		const ctx = image_display.getContext("2d");
+		let image_data = IMMessenger.information.get_image_display(ImageType.IROFF);
+		if (!image_data) return; // No ImageData object was sent
+		// Clear the current image
+		ctx.clearRect(0, 0, image_display.width, image_display.height);
+		// Put image_data on the display
+		// Have to convert the ImageData object into a bitmap image so that the  image is resized to fill the display correctly
+		createImageBitmap(image_data).then(function (bitmap_img) {
+			ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, image_display.width, image_display.height);
+		});
+	}
+
+	update_sevi_accumulated_image_display();
+}
+
 /*****************************************************************************
 
 							EXPORTING
 
 *****************************************************************************/
 
-module.exports = { Sevi_Load_Page };
+module.exports = { Sevi_Load_Page, Sevi_Load_Tab };

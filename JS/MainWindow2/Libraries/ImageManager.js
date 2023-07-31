@@ -304,6 +304,9 @@ function ImageManager_start_scan(is_ir) {
 	ImageManager.status = IMState.RUNNING;
 	// Alert that a new image has been started
 	IMAlerts.event.scan.start.alert();
+	IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);
+	IMAlerts.info_update.image.file_name.alert(ImageManager.current_image.file_name);
+	IMAlerts.info_update.image.file_name_ir.alert(ImageManager.current_image.file_name_ir);
 	// Uptick image series progression
 	ImageManager.series.progress++;
 	// Send image series update

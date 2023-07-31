@@ -245,8 +245,8 @@ function IRSevi_Accumulated_Image_Display(PageInfo) {
 	****/
 
 	ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
-		// If user is not on SEVI tab, ignore
-		if (PageInfo.current_tab !== Tabs.IRSEVI) return; // PageInfo is from interface.js
+		// If user is not on IR-SEVI tab, ignore
+		if (PageInfo.current_tab !== Tabs.IRSEVI) return;
 		// Only update display if image is being taken
 		if (IMMessenger.information.status.running) {
 			update_irsevi_accumulated_image_display();
@@ -357,14 +357,14 @@ function IRSevi_Counts() {
 
 	// Add "scan-running" class to counters section (used for image progress bar)
 	function add_scan_running_to_irsevi_counters() {
-		const sevi_counters = document.getElementById("IRSeviCounters");
-		sevi_counters.classList.add("scan-running");
+		const irsevi_counters = document.getElementById("IRSeviCounters");
+		irsevi_counters.classList.add("scan-running");
 	}
 
 	// Remove "scan-running" class from counters section (used for image progress bar)
 	function remove_scan_running_from_irsevi_counters() {
-		const sevi_counters = document.getElementById("IRSeviCounters");
-		sevi_counters.classList.remove("scan-running");
+		const irsevi_counters = document.getElementById("IRSeviCounters");
+		irsevi_counters.classList.remove("scan-running");
 	}
 
 	function update_irsevi_counters(counts) {
@@ -447,15 +447,15 @@ function IRSevi_Counts() {
 		// Only show the image progress bar if autostop is in use
 		if (!IMMessenger.information.autostop.in_use) return;
 		// Show image progress bar
-		const sevi_counters = document.getElementById("IRSeviCounters");
-		sevi_counters.classList.remove("hide-progress-bar");
-		sevi_counters.classList.add("show-progress-bar");
+		const irsevi_counters = document.getElementById("IRSeviCounters");
+		irsevi_counters.classList.remove("hide-progress-bar");
+		irsevi_counters.classList.add("show-progress-bar");
 	}
 
 	function hide_irsevi_image_progress_bar() {
-		const sevi_counters = document.getElementById("IRSeviCounters");
-		sevi_counters.classList.remove("show-progress-bar");
-		sevi_counters.classList.add("hide-progress-bar");
+		const irsevi_counters = document.getElementById("IRSeviCounters");
+		irsevi_counters.classList.remove("show-progress-bar");
+		irsevi_counters.classList.add("hide-progress-bar");
 	}
 }
 
@@ -499,10 +499,36 @@ function IRSevi_Load_Page(PageInfo) {
 	}
 }
 
+/**
+ * Functions to execute every time the IR-SEVI tab is loaded - should only be used by Tab Manager
+ */
+function IRSevi_Load_Tab() {
+	const { ImageType } = require("./Libraries/ImageClasses.js");
+
+	function update_irsevi_accumulated_image_display() {
+		const image_display = document.getElementById("IRSeviDisplay");
+		const image_display_select = document.getElementById("IRSeviImageDisplaySelect");
+		const ctx = image_display.getContext("2d");
+		const image_types = [ImageType.IROFF, ImageType.IRON, ImageType.DIFFPOS, ImageType.DIFFNEG];
+		let image_type = image_types[image_display_select.selectedIndex];
+		let image_data = IMMessenger.information.get_image_display(image_type);
+		if (!image_data) return; // No ImageData object was sent
+		// Clear the current image
+		ctx.clearRect(0, 0, image_display.width, image_display.height);
+		// Put image_data on the display
+		// Have to convert the ImageData object into a bitmap image so that the  image is resized to fill the display correctly
+		createImageBitmap(image_data).then(function (bitmap_img) {
+			ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, image_display.width, image_display.height);
+		});
+	}
+
+	update_irsevi_accumulated_image_display();
+}
+
 /*****************************************************************************
 
 							EXPORTING
 
 *****************************************************************************/
 
-module.exports = { IRSevi_Load_Page };
+module.exports = { IRSevi_Load_Page, IRSevi_Load_Tab };

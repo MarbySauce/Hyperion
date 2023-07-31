@@ -6,6 +6,10 @@
 
 const { Tabs } = require("./Libraries/Tabs");
 
+const { Sevi_Load_Tab } = require("./seviInterface.js");
+const { IRSevi_Load_Tab } = require("./irseviInterface.js");
+const { IRAction_Load_Tab } = require("./iractionInterface.js");
+
 /*****************************************************************************
 
 							TABS
@@ -20,48 +24,22 @@ function Tab_Control() {
 	document.getElementById("SeviMode").onclick = function () {
 		// SEVI mode tab
 		change_tab(Tabs.SEVI);
+		Sevi_Load_Tab();
 	};
 	document.getElementById("IRSeviMode").onclick = function () {
 		// IR SEVI mode tab
 		change_tab(Tabs.IRSEVI);
+		IRSevi_Load_Tab();
 	};
 	document.getElementById("IRActionMode").onclick = function () {
 		// IR Action mode tab
 		change_tab(Tabs.IRACTION);
+		IRAction_Load_Tab();
 	};
 	document.getElementById("Settings").onclick = function () {
 		// Settings tab
 		change_tab(Tabs.SETTINGS);
 	};
-
-	/****
-			UI Event Listeners
-	****/
-
-	//uiEmitter.on(UI.UPDATE.TAB, change_tab);
-
-	/****
-			Functions
-	****/
-
-	// Send requests to load information to be displayed in that tab
-	function load_tab(tab) {
-		switch (tab) {
-			case Tabs.SEVI:
-				//uiEmitter.emit(UI.LOAD.SEVI);
-				//load_sevi_info(); // From seviInterface.js
-				break;
-			case Tabs.IRSEVI:
-				//uiEmitter.emit(UI.LOAD.IRSEVI);
-				break;
-			case Tabs.IRACTION:
-				//uiEmitter.emit(UI.LOAD.IRACTION);
-				break;
-			case Tabs.SETTINGS:
-				//uiEmitter.emit(UI.LOAD.SETTINGS);
-				break;
-		}
-	}
 }
 
 // Changing tabs
@@ -83,8 +61,6 @@ function change_tab(tab) {
 	if (new_page) new_page.style.display = "grid";
 
 	PageInfo.current_tab = tab;
-
-	//load_tab(tab);
 }
 
 /*****************************************************************************
