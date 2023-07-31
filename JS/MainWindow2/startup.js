@@ -40,6 +40,7 @@ async function startup() {
 	const { Tab_Control, change_tab, PageInfo } = require("../JS/MainWindow2/tabInterface.js");
 	const { Sevi_Load_Page } = require("../JS/MainWindow2/seviInterface.js");
 	const { IRSevi_Load_Page } = require("../JS/MainWindow2/irseviInterface.js");
+	const { IRAction_Load_Page } = require("../JS/MainWindow2/iractionInterface.js");
 
 	// Initialize message display
 	initialize_message_display(document.getElementById("MessageDisplay"));
@@ -47,6 +48,7 @@ async function startup() {
 	Tab_Control();
 	Sevi_Load_Page(PageInfo);
 	IRSevi_Load_Page(PageInfo);
+	IRAction_Load_Page(PageInfo);
 
 	// Go to Sevi Mode tab
 	change_tab(Tabs.SEVI); // From interface.js
