@@ -268,23 +268,18 @@ class WMMessengerRequest {
 			 * @returns {WavemeterMeasurement} measured wavelength
 			 */
 			start: async (expected_wavelength) => {
-				return this._WMManager.measure(expected_wavelength);
+				let measurement = await this._WMManager.measure(expected_wavelength);
+				return measurement;
 			},
-			/**
-			 * Pause current wavelength measurement
-			 */
+			/** Pause current wavelength measurement */
 			pause: () => {
 				this._WMManager.pause_measurement();
 			},
-			/**
-			 * Resume wavelength measurement if paused
-			 */
+			/** Resume wavelength measurement if paused */
 			resume: () => {
 				this._WMManager.resume_measurement();
 			},
-			/**
-			 * Cancel current wavelength measurement
-			 */
+			/** Cancel current wavelength measurement */
 			cancel: () => {
 				this._WMManager.cancel_measurement();
 			},
@@ -419,7 +414,7 @@ class WMMessengerCallbackEvent {
 			get start() {
 				return this._start;
 			},
-			/** Listen for wavelength measurement being stopped (and saved) */
+			/** Listen for wavelength measurement being stopped */
 			get stop() {
 				return this._stop;
 			},

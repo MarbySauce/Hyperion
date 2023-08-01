@@ -217,8 +217,8 @@ function IRSevi_Laser_Control() {
 	const ELMMessenger = new ExcitationLaserManagerMessenger();
 
 	/****
-		HTML Element Listeners
-****/
+			HTML Element Listeners
+	****/
 
 	document.getElementById("IRSeviWavelengthMode").oninput = function () {
 		update_irsevi_detachment_mode();
@@ -244,12 +244,48 @@ function IRSevi_Laser_Control() {
 		ELMMessenger.wavemeter.request.measurement.cancel();
 	};
 
+	let Selected_GoTo_Unit_Index = 0;
+	document.getElementById("IRSeviDesiredEnergyUnit").oninput = function () {
+		const energy_input = document.getElementById("IRSeviDesiredEnergy");
+		const energy_unit = document.getElementById("IRSeviDesiredEnergyUnit");
+		let energy_input_value = parseFloat(energy_input.value);
+		if (!energy_input_value) return;
+
+		let new_index = energy_unit.selectedIndex;
+		let index_change = Math.abs(Selected_GoTo_Unit_Index - new_index);
+		let new_value;
+		if (index_change === 2) {
+			new_value = 1e4 / energy_input_value;
+		} else if (index_change === 1) {
+			if (new_index === 0 || Selected_GoTo_Unit_Index === 0) {
+				new_value = 1e7 / energy_input_value;
+			} else if (new_index === 2) {
+				new_value = energy_input_value / 1e3;
+			} else {
+				new_value = energy_input_value * 1e3;
+			}
+		} else {
+			new_value = energy_input_value;
+		}
+
+		switch (new_index) {
+			case 0:
+			case 1:
+				energy_input.value = new_value.toFixed(3);
+				break;
+			case 2:
+				energy_input.value = new_value.toFixed(6);
+				break;
+		}
+		Selected_GoTo_Unit_Index = new_index;
+	};
+
 	document.getElementById("IRSeviMoveIRButton").onclick = function () {
-		//irsevi_goto_ir();
+		irsevi_goto_ir();
 	};
 
 	document.getElementById("IRSeviMoveIRButtonCancel").onclick = function () {
-		//laserEmitter.emit(LASER.GOTO.CANCEL);
+		ELMMessenger.request.goto.cancel();
 	};
 
 	// Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
@@ -306,6 +342,30 @@ function IRSevi_Laser_Control() {
 		const measure_button = document.getElementById("IRSeviMeasureExcitationWavelength");
 		const cancel_button = document.getElementById("IRSeviMeasureExcitationWavelengthCancel");
 		measure_button.disabled = false;
+		cancel_button.classList.add("hidden");
+	});
+
+	ELMMessenger.listen.event.goto.start.on(() => {
+		// Disable GoTo button and show cancel button
+		const goto_button = document.getElementById("IRSeviMoveIRButton");
+		const cancel_button = document.getElementById("IRSeviMoveIRButtonCancel");
+		goto_button.disabled = true;
+		cancel_button.classList.remove("hidden");
+	});
+
+	ELMMessenger.listen.event.goto.stop.on(() => {
+		// Re-enable GoTo button and hide cancel button
+		const goto_button = document.getElementById("IRSeviMoveIRButton");
+		const cancel_button = document.getElementById("IRSeviMoveIRButtonCancel");
+		goto_button.disabled = false;
+		cancel_button.classList.add("hidden");
+	});
+
+	ELMMessenger.listen.event.goto.cancel.on(() => {
+		// Re-enable GoTo button and hide cancel button
+		const goto_button = document.getElementById("IRSeviMoveIRButton");
+		const cancel_button = document.getElementById("IRSeviMoveIRButtonCancel");
+		goto_button.disabled = false;
 		cancel_button.classList.add("hidden");
 	});
 
@@ -425,6 +485,25 @@ function IRSevi_Laser_Control() {
 				excitation_mode.selectedIndex = 0;
 				break;
 		}
+	}
+
+	// Go to desired IR Energy
+	function irsevi_goto_ir() {
+		const energy_input = document.getElementById("IRSeviDesiredEnergy");
+		const energy_unit = document.getElementById("IRSeviDesiredEnergyUnit");
+		let energy_input_value = parseFloat(energy_input.value);
+		// Need to send energy in cm-1, so we might need to convert
+		switch (energy_unit.selectedIndex) {
+			case 0: // cm-1
+				break;
+			case 1: // nm
+				energy_input_value = 1e7 / energy_input_value;
+				break;
+			case 2: // um
+				energy_input_value = 1e4 / energy_input_value;
+				break;
+		}
+		ELMMessenger.request.goto.start(energy_input_value);
 	}
 }
 

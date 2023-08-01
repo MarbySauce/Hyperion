@@ -81,7 +81,7 @@ function mac_wavelength(channel) {
 		return 650 + norm_rand(0, 0.01);
 	} else if (channel === settings.laser.excitation.wavemeter_channel) {
 		// Send wavelength as the OPO's wavelength with some noise added
-		let wl = 745; //opo.status.current_wavelength;
+		let wl = ELMMessenger.opo.information.wavelength || 745;
 		// Add some noise
 		wl += norm_rand(0, 0.1);
 		// Small chance of wavelength being very far off

@@ -119,7 +119,7 @@ const OPOManager = {
 		}
 		OPOManager.status = OPOMotorState.MOVING;
 		OPOMAlerts.event.motors.start.alert();
-		OPOManager.network.client.write(OPOManager.network.command.move(nir_wavelength), () => {});
+		OPOManager.network.client.write(OPOManager.network.command.goto(nir_wavelength), () => {});
 		await wait_for_opo_motors();
 	},
 	/**
@@ -249,10 +249,10 @@ async function wait_for_opo_motors() {
 function OPOManager_get_laser_offset() {
 	if (OPOManager.laser_offsets.length === 0) return 0;
 	// else: average all offsets and return
-	let sum = array.reduce((accumulator, current_value) => {
+	let sum = OPOManager.laser_offsets.reduce((accumulator, current_value) => {
 		return accumulator + current_value;
 	});
-	let average = sum / array.length;
+	let average = sum / OPOManager.laser_offsets.length;
 	if (isNaN(average)) return 0;
 	return average;
 }

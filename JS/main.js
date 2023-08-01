@@ -41,11 +41,11 @@ const settings = {
 		laser: {
 			detachment: {
 				yag_fundamental: 1064.0,
-				wavemeter_channel: 0,
+				wavemeter_channel: -1,
 			},
 			excitation: {
 				yag_fundamental: 1064.5,
-				wavemeter_channel: 0,
+				wavemeter_channel: -1,
 				acceptance_range: 0.75,
 				move_attempts: 2,
 			},

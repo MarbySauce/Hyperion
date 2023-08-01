@@ -9,7 +9,7 @@ const net = require("net");
 const end_cmd = "\r\n";
 
 // Overridding speed - ignore requests to change OPO speed (makes GoTo faster)
-const override_speed_bool = true;
+const override_speed_bool = false;
 const override_speed_val = 10;
 
 // OPO Info
@@ -48,7 +48,7 @@ server.listen(1315, address, function () {
 	console.log("server is listening");
 });
 
-function parse_data(data) {
+function parse_data_old(data) {
 	data = data.toString();
 	// Split text into array, separated by spaces
 	let passed_data = data.split(" ");
@@ -92,6 +92,56 @@ function parse_data(data) {
 		default:
 			send_error(1);
 			break;
+	}
+}
+
+function parse_data(data) {
+	data = data.toString();
+	// Split text into array, separated by spaces
+	let passed_data = data.split(" ");
+	console.log(`Message received: ${passed_data}`);
+	let cmd, val;
+	while (passed_data.length > 0) {
+		cmd = passed_data.shift();
+		switch (cmd) {
+			// These functions all take a parameter as a second argument
+			case "GOTO":
+				val = passed_data.shift();
+				console.log(`Command '${cmd} ${val}' received`);
+				go_to(val);
+				break;
+			case "SETSPD":
+				val = passed_data.shift();
+				console.log(`Command '${cmd} ${val}' received`);
+				set_speed(val);
+				break;
+			// These functions to not take any parameters
+			case "TELLWL":
+				tell_wl();
+				break;
+			case "TELLSTAT":
+				tell_stat();
+				break;
+			case "SETWL":
+				// Set to wavelength mode - don't need to do anything
+				send_success();
+				break;
+			case "STOP":
+				stop_movement();
+				break;
+			case "SCOFF":
+				stop_movement();
+				break;
+			case "CLOSE":
+				close_server();
+				break;
+			case "":
+				// Empty string
+				break;
+			default:
+				send_error(1);
+				break;
+		}
 	}
 }
 
