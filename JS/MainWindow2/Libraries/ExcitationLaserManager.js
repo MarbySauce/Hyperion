@@ -184,6 +184,7 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 			ExcitationLaserManager.goto.action.cancel = false;
 			update_messenger.update("IR GoTo Canceled!");
 			ELMAlerts.event.goto.cancel.alert();
+			ELMAlerts.event.goto.stop_or_cancel.alert();
 			return;
 		}
 
@@ -208,6 +209,7 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 				ExcitationLaserManager.goto.action.cancel = false;
 				update_messenger.update("IR GoTo Canceled!");
 				ELMAlerts.event.goto.cancel.alert();
+				ELMAlerts.event.goto.stop_or_cancel.alert();
 				return;
 			}
 			await sleep(100);
@@ -241,6 +243,7 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 	// Alert that GoTo has stopped
 	let stored_copy = ExcitationLaserManager.stored.copy();
 	ELMAlerts.event.goto.stop.alert(stored_copy);
+	ELMAlerts.event.goto.stop_or_cancel.alert();
 	return stored_copy;
 }
 
@@ -258,6 +261,7 @@ const ELMAlerts = {
 			pause: new ManagerAlert(),
 			resume: new ManagerAlert(),
 			cancel: new ManagerAlert(),
+			stop_or_cancel: new ManagerAlert(),
 		},
 	},
 	info_update: {
@@ -533,6 +537,22 @@ class ELMMessengerCallbackEvent {
 					ELMAlerts.event.goto.cancel.add_once(callback);
 				},
 			},
+			_stop_or_cancel: {
+				/**
+				 * Execute callback function *every time* a GoTo process is stopped *or* canceled
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				on: (callback) => {
+					ELMAlerts.event.goto.stop_or_cancel.add_on(callback);
+				},
+				/**
+				 * Execute callback function *once the next time* a GoTo process is stopped *or* canceled
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				once: (callback) => {
+					ELMAlerts.event.goto.stop_or_cancel.add_once(callback);
+				},
+			},
 
 			/** Listen for GoTo process being started */
 			get start() {
@@ -553,6 +573,10 @@ class ELMMessengerCallbackEvent {
 			/** Listen for GoTo process being canceled */
 			get cancel() {
 				return this._cancel;
+			},
+			/** Listen for GoTo process being stopped *or* canceled */
+			get stop_or_cancel() {
+				return this._stop_or_cancel;
 			},
 		};
 	}

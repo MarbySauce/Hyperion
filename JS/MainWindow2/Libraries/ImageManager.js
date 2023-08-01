@@ -331,6 +331,7 @@ function ImageManager_stop_scan() {
 	ImageManager.current_image.id = ImageManager.last_image.id + 1; // Uptick ID by 1
 	// Alert that the scan has been stopped
 	IMAlerts.event.scan.stop.alert();
+	IMAlerts.event.scan.stop_or_cancel.alert();
 	IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);
 	IMAlerts.info_update.image.file_name.alert(ImageManager.current_image.file_name);
 	IMAlerts.info_update.image.file_name_ir.alert(ImageManager.current_image.file_name_ir);
@@ -390,6 +391,7 @@ function ImageManager_cancel_scan() {
 	ImageManager.current_image = EmptyImage;
 	// Alert that image was canceled
 	IMAlerts.event.scan.cancel.alert();
+	IMAlerts.event.scan.stop_or_cancel.alert();
 	update_messenger.update("(IR) SEVI Scan Canceled!");
 }
 
@@ -487,6 +489,7 @@ const IMAlerts = {
 			resume: new ManagerAlert(),
 			cancel: new ManagerAlert(),
 			reset: new ManagerAlert(),
+			stop_or_cancel: new ManagerAlert(),
 		},
 	},
 	info_update: {
@@ -907,6 +910,22 @@ class IMMessengerCallbackEvent {
 					IMAlerts.event.scan.reset.add_once(callback);
 				},
 			},
+			_stop_or_cancel: {
+				/**
+				 * Execute callback function *every time* an accumulated image is stopped *or* canceled
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				on: (callback) => {
+					IMAlerts.event.scan.stop_or_cancel.add_on(callback);
+				},
+				/**
+				 * Execute callback function *once the next time* an accumulated image is stopped *or* canceled
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				once: (callback) => {
+					IMAlerts.event.scan.stop_or_cancel.add_once(callback);
+				},
+			},
 
 			/** Listen for accumulated image being started */
 			get start() {
@@ -931,6 +950,10 @@ class IMMessengerCallbackEvent {
 			/** Listen for accumulated image being reset */
 			get reset() {
 				return this._reset;
+			},
+			/** Listen for accumulated image being stopped *or* canceled */
+			get stop_or_cancel() {
+				return this._stop_or_cancel;
 			},
 		};
 	}
