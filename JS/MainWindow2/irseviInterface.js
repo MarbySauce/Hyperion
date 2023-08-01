@@ -210,8 +210,10 @@ function IRSevi_File_Naming() {
 
 function IRSevi_Laser_Control() {
 	const { InputDelay } = require("./Libraries/InputDelay.js");
-	const { ExcitationMode } = require("./Libraries/WavelengthClasses.js");
+	const { DetachmentMode, ExcitationMode } = require("./Libraries/WavelengthClasses.js");
+	const { DetachmentLaserManagerMessenger } = require("./Libraries/DetachmentLaserManager.js");
 	const { ExcitationLaserManagerMessenger } = require("./Libraries/ExcitationLaserManager.js");
+	const DLMMessenger = new DetachmentLaserManagerMessenger();
 	const ELMMessenger = new ExcitationLaserManagerMessenger();
 
 	/****
@@ -219,7 +221,7 @@ function IRSevi_Laser_Control() {
 ****/
 
 	document.getElementById("IRSeviWavelengthMode").oninput = function () {
-		//update_irsevi_detachment_mode();
+		update_irsevi_detachment_mode();
 	};
 
 	document.getElementById("IRSeviIRWavelengthMode").oninput = function () {
@@ -227,19 +229,19 @@ function IRSevi_Laser_Control() {
 	};
 
 	document.getElementById("IRSeviMeasureDetachmentWavelength").onclick = function () {
-		//laserEmitter.emit(LASER.MEASURE.DETACHMENT);
+		DLMMessenger.wavemeter.request.measurement.start();
 	};
 
 	document.getElementById("IRSeviMeasureDetachmentWavelengthCancel").onclick = function () {
-		//laserEmitter.emit(LASER.MEASURE.CANCEL.DETACHMENT);
+		DLMMessenger.wavemeter.request.measurement.cancel();
 	};
 
 	document.getElementById("IRSeviMeasureExcitationWavelength").onclick = function () {
-		//laserEmitter.emit(LASER.MEASURE.EXCITATION);
+		ELMMessenger.wavemeter.request.measurement.start();
 	};
 
 	document.getElementById("IRSeviMeasureExcitationWavelengthCancel").onclick = function () {
-		//laserEmitter.emit(LASER.MEASURE.CANCEL.EXCITATION);
+		ELMMessenger.wavemeter.request.measurement.cancel();
 	};
 
 	document.getElementById("IRSeviMoveIRButton").onclick = function () {
@@ -253,10 +255,10 @@ function IRSevi_Laser_Control() {
 	// Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
 	// (that way it doesn't execute for each character inputted)
 
-	//const update_irsevi_detachment_wavelength_delay = new InputDelay(update_irsevi_detachment_wavelength);
-	//document.getElementById("IRSeviDetachmentWavelength").oninput = function () {
-	//	update_irsevi_detachment_wavelength_delay.start_timer();
-	//};
+	const update_irsevi_detachment_wavelength_delay = new InputDelay(update_irsevi_detachment_wavelength);
+	document.getElementById("IRSeviDetachmentWavelength").oninput = function () {
+		update_irsevi_detachment_wavelength_delay.start_timer();
+	};
 
 	const update_irsevi_excitation_wavelength_delay = new InputDelay(update_irsevi_excitation_wavelength);
 	document.getElementById("IRSeviIRWavelength").oninput = function () {
@@ -264,14 +266,109 @@ function IRSevi_Laser_Control() {
 	};
 
 	/****
+			Detachment Laser Manager Listeners
+	****/
+
+	DLMMessenger.listen.info_update.energy.on(update_irsevi_detachment_energies);
+
+	DLMMessenger.wavemeter.listen.event.measurement.start.on(() => {
+		// Disable measure button and show cancel measurement button when measurement is started
+		const measure_button = document.getElementById("IRSeviMeasureDetachmentWavelength");
+		const cancel_button = document.getElementById("IRSeviMeasureDetachmentWavelengthCancel");
+		measure_button.disabled = true;
+		cancel_button.classList.remove("hidden");
+	});
+
+	DLMMessenger.wavemeter.listen.event.measurement.stop.on(() => {
+		// Re-enable measure button and hide cancel measurement button when measurement is stopped
+		const measure_button = document.getElementById("IRSeviMeasureDetachmentWavelength");
+		const cancel_button = document.getElementById("IRSeviMeasureDetachmentWavelengthCancel");
+		measure_button.disabled = false;
+		cancel_button.classList.add("hidden");
+	});
+
+	/****
 			Excitation Laser Manager Listeners
 	****/
 
 	ELMMessenger.listen.info_update.energy.on(update_irsevi_excitation_energies);
 
+	ELMMessenger.wavemeter.listen.event.measurement.start.on(() => {
+		// Disable measure button and show cancel measurement button when measurement is started
+		const measure_button = document.getElementById("IRSeviMeasureExcitationWavelength");
+		const cancel_button = document.getElementById("IRSeviMeasureExcitationWavelengthCancel");
+		measure_button.disabled = true;
+		cancel_button.classList.remove("hidden");
+	});
+
+	ELMMessenger.wavemeter.listen.event.measurement.stop.on(() => {
+		// Re-enable measure button and hide cancel measurement button when measurement is stopeed
+		const measure_button = document.getElementById("IRSeviMeasureExcitationWavelength");
+		const cancel_button = document.getElementById("IRSeviMeasureExcitationWavelengthCancel");
+		measure_button.disabled = false;
+		cancel_button.classList.add("hidden");
+	});
+
 	/****
 			Functions
 	****/
+
+	function update_irsevi_detachment_wavelength() {
+		const detachment_wavelength = document.getElementById("IRSeviDetachmentWavelength");
+		DLMMessenger.update.standard_wavelength(parseFloat(detachment_wavelength.value));
+	}
+
+	function update_irsevi_detachment_mode() {
+		const detachment_mode = document.getElementById("IRSeviWavelengthMode");
+		const mode_list = [DetachmentMode.STANDARD, DetachmentMode.DOUBLED, DetachmentMode.RAMAN, DetachmentMode.IRDFG];
+		DLMMessenger.update.standard_mode(mode_list[detachment_mode.selectedIndex]);
+	}
+
+	function update_irsevi_detachment_energies(detachment_wl_class) {
+		const input_wavelength = document.getElementById("IRSeviDetachmentWavelength");
+		const converted_wavelength = document.getElementById("IRSeviConvertedWavelength");
+		const converted_wavenumber = document.getElementById("IRSeviDetachmentWavenumber");
+		const detachment_mode = document.getElementById("IRSeviWavelengthMode");
+		// If the sent energy values are 0, leave all boxes blank
+		if (detachment_wl_class.energy.wavelength === 0) {
+			input_wavelength.value = "";
+			converted_wavelength.value = "";
+			converted_wavenumber.value = "";
+		}
+		// If the sent energy mode is Standard, don't leave the converted_wavelength box blank
+		else if (detachment_wl_class.selected_mode === DetachmentMode.STANDARD) {
+			converted_wavelength.value = "";
+			converted_wavenumber.value = detachment_wl_class.energy.wavenumber.toFixed(3);
+		}
+		// Update the boxes with the sent energies
+		else {
+			converted_wavelength.value = detachment_wl_class.energy.wavelength.toFixed(3);
+			converted_wavenumber.value = detachment_wl_class.energy.wavenumber.toFixed(3);
+		}
+
+		// Update the input box too (in case the values were changed on the SEVI tab)
+		if (detachment_wl_class.standard.wavelength === 0) input_wavelength.value = "";
+		else input_wavelength.value = detachment_wl_class.standard.wavelength.toFixed(3);
+
+		// Update selected mode
+		switch (detachment_wl_class.selected_mode) {
+			case DetachmentMode.STANDARD:
+				detachment_mode.selectedIndex = 0;
+				break;
+			case DetachmentMode.DOUBLED:
+				detachment_mode.selectedIndex = 1;
+				break;
+			case DetachmentMode.RAMAN:
+				detachment_mode.selectedIndex = 2;
+				break;
+			case DetachmentMode.IRDFG:
+				detachment_mode.selectedIndex = 3;
+				break;
+			default:
+				detachment_mode.selectedIndex = 0;
+				break;
+		}
+	}
 
 	function update_irsevi_excitation_wavelength() {
 		const excitation_wavelength = document.getElementById("IRSeviIRWavelength");

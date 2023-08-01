@@ -199,7 +199,119 @@ function Sevi_File_Naming() {
 
 *****************************************************************************/
 
-function Sevi_Laser_Control() {}
+function Sevi_Laser_Control() {
+	const { InputDelay } = require("./Libraries/InputDelay.js");
+	const { DetachmentMode } = require("./Libraries/WavelengthClasses.js");
+	const { DetachmentLaserManagerMessenger } = require("./Libraries/DetachmentLaserManager.js");
+	const DLMMessenger = new DetachmentLaserManagerMessenger();
+
+	/****
+			HTML Element Listeners
+	****/
+
+	document.getElementById("SeviWavelengthMode").oninput = function () {
+		update_sevi_detachment_mode();
+	};
+
+	document.getElementById("SeviMeasureDetachmentWavelength").onclick = function () {
+		DLMMessenger.wavemeter.request.measurement.start();
+	};
+
+	document.getElementById("SeviMeasureDetachmentWavelengthCancel").onclick = function () {
+		DLMMessenger.wavemeter.request.measurement.cancel();
+	};
+
+	// Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
+	// (that way it doesn't execute for each character inputted)
+
+	const update_sevi_detachment_wavelength_delay = new InputDelay(update_sevi_detachment_wavelength);
+	document.getElementById("SeviDetachmentWavelength").oninput = function () {
+		update_sevi_detachment_wavelength_delay.start_timer();
+	};
+
+	/****
+			Detachment Laser Manager Listeners
+	****/
+
+	DLMMessenger.listen.info_update.energy.on(update_sevi_detachment_energies);
+
+	DLMMessenger.wavemeter.listen.event.measurement.start.on(() => {
+		// Disable measure button and show cancel measurement button when measurement is started
+		const measure_button = document.getElementById("SeviMeasureDetachmentWavelength");
+		const cancel_button = document.getElementById("SeviMeasureDetachmentWavelengthCancel");
+		measure_button.disabled = true;
+		cancel_button.classList.remove("hidden");
+	});
+
+	DLMMessenger.wavemeter.listen.event.measurement.stop.on(() => {
+		// Re-enable measure button and hide cancel measurement button when measurement is stopped
+		const measure_button = document.getElementById("SeviMeasureDetachmentWavelength");
+		const cancel_button = document.getElementById("SeviMeasureDetachmentWavelengthCancel");
+		measure_button.disabled = false;
+		cancel_button.classList.add("hidden");
+	});
+
+	/****
+			Functions
+	****/
+
+	function update_sevi_detachment_wavelength() {
+		const detachment_wavelength = document.getElementById("SeviDetachmentWavelength");
+		DLMMessenger.update.standard_wavelength(parseFloat(detachment_wavelength.value));
+	}
+
+	function update_sevi_detachment_mode() {
+		const detachment_mode = document.getElementById("SeviWavelengthMode");
+		const mode_list = [DetachmentMode.STANDARD, DetachmentMode.DOUBLED, DetachmentMode.RAMAN, DetachmentMode.IRDFG];
+		DLMMessenger.update.standard_mode(mode_list[detachment_mode.selectedIndex]);
+	}
+
+	function update_sevi_detachment_energies(detachment_wl_class) {
+		const input_wavelength = document.getElementById("SeviDetachmentWavelength");
+		const converted_wavelength = document.getElementById("SeviConvertedWavelength");
+		const converted_wavenumber = document.getElementById("SeviDetachmentWavenumber");
+		const detachment_mode = document.getElementById("SeviWavelengthMode");
+		// If the sent energy values are 0, leave all boxes blank
+		if (detachment_wl_class.energy.wavelength === 0) {
+			input_wavelength.value = "";
+			converted_wavelength.value = "";
+			converted_wavenumber.value = "";
+		}
+		// If the sent energy mode is Standard, don't leave the converted_wavelength box blank
+		else if (detachment_wl_class.selected_mode === DetachmentMode.STANDARD) {
+			converted_wavelength.value = "";
+			converted_wavenumber.value = detachment_wl_class.energy.wavenumber.toFixed(3);
+		}
+		// Update the boxes with the sent energies
+		else {
+			converted_wavelength.value = detachment_wl_class.energy.wavelength.toFixed(3);
+			converted_wavenumber.value = detachment_wl_class.energy.wavenumber.toFixed(3);
+		}
+
+		// Update the input box too (in case the values were changed on the IR-SEVI tab)
+		if (detachment_wl_class.standard.wavelength === 0) input_wavelength.value = "";
+		else input_wavelength.value = detachment_wl_class.standard.wavelength.toFixed(3);
+
+		// Update selected mode
+		switch (detachment_wl_class.selected_mode) {
+			case DetachmentMode.STANDARD:
+				detachment_mode.selectedIndex = 0;
+				break;
+			case DetachmentMode.DOUBLED:
+				detachment_mode.selectedIndex = 1;
+				break;
+			case DetachmentMode.RAMAN:
+				detachment_mode.selectedIndex = 2;
+				break;
+			case DetachmentMode.IRDFG:
+				detachment_mode.selectedIndex = 3;
+				break;
+			default:
+				detachment_mode.selectedIndex = 0;
+				break;
+		}
+	}
+}
 
 /*****************************************************************************
 

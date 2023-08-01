@@ -7,6 +7,7 @@
 const { ManagerAlert } = require("./ManagerAlert.js");
 const { ExcitationWavelength, ExcitationMode } = require("./WavelengthClasses.js");
 const { WavemeterMeasurement } = require("./WavemeterClasses.js");
+const { ExcitationWavemeterManagerMessenger } = require("./WavemeterManager.js");
 
 /**
  * Go To Status Enums
@@ -43,6 +44,7 @@ const ExcitationLaserManager = {
 	},
 	update_nir_wavelength: (wavelength) => ExcitationLaserManager_update_nir_wavelength(wavelength),
 	update_mode: (mode) => ExcitationLaserManager_update_mode(mode),
+	process_settings: (settings) => ExcitationLaserManager_process_settings(settings),
 };
 
 /****
@@ -63,6 +65,17 @@ function ExcitationLaserManager_update_mode(mode) {
 	ExcitationLaserManager.stored.selected_mode = mode;
 	// Send alert that nIR mode was updated with a copy of the stored values
 	ELMAlerts.info_update.energy.alert(ExcitationLaserManager.stored.copy());
+}
+
+function ExcitationLaserManager_process_settings(settings) {
+	if (settings?.laser?.excitation) {
+		ExcitationLaserManager.params.acceptance_range = settings.laser.excitation.acceptance_range;
+		ExcitationLaserManager.params.move_attempts = settings.laser.excitation.move_attempts;
+		ExcitationWavelength.YAG_wl = settings.laser.excitation.yag_fundamental;
+	}
+	// Also update settings for Excitation Wavemeter Manager
+	const EWMMessenger = new ExcitationWavemeterManagerMessenger();
+	EWMMessenger.update.process_settings(settings);
 }
 
 /*****************************************************************************
@@ -158,6 +171,10 @@ class ELMMessengerUpdate {
 	nir_mode(mode) {
 		ExcitationLaserManager.update_mode(mode);
 	}
+
+	process_settings(settings) {
+		ExcitationLaserManager.process_settings(settings);
+	}
 }
 
 /***************************************** 
@@ -234,6 +251,12 @@ class ExcitationLaserManagerMessenger {
 		this._request = new ELMMessengerRequest();
 		this._update = new ELMMessengerUpdate();
 		this._listen = new ELMMessengerCallback();
+
+		this._wavemeter = new ExcitationWavemeterManagerMessenger();
+		// Listen for updates from the wavemeter
+		this.wavemeter.listen.info_update.measurement.on((measurement) => {
+			ExcitationLaserManager.update_nir_wavelength(measurement.reduced_stats.average);
+		});
 	}
 
 	get information() {
@@ -247,6 +270,10 @@ class ExcitationLaserManagerMessenger {
 	}
 	get listen() {
 		return this._listen;
+	}
+
+	get wavemeter() {
+		return this._wavemeter;
 	}
 }
 

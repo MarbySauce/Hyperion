@@ -3,17 +3,15 @@ const ipc = require("electron").ipcRenderer;
 const { IPCMessages } = require("../JS/Messages.js");
 const { UpdateMessenger, initialize_message_display } = require("../JS/MainWindow2/Libraries/UpdateMessenger.js");
 const wavemeter = require("bindings")("wavemeter");
-
-// Doing this so my IDE can get the class information
-// Couldn't figure out a better way to do it
-try {
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
-} catch (error) {}
 const { ImageManagerMessenger } = require("../JS/MainWindow2/Libraries/ImageManager.js");
+const { DetachmentLaserManagerMessenger } = require("../JS/MainWindow2/Libraries/DetachmentLaserManager.js");
+const { ExcitationLaserManagerMessenger } = require("../JS/MainWindow2/Libraries/ExcitationLaserManager.js");
 
 let settings; // Global variable, to be filled in on startup
 
 const IMMessenger = new ImageManagerMessenger();
+const DLMMessenger = new DetachmentLaserManagerMessenger();
+const ELMMessenger = new ExcitationLaserManagerMessenger();
 
 // ORDER OF OPERATIONS WHEN LOADING PROGRAM
 // Main renderer (main.js) creates the MainWindow
@@ -66,6 +64,8 @@ async function startup() {
 function process_settings() {
 	// Send settings to each manager
 	IMMessenger.update.process_settings(settings);
+	DLMMessenger.update.process_settings(settings);
+	ELMMessenger.update.process_settings(settings);
 }
 
 /* Functions for simulating wavemeter on Mac */
@@ -114,6 +114,3 @@ function norm_rand(mu, sigma) {
 	while (v === 0) v = Math.random();
 	return sigma * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) + mu;
 }
-
-const { ExcitationWavemeterManagerMessenger, DetachmentWavemeterManagerMessenger } = require("../JS/MainWindow2/Libraries/WavemeterManager.js");
-const EWMMessenger = new ExcitationWavemeterManagerMessenger();

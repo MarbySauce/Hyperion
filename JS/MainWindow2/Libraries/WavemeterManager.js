@@ -91,6 +91,7 @@ class WavemeterManager {
 		this.cancel = false;
 		this.pause = false;
 		this.WMAlerts.event.measurement.stop.alert(this.measurement.copy());
+		this.WMAlerts.info_update.measurement.alert(this.measurement.copy());
 	}
 
 	alert_pause() {
@@ -109,6 +110,11 @@ class WavemeterManager {
 		let max_bad_measurements = this.params.max_bad_measurements;
 		let measurement = new WavemeterMeasurement();
 		let wavelength;
+
+		if (this.status === WavemeterState.RUNNING) {
+			// Already measuring the wavelength
+			return measurement;
+		}
 
 		if (channel === -1) {
 			// No wavemeter channel saved for the excitation laser, cancel
@@ -169,11 +175,11 @@ class WavemeterManager {
 		}
 		// Stop wavemeter measurement
 		wavemeter.stopMeasurement();
-		// Send alert that wavelength measurement has stopped
-		this.alert_stop();
 		// Calculate (reduced) average wavelength and update
 		measurement.get_average();
 		this.measurement = measurement.copy();
+		// Send alert that wavelength measurement has stopped
+		this.alert_stop();
 		return measurement;
 	}
 
