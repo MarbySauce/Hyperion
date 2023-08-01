@@ -268,7 +268,10 @@ function OPOManager_process_settings(settings) {
 	OPOManager.network.connect();
 	// Set to wavelength mode when connection is established
 	OPOMAlerts.event.connection.open.add_once(() => {
+		// Set to wavelength mode
 		OPOManager.wavelength_mode();
+		// Get current wavelength
+		OPOManager.get_wavelength();
 	});
 }
 
