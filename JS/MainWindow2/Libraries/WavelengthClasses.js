@@ -223,6 +223,17 @@ class DetachmentWavelength {
 				break;
 		}
 	}
+
+	/**
+	 * Return a new DetachmentWavelength instance with all values copied
+	 * @returns {DetachmentWavelength}
+	 */
+	copy() {
+		let copy = new DetachmentWavelength();
+		copy.standard.wavelength = this.standard.wavelength;
+		copy.selected_mode = this.selected_mode;
+		return copy;
+	}
 }
 
 /***
@@ -458,6 +469,17 @@ class ExcitationWavelength {
 				ExcitationWavelength_convert_fir(this, laser_mode_energy);
 				break;
 		}
+	}
+
+	/**
+	 * Return a new ExcitationWavelength instance with all values copied
+	 * @returns {ExcitationWavelength}
+	 */
+	copy() {
+		let copy = new ExcitationWavelength();
+		copy.nIR.wavelength = this.nIR.wavelength;
+		copy.selected_mode = this.selected_mode;
+		return copy;
 	}
 }
 

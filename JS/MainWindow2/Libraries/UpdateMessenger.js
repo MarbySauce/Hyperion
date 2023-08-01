@@ -1,3 +1,5 @@
+const { sleep } = require("./Sleep");
+
 const Messenger = {
 	messages: [],
 	going_through_msgs: false,

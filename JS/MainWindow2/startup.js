@@ -2,6 +2,7 @@
 const ipc = require("electron").ipcRenderer;
 const { IPCMessages } = require("../JS/Messages.js");
 const { UpdateMessenger, initialize_message_display } = require("../JS/MainWindow2/Libraries/UpdateMessenger.js");
+const wavemeter = require("bindings")("wavemeter");
 
 // Doing this so my IDE can get the class information
 // Couldn't figure out a better way to do it
@@ -57,6 +58,8 @@ async function startup() {
 	// Set starting image ID to 1
 	IMMessenger.update.id.set(1);
 
+	initialize_mac_fn();
+
 	ipc.send(IPCMessages.LOADED.MAINWINDOW, null);
 }
 
@@ -65,11 +68,52 @@ function process_settings() {
 	IMMessenger.update.process_settings(settings);
 }
 
+/* Functions for simulating wavemeter on Mac */
+
 /**
- * Asynchronous sleep function
- * @param {Number} delay_ms - delay time in milliseconds
- * @returns resolved promise upon completion
+ * This function is called solely from C++ file (wavemeter_mac.cc)
+ * 	to simulate the wavemeter
+ * Return a wavelength close to OPO's wavelength
  */
-async function sleep(delay_ms) {
-	return new Promise((resolve) => setTimeout(resolve, delay_ms));
+function mac_wavelength(channel) {
+	if (channel === settings.laser.detachment.wavemeter_channel) {
+		// Just send 650nm (with some noise) as the detachment laser wavelength
+		return 650 + norm_rand(0, 0.01);
+	} else if (channel === settings.laser.excitation.wavemeter_channel) {
+		// Send wavelength as the OPO's wavelength with some noise added
+		let wl = 745; //opo.status.current_wavelength;
+		// Add some noise
+		wl += norm_rand(0, 0.1);
+		// Small chance of wavelength being very far off
+		if (Math.random() < 0.1) {
+			wl -= 20;
+		}
+		return wl;
+	} else {
+		return -6; // Wavemeter's error for channel not available
+	}
 }
+
+/**
+ * Initialize JS function on C++ side
+ */
+function initialize_mac_fn() {
+	wavemeter.setUpFunction(mac_wavelength);
+}
+
+/**
+ * Random number with normal distribution
+ * @param {Number} mu - center of normal distribution (mean)
+ * @param {Number} sigma - width of normal distribution (sqrt(variance))
+ * @returns {Number} random number
+ */
+function norm_rand(mu, sigma) {
+	let u = 0,
+		v = 0;
+	while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+	while (v === 0) v = Math.random();
+	return sigma * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) + mu;
+}
+
+const { ExcitationWavemeterManagerMessenger, DetachmentWavemeterManagerMessenger } = require("../JS/MainWindow2/Libraries/WavemeterManager.js");
+const EWMMessenger = new ExcitationWavemeterManagerMessenger();

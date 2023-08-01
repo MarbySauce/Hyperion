@@ -208,7 +208,128 @@ function IRSevi_File_Naming() {
 
 *****************************************************************************/
 
-function IRSevi_Laser_Control() {}
+function IRSevi_Laser_Control() {
+	const { InputDelay } = require("./Libraries/InputDelay.js");
+	const { ExcitationMode } = require("./Libraries/WavelengthClasses.js");
+	const { ExcitationLaserManagerMessenger } = require("./Libraries/ExcitationLaserManager.js");
+	const ELMMessenger = new ExcitationLaserManagerMessenger();
+
+	/****
+		HTML Element Listeners
+****/
+
+	document.getElementById("IRSeviWavelengthMode").oninput = function () {
+		//update_irsevi_detachment_mode();
+	};
+
+	document.getElementById("IRSeviIRWavelengthMode").oninput = function () {
+		update_irsevi_excitation_mode();
+	};
+
+	document.getElementById("IRSeviMeasureDetachmentWavelength").onclick = function () {
+		//laserEmitter.emit(LASER.MEASURE.DETACHMENT);
+	};
+
+	document.getElementById("IRSeviMeasureDetachmentWavelengthCancel").onclick = function () {
+		//laserEmitter.emit(LASER.MEASURE.CANCEL.DETACHMENT);
+	};
+
+	document.getElementById("IRSeviMeasureExcitationWavelength").onclick = function () {
+		//laserEmitter.emit(LASER.MEASURE.EXCITATION);
+	};
+
+	document.getElementById("IRSeviMeasureExcitationWavelengthCancel").onclick = function () {
+		//laserEmitter.emit(LASER.MEASURE.CANCEL.EXCITATION);
+	};
+
+	document.getElementById("IRSeviMoveIRButton").onclick = function () {
+		//irsevi_goto_ir();
+	};
+
+	document.getElementById("IRSeviMoveIRButtonCancel").onclick = function () {
+		//laserEmitter.emit(LASER.GOTO.CANCEL);
+	};
+
+	// Putting timers on typed inputs so that the functions are only run if the user hasn't updated the input in the last second
+	// (that way it doesn't execute for each character inputted)
+
+	//const update_irsevi_detachment_wavelength_delay = new InputDelay(update_irsevi_detachment_wavelength);
+	//document.getElementById("IRSeviDetachmentWavelength").oninput = function () {
+	//	update_irsevi_detachment_wavelength_delay.start_timer();
+	//};
+
+	const update_irsevi_excitation_wavelength_delay = new InputDelay(update_irsevi_excitation_wavelength);
+	document.getElementById("IRSeviIRWavelength").oninput = function () {
+		update_irsevi_excitation_wavelength_delay.start_timer();
+	};
+
+	/****
+			Excitation Laser Manager Listeners
+	****/
+
+	ELMMessenger.listen.info_update.energy.on(update_irsevi_excitation_energies);
+
+	/****
+			Functions
+	****/
+
+	function update_irsevi_excitation_wavelength() {
+		const excitation_wavelength = document.getElementById("IRSeviIRWavelength");
+		ELMMessenger.update.nir_wavelength(parseFloat(excitation_wavelength.value));
+	}
+
+	function update_irsevi_excitation_mode() {
+		const excitation_mode = document.getElementById("IRSeviIRWavelengthMode");
+		const mode_list = [ExcitationMode.NIR, ExcitationMode.IIR, ExcitationMode.MIR, ExcitationMode.FIR];
+		ELMMessenger.update.nir_mode(mode_list[excitation_mode.selectedIndex]);
+	}
+
+	function update_irsevi_excitation_energies(stored_energy) {
+		const input_wavelength = document.getElementById("IRSeviIRWavelength");
+		const converted_wavelength = document.getElementById("IRSeviIRConvertedWavelength");
+		const converted_wavenumber = document.getElementById("IRSeviIRWavenumber");
+		const excitation_mode = document.getElementById("IRSeviIRWavelengthMode");
+		// If the sent energy values are 0, leave all boxes blank
+		if (stored_energy.energy.wavelength === 0) {
+			input_wavelength.value = "";
+			converted_wavelength.value = "";
+			converted_wavenumber.value = "";
+		}
+		// If the sent energy mode is Standard, don't leave the converted_wavelength box blank
+		else if (stored_energy.selected_mode === ExcitationMode.NIR) {
+			converted_wavelength.value = "";
+			converted_wavenumber.value = stored_energy.energy.wavenumber.toFixed(3);
+		}
+		// Update the boxes with the sent energies
+		else {
+			converted_wavelength.value = stored_energy.energy.wavelength.toFixed(3);
+			converted_wavenumber.value = stored_energy.energy.wavenumber.toFixed(3);
+		}
+
+		// Update the input box too (in case the values were changed on the SEVI tab)
+		if (stored_energy.nIR.wavelength === 0) input_wavelength.value = "";
+		else input_wavelength.value = stored_energy.nIR.wavelength.toFixed(3);
+
+		// Update selected mode
+		switch (stored_energy.selected_mode) {
+			case ExcitationMode.NIR:
+				excitation_mode.selectedIndex = 0;
+				break;
+			case ExcitationMode.IIR:
+				excitation_mode.selectedIndex = 1;
+				break;
+			case ExcitationMode.MIR:
+				excitation_mode.selectedIndex = 2;
+				break;
+			case ExcitationMode.FIR:
+				excitation_mode.selectedIndex = 3;
+				break;
+			default:
+				excitation_mode.selectedIndex = 0;
+				break;
+		}
+	}
+}
 
 /*****************************************************************************
 

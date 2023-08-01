@@ -58,6 +58,16 @@ class WavemeterMeasurement {
 		this.reduced_stats = reduced;
 		return this.reduced_stats;
 	}
+
+	copy() {
+		let copy = new WavemeterMeasurement();
+		copy.wavelength_values = [...this.wavelength_values];
+		copy.raw_stats = { ...this.raw_stats };
+		copy.reduced_stats = { ...this.reduced_stats };
+		copy.laser_wavelength = this.laser_wavelength;
+		copy.last_offset = this.laser_offset;
+		return copy;
+	}
 }
 
 /*****************************************************************************

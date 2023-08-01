@@ -516,8 +516,7 @@ const IMAlerts = {
 
 *****************************************************************************/
 
-// Three options are 1) Information (static), 2) Request event (action), 3) Update (action)
-// Also need a class for setting up alerts
+// Three options are 1) Information (static), 2) Request event (action), 3) Update (action), 4) set up Update listener
 
 /***************************************** 
 
