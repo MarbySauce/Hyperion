@@ -411,6 +411,11 @@ class OPOMMessengerUpdate {
 		OPOManager.set_speed(speed);
 	}
 
+	/** Set OPO/A to wavelength mode */
+	wavelength_mode() {
+		OPOManager.wavelength_mode();
+	}
+
 	process_settings(settings) {
 		OPOManager.process_settings(settings);
 	}
