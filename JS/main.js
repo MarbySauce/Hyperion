@@ -47,6 +47,7 @@ const settings = {
 				yag_fundamental: 1064.5,
 				wavemeter_channel: 0,
 				acceptance_range: 0.75,
+				move_attempts: 2,
 			},
 		},
 		wavemeter: {
@@ -57,6 +58,8 @@ const settings = {
 		opo: {
 			host: "localhost",
 			port: 1315,
+			lower_wavelength_bound: 710,
+			upper_wavelength_bound: 880,
 		},
 		centroid: {
 			accumulation: "Centroid",
