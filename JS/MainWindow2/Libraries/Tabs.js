@@ -1,13 +1,13 @@
 class Tabs {
-	/* SEVI tab (IR off) */
+	/** SEVI tab (IR off) */
 	static SEVI = new Tabs("SeviMode");
-	/* IR-SEVI tab (IR On) */
+	/** IR-SEVI tab (IR On) */
 	static IRSEVI = new Tabs("IRSeviMode");
-	/* IR Action tab */
+	/** IR Action tab */
 	static IRACTION = new Tabs("IRActionMode");
-	/* Settings tab */
+	/** Settings tab */
 	static SETTINGS = new Tabs("Settings");
-	/* Unlisted tab */
+	/** Unlisted tab */
 	static NONE = new Tabs("NONE");
 
 	constructor(tab) {
