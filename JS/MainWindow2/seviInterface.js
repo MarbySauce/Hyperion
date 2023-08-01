@@ -553,11 +553,30 @@ function Sevi_Counts() {
 *****************************************************************************/
 
 function Sevi_Load_Page(PageInfo) {
+	const { Tabs } = require("./Libraries/Tabs.js");
+	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const IMMessenger = new ImageManagerMessenger();
+
+	// Show/hide image series button based on settings
 	const sevi_controls = document.getElementById("SeviScanControls");
 	if (sevi_controls) {
 		if (settings?.image_series.show_menu) sevi_controls.classList.remove("hide-image-series");
 		else sevi_controls.classList.add("hide-image-series");
 	}
+
+	// Show tab highlight if SEVI scan is being taken
+	IMMessenger.listen.event.scan.start.on(() => {
+		// Make sure it's not an IR-SEVI scan
+		if (!IMMessenger.information.image_info.is_ir) {
+			let tab = document.getElementById(Tabs.SEVI.tab);
+			if (tab) tab.classList.add("highlighted-tab");
+		}
+	});
+	// Remove tab highlight if SEVI scan is stopped or canceled
+	IMMessenger.listen.event.scan.stop_or_cancel.on(() => {
+		let tab = document.getElementById(Tabs.SEVI.tab);
+		if (tab) tab.classList.remove("highlighted-tab");
+	});
 
 	// Wrapping these in try/catch so that rest of program can still load
 	//	even if somemodules are buggy

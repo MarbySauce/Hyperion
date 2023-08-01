@@ -353,15 +353,7 @@ function IRSevi_Laser_Control() {
 		cancel_button.classList.remove("hidden");
 	});
 
-	ELMMessenger.listen.event.goto.stop.on(() => {
-		// Re-enable GoTo button and hide cancel button
-		const goto_button = document.getElementById("IRSeviMoveIRButton");
-		const cancel_button = document.getElementById("IRSeviMoveIRButtonCancel");
-		goto_button.disabled = false;
-		cancel_button.classList.add("hidden");
-	});
-
-	ELMMessenger.listen.event.goto.cancel.on(() => {
+	ELMMessenger.listen.event.goto.stop_or_cancel.on(() => {
 		// Re-enable GoTo button and hide cancel button
 		const goto_button = document.getElementById("IRSeviMoveIRButton");
 		const cancel_button = document.getElementById("IRSeviMoveIRButtonCancel");
@@ -639,11 +631,7 @@ function IRSevi_Counts() {
 		show_irsevi_image_progress_bar();
 	});
 	// Remove scan-running class from counters section when a scan stops (used for image progress bar)
-	IMMessenger.listen.event.scan.stop.on(() => {
-		remove_scan_running_from_irsevi_counters();
-		hide_irsevi_image_progress_bar();
-	});
-	IMMessenger.listen.event.scan.cancel.on(() => {
+	IMMessenger.listen.event.scan.stop_or_cancel.on(() => {
 		remove_scan_running_from_irsevi_counters();
 		hide_irsevi_image_progress_bar();
 	});
@@ -763,9 +751,30 @@ function IRSevi_Counts() {
 *****************************************************************************/
 
 function IRSevi_Load_Page(PageInfo) {
+	const { Tabs } = require("./Libraries/Tabs.js");
+	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const IMMessenger = new ImageManagerMessenger();
+
+	// Show/hide image series button based on settings
 	const irsevi_controls = document.getElementById("IRSeviScanControls");
-	if (settings?.image_series.show_menu) irsevi_controls.classList.remove("hide-image-series");
-	else irsevi_controls.classList.add("hide-image-series");
+	if (irsevi_controls) {
+		if (settings?.image_series.show_menu) irsevi_controls.classList.remove("hide-image-series");
+		else irsevi_controls.classList.add("hide-image-series");
+	}
+
+	// Show tab highlight if SEVI scan is being taken
+	IMMessenger.listen.event.scan.start.on(() => {
+		// Make sure it is an IR-SEVI scan
+		if (IMMessenger.information.image_info.is_ir) {
+			let tab = document.getElementById(Tabs.IRSEVI.tab);
+			if (tab) tab.classList.add("highlighted-tab");
+		}
+	});
+	// Remove tab highlight if SEVI scan is stopped or canceled
+	IMMessenger.listen.event.scan.stop_or_cancel.on(() => {
+		let tab = document.getElementById(Tabs.IRSEVI.tab);
+		if (tab) tab.classList.remove("highlighted-tab");
+	});
 
 	// Wrapping these in try/catch so that rest of program can still load
 	//	even if somemodules are buggy
