@@ -123,6 +123,14 @@ class WavemeterManager {
 			return measurement;
 		}
 
+		if (!wavemeter.isOpen()) {
+			// Wavemeter is not open yet
+			update_messenger.error("Wavemeter application not open yet. Opening now...");
+			wavemeter.startApplication();
+			this.alert_stop();
+			return measurement;
+		}
+
 		// Send alert that wavelength measurement has started
 		this.alert_start();
 
