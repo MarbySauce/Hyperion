@@ -154,6 +154,7 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 	// Alert that a GoTo process has started
 	ExcitationLaserManager.goto.status = GoToState.RUNNING;
 	ELMAlerts.event.goto.start.alert();
+	update_messenger.update(`IR GoTo ${desired_energy.toFixed(3)}cm-1 Started`);
 	// Set OPO/A to wavelength mode
 	OPOMMessenger.update.wavelength_mode();
 	// If the excitation wavemeter channel is not set, then we should move OPO without
@@ -244,6 +245,7 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 	let stored_copy = ExcitationLaserManager.stored.copy();
 	ELMAlerts.event.goto.stop.alert(stored_copy);
 	ELMAlerts.event.goto.stop_or_cancel.alert();
+	update_messenger.update("IR GoTo Completed!");
 	return stored_copy;
 }
 
