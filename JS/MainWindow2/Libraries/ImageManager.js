@@ -650,8 +650,14 @@ class IMMessengerInformation {
 		return this._autostop;
 	}
 
+	/** Get a safe copy of the current image (note: accumulated image is not copied) */
 	get current_image() {
 		return ImageManager.current_image.copy();
+	}
+
+	/** Get a safe copy of all images stored in Image Manager */
+	get all_images() {
+		return ImageManager.all_images.map((image) => image.copy());
 	}
 
 	/**
