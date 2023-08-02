@@ -315,7 +315,7 @@ function ImageManager_start_scan(is_ir) {
 }
 
 function ImageManager_stop_scan() {
-	if (!ImageManager.status === IMState.STOPPED) {
+	if (ImageManager.status === IMState.STOPPED) {
 		// Image is already stopped, do nothing
 		return;
 	}

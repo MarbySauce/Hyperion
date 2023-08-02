@@ -22,16 +22,8 @@ class ActionImage {
 		this.excitation_energy = new ExcitationWavelength();
 		this.expected_excitation_energy = new ExcitationWavelength();
 		this.image_id; // Image ID
+		this.image_id_str;
 		this.step_image_number = 0; // Image number within set of images / step
-	}
-
-	get image_id_str() {
-		if (this.image_id) {
-			if (this.image_id < 10) return `0${this.image_id}`;
-			else return this.image_id.toString();
-		} else {
-			return "";
-		}
 	}
 }
 
@@ -320,6 +312,8 @@ function initialize_action_queue() {
 
 // Before this function, the image queue will already have been set up
 async function run_action_scan() {
+	console.log(`Starting action scan, current image ID: i${IMMessenger.information.image_info.id_str}`);
+
 	// Make sure any currently running images are stopped
 	IMMessenger.request.scan.stop();
 
@@ -336,6 +330,8 @@ async function run_action_scan() {
 	let desired_energy;
 	let move_wavelength = true;
 	let image_amount_info, completed_image_length, image_queue_length;
+
+	console.log(`Starting while loop, current image ID: i${IMMessenger.information.image_info.id_str}`);
 	while (IRActionManager.image_queue.length > 0) {
 		// Get current image by removing it from beginning of queue
 		current_image = IRActionManager.image_queue.shift();
@@ -343,11 +339,14 @@ async function run_action_scan() {
 
 		// Update image ID and send info
 		current_image.image_id = IMMessenger.information.image_info.id;
+		current_image.image_id_str = IMMessenger.information.image_info.id_str;
+		console.log(`Image ID: i${current_image.image_id_str}`);
 		completed_image_length = IRActionManager.completed_images.length;
 		image_queue_length = IRActionManager.image_queue.length;
 		image_amount_info = new ImageAmountInfo(current_image, image_queue_length, completed_image_length);
 		IRAMAlerts.info_update.image_amount.alert(image_amount_info);
 
+		console.log("Action scan: Moving wavelength");
 		// Check whether to move OPO wavelength
 		last_image = IRActionManager.completed_images[IRActionManager.completed_images.length - 1];
 		last_energy = last_image?.excitation_energy.energy.wavenumber || 0;
@@ -377,6 +376,7 @@ async function run_action_scan() {
 			current_image.excitation_energy.nIR.wavelength = last_image?.excitation_energy.nIR.wavelength;
 			current_image.excitation_energy.selected_mode = last_image?.excitation_energy.selected_mode;
 		}
+		console.log("Action scan: Done moving wavelength");
 
 		// Send info about current and next IR energies
 		IRAMAlerts.info_update.energy.current.alert(current_image.excitation_energy);
@@ -389,6 +389,7 @@ async function run_action_scan() {
 			)} cm-1 (Expected: ${current_image.expected_excitation_energy.energy.wavenumber.toFixed(3)} cm-1)`
 		);
 
+		console.log("Action scan: Starting IR-SEVI scan");
 		// Start an IR-SEVI scan and wait for it to complete (or be canceled)
 		try {
 			await IMMessenger.request.scan.start_ir(true);
@@ -396,6 +397,7 @@ async function run_action_scan() {
 			// IR-SEVI scan was canceled
 			break;
 		}
+		console.log("Action scan: Done with IR-SEVI scan");
 
 		// Add current image to completed_image list and move on
 		IRActionManager.completed_images.push(current_image);
