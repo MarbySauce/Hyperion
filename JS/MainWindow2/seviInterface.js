@@ -11,7 +11,10 @@
 *****************************************************************************/
 
 function Sevi_Scan_Control() {
+	const { UpdateMessenger } = require("./Libraries/UpdateMessenger.js");
 	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+
+	const update_messenger = new UpdateMessenger();
 	const IMMessenger = new ImageManagerMessenger();
 	/****
 			HTML Element Listeners
@@ -37,6 +40,7 @@ function Sevi_Scan_Control() {
 	};
 	document.getElementById("SeviScanSingleShot").onclick = function () {
 		// Single shot
+		update_messenger.error("Single Shot Not Set Up!");
 	};
 
 	document.getElementById("SeviImageSeries").oninput = function () {
