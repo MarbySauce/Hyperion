@@ -9,7 +9,7 @@ const net = require("net");
 const end_cmd = "\r\n";
 
 // Overridding speed - ignore requests to change OPO speed (makes GoTo faster)
-const override_speed_bool = false;
+const override_speed_bool = true;
 const override_speed_val = 10;
 
 // OPO Info
