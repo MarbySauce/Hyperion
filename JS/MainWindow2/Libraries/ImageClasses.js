@@ -40,12 +40,21 @@ class Image {
 		if (size > 0) Image._bin_size = size;
 	}
 
+	/** For testing purposes, whether to save images to file */
 	static get do_not_save_to_file() {
 		return Image._do_not_save_to_file;
 	}
 
 	static set do_not_save_to_file(bool) {
 		Image._do_not_save_to_file = bool;
+	}
+
+	static get save_directory() {
+		return Image._save_directory || "";
+	}
+
+	static set save_directory(dir_string) {
+		Image._save_directory = dir_string;
 	}
 
 	/* Instance methods */
@@ -204,6 +213,22 @@ class Image {
 			update_messenger.update(`SEVI Image i${this.id_str} has been saved! (Not really)`);
 			return;
 		}
+		// Else
+		const fs = require("fs");
+		const path = require("path");
+
+		let file_name = path.join(Image.save_directory, this.file_name);
+		// Convert image to string
+		let image_string = this.image.map((row) => row.join(" ")).join("\n");
+		// Save image to file and send update on completion
+		fs.writeFile(file_name, image_string, (error) => {
+			if (error) {
+				update_messenger.error(`SEVI Image i${this.id_str} could not be saved! Error logged to console`);
+				console.log(`Could not save SEVI Image i${this.id_str}:`, error);
+			} else {
+				update_messenger.update(`SEVI Image i${this.id_str} has been saved to ${this.file_name}!`);
+			}
+		});
 	}
 
 	/**
@@ -295,9 +320,35 @@ class IRImage extends Image {
 	 */
 	save_image() {
 		if (Image.do_not_save_to_file) {
-			update_messenger.update(`IR-SEVI Images i${this.id_str} has been saved! (Not really)`);
+			update_messenger.update(`IR-SEVI Images i${this.id_str} have been saved! (Not really)`);
 			return;
 		}
+		// Else
+		const fs = require("fs");
+		const path = require("path");
+
+		let file_name = path.join(Image.save_directory, this.file_name);
+		let file_name_ir = path.join(Image.save_directory, this.file_name_ir);
+		// Convert images to string
+		let image_string = this.images.ir_off.map((row) => row.join(" ")).join("\n");
+		let image_string_ir = this.images.ir_on.map((row) => row.join(" ")).join("\n");
+		// Save images to file and send updates on completion
+		fs.writeFile(file_name, image_string, (error) => {
+			if (error) {
+				update_messenger.error(`IR-SEVI Image i${this.id_str} (IR Off) could not be saved! Error logged to console`);
+				console.log(`Could not save IR-SEVI Image i${this.id_str} (IR Off):`, error);
+			} else {
+				update_messenger.update(`IR-SEVI Image i${this.id_str} (IR Off) has been saved to ${this.file_name}!`);
+			}
+		});
+		fs.writeFile(file_name_ir, image_string_ir, (error) => {
+			if (error) {
+				update_messenger.error(`IR-SEVI Image i${this.id_str} (IR On) could not be saved! Error logged to console`);
+				console.log(`Could not save IR-SEVI Image i${this.id_str} (IR On):`, error);
+			} else {
+				update_messenger.update(`IR-SEVI Image i${this.id_str} (IR On) has been saved to ${this.file_name_ir}!`);
+			}
+		});
 	}
 
 	/**
