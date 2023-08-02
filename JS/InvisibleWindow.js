@@ -27,11 +27,11 @@ let settings;
 
 let check_messages = false;
 
-// Don't send centroid info for the first 5s so that the rest of the program can load
+// Don't send centroid info for the first 2.5s so that the rest of the program can load
 let send_centroid_info = false;
 setTimeout(() => {
 	send_centroid_info = true;
-}, 5000);
+}, 2500);
 
 //
 /*			Centroid functions			*/
