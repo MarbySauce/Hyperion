@@ -20,7 +20,8 @@ const Messenger = {
 			let this_msg = Messenger.messages.shift();
 			Messenger.message_display.style.color = this_msg.color;
 			Messenger.message_display.innerText = this_msg.msg;
-			console.log(`${this_msg.type.name}: ${this_msg.msg}`); // Also send message to console
+			// Also send message to console
+			console.log(`%c${this_msg.type.name}: %c${this_msg.msg}`, `color:${this_msg.color}`, "color:auto");
 			if (Messenger.messages.length > 4) {
 				await sleep(Messenger.display_speeds.fast); // Show message for 1 second
 			} else {
