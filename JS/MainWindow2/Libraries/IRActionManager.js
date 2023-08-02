@@ -147,7 +147,12 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, () => {
 IMMessenger.listen.event.scan.start.on(() => {
 	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.image.start.alert();
 });
-
+IMMessenger.listen.event.scan.pause.on(() => {
+	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.image.pause.alert();
+});
+IMMessenger.listen.event.scan.resume.on(() => {
+	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.image.resume.alert();
+});
 IMMessenger.listen.event.scan.stop_or_cancel.on(() => {
 	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.image.stop.alert();
 });
@@ -159,7 +164,12 @@ IMMessenger.listen.event.scan.stop_or_cancel.on(() => {
 ELMMessenger.listen.event.goto.start.on(() => {
 	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.goto.start.alert();
 });
-
+ELMMessenger.listen.event.goto.pause.on(() => {
+	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.goto.pause.alert();
+});
+ELMMessenger.listen.event.goto.resume.on(() => {
+	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.goto.resume.alert();
+});
 ELMMessenger.listen.event.goto.stop_or_cancel.on(() => {
 	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.goto.stop.alert();
 });
@@ -423,10 +433,14 @@ const IRAMAlerts = {
 		},
 		image: {
 			start: new ManagerAlert(),
+			pause: new ManagerAlert(),
+			resume: new ManagerAlert(),
 			stop: new ManagerAlert(),
 		},
 		goto: {
 			start: new ManagerAlert(),
+			pause: new ManagerAlert(),
+			resume: new ManagerAlert(),
 			stop: new ManagerAlert(),
 		},
 		remeasure: {
@@ -733,6 +747,38 @@ class IRAMMessengerCallbackEvent {
 					IRAMAlerts.event.image.start.add_once(callback);
 				},
 			},
+			_pause: {
+				/**
+				 * Execute callback function *every time* an accumulated image is paused during an IR Action scan
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				on: (callback) => {
+					IRAMAlerts.event.image.pause.add_on(callback);
+				},
+				/**
+				 * Execute callback function *once the next time* an accumulated image is paused during an IR Action scan
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				once: (callback) => {
+					IRAMAlerts.event.image.pause.add_once(callback);
+				},
+			},
+			_resume: {
+				/**
+				 * Execute callback function *every time* an accumulated image is resumed during an IR Action scan
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				on: (callback) => {
+					IRAMAlerts.event.image.resume.add_on(callback);
+				},
+				/**
+				 * Execute callback function *once the next time* an accumulated image is resumed during an IR Action scan
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				once: (callback) => {
+					IRAMAlerts.event.image.resume.add_once(callback);
+				},
+			},
 			_stop: {
 				/**
 				 * Execute callback function *every time* an accumulated image is stopped during an IR Action scan
@@ -753,6 +799,14 @@ class IRAMMessengerCallbackEvent {
 			/** Listen for accumulated image being started during an IR Action scan */
 			get start() {
 				return this._start;
+			},
+			/** Listen for accumulated image being paused during an IR Action scan */
+			get pause() {
+				return this._pause;
+			},
+			/** Listen for accumulated image being resumed during an IR Action scan */
+			get resume() {
+				return this._resume;
 			},
 			/** Listen for accumulated image being stopped during an IR Action scan */
 			get stop() {
@@ -777,6 +831,38 @@ class IRAMMessengerCallbackEvent {
 					IRAMAlerts.event.goto.start.add_once(callback);
 				},
 			},
+			_pause: {
+				/**
+				 * Execute callback function *every time* a GoTo process is paused during an IR Action scan
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				on: (callback) => {
+					IRAMAlerts.event.goto.pause.add_on(callback);
+				},
+				/**
+				 * Execute callback function *once the next time* a GoTo process is paused during an IR Action scan
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				once: (callback) => {
+					IRAMAlerts.event.goto.pause.add_once(callback);
+				},
+			},
+			_resume: {
+				/**
+				 * Execute callback function *every time* a GoTo process is resumed during an IR Action scan
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				on: (callback) => {
+					IRAMAlerts.event.goto.resume.add_on(callback);
+				},
+				/**
+				 * Execute callback function *once the next time* a GoTo process is resumed during an IR Action scan
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				once: (callback) => {
+					IRAMAlerts.event.goto.resume.add_once(callback);
+				},
+			},
 			_stop: {
 				/**
 				 * Execute callback function *every time* a GoTo process is stopped during an IR Action scan
@@ -797,6 +883,14 @@ class IRAMMessengerCallbackEvent {
 			/** Listen for GoTo process being started during an IR Action scan */
 			get start() {
 				return this._start;
+			},
+			/** Listen for GoTo process being paused during an IR Action scan */
+			get pause() {
+				return this._pause;
+			},
+			/** Listen for GoTo process being resumed during an IR Action scan */
+			get resume() {
+				return this._resume;
 			},
 			/** Listen for GoTo process being stopped during an IR Action scan */
 			get stop() {
