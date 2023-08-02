@@ -419,25 +419,36 @@ function IRAction_Scan_Status() {
 	IRAMMessenger.listen.event.image.start.on(() => {
 		update_iraction_status_current_step("Collecting IR-SEVI Image");
 	});
+	// IR-SEVI image paused
+	IRAMMessenger.listen.event.image.pause.on(() => {
+		update_iraction_status_current_step("Collecting IR-SEVI Image (Paused)");
+	});
+	// IR-SEVI image resumed
+	IRAMMessenger.listen.event.image.resume.on(() => {
+		update_iraction_status_current_step("Collecting IR-SEVI Image");
+	});
 	// IR-SEVI image stopped
 	IRAMMessenger.listen.event.image.stop.on(() => {
 		update_iraction_status_current_step(); // Clear status message
 	});
+
 	// GoTo process started
 	IRAMMessenger.listen.event.goto.start.on(() => {
+		update_iraction_status_current_step("Moving OPO Wavelength");
+	});
+	// GoTo process paused
+	IRAMMessenger.listen.event.goto.pause.on(() => {
+		update_iraction_status_current_step("Moving OPO Wavelength (Paused)");
+	});
+	// GoTo process resumed
+	IRAMMessenger.listen.event.goto.resume.on(() => {
 		update_iraction_status_current_step("Moving OPO Wavelength");
 	});
 	// GoTo process stopped
 	IRAMMessenger.listen.event.goto.stop.on(() => {
 		update_iraction_status_current_step(); // Clear status message
 	});
-	// Action scan stopped
-	IRAMMessenger.listen.event.scan.stop.on(() => {
-		update_iraction_status_image_amount(); // Clear status message
-		hide_iraction_status_current_energy();
-		hide_iraction_status_next_energy();
-		update_iraction_status_current_step("Action Scan Completed");
-	});
+
 	// Remeasure excitation wavelength started
 	IRAMMessenger.listen.event.remeasure.start.on(() => {
 		update_iraction_status_current_step("Remeasuring OPO Wavelength");
@@ -447,6 +458,14 @@ function IRAction_Scan_Status() {
 		// Remeasure can only happen when IR-SEVI image is being collected
 		// so when it's done, status should change back to collecting image
 		update_iraction_status_current_step("Collecting IR-SEVI Image");
+	});
+
+	// Action scan stopped
+	IRAMMessenger.listen.event.scan.stop.on(() => {
+		update_iraction_status_image_amount(); // Clear status message
+		hide_iraction_status_current_energy();
+		hide_iraction_status_next_energy();
+		update_iraction_status_current_step("Action Scan Completed");
 	});
 
 	/* Listen for updated information */
