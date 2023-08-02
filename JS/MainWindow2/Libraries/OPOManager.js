@@ -145,6 +145,7 @@ const OPOManager = {
 	},
 
 	get_laser_offset: () => OPOManager_get_laser_offset(),
+	get_last_laser_offset: () => OPOManager_get_last_laser_offset(),
 	process_settings: (settings) => OPOManager_process_settings(settings),
 };
 
@@ -257,6 +258,12 @@ function OPOManager_get_laser_offset() {
 	return average;
 }
 
+function OPOManager_get_last_laser_offset() {
+	let last_offset = OPOManager.laser_offsets[OPOManager.laser_offsets.length - 1];
+	if (last_offset) return last_offset;
+	else return 0;
+}
+
 function OPOManager_process_settings(settings) {
 	if (settings?.opo) {
 		OPOManager.network.config.host = settings.opo.host;
@@ -331,6 +338,11 @@ class OPOMMessengerInformation {
 	/** Get offset between OPO's internal wavelength value and measured wavelength */
 	get offset() {
 		return OPOManager.get_laser_offset();
+	}
+
+	/** Get the most recently stored offset */
+	get last_offset() {
+		return OPOManager.get_last_laser_offset();
 	}
 
 	/** Get OPO's last saved internal wavelength */

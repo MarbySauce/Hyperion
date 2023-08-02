@@ -98,6 +98,22 @@ const ExcitationLaserManager = {
 };
 
 /****
+		Excitation Wavemeter Manager Listeners
+****/
+
+EWMMessenger.listen.info_update.measurement.on((measurement) => {
+	// Get OPO wavelength and calculate offset
+	let opo_wl = OPOMMessenger.information.wavelength;
+	OPOMMessenger.update.laser_offset(measurement.wavelength - opo_wl);
+	// Store OPO wavelength and offset
+	measurement.laser_wavelength = opo_wl;
+	measurement.laser_offset = OPOMMessenger.information.offset;
+	// Update about measurement
+	ELMAlerts.info_update.measurement.alert(measurement);
+	ExcitationLaserManager.update_nir_wavelength(measurement.reduced_stats.average);
+});
+
+/****
 		Functions
 ****/
 
@@ -169,10 +185,6 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 	// Next, measure wavelength, giving OPO internal wavelength as the expected result
 	ExcitationLaserManager.goto.step = GoToStep.MEASURING;
 	let measurement = await EWMMessenger.request.measurement.start(opo_wl);
-	// Calculate offset and update OPO (as long as wavelength was measured and not 0)
-	if (measurement.wavelength !== 0) {
-		OPOMMessenger.update.laser_offset(measurement.wavelength - opo_wl);
-	}
 	// Figure out desired nIR wavelength and account for offset
 	let desired_nir = desired_wavelength.nIR.wavelength - OPOMMessenger.information.offset;
 	for (let i = 0; i < move_attempts; i++) {
@@ -222,10 +234,6 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 		opo_wl = await OPOMMessenger.information.get_wavelength();
 		// Next, measure wavelength, giving OPO internal wavelength as the expected result
 		measurement = await EWMMessenger.request.measurement.start(opo_wl);
-		// Calculate offset and update OPO (as long as wavelength was measured and not 0)
-		if (measurement.wavelength !== 0) {
-			OPOMMessenger.update.laser_offset(measurement.wavelength - opo_wl);
-		}
 		// Calculate energy error - if close enough, stop here
 		converted_measurement.nIR.wavelength = measurement.wavelength;
 		energy_error = Math.abs(converted_measurement.energy.wavenumber - desired_energy);
@@ -268,6 +276,7 @@ const ELMAlerts = {
 	},
 	info_update: {
 		energy: new ManagerAlert(),
+		measurement: new ManagerAlert(),
 	},
 };
 
@@ -614,10 +623,33 @@ class ELMMessengerCallbackInfoUpdate {
 				ELMAlerts.info_update.energy.add_once(callback);
 			},
 		};
+
+		this._measurement = {
+			/**
+			 * Execute callback function *every time* excitation wavelength is measured
+			 * @param {Function} callback function to execute on event -
+			 * 		Called with argument `measurement {WavemeterMeasurement}`: measured excitation wavelength
+			 */
+			on: (callback) => {
+				ELMAlerts.info_update.measurement.add_on(callback);
+			},
+			/**
+			 * Execute callback function *once the next time* excitation wavelength is measured
+			 * @param {Function} callback function to execute on event -
+			 * 		Called with argument `measurement {WavemeterMeasurement}`: measured excitation wavelength
+			 */
+			once: (callback) => {
+				ELMAlerts.info_update.measurement.add_once(callback);
+			},
+		};
 	}
 
 	get energy() {
 		return this._energy;
+	}
+
+	get measurement() {
+		return this._measurement;
 	}
 }
 
@@ -636,11 +668,6 @@ class ExcitationLaserManagerMessenger {
 
 		this._wavemeter = new ExcitationWavemeterManagerMessenger();
 		this._opo = new OPOManagerMessenger();
-
-		// Listen for updates from the wavemeter
-		this.wavemeter.listen.info_update.measurement.on((measurement) => {
-			ExcitationLaserManager.update_nir_wavelength(measurement.reduced_stats.average);
-		});
 	}
 
 	get information() {

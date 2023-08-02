@@ -24,7 +24,7 @@ class WavemeterMeasurement {
 		};
 
 		this.laser_wavelength; // Wavelength the laser thinks it's at (this will likely only apply to OPO/A)
-		this.last_offset; // The last stored offset between laser and actual value
+		this.laser_offset; // The offset between laser wavelength and actual value (measured - expected)
 	}
 
 	static get minimum_stdev() {
@@ -37,11 +37,6 @@ class WavemeterMeasurement {
 
 	get minimum_stdev() {
 		return this.constructor.minimum_stdev;
-	}
-
-	// Offset between laser value and actual value (actual - laser)
-	get laser_offset() {
-		return this.reduced_stats.average - this.laser_wavelength;
 	}
 
 	get wavelength() {
@@ -65,7 +60,7 @@ class WavemeterMeasurement {
 		copy.raw_stats = { ...this.raw_stats };
 		copy.reduced_stats = { ...this.reduced_stats };
 		copy.laser_wavelength = this.laser_wavelength;
-		copy.last_offset = this.laser_offset;
+		copy.laser_offset = this.laser_offset;
 		return copy;
 	}
 }
