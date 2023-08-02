@@ -82,6 +82,9 @@ const settings = {
 			full_dir_short: "",
 			autosave: false,
 		},
+		testing: {
+			do_not_save_to_file: false,
+		},
 		windows: {
 			main_window: {
 				x: 0,

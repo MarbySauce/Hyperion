@@ -468,6 +468,8 @@ function ImageManager_process_settings(settings) {
 	ImageManager.params.centroid.bin_size = settings.centroid.bin_size;
 	Image.bin_size = settings.centroid.bin_size;
 
+	Image.do_not_save_to_file = settings.testing.do_not_save_to_file;
+
 	ImageManager.info.base_dir = settings.save_directory.base_dir;
 
 	ImageManager.info.vmi = settings.vmi;

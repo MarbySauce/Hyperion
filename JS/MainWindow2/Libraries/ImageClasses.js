@@ -40,6 +40,14 @@ class Image {
 		if (size > 0) Image._bin_size = size;
 	}
 
+	static get do_not_save_to_file() {
+		return Image._do_not_save_to_file;
+	}
+
+	static set do_not_save_to_file(bool) {
+		Image._do_not_save_to_file = bool;
+	}
+
 	/* Instance methods */
 	constructor() {
 		this.id = 1;
@@ -192,7 +200,10 @@ class Image {
 	 * Save accumulated image to file
 	 */
 	save_image() {
-		update_messenger.update(`SEVI Image i${this.id_str} has been saved! (Not really)`);
+		if (Image.do_not_save_to_file) {
+			update_messenger.update(`SEVI Image i${this.id_str} has been saved! (Not really)`);
+			return;
+		}
 	}
 
 	/**
@@ -283,7 +294,10 @@ class IRImage extends Image {
 	 * Save accumulated images to file
 	 */
 	save_image() {
-		update_messenger.update(`IR-SEVI Image i${this.id_str} has been saved! (Not really)`);
+		if (Image.do_not_save_to_file) {
+			update_messenger.update(`IR-SEVI Images i${this.id_str} has been saved! (Not really)`);
+			return;
+		}
 	}
 
 	/**
