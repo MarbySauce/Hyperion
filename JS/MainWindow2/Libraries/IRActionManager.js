@@ -51,7 +51,7 @@ class ImageAmountInfo {
 }
 
 class ActionDuration {
-	constructor(duration) {
+	constructor(duration /* ms */) {
 		this.duration = duration;
 		this.ms, this.seconds, this.minutes, this.hours;
 		this.convert();
@@ -145,11 +145,11 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, () => {
 ****/
 
 IMMessenger.listen.event.scan.start.on(() => {
-	if (IRActionManager.status === ActionState.RUNNING) IRAMAlerts.event.image.start.alert();
+	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.image.start.alert();
 });
 
-IMMessenger.listen.event.scan.stop.on(() => {
-	if (IRActionManager.status === ActionState.RUNNING) IRAMAlerts.event.image.stop.alert();
+IMMessenger.listen.event.scan.stop_or_cancel.on(() => {
+	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.image.stop.alert();
 });
 
 /****
@@ -157,11 +157,11 @@ IMMessenger.listen.event.scan.stop.on(() => {
 ****/
 
 ELMMessenger.listen.event.goto.start.on(() => {
-	if (IRActionManager.status === ActionState.RUNNING) IRAMAlerts.event.goto.start.alert();
+	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.goto.start.alert();
 });
 
-ELMMessenger.listen.event.goto.stop.on(() => {
-	if (IRActionManager.status === ActionState.RUNNING) IRAMAlerts.event.goto.stop.alert();
+ELMMessenger.listen.event.goto.stop_or_cancel.on(() => {
+	if (IRActionManager.status !== ActionState.STOPPED) IRAMAlerts.event.goto.stop.alert();
 });
 
 /****
@@ -226,16 +226,14 @@ function IRActionManager_cancel_scan() {
 async function IRActionManager_remeasure_wavelength() {
 	if (!IRActionManager.current_image) return;
 	// Send alert that wavelength is being remeasured
-	actionEmitter.emit(IRACTION.ALERT.REMEASURING.STARTED);
 	IRAMAlerts.event.remeasure.start.alert();
 	// Pause IR Action scan
 	IRActionManager.pause_scan();
 	// Tell excitation laser to measure wavelength and wait for its result
 	let current_wavelength = await ELMMessenger.wavemeter.request.measurement.start();
 	// If the newly measured wavelength is 0 (i.e. failed measurement), don't update anything
-	if (current_wavelength.nIR.wavelength !== 0) {
-		IRActionManager.current_image.excitation_energy.nIR.wavelength = current_wavelength.nIR.wavelength;
-		IRActionManager.current_image.excitation_energy.selected_mode = current_wavelength.selected_mode;
+	if (current_wavelength.wavelength !== 0) {
+		IRActionManager.current_image.excitation_energy.nIR.wavelength = current_wavelength.wavelength;
 		IRAMAlerts.info_update.energy.current.alert(IRActionManager.current_image.excitation_energy);
 	}
 	// Resume IR Action scan
@@ -249,7 +247,8 @@ function IRActionManager_update_options(action_options) {
 	if (action_options.final_energy) IRActionManager.params.final_energy = action_options.final_energy;
 	if (action_options.step_size) IRActionManager.params.step_size = action_options.step_size;
 	if (action_options.images_per_step) IRActionManager.params.images_per_step = action_options.images_per_step;
-	if (IRActionManager.status === ActionState.RUNNING) {
+	// If we're in the middle of an action scan, reinitialize queue
+	if (IRActionManager.status !== ActionState.STOPPED) {
 		initialize_action_queue(); // Reinitialize queue
 		// Update Action scan status
 		let current_image = IRActionManager.current_image;
@@ -312,8 +311,6 @@ function initialize_action_queue() {
 
 // Before this function, the image queue will already have been set up
 async function run_action_scan() {
-	console.log(`Starting action scan, current image ID: i${IMMessenger.information.image_info.id_str}`);
-
 	// Make sure any currently running images are stopped
 	IMMessenger.request.scan.stop();
 
@@ -330,8 +327,6 @@ async function run_action_scan() {
 	let desired_energy;
 	let move_wavelength = true;
 	let image_amount_info, completed_image_length, image_queue_length;
-
-	console.log(`Starting while loop, current image ID: i${IMMessenger.information.image_info.id_str}`);
 	while (IRActionManager.image_queue.length > 0) {
 		// Get current image by removing it from beginning of queue
 		current_image = IRActionManager.image_queue.shift();
@@ -340,13 +335,11 @@ async function run_action_scan() {
 		// Update image ID and send info
 		current_image.image_id = IMMessenger.information.image_info.id;
 		current_image.image_id_str = IMMessenger.information.image_info.id_str;
-		console.log(`Image ID: i${current_image.image_id_str}`);
 		completed_image_length = IRActionManager.completed_images.length;
 		image_queue_length = IRActionManager.image_queue.length;
 		image_amount_info = new ImageAmountInfo(current_image, image_queue_length, completed_image_length);
 		IRAMAlerts.info_update.image_amount.alert(image_amount_info);
 
-		console.log("Action scan: Moving wavelength");
 		// Check whether to move OPO wavelength
 		last_image = IRActionManager.completed_images[IRActionManager.completed_images.length - 1];
 		last_energy = last_image?.excitation_energy.energy.wavenumber || 0;
@@ -376,7 +369,6 @@ async function run_action_scan() {
 			current_image.excitation_energy.nIR.wavelength = last_image?.excitation_energy.nIR.wavelength;
 			current_image.excitation_energy.selected_mode = last_image?.excitation_energy.selected_mode;
 		}
-		console.log("Action scan: Done moving wavelength");
 
 		// Send info about current and next IR energies
 		IRAMAlerts.info_update.energy.current.alert(current_image.excitation_energy);
@@ -389,7 +381,6 @@ async function run_action_scan() {
 			)} cm-1 (Expected: ${current_image.expected_excitation_energy.energy.wavenumber.toFixed(3)} cm-1)`
 		);
 
-		console.log("Action scan: Starting IR-SEVI scan");
 		// Start an IR-SEVI scan and wait for it to complete (or be canceled)
 		try {
 			await IMMessenger.request.scan.start_ir(true);
@@ -397,13 +388,15 @@ async function run_action_scan() {
 			// IR-SEVI scan was canceled
 			break;
 		}
-		console.log("Action scan: Done with IR-SEVI scan");
 
 		// Add current image to completed_image list and move on
 		IRActionManager.completed_images.push(current_image);
 		// Remove current_image from global storage
 		IRActionManager.current_image = undefined;
 	}
+
+	// Remove current_image from global storage
+	IRActionManager.current_image = undefined;
 
 	IRActionManager.duration.end();
 	IRActionManager.status = ActionState.STOPPED;

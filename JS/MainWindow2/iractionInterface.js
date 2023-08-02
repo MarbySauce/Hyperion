@@ -31,7 +31,7 @@ function IRAction_Scan_Control_and_Options() {
 	****/
 
 	document.getElementById("IRActionScanStartSave").onclick = function () {
-		if (IRAMMessenger.information.status.running) {
+		if (!IRAMMessenger.information.status.stopped) {
 			// A scan is currently running, request it be stopped
 			IRAMMessenger.request.scan.stop();
 		} else {
@@ -43,6 +43,180 @@ function IRAction_Scan_Control_and_Options() {
 			}
 		}
 	};
+
+	document.getElementById("IRActionScanPauseResume").onclick = function () {
+		if (IRAMMessenger.information.status.running) {
+			// A scan is currently running, request it be paused
+			IRAMMessenger.request.scan.pause();
+		} else if (IRAMMessenger.information.status.paused) {
+			// Scan is paused, request it be resumed
+			IRAMMessenger.request.scan.resume();
+		} // else
+		// Scan is not running, do nothing
+	};
+
+	document.getElementById("IRActionScanCancel").onclick = function () {
+		IRAMMessenger.request.scan.cancel();
+	};
+
+	document.getElementById("IRActionImageSave").onclick = function () {
+		// Save IR-SEVI image and move on
+		IMMessenger.request.scan.stop(); // Image Manager
+		// Resume action scan if paused
+		IRAMMessenger.request.scan.resume(); // IR Action Manager
+	};
+
+	document.getElementById("IRActionImageReset").onclick = function () {
+		IMMessenger.request.scan.reset();
+	};
+
+	document.getElementById("IRActionRemeasureWavelength").onclick = function () {
+		IRAMMessenger.request.remeasure_wavelength();
+	};
+
+	/****
+			IR Action Manager Listeners
+	****/
+
+	// IR Action scan has been started
+	IRAMMessenger.listen.event.scan.start.on(() => {
+		change_iraction_button_to_save();
+		change_iraction_button_to_pause();
+		enable_iraction_pause_button();
+		enable_iraction_cancel_button();
+		remove_override_hide_iraction_update_reset_buttons();
+	});
+
+	// IR Action scan has been completed
+	IRAMMessenger.listen.event.scan.stop_or_cancel.on(() => {
+		change_iraction_button_to_start();
+		change_iraction_button_to_pause();
+		disable_iraction_pause_button();
+		disable_iraction_cancel_button();
+		add_override_hide_iraction_update_reset_buttons();
+	});
+
+	// IR Action scan has been paused
+	IRAMMessenger.listen.event.scan.pause.on(() => {
+		change_iraction_button_to_resume();
+	});
+
+	// IR Action scan has been resumed
+	IRAMMessenger.listen.event.scan.resume.on(() => {
+		change_iraction_button_to_pause();
+	});
+
+	// IR-SEVI image has started (during an action scan)
+	IRAMMessenger.listen.event.image.start.on(() => {
+		enable_iraction_save_continue_button();
+		enable_iraction_reset_image_button();
+		enable_iraction_remeasure_button();
+	});
+
+	// IR-SEVI image has stopped (during an action scan)
+	IRAMMessenger.listen.event.image.stop.on(() => {
+		disable_iraction_save_continue_button();
+		disable_iraction_reset_image_button();
+		disable_iraction_remeasure_button();
+	});
+
+	// Excitation remeasuring has started
+	IRAMMessenger.listen.event.remeasure.start.on(() => {
+		disable_iraction_remeasure_button();
+	});
+
+	// Excitation remeasuring has stopped
+	IRAMMessenger.listen.event.remeasure.stop.on(() => {
+		enable_iraction_remeasure_button();
+	});
+
+	/****
+			Functions
+	****/
+
+	// Change IR Action Start/Save button to Start
+	function change_iraction_button_to_start() {
+		const start_button_text = document.getElementById("IRActionScanStartSaveText");
+		start_button_text.innerText = "Start";
+	}
+
+	// Change IR Action Start/Save button to Save
+	function change_iraction_button_to_save() {
+		const start_button_text = document.getElementById("IRActionScanStartSaveText");
+		start_button_text.innerText = "Save";
+	}
+
+	// Change IR Action Pause/Resume button to Pause
+	function change_iraction_button_to_pause() {
+		const pause_button_text = document.getElementById("IRActionScanPauseResumeText");
+		pause_button_text.innerText = "Pause";
+	}
+
+	// Change IR Action Pause/Resume button to Resume
+	function change_iraction_button_to_resume() {
+		const pause_button_text = document.getElementById("IRActionScanPauseResumeText");
+		pause_button_text.innerText = "Resume";
+	}
+
+	// Disable IR Action Pause/Resume button
+	function disable_iraction_pause_button() {
+		const pause_button = document.getElementById("IRActionScanPauseResume");
+		pause_button.disabled = true;
+	}
+
+	// Enable IR Action Pause/Resume button
+	function enable_iraction_pause_button() {
+		const pause_button = document.getElementById("IRActionScanPauseResume");
+		pause_button.disabled = false;
+	}
+
+	// Disable IR Action Cancel button
+	function disable_iraction_cancel_button() {
+		const cancel_button = document.getElementById("IRActionScanCancel");
+		cancel_button.disabled = true;
+	}
+
+	// Enable IR Action Cancel button
+	function enable_iraction_cancel_button() {
+		const cancel_button = document.getElementById("IRActionScanCancel");
+		cancel_button.disabled = false;
+	}
+
+	// Disable IR Action Save & Continue button
+	function disable_iraction_save_continue_button() {
+		const save_continue_button = document.getElementById("IRActionImageSave");
+		save_continue_button.disabled = true;
+	}
+
+	// Enable IR Action Save & Continue button
+	function enable_iraction_save_continue_button() {
+		const save_continue_button = document.getElementById("IRActionImageSave");
+		save_continue_button.disabled = false;
+	}
+
+	// Disable IR Action Reset Image button
+	function disable_iraction_reset_image_button() {
+		const reset_image_button = document.getElementById("IRActionImageReset");
+		reset_image_button.disabled = true;
+	}
+
+	// Enable IR Action Reset Image button
+	function enable_iraction_reset_image_button() {
+		const reset_image_button = document.getElementById("IRActionImageReset");
+		reset_image_button.disabled = false;
+	}
+
+	// Disable IR Action Remeasure Wavelength button
+	function disable_iraction_remeasure_button() {
+		const remeasure_button = document.getElementById("IRActionRemeasureWavelength");
+		remeasure_button.disabled = true;
+	}
+
+	// Enable IR Action Remeasure Wavelength button
+	function enable_iraction_remeasure_button() {
+		const remeasure_button = document.getElementById("IRActionRemeasureWavelength");
+		remeasure_button.disabled = false;
+	}
 
 	/*****************************************************************************
 
@@ -59,6 +233,43 @@ function IRAction_Scan_Control_and_Options() {
 		let index = vmi_mode.selectedIndex;
 		IMMessenger.update.vmi_info({ index: index });
 	};
+
+	document.getElementById("IRActionInitialEnergy").oninput = function () {
+		show_iraction_update_reset_buttons();
+	};
+	document.getElementById("IRActionFinalEnergy").oninput = function () {
+		show_iraction_update_reset_buttons();
+	};
+	document.getElementById("IRActionEnergyStep").oninput = function () {
+		show_iraction_update_reset_buttons();
+	};
+	document.getElementById("IRActionAutomaticStop").oninput = function () {
+		show_iraction_update_reset_buttons();
+	};
+	document.getElementById("IRActionAutomaticStopUnit").oninput = function () {
+		show_iraction_update_reset_buttons();
+	};
+	document.getElementById("IRActionImageAmount").oninput = function () {
+		show_iraction_update_reset_buttons();
+	};
+
+	document.getElementById("IRActionResetOptions").onclick = function () {
+		reset_iraction_options();
+	};
+
+	document.getElementById("IRActionUpdateOptions").onclick = function () {
+		update_iraction_options();
+	};
+
+	/****
+			Image Manager Listeners
+	****/
+
+	// Update VMI info
+	IMMessenger.listen.info_update.image.vmi_info.on(update_iraction_vmi);
+
+	// Update autostop parameters
+	IMMessenger.listen.info_update.autostop.params.on(update_iraction_autostop);
 
 	/****
 			Functions
@@ -107,8 +318,80 @@ function IRAction_Scan_Control_and_Options() {
 		IRAMMessenger.update.options(action_options);
 		IMMessenger.update.autostop({ value: autostop, method: autostop_unit });
 		// Hide update and reset options buttons
-		//hide_iraction_update_reset_buttons();
+		hide_iraction_update_reset_buttons();
 		return true;
+	}
+
+	function reset_iraction_options() {
+		const initial_energy_input = document.getElementById("IRActionInitialEnergy");
+		const final_energy_input = document.getElementById("IRActionFinalEnergy");
+		const step_size_input = document.getElementById("IRActionEnergyStep");
+		const images_per_step_input = document.getElementById("IRActionImageAmount");
+
+		// Get IR Action scan parameters
+		let action_options = IRAMMessenger.information.options;
+		initial_energy_input.value = action_options.initial_energy;
+		final_energy_input.value = action_options.final_energy;
+		step_size_input.value = action_options.step_size;
+		images_per_step_input.selectedIndex = action_options.images_per_step - 1;
+
+		// Get autostop parameters
+		let autostop_parameters = IMMessenger.information.autostop.params;
+		update_iraction_autostop(autostop_parameters);
+
+		// Hide update and reset options buttons
+		hide_iraction_update_reset_buttons();
+	}
+
+	function update_iraction_autostop(autostop_params) {
+		const autostop_value = document.getElementById("IRActionAutomaticStop");
+		const autostop_unit = document.getElementById("IRActionAutomaticStopUnit");
+		if (autostop_params.value === Infinity) autostop_value.value = "";
+		else autostop_value.value = autostop_params.value;
+		switch (autostop_params.method) {
+			case AutostopMethod.ELECTRONS:
+				autostop_unit.selectedIndex = 0;
+				break;
+			case AutostopMethod.FRAMES:
+				autostop_unit.selectedIndex = 1;
+				break;
+			default:
+				autostop_unit.selectedIndex = 0;
+				break;
+		}
+	}
+
+	function update_iraction_vmi(vmi_info) {
+		const vmi_mode = document.getElementById("IRActionVMIMode");
+		vmi_mode.selectedIndex = vmi_info.index;
+	}
+
+	function show_iraction_update_reset_buttons() {
+		const reset = document.getElementById("IRActionResetOptions");
+		const update = document.getElementById("IRActionUpdateOptions");
+		reset.classList.remove("hidden");
+		update.classList.remove("hidden");
+	}
+
+	function hide_iraction_update_reset_buttons() {
+		const reset = document.getElementById("IRActionResetOptions");
+		const update = document.getElementById("IRActionUpdateOptions");
+		reset.classList.add("hidden");
+		update.classList.add("hidden");
+	}
+
+	function remove_override_hide_iraction_update_reset_buttons() {
+		const reset = document.getElementById("IRActionResetOptions");
+		const update = document.getElementById("IRActionUpdateOptions");
+		reset.classList.remove("stay-hidden");
+		update.classList.remove("stay-hidden");
+	}
+
+	function add_override_hide_iraction_update_reset_buttons() {
+		const reset = document.getElementById("IRActionResetOptions");
+		const update = document.getElementById("IRActionUpdateOptions");
+		reset.classList.add("stay-hidden");
+		update.classList.add("stay-hidden");
 	}
 }
 
@@ -119,25 +402,254 @@ function IRAction_Scan_Control_and_Options() {
 *****************************************************************************/
 
 function IRAction_Scan_Status() {
-	// Hide IR Action Status Current Energy and Next Energy elements
-	const elements = [
-		"IRActionStatusCurrentEnergyNIRLabel",
-		"IRActionCurrentWavelength",
-		"IRActionStatusNMLabel1",
-		"IRActionStatusArrow1",
-		"IRActionStatusCurrentEnergyIRLabel",
-		"IRActionCurrentWavenumber",
-		"IRActionStatusWNLabel1",
-		"IRActionStatusNextEnergyNIRLabel",
-		"IRActionNextWavelength",
-		"IRActionStatusNMLabel2",
-		"IRActionStatusArrow2",
-		"IRActionStatusNextEnergyIRLabel",
-		"IRActionNextWavenumber",
-		"IRActionStatusWNLabel2",
-	];
-	for (let e of elements) {
-		document.getElementById(e).hidden = true;
+	const { IRActionManagerMessenger } = require("./Libraries/IRActionManager");
+
+	// Messenger used for displaying update or error messages to the Message Display
+	const IRAMMessenger = new IRActionManagerMessenger();
+
+	// Hide IR Action Status Current Energy and Next Energy elements on startup
+	hide_iraction_status_current_energy();
+	hide_iraction_status_next_energy();
+
+	/****
+			IR Action Manager Listeners
+	****/
+
+	// IR-SEVI image started
+	IRAMMessenger.listen.event.image.start.on(() => {
+		update_iraction_status_current_step("Collecting IR-SEVI Image");
+	});
+	// IR-SEVI image stopped
+	IRAMMessenger.listen.event.image.stop.on(() => {
+		update_iraction_status_current_step(); // Clear status message
+	});
+	// GoTo process started
+	IRAMMessenger.listen.event.goto.start.on(() => {
+		update_iraction_status_current_step("Moving OPO Wavelength");
+	});
+	// GoTo process stopped
+	IRAMMessenger.listen.event.goto.stop.on(() => {
+		update_iraction_status_current_step(); // Clear status message
+	});
+	// Action scan stopped
+	IRAMMessenger.listen.event.scan.stop.on(() => {
+		update_iraction_status_image_amount(); // Clear status message
+		hide_iraction_status_current_energy();
+		hide_iraction_status_next_energy();
+		update_iraction_status_current_step("Action Scan Completed");
+	});
+	// Remeasure excitation wavelength started
+	IRAMMessenger.listen.event.remeasure.start.on(() => {
+		update_iraction_status_current_step("Remeasuring OPO Wavelength");
+	});
+	// Remeasure excitation wavelength stopped
+	IRAMMessenger.listen.event.remeasure.stop.on(() => {
+		// Remeasure can only happen when IR-SEVI image is being collected
+		// so when it's done, status should change back to collecting image
+		update_iraction_status_current_step("Collecting IR-SEVI Image");
+	});
+
+	/* Listen for updated information */
+	IRAMMessenger.listen.info_update.image_amount.on(update_iraction_status_image_amount);
+	IRAMMessenger.listen.info_update.energy.current.on(update_iraction_status_current_energy);
+	IRAMMessenger.listen.info_update.energy.next.on(update_iraction_status_next_energy);
+	IRAMMessenger.listen.info_update.duration.on(update_iraction_status_duration);
+
+	/****
+			Functions
+	****/
+
+	function flash_iraction_status_label(label_id) {
+		const label = document.getElementById(label_id);
+		if (label) {
+			label.style.color = "blue";
+			setTimeout(() => {
+				label.style.color = "white";
+			}, 200);
+		}
+	}
+
+	/**
+	 * Update the "Current Image" portion of the status section
+	 * @param {ImageAmountInfo} image_amount_info
+	 */
+	function update_iraction_status_image_amount(image_amount_info) {
+		const current_image = document.getElementById("IRActionStatusCurrentImageValues");
+		if (!image_amount_info) {
+			// Clear display
+			current_image.innerText = "";
+			return;
+		}
+		// Stringify image progress
+		let image_progress = `${image_amount_info.image_number} of ${image_amount_info.total_image_number}`;
+		// Put it all together
+		let image_string = `i${image_amount_info.image_id_str} (${image_progress})`;
+		// Update text on UI
+		current_image.innerText = image_string;
+		// Flash label as notification of change
+		flash_iraction_status_label("IRActionStatusCurrentImageLabel");
+	}
+
+	/**
+	 * Update the current IR energy portion of the status section
+	 * @param {ExcitationWavelength} excitation_wavelength
+	 */
+	function update_iraction_status_current_energy(excitation_wavelength) {
+		const nir_wavelength = document.getElementById("IRActionCurrentWavelength");
+		const ir_mode = document.getElementById("IRActionStatusCurrentEnergyIRLabel");
+		const ir_wavenumber = document.getElementById("IRActionCurrentWavenumber");
+		if (excitation_wavelength) {
+			if (excitation_wavelength.nIR.wavelength > 0) {
+				nir_wavelength.value = excitation_wavelength.nIR.wavelength.toFixed(3);
+				ir_wavenumber.value = excitation_wavelength.energy.wavenumber.toFixed(3);
+				/*let ir_mode_string = excitation_wavelength.selected_mode_str;
+				if (ir_mode_string) {
+					// Capitalize IR (I think it looks better)
+					ir_mode_string = ir_mode_string.charAt(0) + ir_mode_string.slice(1).toUpperCase();
+				}
+				ir_mode.innerText = ir_mode_string;*/
+				ir_mode.innerText = excitation_wavelength.selected_mode.pretty_name;
+			} else {
+				nir_wavelength.value = "";
+				ir_wavenumber.value = "";
+				ir_mode.innerText = "";
+			}
+			show_iraction_status_current_energy();
+			// Flash label as notification of change
+			flash_iraction_status_label("IRActionStatusCurrentEnergyLabel");
+		} else {
+			hide_iraction_status_current_energy();
+		}
+	}
+
+	function hide_iraction_status_current_energy() {
+		const elements = [
+			"IRActionStatusCurrentEnergyNIRLabel",
+			"IRActionCurrentWavelength",
+			"IRActionStatusNMLabel1",
+			"IRActionStatusArrow1",
+			"IRActionStatusCurrentEnergyIRLabel",
+			"IRActionCurrentWavenumber",
+			"IRActionStatusWNLabel1",
+		];
+		for (let e of elements) {
+			document.getElementById(e).hidden = true;
+		}
+	}
+
+	function show_iraction_status_current_energy() {
+		const elements = [
+			"IRActionStatusCurrentEnergyNIRLabel",
+			"IRActionCurrentWavelength",
+			"IRActionStatusNMLabel1",
+			"IRActionStatusArrow1",
+			"IRActionStatusCurrentEnergyIRLabel",
+			"IRActionCurrentWavenumber",
+			"IRActionStatusWNLabel1",
+		];
+		for (let e of elements) {
+			document.getElementById(e).hidden = false;
+		}
+	}
+
+	/**
+	 * Update the next IR energy portion of the status section
+	 * @param {ExcitationWavelength} excitation_wavelength
+	 */
+	function update_iraction_status_next_energy(excitation_wavelength) {
+		const nir_wavelength = document.getElementById("IRActionNextWavelength");
+		const ir_mode = document.getElementById("IRActionStatusNextEnergyIRLabel");
+		const ir_wavenumber = document.getElementById("IRActionNextWavenumber");
+		if (excitation_wavelength) {
+			if (excitation_wavelength.nIR.wavelength > 0) {
+				nir_wavelength.value = excitation_wavelength.nIR.wavelength.toFixed(3);
+				ir_wavenumber.value = excitation_wavelength.energy.wavenumber.toFixed(3);
+				/*let ir_mode_string = "";
+				switch (excitation_wavelength.selected_mode) {
+					case LASER.MODE.EXCITATION.NIR:
+						ir_mode_string = "nIR";
+						break;
+					case LASER.MODE.EXCITATION.IIR:
+						ir_mode_string = "iIR";
+						break;
+					case LASER.MODE.EXCITATION.MIR:
+						ir_mode_string = "mIR";
+						break;
+					case LASER.MODE.EXCITATION.FIR:
+						ir_mode_string = "fIR";
+						break;
+				}
+				ir_mode.innerText = ir_mode_string;*/
+				ir_mode.innerText = excitation_wavelength.selected_mode.pretty_name;
+			} else {
+				nir_wavelength.value = "";
+				ir_wavenumber.value = "";
+				ir_mode.innerText = "";
+			}
+			show_iraction_status_next_energy();
+			// Flash label as notification of change
+			flash_iraction_status_label("IRActionStatusNextEnergyLabel");
+		} else {
+			hide_iraction_status_next_energy();
+		}
+	}
+
+	function hide_iraction_status_next_energy() {
+		const elements = [
+			"IRActionStatusNextEnergyNIRLabel",
+			"IRActionNextWavelength",
+			"IRActionStatusNMLabel2",
+			"IRActionStatusArrow2",
+			"IRActionStatusNextEnergyIRLabel",
+			"IRActionNextWavenumber",
+			"IRActionStatusWNLabel2",
+		];
+		for (let e of elements) {
+			document.getElementById(e).hidden = true;
+		}
+	}
+
+	function show_iraction_status_next_energy() {
+		const elements = [
+			"IRActionStatusNextEnergyNIRLabel",
+			"IRActionNextWavelength",
+			"IRActionStatusNMLabel2",
+			"IRActionStatusArrow2",
+			"IRActionStatusNextEnergyIRLabel",
+			"IRActionNextWavenumber",
+			"IRActionStatusWNLabel2",
+		];
+		for (let e of elements) {
+			document.getElementById(e).hidden = false;
+		}
+	}
+
+	/**
+	 * Update the action scan duration status
+	 * @param {ActionDuration} duration
+	 */
+	function update_iraction_status_duration(duration) {
+		const duration_value = document.getElementById("IRActionStatusScanDurationValues");
+		// Extract time data from class
+		let { seconds, minutes, hours } = duration;
+		let duration_text = "";
+		if (seconds === 1) duration_text = "1 second";
+		else if (seconds > 1) duration_text = `${seconds} seconds`;
+		if (minutes === 1) duration_text = "1 minute " + duration_text;
+		else if (minutes > 1) duration_text = `${minutes} minutes ` + duration_text;
+		if (hours === 1) duration_text = "1 hour " + duration_text;
+		else if (hours > 1) duration_text = `${hours} hours ` + duration_text;
+		duration_value.innerText = duration_text;
+		// Flash label as notification of change
+		flash_iraction_status_label("IRActionStatusScanDurationLabel");
+	}
+
+	function update_iraction_status_current_step(message) {
+		const current_step = document.getElementById("IRActionStatusCurrentStepValues");
+		if (message) current_step.innerText = message;
+		else current_step.innerText = "";
+		// Flash label as notification of change
+		flash_iraction_status_label("IRActionStatusCurrentStepLabel");
 	}
 }
 
@@ -226,6 +738,9 @@ function IRAction_Accumulated_Image_Display(PageInfo) {
 
 function IRAction_Counts() {
 	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { IRActionManagerMessenger } = require("./Libraries/IRActionManager");
+
+	const IRAMMessenger = new IRActionManagerMessenger();
 	const IMMessenger = new ImageManagerMessenger();
 
 	/****
@@ -234,11 +749,23 @@ function IRAction_Counts() {
 
 	IMMessenger.listen.info_update.image.counts.on(update_iraction_counters);
 
-	//IMMessenger.listen.info_update.autostop.progress.on(update_irsevi_image_progress_bar);
+	IMMessenger.listen.info_update.autostop.progress.on((progress) => {
+		// Only update progress bar if IR Action scan is taking place
+		if (!IRAMMessenger.information.status.stopped) update_iraction_image_progress_bar(progress);
+	});
 
-	//IMMessenger.listen.event.scan.stop.on(() => {
-	//	// Update progress bar to 100% if running
-	//});
+	/****
+			IR Action Manager Listeners
+	****/
+
+	// If an image is stopped during an action scan, say the progress is at 100%
+	IRAMMessenger.listen.event.image.stop.on(() => {
+		update_iraction_image_progress_bar(100);
+	});
+	// Set progress to 0% when action scan is complete
+	IRAMMessenger.listen.event.scan.stop.on(() => {
+		update_iraction_image_progress_bar();
+	});
 
 	/****
 			Functions
