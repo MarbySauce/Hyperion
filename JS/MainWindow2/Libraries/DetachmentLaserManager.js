@@ -9,6 +9,8 @@ const { DetachmentWavelength, DetachmentMode } = require("./WavelengthClasses.js
 const { WavemeterMeasurement } = require("./WavemeterClasses.js");
 const { DetachmentWavemeterManagerMessenger } = require("./WavemeterManager.js");
 
+const DWMMessenger = new DetachmentWavemeterManagerMessenger();
+
 /*****************************************************************************
 
 						DETACHMENT LASER MANAGER
@@ -21,6 +23,13 @@ const DetachmentLaserManager = {
 	update_mode: (mode) => DetachmentLaserManager_update_mode(mode),
 	process_settings: (settings) => DetachmentLaserManager_process_settings(settings),
 };
+
+// Listen for updates from the wavemeter
+DWMMessenger.listen.info_update.measurement.on((measurement) => {
+	// Update about measurement
+	DLMAlerts.info_update.measurement.alert(measurement);
+	DetachmentLaserManager.update_standard_wavelength(measurement.reduced_stats.average);
+});
 
 /****
 		Functions
@@ -69,6 +78,7 @@ const DLMAlerts = {
 	},
 	info_update: {
 		energy: new ManagerAlert(),
+		measurement: new ManagerAlert(),
 	},
 };
 
@@ -189,7 +199,7 @@ class DLMMessengerCallbackInfoUpdate {
 	constructor() {
 		this._energy = {
 			/**
-			 * Execute callback function *every time* Detachment energy or mode is updated
+			 * Execute callback function *every time* detachment energy or mode is updated
 			 * @param {Function} callback function to execute on event -
 			 * 		Called with argument `stored_energy {DetachmentWavelength}`: stored detachment energy
 			 */
@@ -197,7 +207,7 @@ class DLMMessengerCallbackInfoUpdate {
 				DLMAlerts.info_update.energy.add_on(callback);
 			},
 			/**
-			 * Execute callback function *once the next time* Detachment energy or mode is updated
+			 * Execute callback function *once the next time* detachment energy or mode is updated
 			 * @param {Function} callback function to execute on event -
 			 * 		Called with argument `stored_energy {DetachmentWavelength}`: stored detachment energy
 			 */
@@ -205,10 +215,33 @@ class DLMMessengerCallbackInfoUpdate {
 				DLMAlerts.info_update.energy.add_once(callback);
 			},
 		};
+
+		this._measurement = {
+			/**
+			 * Execute callback function *every time* detachment wavelength is measured
+			 * @param {Function} callback function to execute on event -
+			 * 		Called with argument `measurement {WavemeterMeasurement}`: measured detachment wavelength
+			 */
+			on: (callback) => {
+				DLMAlerts.info_update.measurement.add_on(callback);
+			},
+			/**
+			 * Execute callback function *once the next time* detachment wavelength is measured
+			 * @param {Function} callback function to execute on event -
+			 * 		Called with argument `measurement {WavemeterMeasurement}`: measured detachment wavelength
+			 */
+			once: (callback) => {
+				DLMAlerts.info_update.measurement.add_once(callback);
+			},
+		};
 	}
 
 	get energy() {
 		return this._energy;
+	}
+
+	get measurement() {
+		return this._measurement;
 	}
 }
 
@@ -226,10 +259,6 @@ class DetachmentLaserManagerMessenger {
 		this._listen = new DLMMessengerCallback();
 
 		this._wavemeter = new DetachmentWavemeterManagerMessenger();
-		// Listen for updates from the wavemeter
-		this.wavemeter.listen.info_update.measurement.on((measurement) => {
-			DetachmentLaserManager.update_standard_wavelength(measurement.reduced_stats.average);
-		});
 	}
 
 	get information() {
