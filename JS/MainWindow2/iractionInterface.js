@@ -6,19 +6,111 @@
 
 /*****************************************************************************
 
-							SCAN CONTROL
+						SCAN CONTROL AND OPTIONS
 
 *****************************************************************************/
 
-function IRAction_Scan_Control() {}
+function IRAction_Scan_Control_and_Options() {
+	const { IRActionManagerMessenger, ActionOptions } = require("./Libraries/IRActionManager");
+	const { ImageManagerMessenger, AutostopMethod } = require("./Libraries/ImageManager.js");
+	const { UpdateMessenger } = require("./Libraries/UpdateMessenger.js");
 
-/*****************************************************************************
+	// Messenger used for displaying update or error messages to the Message Display
+	const update_messenger = new UpdateMessenger();
+	const IRAMMessenger = new IRActionManagerMessenger();
+	const IMMessenger = new ImageManagerMessenger();
 
-							SCAN OPTIONS
+	/*****************************************************************************
 
-*****************************************************************************/
+								SCAN CONTROL
 
-function IRAction_Scan_Options() {}
+	*****************************************************************************/
+
+	/****
+			HTML Element Listeners
+	****/
+
+	document.getElementById("IRActionScanStartSave").onclick = function () {
+		if (IRAMMessenger.information.status.running) {
+			// A scan is currently running, request it be stopped
+			IRAMMessenger.request.scan.stop();
+		} else {
+			// Start a new IR Action scan
+			// Get scan options
+			if (update_iraction_options()) {
+				// Only continue if getting options had no errors (returned true)
+				IRAMMessenger.request.scan.start();
+			}
+		}
+	};
+
+	/*****************************************************************************
+
+								SCAN OPTIONS
+
+	*****************************************************************************/
+
+	/****
+			HTML Element Listeners
+	****/
+
+	document.getElementById("IRActionVMIMode").oninput = function () {
+		const vmi_mode = document.getElementById("IRActionVMIMode");
+		let index = vmi_mode.selectedIndex;
+		IMMessenger.update.vmi_info({ index: index });
+	};
+
+	/****
+			Functions
+	****/
+
+	function update_iraction_options() {
+		// Options sent to ActionManager:
+		// initial energy, final energy, step size, images per step
+		// Options sent to ImageManager:
+		// Autostop
+		const initial_energy_input = document.getElementById("IRActionInitialEnergy");
+		const final_energy_input = document.getElementById("IRActionFinalEnergy");
+		const step_size_input = document.getElementById("IRActionEnergyStep");
+		const autostop_input = document.getElementById("IRActionAutomaticStop");
+		const autostop_unit_input = document.getElementById("IRActionAutomaticStopUnit");
+		const images_per_step_input = document.getElementById("IRActionImageAmount");
+		// Get values
+		let initial_energy = parseFloat(initial_energy_input.value);
+		let final_energy = parseFloat(final_energy_input.value);
+		let step_size = parseFloat(step_size_input.value);
+		let autostop = parseFloat(autostop_input.value);
+		let autostop_unit = [AutostopMethod.ELECTRONS, AutostopMethod.FRAMES][autostop_unit_input.selectedIndex];
+		let images_per_step = images_per_step_input.selectedIndex + 1;
+		// Make sure no options were blank
+		let exit_function = false;
+		if (isNaN(initial_energy) || isNaN(final_energy) || isNaN(step_size)) {
+			update_messenger.error("IR Action energy values need to be specified");
+			exit_function = true;
+		}
+		if (initial_energy <= 0 || final_energy <= 0) {
+			update_messenger.error("IR Action energy values need to be positive");
+			exit_function = true;
+		}
+		if (isNaN(autostop) || autostop_unit === undefined) {
+			update_messenger.error("IR Action automatic stop values need to be specified");
+			exit_function = true;
+		}
+		if (exit_function) return false;
+
+		// All values check out - send to respective managers
+		let action_options = new ActionOptions();
+		action_options.initial_energy = initial_energy;
+		action_options.final_energy = final_energy;
+		action_options.step_size = step_size;
+		action_options.images_per_step = images_per_step;
+		IRAMMessenger.update.options(action_options);
+		IMMessenger.update.autostop({ value: autostop, method: autostop_unit });
+		// Hide update and reset options buttons
+		//hide_iraction_update_reset_buttons();
+		return true;
+	}
+}
 
 /*****************************************************************************
 
@@ -200,17 +292,27 @@ function IRAction_Counts() {
 *****************************************************************************/
 
 function IRAction_Load_Page(PageInfo) {
+	const { Tabs } = require("./Libraries/Tabs.js");
+	const { IRActionManagerMessenger } = require("./Libraries/IRActionManager");
+	const IRAMMessenger = new IRActionManagerMessenger();
+
+	// Show tab highlight if IR Action scan is being taken
+	IRAMMessenger.listen.event.scan.start.on(() => {
+		let tab = document.getElementById(Tabs.IRACTION.tab);
+		if (tab) tab.classList.add("highlighted-tab");
+	});
+	// Remove tab highlight if IR Action scan is stopped or canceled
+	IRAMMessenger.listen.event.scan.stop_or_cancel.on(() => {
+		let tab = document.getElementById(Tabs.IRACTION.tab);
+		if (tab) tab.classList.remove("highlighted-tab");
+	});
+
 	// Wrapping these in try/catch so that rest of program can still load
 	//	even if somemodules are buggy
 	try {
-		IRAction_Scan_Control();
+		IRAction_Scan_Control_and_Options();
 	} catch (error) {
-		console.log("Cannot load IR Action tab Scan Controls module:", error);
-	}
-	try {
-		IRAction_Scan_Options();
-	} catch (error) {
-		console.log("Cannot load IR Action tab Scan Options module:", error);
+		console.log("Cannot load IR Action tab Scan Controls or Scan Options module:", error);
 	}
 	try {
 		IRAction_Scan_Status();

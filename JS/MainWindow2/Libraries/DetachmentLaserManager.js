@@ -53,7 +53,7 @@ function DetachmentLaserManager_process_settings(settings) {
 
 /*****************************************************************************
 
-						DETACHMENT LASER MANAGER
+					DETACHMENT LASER MANAGER ALERTS
 
 *****************************************************************************/
 

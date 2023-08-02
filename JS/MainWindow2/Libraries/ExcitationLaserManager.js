@@ -249,7 +249,7 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 
 /*****************************************************************************
 
-						EXCITATION LASER MANAGER
+					EXCITATION LASER MANAGER ALERTS
 
 *****************************************************************************/
 
@@ -362,7 +362,8 @@ class ELMMessengerRequest {
 			 * @returns {ExcitationWavelength | void} returns IR energy on success
 			 */
 			start: async (desired_energy) => {
-				await ExcitationLaserManager.goto_ir(desired_energy);
+				let stored_energy = await ExcitationLaserManager.goto_ir(desired_energy);
+				return stored_energy;
 			},
 			/** Pause GoTo */
 			pause: () => {
