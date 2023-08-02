@@ -400,8 +400,9 @@ function ImageManager_reset_scan() {
 	ImageManager.current_image.reset_counts();
 	// Alert that the scan has been reset
 	IMAlerts.event.scan.reset.alert();
-	// Also update electron counters
+	// Also update electron counters and autostop progress
 	IMAlerts.info_update.image.counts.alert(ImageManager.current_image.counts);
+	IMAlerts.info_update.autostop.progress.alert(0);
 	update_messenger.update("(IR) SEVI Scan Reset!");
 }
 
