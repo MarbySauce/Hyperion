@@ -8,9 +8,12 @@ const ipc = require("electron").ipcRenderer;
 const { Image, IRImage, EmptyIRImage, ImageType } = require("./ImageClasses.js");
 const { ManagerAlert } = require("./ManagerAlert.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");
+const { DetachmentLaserManagerMessenger } = require("./DetachmentLaserManager.js");
+const { ExcitationLaserManagerMessenger } = require("./ExcitationLaserManager.js");
 
-// Messenger used for displaying update or error messages to the Message Display
-const update_messenger = new UpdateMessenger();
+const update_messenger = new UpdateMessenger(); // Messenger used for displaying update or error messages to the Message Display
+const DLMMessenger = new DetachmentLaserManagerMessenger();
+const ELMMessenger = new ExcitationLaserManagerMessenger();
 
 // This image is a place holder for ImageManager.current_image whenever a scan is not currently being taken
 // That way the image functionality (such as returning file names) can still be used
@@ -118,6 +121,26 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, (event, centroid_results) => {
 	IMAlerts.info_update.image.counts.alert(ImageManager.current_image.counts);
 	// Check if autostop condition has been met
 	ImageManager.autostop.check();
+});
+
+/****
+		Laser Manager Listeners
+****/
+
+// Update detachment energy/measurement information stored in current_image
+DLMMessenger.listen.info_update.energy.on((stored_energy) => {
+	ImageManager.current_image.detachment_wavelength = stored_energy;
+});
+DLMMessenger.listen.info_update.measurement.on((measurement) => {
+	ImageManager.current_image.detachment_measurement = measurement;
+});
+
+// Update excitation energy/measurement information stored in current_image
+ELMMessenger.listen.info_update.energy.on((stored_energy) => {
+	ImageManager.current_image.excitation_wavelength = stored_energy;
+});
+ELMMessenger.listen.info_update.measurement.on((measurement) => {
+	ImageManager.current_image.excitation_measurement = measurement;
 });
 
 /****
@@ -625,6 +648,10 @@ class IMMessengerInformation {
 
 	get autostop() {
 		return this._autostop;
+	}
+
+	get current_image() {
+		return ImageManager.current_image.copy();
 	}
 
 	/**

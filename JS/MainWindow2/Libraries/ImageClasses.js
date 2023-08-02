@@ -127,15 +127,6 @@ class Image {
 	}
 
 	/**
-	 * Update Image ID to id
-	 * @param {Number} id Image ID
-	 */
-	update_id(id) {
-		console.log("Image class: update_id called!");
-		this.id = id;
-	}
-
-	/**
 	 * Update electron and frame counts
 	 * @param {Object} centroid_results Elements:
 	 * 		com_centers: Array of centroids found with CoM method, elements as [X, Y],
@@ -255,6 +246,14 @@ class Image {
 		this.excitation_wavelength = image_class.excitation_wavelength;
 		this.excitation_measurement = image_class.excitation_measurement;
 	}
+
+	/**
+	 * Return a safe copy of this image class instance (note: accumulated image is not copied)
+	 * @returns {SafeImage} safe copy of this image
+	 */
+	copy() {
+		return new SafeImage(this);
+	}
 }
 
 class IRImage extends Image {
@@ -369,6 +368,14 @@ class IRImage extends Image {
 				return Image_get_image_display(this.images.difference, contrast, true);
 		}
 	}
+
+	/**
+	 * Return a safe copy of this image class instance (note: accumulated image is not copied)
+	 * @returns {SafeIRImage} safe copy of this image
+	 */
+	copy() {
+		return new SafeIRImage(this);
+	}
 }
 
 // Class for EmptyImage, which is a placeholder image for when a scan is not being taken
@@ -456,6 +463,87 @@ function Image_get_image_display(image, contrast, display_negative_values = fals
 		}
 	}
 	return image_data;
+}
+
+/********************************************************/
+
+// Safe version of Image class that can't save to file, etc.
+class SafeImage {
+	/**
+	 * @param {Image} image_class
+	 */
+	constructor(image_class) {
+		this.id = image_class.id;
+
+		this.counts = {
+			electrons: { ...image_class.counts.electrons },
+			frames: { ...image_class.counts.frames },
+		};
+
+		this.vmi_info = {
+			index: image_class.vmi_info.index,
+			mode: image_class.vmi_info.mode,
+			calibration_constants: { ...image_class.vmi_info.calibration_constants },
+		};
+
+		this.detachment_wavelength = image_class.detachment_wavelength.copy();
+		this.detachment_measurement = image_class.detachment_measurement.copy();
+		this.excitation_wavelength = image_class.excitation_wavelength.copy();
+		this.excitation_measurement = image_class.excitation_measurement.copy();
+	}
+
+	/** Image ID as a ≥2 digit string */
+	get id_str() {
+		if (this.id < 10) return `0${this.id}`;
+		else return this.id.toString();
+	}
+
+	/** Current date, formatted as MMDDYY */
+	get formatted_date() {
+		let today = new Date();
+		let day = ("0" + today.getDate()).slice(-2);
+		let month = ("0" + (today.getMonth() + 1)).slice(-2);
+		let year = today.getFullYear().toString().slice(-2);
+		return month + day + year;
+	}
+
+	/** Image file name */
+	get file_name() {
+		return `${this.formatted_date}i${this.id_str}.i0N`;
+	}
+
+	/** IR Image file name */
+	get file_name_ir() {
+		return "";
+	}
+
+	/** Whether image is IR */
+	get is_ir() {
+		return false;
+	}
+
+	/** Whether image is an Empty Image */
+	get is_empty() {
+		return false;
+	}
+}
+
+class SafeIRImage extends SafeImage {
+	/**
+	 *
+	 * @param {IRImage} ir_image_class
+	 */
+	constructor(ir_image_class) {
+		super(ir_image_class);
+	}
+
+	get file_name_ir() {
+		return `${this.formatted_date}i${this.id_str}_IR.i0N`;
+	}
+
+	get is_ir() {
+		return true;
+	}
 }
 
 module.exports = { Image, IRImage, EmptyIRImage, ImageType };
