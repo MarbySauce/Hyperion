@@ -5,6 +5,16 @@ const EventEmitter = require("events").EventEmitter;
 const camera = require("bindings")("camera");
 const { IPCMessages } = require("../JS/Messages.js");
 
+/*******************
+ *
+ * 	Settings that need to be sent to the camera
+ * - centroid.hybrid_method
+ * - camera. (all)
+ *
+ *
+ *
+ *********************/
+
 //
 /*			Event Listeners				*/
 //
