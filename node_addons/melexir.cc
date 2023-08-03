@@ -204,132 +204,266 @@ int global_count = 0;
 // Parameter should be the image (as a 2D array)
 // Returns PES
 Napi::Object Process(const Napi::CallbackInfo& info) {
-    Napi::Env env = info.Env(); // Napi local environment
-    
-    // Get image from JS call
-    Napi::Array napi_image = info[0].As<Napi::Array>();
-    // Get size of image
-    int image_height = (int)napi_image.Length();
-    // Have to first create the first row as an array to get its length
-    Napi::Array row0 = napi_image.Get(Napi::Number::New(env,0)).As<Napi::Array>();
-    int image_width = (int)row0.Length();
+	Napi::Env env = info.Env(); // Napi local environment
 
-    // Convert Napi image into a column-major 1D array
-    // Napi has a hard time with 2D arrays, so you have to unpack each row
-    //  in order to get the elements of the image
-    double* flat_image = new double[image_height*image_width];
-    for (int row = 0; row < image_height; row++) {
-        Napi::Array napi_row = napi_image.Get(Napi::Number::New(env, row)).As<Napi::Array>(); // Unpack the row
-        for (int col = 0; col < image_width; col++) {
-            flat_image[image_height*col + row] = (double)napi_row.Get(Napi::Number::New(env, col)).ToNumber().DoubleValue();
-        }
-    } 
+	// Get image from JS call
+	Napi::Array napi_image = info[0].As<Napi::Array>();
+	// Get size of image
+	int image_height = (int)napi_image.Length();
+	// Have to first create the first row as an array to get its length
+	Napi::Array row0 = napi_image.Get(Napi::Number::New(env,0)).As<Napi::Array>();
+	int image_width = (int)row0.Length();
 
-    //printf("MLXR - Image has been flattened \n");
-    
-    // Give options string to Melexir
-    char options_string[] = "-H1 -LP2";
-    setoptions_(options_string, sizeof(options_string));
-    // Need to end the string with a null character since Fortran doesn't (but C++ requires it)
-    options_string[sizeof(options_string)-1] = '\0';
+	// Convert Napi image into a column-major 1D array
+	// Napi has a hard time with 2D arrays, so you have to unpack each row
+	//  in order to get the elements of the image
+	double* flat_image = new double[image_height*image_width];
+	for (int row = 0; row < image_height; row++) {
+		Napi::Array napi_row = napi_image.Get(Napi::Number::New(env, row)).As<Napi::Array>(); // Unpack the row
+		for (int col = 0; col < image_width; col++) {
+			flat_image[image_height*col + row] = (double)napi_row.Get(Napi::Number::New(env, col)).ToNumber().DoubleValue();
+		}
+	} 
 
-    // Get the number of Legendre components (will fill iopt)
-    char key[]  = "L"; int iopt; double fopt; bool qopt;
-    int nl; int nl_even; int nl_odd; // Total Legendre components, and even and odd portions
-    checkoption_(key, &iopt, &fopt, &qopt, sizeof(key));
-    // Figure out even and odd components (logic taken from melexir.f90 ln83)
-    if (iopt >= 10) {
-        // => Two digits, must have even and odd components
-        nl_even = iopt / 10; // First digit is even components
-        nl_odd = iopt % 10; // Second digit is odd components
-    } else {
-        // Only one digit => only even components
-        nl_even = iopt;
-        nl_odd = 0;
-    }
-    nl_even = nl_even / 2 + 1; // Get count of just even components (including zero)
-    nl_odd = (nl_odd + 1) / 2; // Get count of just odd components (0.5 rounds down to 0 bc it's an int)
-    nl = nl_even + nl_odd;
+	//printf("MLXR - Image has been flattened \n");
 
-    //printf("MLXR - Options have been set \n");
+	// Give options string to Melexir
+	char options_string[] = "-H1 -LP2";
+	setoptions_(options_string, sizeof(options_string));
+	// Need to end the string with a null character since Fortran doesn't (but C++ requires it)
+	options_string[sizeof(options_string)-1] = '\0';
 
-    // Prepare image for MELEXIR
-    int nrow = image_height;
-    int ncol = image_width;
-    int ldd = 2*nrow*nl; //pow(max(nrow, ncol),2); // Largest possible value for length of contracted data (Comes from PrepareVMI3.f90 ln104)
-    double* lp_image = new double[ldd]; // Will be Legendre projection of image
-    //printf("MLXR - nrow: %d, ncol: %d, ldd: %d \n", nrow, ncol, ldd);
-    //printf("MLXR - lp_image made at %p \n", lp_image);
-    global_count++;
-    //printf("MLXR - times run: %d \n", global_count);
-    image2data_(flat_image, &nrow, &nrow, &ncol, lp_image, &ldd);
+	// Get the number of Legendre components (will fill iopt)
+	char key[]  = "L"; int iopt; double fopt; bool qopt;
+	int nl; int nl_even; int nl_odd; // Total Legendre components, and even and odd portions
+	checkoption_(key, &iopt, &fopt, &qopt, sizeof(key));
+	// Figure out even and odd components (logic taken from melexir.f90 ln83)
+	if (iopt >= 10) {
+		// => Two digits, must have even and odd components
+		nl_even = iopt / 10; // First digit is even components
+		nl_odd = iopt % 10; // Second digit is odd components
+	} else {
+		// Only one digit => only even components
+		nl_even = iopt;
+		nl_odd = 0;
+	}
+	nl_even = nl_even / 2 + 1; // Get count of just even components (including zero)
+	nl_odd = (nl_odd + 1) / 2; // Get count of just odd components (0.5 rounds down to 0 bc it's an int)
+	nl = nl_even + nl_odd;
 
-    //printf("MLXR - Image has been prepared \n");
+	//printf("MLXR - Options have been set \n");
 
-    // Run MELEXIR
-    //int nt = nrow * ncol;
-    int nt = nrow * nl;
-    // Allocate memory for input/output arrays
-    double* dat = new double[nt]; // Legendre-projected data
-    double* sigma = new double[nt]; // Residuals
-    double* fmap = new double[nt]; // Will be hidden map
-    double* base = new double[nt]; // Will be best fit to data
-    double* datainv = new double[nt]; // map from DAVIS inverse
-    // Fill in dat2 and sigma
-    // Doing this the gross way so I can understand what's going on. Can rewrite later
-    // First fill l=0 for both
-    for (int i = 0; i < nrow; i++) {
-        dat[i] = lp_image[i]; // First column goes to dat2
-        sigma[i] = lp_image[nrow + i]; // Second column goes to sigma
-    }
-    // Then fill l=2 (why does he do it out of order?)
-    for (int i = 0; i < nrow; i++) {
-        dat[nrow + i] = lp_image[4 * nrow + i]; // Fifth column goes to dat2
-        sigma[nrow + i] = lp_image[5 * nrow + i]; // Sixth column goes to sigma
-    }
-    
-    melexirdll_(dat, sigma, fmap, base, datainv, &nrow, &nt);
-    // sigma will be the spectrum
-    // dat will be the residuals (idk why he swaps it)
+	// Prepare image for MELEXIR
+	int nrow = image_height;
+	int ncol = image_width;
+	int ldd = 2*nrow*nl; //pow(max(nrow, ncol),2); // Largest possible value for length of contracted data (Comes from PrepareVMI3.f90 ln104)
+	double* lp_image = new double[ldd]; // Will be Legendre projection of image
+	//printf("MLXR - nrow: %d, ncol: %d, ldd: %d \n", nrow, ncol, ldd);
+	//printf("MLXR - lp_image made at %p \n", lp_image);
+	global_count++;
+	//printf("MLXR - times run: %d \n", global_count);
+	image2data_(flat_image, &nrow, &nrow, &ncol, lp_image, &ldd);
 
-    //printf("MLXR - Melexir has been run \n");
+	//printf("MLXR - Image has been prepared \n");
 
-    // Set up arrays to return
-    Napi::Object results = Napi::Object::New(env);
-    Napi::Array spectrum = Napi::Array::New(env); // Worked up spectrum
-    Napi::Array residuals = Napi::Array::New(env); // Residuals of fit to data
-    Napi::Array radii = Napi::Array::New(env); // Row of radial elements
-    // Fill radial elements and append to Napi arrays
-    for (int i = 0; i < nrow; i++) {
-        radii.Set(i, Napi::Number::New(env, 0.5 + i));
-    }
-    spectrum.Set(Napi::Number::New(env, 0), radii); residuals.Set(Napi::Number::New(env, 0), radii); 
-    // Add row for each Legendre component to each Napi array
-    for (int lp = 0; lp < nl; lp++) {
-        Napi::Array spectrum_temp_row = Napi::Array::New(env);
-        Napi::Array residuals_temp_row = Napi::Array::New(env);
-        for (int i = 0; i < nrow; i++) {
-            spectrum_temp_row.Set(i, Napi::Number::New(env, sigma[lp * nrow + i]));
-            residuals_temp_row.Set(i, Napi::Number::New(env, dat[lp * nrow + i]));
-        }
-        spectrum.Set(lp + 1, spectrum_temp_row);
-        residuals.Set(lp + 1, residuals_temp_row);
-    }
-    // Add result arrays to object
-    results["spectrum"] = spectrum;
-    results["residuals"] = residuals;
+	// Run MELEXIR
+	//int nt = nrow * ncol;
+	int nt = nrow * nl;
+	// Allocate memory for input/output arrays
+	double* dat = new double[nt]; // Legendre-projected data
+	double* sigma = new double[nt]; // Residuals
+	double* fmap = new double[nt]; // Will be hidden map
+	double* base = new double[nt]; // Will be best fit to data
+	double* datainv = new double[nt]; // map from DAVIS inverse
+	// Fill in dat2 and sigma
+	// Doing this the gross way so I can understand what's going on. Can rewrite later
+	// First fill l=0 for both
+	for (int i = 0; i < nrow; i++) {
+		dat[i] = lp_image[i]; // First column goes to dat2
+		sigma[i] = lp_image[nrow + i]; // Second column goes to sigma
+	}
+	// Then fill l=2 (why does he do it out of order?)
+	for (int i = 0; i < nrow; i++) {
+		dat[nrow + i] = lp_image[4 * nrow + i]; // Fifth column goes to dat2
+		sigma[nrow + i] = lp_image[5 * nrow + i]; // Sixth column goes to sigma
+	}
 
-    // Deallocate memory for dynamic arrays
-    delete flat_image;
-    delete lp_image;
-    delete dat; 
-    delete sigma; 
-    delete fmap; 
-    delete base; 
-    delete datainv; 
+	melexirdll_(dat, sigma, fmap, base, datainv, &nrow, &nt);
+	// sigma will be the spectrum
+	// dat will be the residuals (idk why he swaps it)
+
+	//printf("MLXR - Melexir has been run \n");
+
+	// Set up arrays to return
+	Napi::Object results = Napi::Object::New(env);
+	Napi::Array spectrum = Napi::Array::New(env); // Worked up spectrum
+	Napi::Array residuals = Napi::Array::New(env); // Residuals of fit to data
+	Napi::Array radii = Napi::Array::New(env); // Row of radial elements
+	// Fill radial elements and append to Napi arrays
+	for (int i = 0; i < nrow; i++) {
+		radii.Set(i, Napi::Number::New(env, 0.5 + i));
+	}
+	spectrum.Set(Napi::Number::New(env, 0), radii); residuals.Set(Napi::Number::New(env, 0), radii); 
+	// Add row for each Legendre component to each Napi array
+	for (int lp = 0; lp < nl; lp++) {
+		Napi::Array spectrum_temp_row = Napi::Array::New(env);
+		Napi::Array residuals_temp_row = Napi::Array::New(env);
+		for (int i = 0; i < nrow; i++) {
+			spectrum_temp_row.Set(i, Napi::Number::New(env, sigma[lp * nrow + i]));
+			residuals_temp_row.Set(i, Napi::Number::New(env, dat[lp * nrow + i]));
+		}
+		spectrum.Set(lp + 1, spectrum_temp_row);
+		residuals.Set(lp + 1, residuals_temp_row);
+	}
+	// Add result arrays to object
+	results["spectrum"] = spectrum;
+	results["residuals"] = residuals;
+
+	// Deallocate memory for dynamic arrays
+	delete flat_image;
+	delete lp_image;
+	delete dat; 
+	delete sigma; 
+	delete fmap; 
+	delete base; 
+	delete datainv; 
 
 
-    return results;
+	return results;
+}
+
+// Arguments required (in order!):
+// [0] - options_string {String}
+// [1] - save_best_fit {Boolean} 
+// [2] - save_residuals {Boolean}
+// [3] - accumulated_image {Array[{Array}]}
+Napi::Object Process_mlxr(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Get arguments
+	char* options_string = (char*)info[0].ToString().Utf8Value().c_str(); // Have to cast from `const char*` to `char*`
+	bool save_best_fit = info[1].ToBoolean();
+	bool save_residuals = info[2].ToBoolean();
+	Napi::Array accumulated_image = info[3].As<Napi::Array>();
+
+	// Get size of image
+	int image_height = (int)accumulated_image.Length();
+	// Have to first create the first row as an array to get its length
+	Napi::Array row0 = accumulated_image.Get(Napi::Number::New(env,0)).As<Napi::Array>();
+	int image_width = (int)row0.Length();
+
+	// Convert accumulated image into a column-major 1D array
+	// Napi has a hard time with 2D arrays, so you have to unpack each row
+	//  in order to get the elements of the image
+	double* flat_image = new double[image_height*image_width];
+	for (int row = 0; row < image_height; row++) {
+		Napi::Array napi_row = accumulated_image.Get(Napi::Number::New(env, row)).As<Napi::Array>(); // Unpack the row
+		for (int col = 0; col < image_width; col++) {
+			flat_image[image_height*col + row] = (double)napi_row.Get(Napi::Number::New(env, col)).ToNumber().DoubleValue();
+		}
+	} 
+
+	printf("Set options next \n");
+
+	// Give options string to Melexir
+	setoptions_(options_string, sizeof(options_string));
+
+	printf("Check options next \n");
+
+	// Get the number of Legendre components (will fill iopt)
+	char key[]  = "L"; int iopt; double fopt; bool qopt;
+	int nl; int nl_even; int nl_odd; // Total Legendre components, and even and odd portions
+	checkoption_(key, &iopt, &fopt, &qopt, sizeof(key));
+	// Figure out number of even and odd components (logic taken from melexir.f90 ln83)
+	if (iopt >= 10) {
+		// => Two digits, must have even and odd components
+		nl_even = iopt / 10; // First digit is even components
+		nl_odd = iopt % 10; // Second digit is odd components
+	} else {
+		// Only one digit => only even components
+		nl_even = iopt;
+		nl_odd = 0;
+	}
+	nl_even = nl_even / 2 + 1; // Get count of just even components (including zero)
+	nl_odd = (nl_odd + 1) / 2; // Get count of just odd components (0.5 rounds down to 0 bc it's an int)
+	nl = nl_even + nl_odd;
+
+	printf("Even: %d, Odd: %d \n", nl_even, nl_odd);
+
+	// Prepare image for MELEXIR
+	int nrow = image_height;
+	int ncol = image_width;
+	int ldd = 2*nrow*nl; //pow(max(nrow, ncol),2); // Largest possible value for length of contracted data (Comes from PrepareVMI3.f90 ln104)
+	double* lp_image = new double[ldd]; // Will be Legendre projection of image
+	image2data_(flat_image, &nrow, &nrow, &ncol, lp_image, &ldd);
+
+	/*
+	// Run MELEXIR
+	//int nt = nrow * ncol;
+	int nt = nrow * nl;
+	// Allocate memory for input/output arrays
+	double* dat = new double[nt]; // Legendre-projected data
+	double* sigma = new double[nt]; // Residuals
+	double* fmap = new double[nt]; // Will be hidden map
+	double* base = new double[nt]; // Will be best fit to data
+	double* datainv = new double[nt]; // map from DAVIS inverse
+	// Fill in dat and sigma
+	// Doing this the gross way so I can understand what's going on. Can rewrite later
+	// First fill l=0 for both
+	for (int i = 0; i < nrow; i++) {
+		dat[i] = lp_image[i]; // First column goes to dat
+		sigma[i] = lp_image[nrow + i]; // Second column goes to sigma
+	}
+	// Then fill l=2 (why does he do it out of order?)
+	for (int i = 0; i < nrow; i++) {
+		dat[nrow + i] = lp_image[4 * nrow + i]; // Fifth column goes to dat
+		sigma[nrow + i] = lp_image[5 * nrow + i]; // Sixth column goes to sigma
+	}
+
+	// Fill in dat and sigma
+	// Each set of 2 columns in lp_image will be (data, st.dev) for each l value
+	// 	starting with even l values (l = 0, 2, ...) and then odd l values (l = 1, 3, ...)
+	// Data goes to dat in the same l order, and st.dev goes to sigma
+	for (int l = 0; l < nl; l++) {
+		for (int v = 0; v < nrow; v++) {
+			dat[l * nrow + v] = lp_image[]
+		}
+	}
+
+
+
+	melexirdll_(dat, sigma, fmap, base, datainv, &nrow, &nt);
+	// sigma will be the spectrum
+	// dat will be the residuals (idk why he swaps it)
+
+	// Set up arrays to return
+	Napi::Object results = Napi::Object::New(env);
+	Napi::Array spectrum = Napi::Array::New(env); // Worked up spectrum
+	Napi::Array residuals = Napi::Array::New(env); // Residuals of fit to data
+	Napi::Array radii = Napi::Array::New(env); // Row of radial elements
+	// Fill radial elements and append to Napi arrays
+	for (int i = 0; i < nrow; i++) {
+		radii.Set(i, Napi::Number::New(env, 0.5 + i));
+	}
+	spectrum.Set(Napi::Number::New(env, 0), radii); residuals.Set(Napi::Number::New(env, 0), radii); 
+	// Add row for each Legendre component to each Napi array
+	for (int lp = 0; lp < nl; lp++) {
+		Napi::Array spectrum_temp_row = Napi::Array::New(env);
+		Napi::Array residuals_temp_row = Napi::Array::New(env);
+		for (int i = 0; i < nrow; i++) {
+			spectrum_temp_row.Set(i, Napi::Number::New(env, sigma[lp * nrow + i]));
+			residuals_temp_row.Set(i, Napi::Number::New(env, dat[lp * nrow + i]));
+		}
+		spectrum.Set(lp + 1, spectrum_temp_row);
+		residuals.Set(lp + 1, residuals_temp_row);
+	}
+	// Add result arrays to object
+	results["spectrum"] = spectrum;
+	results["residuals"] = residuals;
+	*/
+
+	//return results;
+	return Napi::Object::New(env);
 }
 
 
@@ -340,6 +474,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports["test"] = Napi::Function::New(env, Test);
     exports["generateImage"] = Napi::Function::New(env, GenerateImage);
     exports["process"] = Napi::Function::New(env, Process);
+	exports["process_mlxr"] = Napi::Function::New(env, Process_mlxr);
 
     return exports;
 }

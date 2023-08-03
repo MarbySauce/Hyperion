@@ -497,8 +497,13 @@ ipcMain.on(IPCMessages.UPDATE.NEWFRAME, function (event, info) {
 			main_window_failed = true;
 		}
 	}*/
-	if (main_window && main_window_loaded) {
+	//if (main_window && main_window_loaded) {
+	//	main_window.webContents.send(IPCMessages.UPDATE.NEWFRAME, info);
+	//}
+	try {
 		main_window.webContents.send(IPCMessages.UPDATE.NEWFRAME, info);
+	} catch {
+		app.quit();
 	}
 
 	// Send data to live view window if it's open

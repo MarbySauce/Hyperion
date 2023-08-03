@@ -86,6 +86,17 @@ const ImageManager = {
 		check: () => ImageManager_series_check(),
 		send_progress: () => ImageManager_series_send_progress(),
 	},
+	melexir: {
+		worker: undefined,
+		params: {
+			process_on_save: false,
+			use_mvlr: false, // If true, use MEVELER instead of MELEXIR (not recommended)
+			options_string: "-H1 -LP2 -L2", // Check Ch5 and Ch6 of MaxEntAble manual for all options
+			save_best_fit: false,
+			save_residuals: false,
+		},
+		process_image: (image_class) => ImageManager_melexir_process_image(image_class),
+	},
 	all_images: [],
 	current_image: EmptyImage, // Image that is currently being taken
 	last_image: EmptyImage, // Last image that was taken
@@ -304,6 +315,27 @@ function ImageManager_series_send_progress() {
 	if (!ImageManager.autostop.use_autostop) remaining = 0;
 	if (remaining < 0) remaining = 0;
 	IMAlerts.info_update.image_series.remaining.alert(remaining);
+}
+
+/* Running Melexir / Meveler */
+
+/**
+ * @param {Image | IRImage} image_class
+ */
+function ImageManager_melexir_process_image(image_class) {
+	if (ImageManager.melexir.worker) {
+		// Worker already exists (which means it's already processing something)
+		return;
+	}
+
+	ImageManager.melexir.worker = new Worker("../JS/MainWindow/MLXRWorker.js");
+	let worker = ImageManager.melexir.worker;
+
+	// Send the worker the Melexir settings
+	worker.postMessage({ type: "settings", message: ImageManager.melexir.params });
+
+	// Send it a copy of the current image
+	worker.postMessage({ type: "image", message: image_class });
 }
 
 /* Scan control */
@@ -826,6 +858,11 @@ class IMMessengerRequest {
 	//single_shot() {
 	//	ImageManager.single_shot();
 	//}
+
+	process_image() {
+		// Process the current image
+		ImageManager.melexir.process_image(ImageManager.current_image);
+	}
 }
 
 /***************************************** 
