@@ -62,16 +62,8 @@ const settings = {
 			upper_wavelength_bound: 880,
 		},
 		centroid: {
-			accumulation: "Centroid",
 			hybrid_method: true,
 			bin_size: 100,
-		},
-		display: {
-			slider_value: 0.5,
-		},
-		e_chart: {
-			x_axis_max: 30,
-			y_axis_max: 20,
 		},
 		save_directory: {
 			base_dir: "./Images",
