@@ -134,7 +134,7 @@
 				}],
 				['OS=="mac"', {
 					'xcode_settings': {
-						'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
+						'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
 					},
 					"libraries": ["/Users/Marty_1/Documents/Programming/MaxEntAbel/macOSX/MaxEntAbel.dylib"],
 					"link_settings": {
