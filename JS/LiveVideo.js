@@ -71,7 +71,7 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, function (event, centroid_results) {
 	let yOffset = 0;
 
 	const LiveViewContext = document.getElementById("LiveVideoView").getContext("2d");
-	const LVData = LiveViewContext.getImageData(0, 0, imageWidth, imageHeight);
+	let LVData = new ImageData(imageWidth, imageHeight);
 
 	// Put image on display
 	LVData.data.set(centroid_results.image_buffer);
