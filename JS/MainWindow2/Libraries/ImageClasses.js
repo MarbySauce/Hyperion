@@ -1,4 +1,4 @@
-const { DetachmentWavelength, ExcitationWavelength } = require("./WavelengthClasses.js");
+const { DetachmentWavelength, ExcitationWavelength, DetachmentMode, ExcitationMode } = require("./WavelengthClasses.js");
 const { WavemeterMeasurement } = require("./WavemeterClasses.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");
 
@@ -124,6 +124,10 @@ class Image {
 	/** Whether image is an Empty Image */
 	get is_empty() {
 		return false;
+	}
+
+	get scan_information() {
+		return new ScanInfo(this);
 	}
 
 	/**
@@ -465,7 +469,11 @@ function Image_get_image_display(image, contrast, display_negative_values = fals
 	return image_data;
 }
 
-/********************************************************/
+/************************************************** 
+
+				VMI Safe Image Classes
+
+**************************************************/
 
 // Safe version of Image class that can't save to file, etc.
 class SafeImage {
@@ -546,4 +554,153 @@ class SafeIRImage extends SafeImage {
 	}
 }
 
-module.exports = { Image, IRImage, EmptyIRImage, ImageType };
+/************************************************** 
+
+				Scan Info Class
+
+**************************************************/
+
+class ScanInfo {
+	/**
+	 * Get an Image or IRImage class instance with values filled out from `scan_info`
+	 * @param {ScanInfo} scan_info
+	 * @returns {Image | IRImage}
+	 */
+	static get_image_class(scan_info) {
+		let image_class;
+		if (scan_info.image.mode === "ir-sevi") image_class = new IRImage();
+		else image_class = new Image();
+
+		// Image information
+		image_class.id = scan_info.image.id;
+		// NOTE TO MARTY: Need something for PES?
+		let electrons_off = scan_info.image.electrons_off;
+		let electrons_on = scan_info.image.electrons_on;
+		image_class.counts.electrons = {
+			on: electrons_on,
+			off: electrons_off,
+			total: electrons_off + electrons_on,
+		};
+		let frames_off = scan_info.image.frames_off;
+		let frames_on = scan_info.image.frames_on;
+		image_class.counts.frames = {
+			on: frames_on,
+			off: frames_off,
+			total: frames_off + frames_on,
+		};
+
+		// Laser Information
+		// Detachment wavelength
+		image_class.detachment_wavelength.standard.wavelength = scan_info.laser.detachment.wavelength.standard;
+		let detachment_mode = DetachmentMode.get_mode_from_name(scan_info.laser.detachment.mode);
+		image_class.detachment_wavelength.selected_mode = detachment_mode;
+		// Detachment measurement
+		image_class.detachment_measurement.raw_stats.average = scan_info.laser.detachment.measurement.average;
+		image_class.detachment_measurement.raw_stats.stdev = scan_info.laser.detachment.measurement.stdev;
+		image_class.detachment_measurement.reduced_stats.average = scan_info.laser.detachment.measurement.reduced_average;
+		image_class.detachment_measurement.reduced_stats.stdev = scan_info.laser.detachment.measurement.reduced_stdev;
+		// Excitation wavelength
+		image_class.excitation_wavelength.nIR.wavelength = scan_info.laser.excitation.wavelength.nir;
+		let excitation_mode = ExcitationMode.get_mode_from_name(scan_info.laser.excitation.mode);
+		image_class.excitation_wavelength.selected_mode = excitation_mode;
+		// Excitation measurement
+		image_class.excitation_measurement.raw_stats.average = scan_info.laser.excitation.measurement.average;
+		image_class.excitation_measurement.raw_stats.stdev = scan_info.laser.excitation.measurement.stdev;
+		image_class.excitation_measurement.reduced_stats.average = scan_info.laser.excitation.measurement.reduced_average;
+		image_class.excitation_measurement.reduced_stats.stdev = scan_info.laser.excitation.measurement.reduced_stdev;
+		image_class.excitation_measurement.laser_wavelength = scan_info.laser.opo.wavelength;
+		image_class.excitation_measurement.laser_offset = scan_info.laser.opo.offset;
+
+		// VMI info
+		let mode = scan_info.vmi.setting;
+		let index = parseInt(mode.charAt(1)) - 1;
+		image_class.vmi_info = {
+			index: index,
+			mode: mode,
+			calibration_constants: scan_info.vmi.calibration_constants,
+		};
+
+		return image_class;
+	}
+
+	/**
+	 * @param {Image | IRImage} image_class
+	 */
+	constructor(image_class) {
+		this.image = {
+			id: image_class.id,
+			file_name: image_class.file_name,
+			file_name_ir: image_class.file_name_ir,
+			pes_file_name: "",
+			pes_file_name_ir: "",
+			mode: image_class.is_ir ? "ir-sevi" : "sevi",
+			electrons_off: image_class.counts.electrons.off,
+			electrons_on: image_class.counts.electrons.on,
+			frames_off: image_class.counts.frames.off,
+			frames_on: image_class.counts.frames.on,
+		};
+
+		this.laser = {
+			detachment: {
+				mode: image_class.detachment_wavelength.selected_mode.name,
+				measurement: {
+					average: parseFloat(image_class.detachment_measurement.raw_stats.average.toFixed(4)),
+					stdev: parseFloat(image_class.detachment_measurement.raw_stats.stdev.toFixed(5)),
+					reduced_average: parseFloat(image_class.detachment_measurement.reduced_stats.average.toFixed(4)),
+					reduced_stdev: parseFloat(image_class.detachment_measurement.reduced_stats.stdev.toFixed(5)),
+				},
+				wavelength: {
+					standard: parseFloat(image_class.detachment_wavelength.standard.wavelength.toFixed(3)),
+					doubled: parseFloat(image_class.detachment_wavelength.doubled.wavelength.toFixed(3)),
+					raman: parseFloat(image_class.detachment_wavelength.raman.wavelength.toFixed(3)),
+					irdfg: parseFloat(image_class.detachment_wavelength.irdfg.wavelength.toFixed(3)),
+					yag_fundamental: parseFloat(image_class.detachment_wavelength.YAG_wl.toFixed(3)),
+				},
+				wavenumber: {
+					standard: parseFloat(image_class.detachment_wavelength.standard.wavenumber.toFixed(3)),
+					doubled: parseFloat(image_class.detachment_wavelength.doubled.wavenumber.toFixed(3)),
+					raman: parseFloat(image_class.detachment_wavelength.raman.wavenumber.toFixed(3)),
+					irdfg: parseFloat(image_class.detachment_wavelength.irdfg.wavenumber.toFixed(3)),
+					yag_fundamental: parseFloat(image_class.detachment_wavelength.YAG_wn.toFixed(3)),
+				},
+			},
+
+			excitation: {
+				mode: image_class.excitation_wavelength.selected_mode.name,
+				measurement: {
+					average: parseFloat(image_class.excitation_measurement.raw_stats.average.toFixed(4)),
+					stdev: parseFloat(image_class.excitation_measurement.raw_stats.stdev.toFixed(5)),
+					reduced_average: parseFloat(image_class.excitation_measurement.reduced_stats.average.toFixed(4)),
+					reduced_stdev: parseFloat(image_class.excitation_measurement.reduced_stats.stdev.toFixed(5)),
+				},
+				wavelength: {
+					nir: parseFloat(image_class.excitation_wavelength.nIR.wavelength.toFixed(3)),
+					iir: parseFloat(image_class.excitation_wavelength.iIR.wavelength.toFixed(3)),
+					mir: parseFloat(image_class.excitation_wavelength.mIR.wavelength.toFixed(3)),
+					fir: parseFloat(image_class.excitation_wavelength.fIR.wavelength.toFixed(3)),
+					yag_fundamental: parseFloat(image_class.excitation_wavelength.YAG_wl.toFixed(3)),
+				},
+				wavenumber: {
+					nir: parseFloat(image_class.excitation_wavelength.nIR.wavenumber.toFixed(3)),
+					iir: parseFloat(image_class.excitation_wavelength.iIR.wavenumber.toFixed(3)),
+					mir: parseFloat(image_class.excitation_wavelength.mIR.wavenumber.toFixed(3)),
+					fir: parseFloat(image_class.excitation_wavelength.fIR.wavenumber.toFixed(3)),
+					yag_fundamental: parseFloat(image_class.excitation_wavelength.YAG_wn.toFixed(3)),
+				},
+			},
+
+			opo: {
+				wavelength: parseFloat(image_class.excitation_measurement.laser_wavelength.toFixed(3)),
+				offset: parseFloat(image_class.excitation_measurement.laser_offset.toFixed(3)),
+			},
+		};
+
+		this.vmi = {
+			setting: image_class.vmi_info.mode,
+			calibration_constants: image_class.vmi_info.calibration_constants,
+			all_constants: undefined, // This will be filled in by Image Manager before saving to file
+		};
+	}
+}
+
+module.exports = { Image, IRImage, EmptyIRImage, ImageType, ScanInfo };

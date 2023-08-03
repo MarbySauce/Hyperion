@@ -5,7 +5,7 @@
 **************************************************/
 
 const ipc = require("electron").ipcRenderer;
-const { Image, IRImage, EmptyIRImage, ImageType } = require("./ImageClasses.js");
+const { Image, IRImage, EmptyIRImage, ImageType, ScanInfo } = require("./ImageClasses.js");
 const { ManagerAlert } = require("./ManagerAlert.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");
 const { DetachmentLaserManagerMessenger } = require("./DetachmentLaserManager.js");
@@ -102,6 +102,10 @@ const ImageManager = {
 	set_id: (id) => ImageManager_set_id(id),
 
 	update_vmi: (vmi_info) => ImageManager_update_vmi(vmi_info),
+
+	save_scan_information: () => ImageManager_save_scan_information(),
+	read_scan_information: () => ImageManager_read_scan_information(),
+	update_information: (image_class) => ImageManager_update_information(image_class),
 
 	process_settings: (settings) => ImageManager_process_settings(settings),
 };
@@ -317,8 +321,8 @@ function ImageManager_start_scan(is_ir) {
 		new_image = new Image();
 		update_messenger.update("New SEVI Scan Started!");
 	}
-	// Update current image info with that from last image
-	new_image.update_information(ImageManager.last_image);
+	// Update (new) current image info with that from (old) current image
+	new_image.update_information(ImageManager.current_image);
 	// Empty image in current_image will have correct id
 	new_image.id = ImageManager.current_image.id;
 	ImageManager.all_images.push(new_image);
@@ -347,10 +351,13 @@ function ImageManager_stop_scan() {
 	ImageManager.status = IMState.STOPPED;
 	// Save image to file
 	ImageManager.current_image.save_image();
+	// Save scan information to file
+	ImageManager.save_scan_information();
 	// Move current image to last image, and empty current image
 	// But first, delete the accumulated image in last_image to save memory
 	ImageManager.last_image.delete_image();
 	ImageManager.last_image = ImageManager.current_image;
+	EmptyImage.update_information(ImageManager.current_image); // Transfer information to Empty Image
 	ImageManager.current_image = EmptyImage;
 	ImageManager.current_image.id = ImageManager.last_image.id + 1; // Uptick ID by 1
 	// Alert that the scan has been stopped
@@ -430,6 +437,14 @@ function ImageManager_reset_scan() {
 	update_messenger.update("(IR) SEVI Scan Reset!");
 }
 
+function ImageManager_get_image_display(which_image) {
+	let image_obj;
+	if (ImageManager.current_image.is_empty) image_obj = ImageManager.last_image;
+	else image_obj = ImageManager.current_image;
+	let contrast = ImageManager.params.image_contrast;
+	return image_obj.get_image_display(which_image, contrast);
+}
+
 function ImageManager_increase_id() {
 	ImageManager.current_image.id++;
 	IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);
@@ -478,12 +493,77 @@ function ImageManager_update_vmi(vmi_info) {
 	IMAlerts.info_update.image.vmi_info.alert(info);
 }
 
-function ImageManager_get_image_display(which_image) {
-	let image_obj;
-	if (ImageManager.current_image.is_empty) image_obj = ImageManager.last_image;
-	else image_obj = ImageManager.current_image;
-	let contrast = ImageManager.params.image_contrast;
-	return image_obj.get_image_display(which_image, contrast);
+function ImageManager_save_scan_information() {
+	// If in testing mode, don't save anything
+	if (ImageManager.params.do_not_save_to_file) {
+		return;
+	}
+	const fs = require("fs");
+	const path = require("path");
+
+	let all_scan_info = [];
+	let image_scan_info;
+	for (let image of ImageManager.all_images) {
+		image_scan_info = image.scan_information;
+		// Fill in all VMI calibration constants
+		image_scan_info.vmi.all_constants = ImageManager.info.vmi;
+		// Package into an object and add to all_scan_info
+		all_scan_info.push({ ...image_scan_info });
+	}
+	// Convert to JSON and save to file
+	let save_dir = ImageManager.info.save_directory;
+	let file_name = path.join(save_dir, "scan_information.json");
+	let json_string = JSON.stringify(all_scan_info, null, "\t");
+	fs.writeFile(file_name, json_string, (error) => {
+		if (error) {
+			update_messenger.error("Could not save scan information to file! Error logged to console");
+			console.log("Could not save scan information to file:", error);
+		}
+	});
+}
+
+function ImageManager_read_scan_information() {
+	const fs = require("fs");
+	const path = require("path");
+
+	let file_name = path.join(ImageManager.info.save_directory, "scan_information.json");
+	fs.readFile(file_name, (error, data) => {
+		if (error) {
+			if (error.code === "ENOENT") {
+				// File not found error, don't log error to message display
+				return;
+			} else {
+				update_messenger.error("Could not read scan information from file! Error logged to console");
+				console.log("Could not read scan information from file:", error);
+				return;
+			}
+		}
+		if (data) {
+			let json_data = JSON.parse(data);
+			let image_class;
+			for (let scan_info of json_data) {
+				image_class = ScanInfo.get_image_class(scan_info);
+				ImageManager.all_images.push(image_class);
+			}
+			ImageManager.update_information(image_class);
+		}
+	});
+}
+
+/**
+ * @param {Image | IRImage} image_class
+ */
+function ImageManager_update_information(image_class) {
+	// Update information based on that given from scan_information.json
+	ImageManager.set_id(image_class.id + 1);
+	ImageManager.update_vmi(image_class.vmi_info);
+	// Update Laser Manager information
+	// Detachment Laser Manager
+	DLMMessenger.update.standard_wavelength(image_class.detachment_wavelength.standard.wavelength);
+	DLMMessenger.update.standard_mode(image_class.detachment_wavelength.selected_mode);
+	// Excitation Laser Manager
+	ELMMessenger.update.nir_wavelength(image_class.excitation_wavelength.nIR.wavelength);
+	ELMMessenger.update.nir_mode(image_class.excitation_wavelength.selected_mode);
 }
 
 function ImageManager_process_settings(settings) {
@@ -501,6 +581,8 @@ function ImageManager_process_settings(settings) {
 	ImageManager.info.vmi = settings.vmi;
 
 	ImageManager.autostop.both = settings.autostop.both_images;
+
+	ImageManager.read_scan_information();
 }
 
 /*****************************************************************************

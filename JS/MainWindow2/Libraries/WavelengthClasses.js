@@ -23,6 +23,19 @@ class ExcitationMode extends WavelengthMode {
 	/** Far Infrared */
 	static FIR = new ExcitationMode("fir", "fIR");
 
+	static get_mode_from_name(name) {
+		switch (name) {
+			case ExcitationMode.NIR.name:
+				return ExcitationMode.NIR;
+			case ExcitationMode.IIR.name:
+				return ExcitationMode.IIR;
+			case ExcitationMode.MIR.name:
+				return ExcitationMode.MIR;
+			case ExcitationMode.FIR.name:
+				return ExcitationMode.FIR;
+		}
+	}
+
 	constructor(name, pretty_name) {
 		super(name, pretty_name);
 	}
@@ -37,6 +50,19 @@ class DetachmentMode extends WavelengthMode {
 	static RAMAN = new DetachmentMode("raman", "Raman");
 	/**  Difference Frequency Generation Dye Laser Setup */
 	static IRDFG = new DetachmentMode("irdfg", "IRDFG");
+
+	static get_mode_from_name(name) {
+		switch (name) {
+			case DetachmentMode.STANDARD.name:
+				return DetachmentMode.STANDARD;
+			case DetachmentMode.DOUBLED.name:
+				return DetachmentMode.DOUBLED;
+			case DetachmentMode.RAMAN.name:
+				return DetachmentMode.RAMAN;
+			case DetachmentMode.IRDFG.name:
+				return DetachmentMode.IRDFG;
+		}
+	}
 
 	constructor(name, pretty_name) {
 		super(name, pretty_name);
