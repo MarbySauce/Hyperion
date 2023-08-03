@@ -114,3 +114,32 @@ function norm_rand(mu, sigma) {
 	while (v === 0) v = Math.random();
 	return sigma * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) + mu;
 }
+
+async function test_ss() {
+	const { access, writeFile } = require("fs/promises");
+	const path = require("path");
+
+	let save_dir = settings.save_directory.full_dir;
+
+	let get_file_name = (id) => `single_shot_${id}.txt`;
+	let id = 1;
+	while (true) {
+		let file_name = path.join(save_dir, get_file_name(id));
+		console.log(`Trying file: ${get_file_name(id)}`);
+		try {
+			await access(file_name);
+			// File exists. Increment id and continue
+			id++;
+		} catch {
+			// If we're here, that file does not exist, save there
+			try {
+				await writeFile(file_name, "Hello there");
+			} catch {
+				console.log("writeFile failed");
+			}
+			break;
+		}
+		if (id > 4) break;
+	}
+	console.log("Done", id);
+}
