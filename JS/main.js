@@ -74,6 +74,12 @@ const settings = {
 			full_dir_short: "",
 			autosave: false,
 		},
+		melexir: {
+			process_on_save: false,
+			save_spectrum: false,
+			save_best_fit: false,
+			save_residuals: false,
+		},
 		testing: {
 			do_not_save_to_file: false,
 		},

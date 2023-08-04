@@ -1,6 +1,6 @@
 const { DetachmentWavelength, ExcitationWavelength, DetachmentMode, ExcitationMode } = require("./WavelengthClasses.js");
 const { WavemeterMeasurement } = require("./WavemeterClasses.js");
-const { PESpectrum } = require("./PESpectrumClasses.js");
+const { PESpectrum, IRPESpectrum } = require("./PESpectrumClasses.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");
 
 // Messenger used for displaying update or error messages to the Message Display
@@ -56,6 +56,7 @@ class Image {
 
 	static set save_directory(dir_string) {
 		Image._save_directory = dir_string;
+		PESpectrum.save_directory = dir_string;
 	}
 
 	/* Instance methods */
@@ -274,6 +275,8 @@ class Image {
 class IRImage extends Image {
 	constructor() {
 		super();
+
+		this.pe_spectrum = new IRPESpectrum();
 	}
 
 	get file_name_ir() {
@@ -642,8 +645,8 @@ class ScanInfo {
 			id: image_class.id,
 			file_name: image_class.file_name,
 			file_name_ir: image_class.file_name_ir,
-			pes_file_name: "",
-			pes_file_name_ir: "",
+			pes_file_name: image_class.pe_spectrum.pes_file_name,
+			pes_file_name_ir: image_class.pe_spectrum.pes_file_name_ir,
 			mode: image_class.is_ir ? "ir-sevi" : "sevi",
 			electrons_off: image_class.counts.electrons.off,
 			electrons_on: image_class.counts.electrons.on,

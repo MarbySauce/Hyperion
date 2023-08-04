@@ -89,12 +89,12 @@ const ImageManager = {
 	melexir: {
 		worker: undefined,
 		params: {
-			process_on_save: true,
-			save_spectrum: true,
+			process_on_save: false,
+			save_spectrum: false,
 			save_best_fit: false,
 			save_residuals: false,
 		},
-		process_image: () => ImageManager_melexir_process_image(),
+		process_image: (save_to_file) => ImageManager_melexir_process_image(save_to_file),
 	},
 	all_images: [],
 	current_image: EmptyImage, // Image that is currently being taken
@@ -318,7 +318,7 @@ function ImageManager_series_send_progress() {
 
 /* Running Melexir / Meveler */
 
-function ImageManager_melexir_process_image() {
+function ImageManager_melexir_process_image(save_to_file) {
 	if (ImageManager.melexir.worker) {
 		// Worker already exists (which means it's already processing something)
 		return;
@@ -370,6 +370,10 @@ function ImageManager_melexir_process_image() {
 		}
 		ImageManager.melexir.worker.terminate();
 		ImageManager.melexir.worker = undefined;
+
+		if (save_to_file && !ImageManager.params.do_not_save_to_file) {
+			image_class.pe_spectrum.save_files();
+		}
 	};
 }
 
@@ -421,7 +425,7 @@ function ImageManager_stop_scan() {
 	// Save scan information to file
 	ImageManager.save_scan_information();
 	// If the option is set, process image with Melexir
-	if (ImageManager.melexir.params.process_on_save) ImageManager.melexir.process_image();
+	if (ImageManager.melexir.params.process_on_save) ImageManager.melexir.process_image(true);
 	// Move current image to last image, and empty current image
 	// But first, delete the accumulated image in last_image to save memory
 	ImageManager.last_image.delete_image();
@@ -637,19 +641,30 @@ function ImageManager_update_information(image_class) {
 
 function ImageManager_process_settings(settings) {
 	if (!settings) return; // settings is blank
-	ImageManager.params.centroid.use_hybrid_method = settings.centroid.hybrid_method;
-	ImageManager.params.centroid.bin_size = settings.centroid.bin_size;
-	Image.bin_size = settings.centroid.bin_size;
+	if (settings?.centroid?.hybrid_method !== undefined) ImageManager.params.centroid.use_hybrid_method = settings.centroid.hybrid_method;
+	if (settings?.centroid?.bin_size !== undefined) {
+		ImageManager.params.centroid.bin_size = settings.centroid.bin_size;
+		Image.bin_size = settings.centroid.bin_size;
+	}
 
-	ImageManager.params.do_not_save_to_file = settings.testing.do_not_save_to_file;
-	Image.do_not_save_to_file = settings.testing.do_not_save_to_file;
+	if (settings?.testing?.do_not_save_to_file !== undefined) {
+		ImageManager.params.do_not_save_to_file = settings.testing.do_not_save_to_file;
+		Image.do_not_save_to_file = settings.testing.do_not_save_to_file;
+	}
 
-	ImageManager.info.save_directory = settings.save_directory.full_dir;
-	Image.save_directory = settings.save_directory.full_dir;
+	if (settings?.save_directory?.full_dir !== undefined) {
+		ImageManager.info.save_directory = settings.save_directory.full_dir;
+		Image.save_directory = settings.save_directory.full_dir;
+	}
 
-	ImageManager.info.vmi = settings.vmi;
+	if (settings?.melexir?.process_on_save !== undefined) ImageManager.melexir.params.process_on_save = settings.melexir.process_on_save;
+	if (settings?.melexir?.save_spectrum !== undefined) ImageManager.melexir.params.save_spectrum = settings.melexir.save_spectrum;
+	if (settings?.melexir?.save_best_fit !== undefined) ImageManager.melexir.params.save_best_fit = settings.melexir.save_best_fit;
+	if (settings?.melexir?.save_residuals !== undefined) ImageManager.melexir.params.save_residuals = settings.melexir.save_residuals;
 
-	ImageManager.autostop.both = settings.autostop.both_images;
+	if (settings?.vmi !== undefined) ImageManager.info.vmi = settings.vmi;
+
+	if (settings?.autostop?.both_images !== undefined) ImageManager.autostop.both = settings.autostop.both_images;
 
 	ImageManager.read_scan_information();
 }
@@ -896,9 +911,10 @@ class IMMessengerRequest {
 	//	ImageManager.single_shot();
 	//}
 
-	process_image() {
+	/** @param {Boolean} save_to_file whether to save files after processing */
+	process_image(save_to_file) {
 		// Process the current image
-		ImageManager.melexir.process_image();
+		ImageManager.melexir.process_image(save_to_file);
 	}
 }
 
