@@ -96,9 +96,9 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
 	for (int i = 0; i < nrow; i++) {
 		radii.Set(i, Napi::Number::New(env, 0.5 + i));
 	}
-	spectrum.Set(Napi::Number::New(env, 0), radii); 
-	residuals.Set(Napi::Number::New(env, 0), radii);
-	best_fit.Set(Napi::Number::New(env, 0), radii); 
+	//spectrum.Set(Napi::Number::New(env, 0), radii); 
+	//residuals.Set(Napi::Number::New(env, 0), radii);
+	//best_fit.Set(Napi::Number::New(env, 0), radii); 
 	// Add row for each Legendre component to each Napi array
 	for (int lp = 0; lp < nl; lp++) {
 		Napi::Array spectrum_temp_row = Napi::Array::New(env);
@@ -109,11 +109,12 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
 			residuals_temp_row.Set(i, Napi::Number::New(env, dat[lp * nrow + i]));
 			best_fit_temp_row.Set(i, Napi::Number::New(env, base[lp * nrow + i]));
 		}
-		spectrum.Set(lp + 1, spectrum_temp_row);
-		residuals.Set(lp + 1, residuals_temp_row);
-		best_fit.Set(lp + 1, best_fit_temp_row);
+		spectrum.Set(lp, spectrum_temp_row);
+		residuals.Set(lp, residuals_temp_row);
+		best_fit.Set(lp, best_fit_temp_row);
 	}
 	// Add result arrays to object
+	results["radii"] = radii;
 	results["spectrum"] = spectrum;
 	results["residuals"] = residuals;
 	results["best_fit"] = best_fit;

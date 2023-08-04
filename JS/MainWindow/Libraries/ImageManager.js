@@ -89,11 +89,12 @@ const ImageManager = {
 	melexir: {
 		worker: undefined,
 		params: {
-			process_on_save: false,
-			save_best_fit: true,
+			process_on_save: true,
+			save_spectrum: true,
+			save_best_fit: false,
 			save_residuals: false,
 		},
-		process_image: (image_class) => ImageManager_melexir_process_image(image_class),
+		process_image: () => ImageManager_melexir_process_image(),
 	},
 	all_images: [],
 	current_image: EmptyImage, // Image that is currently being taken
@@ -317,23 +318,59 @@ function ImageManager_series_send_progress() {
 
 /* Running Melexir / Meveler */
 
-/**
- * @param {Image | IRImage} image_class
- */
-function ImageManager_melexir_process_image(image_class) {
+function ImageManager_melexir_process_image() {
 	if (ImageManager.melexir.worker) {
 		// Worker already exists (which means it's already processing something)
 		return;
 	}
 
+	// Figure out which image to process
+	// If there is a current image, process that
+	// If not, process last image (if it is not empty)
+
+	let image_class;
+	if (ImageManager.current_image.is_empty) {
+		if (ImageManager.last_image.is_empty) {
+			// Neither image has an accumulated image, do nothing
+			return;
+		} else {
+			image_class = ImageManager.last_image;
+		}
+	} else {
+		image_class = ImageManager.current_image;
+	}
+
+	let initial_id = image_class.id;
+
 	ImageManager.melexir.worker = new Worker("../JS/MainWindow/MLXRWorker.js");
 	let worker = ImageManager.melexir.worker;
 
-	// Send the worker the Melexir settings
-	worker.postMessage({ type: "settings", message: ImageManager.melexir.params });
+	image_class.pe_spectrum.update_settings(ImageManager.melexir.params);
 
-	// Send it a copy of the current image
-	worker.postMessage({ type: "image", message: image_class });
+	let melexir_arguments = {};
+	if (image_class.is_ir) {
+		melexir_arguments.is_ir = true;
+		melexir_arguments.images = {
+			ir_off: image_class.images.ir_off,
+			ir_on: image_class.images.ir_on,
+		};
+	} else {
+		melexir_arguments.is_ir = false;
+		melexir_arguments.image = image_class.image;
+	}
+
+	worker.postMessage(melexir_arguments);
+
+	// Wait for Melexir to complete
+	worker.onmessage = (event) => {
+		if (event.data.is_ir) {
+			image_class.pe_spectrum.update(event.data.results_off, event.data.results_on);
+		} else {
+			image_class.pe_spectrum.update(event.data.results);
+		}
+		ImageManager.melexir.worker.terminate();
+		ImageManager.melexir.worker = undefined;
+	};
 }
 
 /* Scan control */
@@ -383,6 +420,8 @@ function ImageManager_stop_scan() {
 	ImageManager.current_image.save_image();
 	// Save scan information to file
 	ImageManager.save_scan_information();
+	// If the option is set, process image with Melexir
+	if (ImageManager.melexir.params.process_on_save) ImageManager.melexir.process_image();
 	// Move current image to last image, and empty current image
 	// But first, delete the accumulated image in last_image to save memory
 	ImageManager.last_image.delete_image();
@@ -859,7 +898,7 @@ class IMMessengerRequest {
 
 	process_image() {
 		// Process the current image
-		ImageManager.melexir.process_image(ImageManager.current_image);
+		ImageManager.melexir.process_image();
 	}
 }
 
@@ -1300,6 +1339,12 @@ class IMMessengerCallbackInfoUpdate {
 *****************************************************************************/
 
 class ImageManagerMessenger {
+	/** WARNING: This function should only be used for testing purposes! */
+	static get_manager() {
+		console.warn("WARNING: This function should only be used for testing purposes!");
+		return ImageManager;
+	}
+
 	constructor() {
 		this._information = new IMMessengerInformation();
 		this._request = new IMMessengerRequest();

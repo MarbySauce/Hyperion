@@ -1,5 +1,6 @@
 const { DetachmentWavelength, ExcitationWavelength, DetachmentMode, ExcitationMode } = require("./WavelengthClasses.js");
 const { WavemeterMeasurement } = require("./WavemeterClasses.js");
+const { PESpectrum } = require("./PESpectrumClasses.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");
 
 // Messenger used for displaying update or error messages to the Message Display
@@ -59,8 +60,6 @@ class Image {
 
 	/* Instance methods */
 	constructor() {
-		this.id = 1;
-
 		this.counts = {
 			electrons: {
 				on: 0,
@@ -88,7 +87,19 @@ class Image {
 		this.excitation_wavelength = new ExcitationWavelength();
 		this.excitation_measurement = new WavemeterMeasurement();
 
+		this.pe_spectrum = new PESpectrum();
+
 		this.reset_image();
+	}
+
+	get id() {
+		if (this._id) return this._id;
+		else return (this._id = 1);
+	}
+
+	set id(val) {
+		this._id = val;
+		this.pe_spectrum.id = val;
 	}
 
 	/** Image ID as a ≥2 digit string */
