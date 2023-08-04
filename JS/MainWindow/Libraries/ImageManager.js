@@ -90,9 +90,7 @@ const ImageManager = {
 		worker: undefined,
 		params: {
 			process_on_save: false,
-			use_mvlr: false, // If true, use MEVELER instead of MELEXIR (not recommended)
-			options_string: "-H1 -LP2 -L2", // Check Ch5 and Ch6 of MaxEntAble manual for all options
-			save_best_fit: false,
+			save_best_fit: true,
 			save_residuals: false,
 		},
 		process_image: (image_class) => ImageManager_melexir_process_image(image_class),

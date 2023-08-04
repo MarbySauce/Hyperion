@@ -1,10 +1,17 @@
 const melexir = require("bindings")("melexir");
 const { Image, IRImage, EmptyIRImage, ImageType, ScanInfo } = require("./Libraries/ImageClasses.js");
 
+// Note to Marty: I can't get MLXR to work on newer versions of Electron
+// One solution is to use process.platform and process.arch to check if I'm on my M1 mac
+//	(e.g. process.platform === "darwin" && process.arch === "arm64")
+// If so, just return empty arrays
+
 let settings;
 // settings will have properties:
 //	- use_mvlr {Boolean}
-//	- options_string {String}
+//	- i2d_options_string {String}
+//	- mlxr_options_string {String}
+//	- mvlr_options_string {String}
 //	- save_best_fit {Boolean}
 //	- save_residuals {Boolean}
 
@@ -25,7 +32,7 @@ function process_image() {
 		return;
 	}
 
-	let { options_string, save_best_fit, save_residuals } = settings;
+	let { save_best_fit, save_residuals } = settings;
 
 	if (image_class.is_ir) {
 		console.log("IR Images not set up yet...");
@@ -33,7 +40,10 @@ function process_image() {
 	} else {
 		let accumulated_image = image_class.image;
 
+		console.log("Starting process!");
+
 		let results = melexir.process(accumulated_image);
-		//let results = melexir.process_mlxr(options_string, save_best_fit, save_residuals, accumulated_image);
+
+		console.log(results);
 	}
 }
