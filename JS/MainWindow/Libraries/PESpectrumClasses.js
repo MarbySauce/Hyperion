@@ -78,9 +78,9 @@ class PESpectrum {
 
 	update(melexir_results) {
 		if (melexir_results?.radii) this.radii = melexir_results.radii;
-		if (melexir_results?.spectrum) this.spectrum = melexir_results.spectrum;
-		if (melexir_results?.residuals) this.residuals = melexir_results.residuals;
-		if (melexir_results?.best_fit) this.best_fit = melexir_results.best_fit;
+		if (melexir_results?.spectrum && this.save_spectrum) this.spectrum = melexir_results.spectrum;
+		if (melexir_results?.residuals && this.save_residuals) this.residuals = melexir_results.residuals;
+		if (melexir_results?.best_fit && this.save_best_fit) this.best_fit = melexir_results.best_fit;
 	}
 
 	update_settings(settings) {
@@ -147,14 +147,14 @@ class IRPESpectrum extends PESpectrum {
 
 	update(melexir_results_off, melexir_results_on) {
 		if (melexir_results_off?.radii) this.radii_off = melexir_results_off.radii;
-		if (melexir_results_off?.spectrum) this.spectrum_off = melexir_results_off.spectrum;
-		if (melexir_results_off?.residuals) this.residuals_off = melexir_results_off.residuals;
-		if (melexir_results_off?.best_fit) this.best_fit_off = melexir_results_off.best_fit;
+		if (melexir_results_off?.spectrum && this.save_spectrum) this.spectrum_off = melexir_results_off.spectrum;
+		if (melexir_results_off?.residuals && this.save_residuals) this.residuals_off = melexir_results_off.residuals;
+		if (melexir_results_off?.best_fit && this.save_best_fit) this.best_fit_off = melexir_results_off.best_fit;
 
 		if (melexir_results_on?.radii) this.radii_on = melexir_results_on.radii;
-		if (melexir_results_on?.spectrum) this.spectrum_on = melexir_results_on.spectrum;
-		if (melexir_results_on?.residuals) this.residuals_on = melexir_results_on.residuals;
-		if (melexir_results_on?.best_fit) this.best_fit_on = melexir_results_on.best_fit;
+		if (melexir_results_on?.spectrum && this.save_spectrum) this.spectrum_on = melexir_results_on.spectrum;
+		if (melexir_results_on?.residuals && this.save_residuals) this.residuals_on = melexir_results_on.residuals;
+		if (melexir_results_on?.best_fit && this.save_best_fit) this.best_fit_on = melexir_results_on.best_fit;
 	}
 
 	save_files() {
