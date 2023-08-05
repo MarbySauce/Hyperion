@@ -10,6 +10,7 @@ const { ManagerAlert } = require("./ManagerAlert.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");
 const { DetachmentLaserManagerMessenger } = require("./DetachmentLaserManager.js");
 const { ExcitationLaserManagerMessenger } = require("./ExcitationLaserManager.js");
+const { IPCMessages } = require("../../Messages.js");
 
 const update_messenger = new UpdateMessenger(); // Messenger used for displaying update or error messages to the Message Display
 const DLMMessenger = new DetachmentLaserManagerMessenger();
@@ -61,6 +62,11 @@ const ImageManager = {
 			bin_size: 100,
 		},
 		do_not_save_to_file: false,
+		camera: {
+			// Only used for saving single shots
+			width: 0,
+			height: 0,
+		},
 	},
 	info: {
 		vmi: {},
@@ -119,6 +125,13 @@ const ImageManager = {
 	set_id: (id) => ImageManager_set_id(id),
 
 	update_vmi: (vmi_info) => ImageManager_update_vmi(vmi_info),
+
+	single_shot: (ir_only) => {
+		ipc.once(IPCMessages.UPDATE.NEWFRAME, (event, centroid_results) => {
+			if (ir_only && !centroid_results.is_led_on) ImageManager.single_shot(ir_only); // Try again until we get IR image
+			else ImageManager_single_shot(centroid_results);
+		});
+	},
 
 	save_scan_information: () => ImageManager_save_scan_information(),
 	read_scan_information: () => ImageManager_read_scan_information(),
@@ -604,6 +617,61 @@ function ImageManager_update_vmi(vmi_info) {
 	IMAlerts.info_update.image.vmi_info.alert(info);
 }
 
+async function ImageManager_single_shot(centroid_results) {
+	const fs = require("fs");
+	const { access } = require("fs/promises");
+	const path = require("path");
+
+	let get_file_name = (id) => `single_shot_${id}.txt`;
+	let get_centroids_file_name = (id) => `single_shot_${id}_centroids.txt`;
+
+	let save_dir = ImageManager.info.save_directory;
+	let id = 1;
+	// Iterate through file names until we find a file that doesn't exist yet
+	while (true) {
+		let file_name = path.join(save_dir, get_file_name(id));
+		try {
+			await access(file_name);
+			// File exists. Increment id and continue
+			id++;
+		} catch {
+			// If we're here, that file does not exist, save there
+			let ss_string = convert_single_shot_to_string(centroid_results.image_buffer);
+			fs.writeFile(path.join(save_dir, get_file_name(id)), ss_string, (error) => {
+				if (error) console.log("Could not save single shot!", error);
+				else update_messenger.update(`Single shot saved to ${get_file_name(id)}!`);
+			});
+			let ssc_string = convert_single_shot_centroids_to_string(centroid_results);
+			fs.writeFile(path.join(save_dir, get_centroids_file_name(id)), ssc_string, (error) => {
+				if (error) console.log("Could not save single shot centroids!", error);
+			});
+			break;
+		}
+		if (id > 100) break; // So we aren't stuck in infinite loop
+	}
+
+	function convert_single_shot_to_string(buffer) {
+		// Image buffer is RGBA, we only want alpha values
+		let { width, height } = ImageManager.params.camera;
+		let alpha_index;
+		let ss_string = "";
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				alpha_index = 4 * (width * y + x) + 3;
+				ss_string += (255 - buffer[alpha_index]).toString() + " ";
+			}
+			ss_string += "\n";
+		}
+		return ss_string;
+	}
+	function convert_single_shot_centroids_to_string(centroid_results) {
+		let ssc_string = "";
+		ssc_string += `CoM Centroids \n${centroid_results.com_centers.map((row) => row.slice(0, 2).join(", ")).join("\n")} \n\n`;
+		ssc_string += `HGCM Centroids \n${centroid_results.hgcm_centers.map((row) => row.slice(0, 2).join(", ")).join("\n")}`;
+		return ssc_string;
+	}
+}
+
 function ImageManager_save_scan_information() {
 	// If in testing mode, don't save anything
 	if (ImageManager.params.do_not_save_to_file) {
@@ -684,6 +752,9 @@ function ImageManager_process_settings(settings) {
 		ImageManager.params.centroid.bin_size = settings.centroid.bin_size;
 		Image.bin_size = settings.centroid.bin_size;
 	}
+
+	if (settings?.camera?.width !== undefined) ImageManager.params.camera.width = settings.camera.width;
+	if (settings?.camera?.height !== undefined) ImageManager.params.camera.height = settings.camera.height;
 
 	if (settings?.testing?.do_not_save_to_file !== undefined) {
 		ImageManager.params.do_not_save_to_file = settings.testing.do_not_save_to_file;
@@ -959,9 +1030,13 @@ class IMMessengerRequest {
 		return this._scan;
 	}
 
-	//single_shot() {
-	//	ImageManager.single_shot();
-	//}
+	/**
+	 * Save next camera frame to file
+	 * @param {Boolean} ir_only if true, only take single shot of camera frame with IR LED on
+	 */
+	single_shot(ir_only) {
+		ImageManager.single_shot(ir_only);
+	}
 
 	/** @param {Boolean} save_to_file whether to save files after processing */
 	process_image(save_to_file) {

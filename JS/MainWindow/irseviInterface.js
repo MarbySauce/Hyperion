@@ -44,7 +44,7 @@ function IRSevi_Scan_Control() {
 		IMMessenger.request.scan.reset();
 	};
 	document.getElementById("IRSeviScanSingleShot").onclick = function () {
-		// Single shot
+		IMMessenger.request.single_shot();
 	};
 
 	document.getElementById("IRSeviImageSeries").oninput = function () {

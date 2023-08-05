@@ -46,8 +46,7 @@ function Sevi_Scan_Control() {
 		IMMessenger.request.scan.reset();
 	};
 	document.getElementById("SeviScanSingleShot").onclick = function () {
-		// Single shot
-		update_messenger.error("Single Shot Not Set Up!");
+		IMMessenger.request.single_shot();
 	};
 
 	document.getElementById("SeviImageSeries").oninput = function () {
