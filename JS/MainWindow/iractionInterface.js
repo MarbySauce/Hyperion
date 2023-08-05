@@ -758,9 +758,11 @@ function IRAction_Accumulated_Image_Display(PageInfo) {
 function IRAction_Counts() {
 	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
 	const { IRActionManagerMessenger } = require("./Libraries/IRActionManager");
+	const { AverageElectronManagerMessenger, Rolling20Frames } = require("./Libraries/AverageElectronManager.js");
 
 	const IRAMMessenger = new IRActionManagerMessenger();
 	const IMMessenger = new ImageManagerMessenger();
+	const EAMMessenger = new AverageElectronManagerMessenger();
 
 	/****
 			Image Manager Listeners
@@ -785,6 +787,12 @@ function IRAction_Counts() {
 	IRAMMessenger.listen.event.scan.stop.on(() => {
 		update_iraction_image_progress_bar();
 	});
+
+	/****
+			Average Electron Manager Listeners
+	****/
+
+	EAMMessenger.listen.info_update.rolling_20frames.on(update_iraction_average_counters);
 
 	/****
 			Functions
@@ -813,6 +821,16 @@ function IRAction_Counts() {
 		total_frames_on.value = counts.frames.on;
 		total_electrons_off.value = formatted_electrons_off;
 		total_electrons_on.value = formatted_electrons_on;
+	}
+
+	/**
+	 * @param {Rolling20Frames} r2f_results
+	 */
+	function update_iraction_average_counters(r2f_results) {
+		const avg_electrons_off = document.getElementById("IRActionAvgECount");
+		const avg_electrons_on = document.getElementById("IRActionAvgECountIROn");
+		avg_electrons_off.value = r2f_results.off.total.average.toFixed(2);
+		avg_electrons_on.value = r2f_results.on.total.average.toFixed(2);
 	}
 
 	function update_iraction_image_progress_bar(percent) {

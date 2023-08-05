@@ -610,7 +610,10 @@ function IRSevi_Accumulated_Image_Display(PageInfo) {
 function IRSevi_Counts() {
 	const { InputDelay } = require("./Libraries/InputDelay.js");
 	const { ImageManagerMessenger, AutostopMethod } = require("./Libraries/ImageManager.js");
+	const { AverageElectronManagerMessenger, Rolling20Frames } = require("./Libraries/AverageElectronManager.js");
+
 	const IMMessenger = new ImageManagerMessenger();
+	const EAMMessenger = new AverageElectronManagerMessenger();
 
 	/****
 			HTML Element Listeners
@@ -662,6 +665,12 @@ function IRSevi_Counts() {
 	});
 
 	/****
+			Average Electron Manager Listeners
+	****/
+
+	EAMMessenger.listen.info_update.rolling_20frames.on(update_irsevi_average_counters);
+
+	/****
 			Functions
 	****/
 
@@ -700,6 +709,16 @@ function IRSevi_Counts() {
 		total_frames_on.value = counts.frames.on;
 		total_electrons_off.value = formatted_electrons_off;
 		total_electrons_on.value = formatted_electrons_on;
+	}
+
+	/**
+	 * @param {Rolling20Frames} r2f_results
+	 */
+	function update_irsevi_average_counters(r2f_results) {
+		const avg_electrons_off = document.getElementById("IRSeviAvgECount");
+		const avg_electrons_on = document.getElementById("IRSeviAvgECountIROn");
+		avg_electrons_off.value = r2f_results.off.total.average.toFixed(2);
+		avg_electrons_on.value = r2f_results.on.total.average.toFixed(2);
 	}
 
 	function send_irsevi_autostop_value_update() {

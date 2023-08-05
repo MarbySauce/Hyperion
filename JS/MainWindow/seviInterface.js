@@ -419,7 +419,10 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 function Sevi_Counts() {
 	const { InputDelay } = require("./Libraries/InputDelay.js");
 	const { ImageManagerMessenger, AutostopMethod } = require("./Libraries/ImageManager.js");
+	const { AverageElectronManagerMessenger, Rolling20Frames } = require("./Libraries/AverageElectronManager.js");
+
 	const IMMessenger = new ImageManagerMessenger();
+	const EAMMessenger = new AverageElectronManagerMessenger();
 
 	/****
 			HTML Element Listeners
@@ -475,6 +478,12 @@ function Sevi_Counts() {
 	});
 
 	/****
+			Average Electron Manager Listeners
+	****/
+
+	EAMMessenger.listen.info_update.rolling_20frames.on(update_sevi_average_counters);
+
+	/****
 			Functions
 	****/
 
@@ -504,6 +513,14 @@ function Sevi_Counts() {
 
 		total_frames.value = counts.frames.total;
 		total_electrons.value = formatted_electrons;
+	}
+
+	/**
+	 * @param {Rolling20Frames} r2f_results
+	 */
+	function update_sevi_average_counters(r2f_results) {
+		const avg_electrons = document.getElementById("SeviAvgECount");
+		avg_electrons.value = r2f_results.total.total.average.toFixed(2);
 	}
 
 	function send_sevi_autostop_value_update() {

@@ -79,6 +79,9 @@ class WavemeterMeasurement {
 function average(array) {
 	// Calculating standard deviation as sqrt(<x^2> - <x>^2)
 	const len = array.length;
+	if (len === 0) {
+		return { average: 0, stdev: 0 };
+	}
 	let sum = 0; // Sum of elements in array
 	let sum2 = 0; // Sum of elements^2
 	for (let i = 0; i < len; i++) {
@@ -87,7 +90,7 @@ function average(array) {
 	}
 	const average = sum / len;
 	const stdev = Math.sqrt(sum2 / len - average ** 2);
-	return { average: average, stdev: stdev };
+	return { average, stdev };
 }
 
 /**
