@@ -16,6 +16,11 @@ function Sevi_Scan_Control() {
 
 	const update_messenger = new UpdateMessenger();
 	const IMMessenger = new ImageManagerMessenger();
+
+	/* Execute on initial page load */
+	if (IMMessenger.information.autosave.params.on) change_sevi_autosave_button_to_on();
+	else change_sevi_autosave_button_to_off();
+
 	/****
 			HTML Element Listeners
 	****/
@@ -33,7 +38,9 @@ function Sevi_Scan_Control() {
 		IMMessenger.request.scan.cancel();
 	};
 	document.getElementById("SeviScanAutosave").onclick = function () {
-		//autosave_button();
+		// Toggle autosave
+		let autosave_on = IMMessenger.information.autosave.params.on;
+		IMMessenger.update.autosave({ on: !autosave_on });
 	};
 	document.getElementById("SeviScanReset").onclick = function () {
 		IMMessenger.request.scan.reset();
@@ -85,6 +92,11 @@ function Sevi_Scan_Control() {
 		remove_scan_running_from_sevi_controls();
 	});
 
+	IMMessenger.listen.info_update.autosave.params.on((autosave_params) => {
+		if (autosave_params.on) change_sevi_autosave_button_to_on();
+		else change_sevi_autosave_button_to_off();
+	});
+
 	IMMessenger.listen.info_update.image_series.length.on((collection_length) => {
 		document.getElementById("SeviImageSeries").selectedIndex = collection_length - 1;
 	});
@@ -120,6 +132,18 @@ function Sevi_Scan_Control() {
 	function change_sevi_button_to_resume() {
 		const pause_button_text = document.getElementById("SeviScanPauseResumeText");
 		pause_button_text.innerText = "Resume";
+	}
+
+	// Change autosave button to On
+	function change_sevi_autosave_button_to_on() {
+		const autosave_button_text = document.getElementById("SeviScanAutosaveStatusText");
+		autosave_button_text.innerText = "On";
+	}
+
+	// Change autosave button to Off
+	function change_sevi_autosave_button_to_off() {
+		const autosave_button_text = document.getElementById("SeviScanAutosaveStatusText");
+		autosave_button_text.innerText = "Off";
 	}
 
 	// Add "scan-running" class to controls section (used for image series collection)

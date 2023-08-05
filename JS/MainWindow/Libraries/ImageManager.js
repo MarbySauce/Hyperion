@@ -66,6 +66,13 @@ const ImageManager = {
 		vmi: {},
 		save_directory: "",
 	},
+	autosave: {
+		on: false, // whether to autosave image to file while collecting
+		delay: 2000, // # of camera frames between autosaves (camera frames come in at 20Hz)
+		counter: 0,
+		check: () => ImageManager_autosave_check(),
+		update_info: (autosave_params) => ImageManager_autosave_update_info(autosave_params),
+	},
 	autostop: {
 		method: AutostopMethod.NONE,
 		value: {
@@ -135,6 +142,8 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, (event, centroid_results) => {
 	IMAlerts.info_update.image.counts.alert(ImageManager.current_image.counts);
 	// Check if autostop condition has been met
 	ImageManager.autostop.check();
+	// Check if image should be autosaved
+	ImageManager.autosave.check();
 });
 
 /****
@@ -160,6 +169,35 @@ ELMMessenger.listen.info_update.measurement.on((measurement) => {
 /****
 		Functions
 ****/
+
+/* Autosaving images */
+
+function ImageManager_autosave_check() {
+	if (!ImageManager.autosave.on) return; // Autosave is turned off
+	if (ImageManager.status === IMState.RUNNING) {
+		if (ImageManager.autosave.counter >= ImageManager.autosave.delay) {
+			ImageManager.current_image.save_image();
+			ImageManager.autosave.counter = 0;
+		} else {
+			ImageManager.autosave.counter++;
+		}
+	} else if (ImageManager.status === IMState.STOPPED) {
+		ImageManager.autosave.counter = 0;
+	}
+}
+
+function ImageManager_autosave_update_info(autosave_params) {
+	if (autosave_params?.on !== undefined) {
+		ImageManager.autosave.on = autosave_params.on;
+		if (settings?.autosave) settings.autosave.on = ImageManager.autosave.on;
+	}
+	if (autosave_params?.delay) {
+		ImageManager.autosave.delay = autosave_params.delay;
+		if (settings?.autosave) settings.autosave.delay = ImageManager.autosave.delay;
+	}
+	// Alert settings were updated
+	IMAlerts.info_update.autosave.params.alert({ on: ImageManager.autosave.on, delay: ImageManager.autosave.delay });
+}
 
 /* Automatic image stop */
 
@@ -228,7 +266,7 @@ function ImageManager_autostop_update_info(autostop_params) {
 	// If only updating the method, autostop_params.value should be undefined
 	// If only updating the value, autostop_params.method should be undefined
 	// If updating both, neither .value or .method should be undefined
-	if (autostop_params.method && autostop_params.value) {
+	if (autostop_params?.method && autostop_params?.value) {
 		// Update both
 		ImageManager.autostop.method = autostop_params.method;
 		if (autostop_params.method === AutostopMethod.ELECTRONS) {
@@ -236,10 +274,10 @@ function ImageManager_autostop_update_info(autostop_params) {
 		} else if (autostop_params.method === AutostopMethod.FRAMES) {
 			ImageManager.autostop.value.frames = autostop_params.value;
 		}
-	} else if (autostop_params.method) {
+	} else if (autostop_params?.method) {
 		// Only update method
 		ImageManager.autostop.method = autostop_params.method;
-	} else if (autostop_params.value) {
+	} else if (autostop_params?.value) {
 		// Only update value
 		if (ImageManager.autostop.method === AutostopMethod.ELECTRONS) {
 			ImageManager.autostop.value.electrons = autostop_params.value;
@@ -657,6 +695,8 @@ function ImageManager_process_settings(settings) {
 		Image.save_directory = settings.save_directory.full_dir;
 	}
 
+	if (settings?.autosave) ImageManager.autosave.update_info(settings.autosave);
+
 	if (settings?.melexir?.process_on_save !== undefined) ImageManager.melexir.params.process_on_save = settings.melexir.process_on_save;
 	if (settings?.melexir?.save_spectrum !== undefined) ImageManager.melexir.params.save_spectrum = settings.melexir.save_spectrum;
 	if (settings?.melexir?.save_best_fit !== undefined) ImageManager.melexir.params.save_best_fit = settings.melexir.save_best_fit;
@@ -696,6 +736,9 @@ const IMAlerts = {
 			vmi_info: new ManagerAlert(),
 		},
 		contrast: new ManagerAlert(),
+		autosave: {
+			params: new ManagerAlert(),
+		},
 		autostop: {
 			params: new ManagerAlert(),
 			progress: new ManagerAlert(),
@@ -772,9 +815,7 @@ class IMMessengerInformation {
 		};
 
 		this._autostop = {
-			/** Get image automatic stop parameters
-			 * @returns `{ method: {AutostopMethod}, value: {number} }`
-			 */
+			/** Image automatic stop parameters */
 			get params() {
 				let autostop_params = {
 					method: ImageManager.autostop.method,
@@ -787,13 +828,20 @@ class IMMessengerInformation {
 				}
 				return autostop_params;
 			},
-			/** Get image automatic stop progress as number between 0 - 100 */
+			/** Image automatic stop progress as number between 0 - 100 */
 			get progress() {
 				return ImageManager.autostop.progress;
 			},
 			/** Whether the autostop functionality is currently in use */
 			get in_use() {
 				return ImageManager.autostop.use_autostop;
+			},
+		};
+
+		this._autosave = {
+			/** Image autosave parameters */
+			get params() {
+				return { on: ImageManager.autosave.on, delay: ImageManager.autosave.delay };
 			},
 		};
 	}
@@ -814,6 +862,10 @@ class IMMessengerInformation {
 
 	get autostop() {
 		return this._autostop;
+	}
+
+	get autosave() {
+		return this._autosave;
 	}
 
 	/** Get a safe copy of the current image (note: accumulated image is not copied) */
@@ -981,10 +1033,18 @@ class IMMessengerUpdate {
 
 	/**
 	 * Update autostop parameters
-	 * @param {Object} autostop_params { method: {AutostopMethod}, value: {number} } - at least 1 property has to be defined
+	 * @param {Object} autostop_params { method: {AutostopMethod}, value: {Number} } - at least 1 property has to be defined
 	 */
 	autostop(autostop_params) {
 		ImageManager.autostop.update_info(autostop_params);
+	}
+
+	/**
+	 * Update autosave parameters
+	 * @param {Object} autosave_params { on: {Boolean}, delay: {Number} } - at least 1 property has to be defined
+	 */
+	autosave(autosave_params) {
+		ImageManager.autosave.update_info(autosave_params);
 	}
 
 	/**
@@ -1270,6 +1330,23 @@ class IMMessengerCallbackInfoUpdate {
 			},
 		};
 
+		this._autosave = {
+			_params: {
+				/** Callback called with argument `autosave_params {Object: { on: {Boolean}, delay: {Number} }}` */
+				on: (callback) => {
+					IMAlerts.info_update.autosave.params.add_on(callback);
+				},
+				/** Callback called with argument `autosave_params {Object: { on: {Boolean}, delay: {Number} }}` */
+				once: (callback) => {
+					IMAlerts.info_update.autosave.params.add_once(callback);
+				},
+			},
+
+			get params() {
+				return this._params;
+			},
+		};
+
 		this._autostop = {
 			_params: {
 				/** Callback called with argument `autostop_params {Object: { method: {AutostopMethod}, value: {Number} }}` */
@@ -1337,6 +1414,10 @@ class IMMessengerCallbackInfoUpdate {
 
 	get image_contrast() {
 		return this._image_contrast;
+	}
+
+	get autosave() {
+		return this._autosave;
 	}
 
 	get autostop() {

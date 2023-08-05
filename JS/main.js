@@ -16,6 +16,10 @@ let lv_window_loaded = false;
 const settings = {
 	file_name: path.join(".", "Settings", "Settings.JSON"),
 	information: {
+		autosave: {
+			on: false,
+			delay: 2000 /* # of camera frames */,
+		},
 		autostop: {
 			both_images: true,
 		},
@@ -72,7 +76,6 @@ const settings = {
 			day_dir: "",
 			full_dir: "",
 			full_dir_short: "",
-			autosave: false,
 		},
 		melexir: {
 			process_on_save: false,
