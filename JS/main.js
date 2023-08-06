@@ -219,11 +219,34 @@ function create_main_window() {
 				},
 			],
 		},
+		{
+			label: "Dev Tools",
+			submenu: [
+				{
+					label: "Open Main Window Dev Tools",
+					click() {
+						if (main_window?.webContents) main_window.webContents.openDevTools();
+					},
+				},
+				{
+					label: "Open Live View Window Dev Tools",
+					click() {
+						if (live_view_window?.webContents) live_view_window.webContents.openDevTools();
+					},
+				},
+				{
+					label: "Open Invisible Window Dev Tools",
+					click() {
+						if (invisible_window?.webContents) invisible_window.webContents.openDevTools();
+					},
+				},
+			],
+		},
 	]);
-	//Menu.setApplicationMenu(menu);
+	Menu.setApplicationMenu(menu);
 
 	win.loadFile("HTML/mainWindow2.html");
-	win.webContents.openDevTools();
+	//win.webContents.openDevTools();
 
 	return win;
 }
