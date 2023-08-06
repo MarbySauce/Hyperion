@@ -949,6 +949,11 @@ class IMMessengerInformation {
 		return ImageManager.all_images.map((image) => image.copy());
 	}
 
+	/** Get a ScanInfo copy of all images stored in Image Manager */
+	get all_image_info() {
+		return ImageManager.all_images.map((image) => image.scan_information);
+	}
+
 	/**
 	 * Get the accumulated image (for displaying on canvas elements)
 	 * @param {ImageType} which_image Which accumulated image to return

@@ -2,13 +2,13 @@
 	display: none; /* Set to none so that it looks cleaner on startup */
 }
 
-#SeviFirstPage {
+#SeviModeFirstPage {
 	padding: 10px 20px 0 20px;
 	grid-gap: 20px;
 }
-#SeviSecondPage {
+#SeviModeSecondPage {
 	display: none;
-	padding: 0 20px 30px 20px;
+	padding: 0 20px 15px 20px;
 	grid-gap: 20px;
 }
 
@@ -130,27 +130,29 @@ Right Side
 }
 
 /* Sevi Mode - Second Page - Recent Scans */
-#SeviRecentScans {
+.recent-scans {
 	padding: 0 25px 5px 25px;
 }
-#SeviRecentScansHeader {
+.recent-scans-header {
+	padding: 5px;
 	padding-bottom: 10px;
 	z-index: 5;
 	border-bottom: black;
 }
-#SeviRecentScans h4 {
+.recent-scans h4 {
 	text-align: center;
 	align-self: end;
 	font-size: 1.3vw;
 }
-#SeviRecentScansSection {
-	max-height: 375px;
-	padding-top: 5px;
+.recent-scans-section {
+	max-height: 390px;
+	padding: 5px;
+	padding-bottom: 0;
 	border: 2px solid rgb(62, 71, 95);
 }
-#SeviRecentScans p {
+.recent-scans p {
 	text-align: center;
-	font-size: 1.3vw;
+	font-size: 1.4vw;
 	padding-top: 7px;
 	height: 100%;
 	border-bottom: 1px dotted rgb(62, 71, 95);

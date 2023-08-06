@@ -22,15 +22,20 @@ const Messenger = {
 			Messenger.message_display.innerText = this_msg.msg;
 			// Also send message to console
 			console.log(`%c${this_msg.type.name}: %c${this_msg.msg}`, `color:${this_msg.color}`, "color:auto");
-			if (Messenger.messages.length > 4) {
-				await sleep(Messenger.display_speeds.fast); // Show message for 1 second
-			} else {
-				await sleep(Messenger.display_speeds.slow); // Show message for 2 seconds
-			}
+			await sleep(Messenger.get_display_speed());
 			Messenger.message_display.innerText = "";
-			await sleep(100);
+			await sleep(50);
 		}
 		Messenger.going_through_msgs = false;
+	},
+	/** @returns {Number} ms, amount of time message is displayed for in milliseconds */
+	get_display_speed: () => {
+		let length = Messenger.messages.length;
+		if (length > 15) return 100; // Hyper speed
+		else if (length > 6) return 500; // Very fast
+		else if (length > 4) return 1000; // Fast
+		else if (length > 2) return 1500; // Medium
+		else return 2000; // Slow
 	},
 };
 

@@ -13,6 +13,8 @@ class Tabs {
 	constructor(tab) {
 		this.tab = tab;
 		this.content = tab + "Content";
+		this.first_page = tab + "FirstPage";
+		this.second_page = tab + "SecondPage";
 	}
 }
 

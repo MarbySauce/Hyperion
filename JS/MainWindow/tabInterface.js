@@ -42,7 +42,9 @@ function Tab_Control() {
 	};
 }
 
-// Changing tabs
+/** Change the tab
+ * @param {Tabs} tab
+ */
 function change_tab(tab) {
 	// Add functionality for tab switching
 	if (tab === PageInfo.current_tab) return; // Already on that tab, no need to do anything
@@ -56,9 +58,14 @@ function change_tab(tab) {
 	// Activate selected tab and show content
 	let new_tab = document.getElementById(tab.tab);
 	let new_page = document.getElementById(tab.content);
-
 	if (new_tab) new_tab.classList.add("pressed-tab");
 	if (new_page) new_page.style.display = "grid";
+
+	// Make sure it's on the first page
+	let new_tab_first_page = document.getElementById(tab.first_page);
+	let new_tab_second_page = document.getElementById(tab.second_page);
+	if (new_tab_second_page) new_tab_second_page.style.display = "none";
+	if (new_tab_first_page) new_tab_first_page.style.display = "grid";
 
 	PageInfo.current_tab = tab;
 }

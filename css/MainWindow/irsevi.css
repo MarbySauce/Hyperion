@@ -2,11 +2,11 @@
 	display: none; /* Set to none so that it looks cleaner on startup */
 }
 
-#IRSeviFirstPage {
+#IRSeviModeFirstPage {
 	padding: 10px 20px 0 20px;
 	grid-gap: 20px;
 }
-#IRSeviSecondPage {
+#IRSeviModeSecondPage {
 	display: none;
 	padding: 0 20px 30px 20px;
 	grid-gap: 20px;

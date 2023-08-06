@@ -47,7 +47,7 @@
 }
 
 /* First Page */
-#IRActionFirstPage {
+#IRActionModeFirstPage {
 	padding: 10px 20px 0 20px;
 	grid-gap: 20px;
 }
@@ -150,7 +150,7 @@
 } */
 
 /* Second Page */
-#IRActionSecondPage {
+#IRActionModeSecondPage {
 	display: none;
 	padding: 0 20px 30px 20px;
 	grid-gap: 20px;

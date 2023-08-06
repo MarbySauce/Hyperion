@@ -8,7 +8,7 @@
 
 /* IR Sevi rows total 10fr + 30px */
 
-#IRActionFirstPage {
+#IRActionModeFirstPage {
 	grid-template-columns: 1fr 1fr;
 	grid-template-rows: 1fr 2fr 3.5fr 0.5fr 3fr 30px;
 	grid-template-areas:

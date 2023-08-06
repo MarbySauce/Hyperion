@@ -10,7 +10,7 @@
 
 /* IR-Sevi Mode - First Page */
 
-#IRSeviFirstPage {
+#IRSeviModeFirstPage {
 	grid-template-columns: 1fr 1fr;
 	grid-template-rows: 1fr 2fr 3fr 1fr 3fr 30px;
 	grid-template-areas:
@@ -346,7 +346,7 @@
 
 /* IR-Sevi Mode - Second Page */
 
-#IRSeviSecondPage {
+#IRSeviModeSecondPage {
 	grid-template-rows: 30px 7fr 8fr;
 	grid-template-columns: 1fr 1fr;
 	grid-template-areas:
