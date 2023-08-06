@@ -320,9 +320,6 @@ label {
 }
 /* Image Progress Bar */
 .progress-bar-background {
-	padding: 10px 0;
-	width: 100%;
-	height: 100%;
 	grid-gap: 10px;
 }
 .progress-bar-outer {

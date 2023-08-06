@@ -4,6 +4,14 @@
 
 **************************************************/
 
+/*************************************************************************************************
+
+								*****************************
+								*  IR-SEVI MODE FIRST PAGE	*
+								*****************************
+
+*************************************************************************************************/
+
 /*****************************************************************************
 
 							SCAN CONTROL
@@ -794,6 +802,211 @@ function IRSevi_Counts() {
 
 *****************************************************************************/
 
+function IRSevi_Change_Pages() {
+	const { Tabs } = require("./Libraries/Tabs.js");
+
+	/****
+			HTML Element Listeners
+	****/
+
+	document.getElementById("IRSeviPageDown").onclick = function () {
+		load_irsevi_second_page();
+	};
+
+	document.getElementById("IRSeviPageUp").onclick = function () {
+		load_irsevi_first_page();
+	};
+
+	function load_irsevi_first_page() {
+		const first_page = document.getElementById(Tabs.IRSEVI.first_page);
+		const second_page = document.getElementById(Tabs.IRSEVI.second_page);
+		// Hide second page and show first page
+		second_page.style.display = "none";
+		first_page.style.display = "grid";
+	}
+
+	function load_irsevi_second_page() {
+		const first_page = document.getElementById(Tabs.IRSEVI.first_page);
+		const second_page = document.getElementById(Tabs.IRSEVI.second_page);
+		// Hide first page and show second page
+		first_page.style.display = "none";
+		second_page.style.display = "grid";
+	}
+}
+
+/*************************************************************************************************
+
+								*****************************
+								* IR-SEVI MODE SECOND PAGE	*
+								*****************************
+
+*************************************************************************************************/
+
+/*****************************************************************************
+
+					PHOTOELECTRON SPECTRUM DISPLAY
+
+*****************************************************************************/
+
+/*****************************************************************************
+
+							RECENT SCANS
+
+*****************************************************************************/
+
+function IRSevi_Recent_Scans() {
+	const { SafeIRImage, SafeImage } = require("./Libraries/ImageClasses.js");
+	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const IMMessenger = new ImageManagerMessenger();
+
+	/****
+			Image Manager Listeners
+	****/
+
+	IMMessenger.listen.event.scan.stop.on(() => {
+		// Clear display
+		clear_irsevi_recent_scan_display();
+		// Get all images from Image Manager and put scan information on the display
+		let all_images = IMMessenger.information.all_images;
+		for (image of all_images) {
+			if (image.is_ir) {
+				show_irsevi_ir_scan_info(image);
+			} else {
+				show_irsevi_scan_info(image);
+			}
+		}
+	});
+
+	/****
+			Functions
+	****/
+
+	function clear_irsevi_recent_scan_display() {
+		const recent_scans = document.getElementById("IRSeviRecentScansSection");
+		const display_length = recent_scans.children.length;
+		for (let i = 0; i < display_length; i++) {
+			// Remove the first child from section
+			recent_scans.removeChild(recent_scans.children[0]);
+		}
+	}
+
+	/**
+	 * @param {SafeImage | SafeIRImage} image_class
+	 */
+	function show_irsevi_scan_info(image_class) {
+		const recent_scans = document.getElementById("IRSeviRecentScansSection");
+
+		// To add: Image ID, Detachment (converted) wavelength, Detachment (converted) wavenumber, Frame count, Electron count
+		const vals_to_add = [];
+		vals_to_add.push(`i${image_class.id_str}`); // Image ID
+		// Converted detachment wavelength
+		let wavelength = image_class.detachment_wavelength.energy.wavelength;
+		if (wavelength > 0) wavelength = `${wavelength.toFixed(3)} nm`;
+		else wavelength = ""; // Don't show wavelength if not stored
+		vals_to_add.push(wavelength);
+		// Converted detachment wavenumber
+		let wavenumber = image_class.detachment_wavelength.energy.wavenumber;
+		if (wavenumber > 0) wavenumber = `${wavenumber.toFixed(3)} cm-1`;
+		else wavenumber = ""; // Don't show wavenumber if not stored
+		vals_to_add.push(wavenumber);
+		// Frame count
+		let frame_count = image_class.counts.frames.total;
+		if (frame_count > 1000) frame_count = `${(frame_count / 1000).toFixed(1)}k`;
+		vals_to_add.push(frame_count);
+		// Electron count
+		let electron_count = image.counts.electrons.total;
+		if (electron_count > 1e4) electron_count = electron_count.toExponential(2);
+		vals_to_add.push(electron_count);
+
+		// Add information to recent scans section as <p> elements
+		let tag;
+		for (let i = 0; i < vals_to_add.length; i++) {
+			tag = document.createElement("p");
+			tag.style.borderBottom = "1px solid lightsteelblue";
+			text_node = document.createTextNode(vals_to_add[i]);
+			tag.appendChild(text_node);
+			recent_scans.appendChild(tag);
+		}
+	}
+
+	function show_irsevi_ir_scan_info(image_class) {
+		const recent_scans = document.getElementById("IRSeviRecentScansSection");
+
+		// To add: Image ID, Detachment (converted) wavelength, Detachment (converted) wavenumber, Frame (off) count, Electron (off) count
+		const vals_to_add = [];
+		vals_to_add.push(`i${image_class.id_str}`); // Image ID
+		// Converted detachment wavelength
+		let wavelength = image_class.detachment_wavelength.energy.wavelength;
+		if (wavelength > 0) wavelength = `${wavelength.toFixed(3)} nm`;
+		else wavelength = ""; // Don't show wavelength if not stored
+		vals_to_add.push(wavelength);
+		// Converted detachment wavenumber
+		let wavenumber = image_class.detachment_wavelength.energy.wavenumber;
+		if (wavenumber > 0) wavenumber = `${wavenumber.toFixed(3)} cm-1`;
+		else wavenumber = ""; // Don't show wavenumber if not stored
+		vals_to_add.push(wavenumber);
+		// Frame (IR off) count
+		let frame_count = image_class.counts.frames.off;
+		if (frame_count > 1000) frame_count = `${(frame_count / 1000).toFixed(1)}k`;
+		vals_to_add.push(frame_count);
+		// Electron (IR off) count
+		let electron_count = image.counts.electrons.off;
+		if (electron_count > 1e4) electron_count = electron_count.toExponential(2);
+		vals_to_add.push(electron_count);
+
+		// To add: (blank), Excitation (nIR) wavelength, Excitation (converted) wavenumber, Frame (on) count, Electron (on) count
+		const ir_vals_to_add = [];
+		ir_vals_to_add.push("");
+		// Excitation (nIR) wavelength
+		wavelength = image_class.excitation_wavelength.nIR.wavelength;
+		if (wavelength > 0) wavelength = `${wavelength.toFixed(3)} nm`;
+		else wavelength = ""; // Don't show wavelength if not stored
+		ir_vals_to_add.push(wavelength);
+		// Excitation (converted) wavenumber
+		wavenumber = image_class.excitation_wavelength.energy.wavenumber;
+		if (wavenumber > 0) wavenumber = `${wavenumber.toFixed(3)} cm-1`;
+		else wavenumber = ""; // Don't show wavenumber if not stored
+		ir_vals_to_add.push(wavenumber);
+		// Frame (IR on) count
+		frame_count = image_class.counts.frames.on;
+		if (frame_count > 1000) frame_count = `${(frame_count / 1000).toFixed(1)}k`;
+		ir_vals_to_add.push(frame_count);
+		// Electron (IR on) count
+		electron_count = image.counts.electrons.on;
+		if (electron_count > 1e4) electron_count = electron_count.toExponential(2);
+		ir_vals_to_add.push(electron_count);
+
+		// Add information to recent scans section as <p> elements
+		let tag;
+		for (let i = 0; i < vals_to_add.length; i++) {
+			tag = document.createElement("p");
+			text_node = document.createTextNode(vals_to_add[i]);
+			tag.appendChild(text_node);
+			recent_scans.appendChild(tag);
+		}
+		// Add information to recent scans section as <p> elements
+		for (let i = 0; i < ir_vals_to_add.length; i++) {
+			tag = document.createElement("p");
+			tag.style.borderBottom = "1px solid lightsteelblue";
+			text_node = document.createTextNode(ir_vals_to_add[i]);
+			tag.appendChild(text_node);
+			recent_scans.appendChild(tag);
+		}
+	}
+}
+
+/*****************************************************************************
+
+						LASER ENERGY CONVERSION
+
+*****************************************************************************/
+
+/*****************************************************************************
+
+							PAGE LOADING
+
+*****************************************************************************/
+
 function IRSevi_Load_Page(PageInfo) {
 	const { Tabs } = require("./Libraries/Tabs.js");
 	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
@@ -846,6 +1059,17 @@ function IRSevi_Load_Page(PageInfo) {
 		IRSevi_Counts();
 	} catch (error) {
 		console.log("Cannot load IR-SEVI tab Electron/Frame Counts module:", error);
+	}
+	try {
+		IRSevi_Change_Pages();
+	} catch (error) {
+		console.log("Cannot load IR-SEVI tab page up/down buttons:", error);
+	}
+	/*		Second Page		*/
+	try {
+		IRSevi_Recent_Scans();
+	} catch (error) {
+		console.log("Cannot load IR-SEVI tab Recent Scans module:", error);
 	}
 }
 
