@@ -27,6 +27,18 @@ HIDS hCam = 0;
 */ 
 
 
+// Whether to use the hybrid centroiding method
+// @param {Boolean}
+Napi::Boolean UseHybridMethod(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env();
+
+	if (info[0].IsBoolean()) {
+		img.UseHybridMethod = info[0].ToBoolean();
+	}
+
+	return Napi::Boolean::New(env, img.UseHybridMethod);
+}
+
 
 // Create a WinAPI window to receive windows messages 
 // (e.g. frame event from camera)
@@ -698,6 +710,7 @@ Napi::Value InitBuffer(const Napi::CallbackInfo& info) {
 // Set up module to export functions to JavaScript
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	// Fill exports object with addon functions
+	exports["useHybridMethod"] = Napi::Function::New(env, UseHybridMethod);
 	exports["createWinAPIWindow"] = Napi::Function::New(env, CreateWinAPIWindow);
 	exports["connect"] = Napi::Function::New(env, Connect);
 	exports["getInfo"] = Napi::Function::New(env, GetInfo);

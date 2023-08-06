@@ -17,6 +17,13 @@ int repCount = 0; 						// Keep track of # of repetitions
 int simulationCount = 0;				// With above, used to check for skipped frames
 bool isIROn = false;					// Add in ability to make "IR On" images different
 bool useLED = true;						// Whether to add in intensity to simulate IR LED
+int baseNumberOfSpots = 55;				// Base number of electron spots to add to simulated image
+int numberOfSpotsVariation = 10;		// Variation of the number of electron spots
+std::vector<float> IROffRadii = {50, 90, 170, 300};
+std::vector<float> IROffWeights = {2, 4, 3, 1};
+std::vector<float> IROnRadii = {50, 90, 120, 170, 300};
+std::vector<float> IROnWeights = {2, 3, 2, 2, 1};
+
 
 // Constants
 float const pi = 3.14159265358979;
@@ -42,10 +49,10 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 	srand(randSeed); // Setting up random number generator
 
 	// Simulated values
-	int numberOfSpots = (rand() % 10) + 55;
+	int numberOfSpots = (rand() % numberOfSpotsVariation) + baseNumberOfSpots;
 	//std::vector<float> Radii = {30, 50, 90, 120, 170};
-	std::vector<float> Radii = {50, 90, 170, 300};
-	std::vector<float> PeakHeights = {2, 4, 3, 1}; // Sum = 10 
+	std::vector<float> Radii = IROffRadii;
+	std::vector<float> PeakWeights = IROffWeights;
 
 	// First clear the image (i.e. fill with 0's)
 	// 		(Unnecessary if adding noise)
@@ -76,27 +83,30 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 
 	if (isIROn) {
 		isIROn = false;
-		Radii = {50, 90, 120, 170, 300}; 
-		PeakHeights = {2, 3, 2, 2, 1}; // Sum = 10
+		Radii = IROnRadii; 
+		PeakWeights = IROnWeights;
 		//return;
 	} else {
 		isIROn = true;
 	}
 
-	int PeakHeightSum = 0;
-	for (int i = 0; i < PeakHeights.size(); i++) {
-		PeakHeightSum += PeakHeights[i];
+	int PeakWeightSum = 0;
+	for (int i = 0; i < PeakWeights.size(); i++) {
+		PeakWeightSum += PeakWeights[i];
 	}
 
 	// Add spots
 	int spotNumber = 0;
 	while (spotNumber < numberOfSpots)
 	{
-		int radiusIndex = rand() % Radii.size();
-		float radius = Radii[radiusIndex];
-		if (((rand() % 1000) / 1000.0) > (PeakHeights[radiusIndex] / PeakHeightSum)) {
-			continue;
+		int radiusProbability = (rand() % (1000*PeakWeightSum-1)) / 1000;
+		int radiusIndex = -1;
+		int weightSum = 0;
+		while (radiusProbability >= weightSum) {
+			radiusIndex++;
+			weightSum += PeakWeights[radiusIndex];
 		}
+		float radius = Radii[radiusIndex];
 		
 		// Using the physics def. of spherical coords
 		float phi = 2 * pi * ((rand() % 1000) / 1000.0);		 // (0,2pi)
@@ -129,11 +139,100 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 	}
 }
 
+//
+// Napi functions for just Mac
+//
+
+Napi::Number SetBaseNumberOfSpots(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	if (info[0].IsNumber()) {
+		baseNumberOfSpots = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
+	}
+
+	return Napi::Number::New(env, baseNumberOfSpots);
+}
+
+Napi::Number SetNumberOfSpotsVariation(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	if (info[0].IsNumber()) {
+		numberOfSpotsVariation = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
+	}
+	
+	return Napi::Number::New(env, numberOfSpotsVariation);
+}
+
+Napi::Boolean SetIROffRadii(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	if (info[0].IsArray() && info[1].IsArray()) {
+		Napi::Array napiRadii = info[0].As<Napi::Array>();
+		Napi::Array napiWeights = info[1].As<Napi::Array>();
+		int napiRadiiLength = (int)napiRadii.Length();
+		int napiWeightsLength = (int)napiWeights.Length();
+		if (napiRadiiLength == napiWeightsLength) {
+			// Convert them into vectors
+			std::vector<float> radii, weights;
+			for (int i = 0; i < napiRadiiLength; i++) {
+				float radius = (float)napiRadii.Get(Napi::Number::New(env, i)).ToNumber().FloatValue();
+				float weight = (float)napiWeights.Get(Napi::Number::New(env, i)).ToNumber().FloatValue();
+				radii.push_back(radius);
+				weights.push_back(weight);
+				printf("%f, %f", radius, weight);
+			}
+			IROffRadii = radii;
+			IROffWeights = weights;
+			return Napi::Boolean::New(env, true);
+		}
+	}
+
+	return Napi::Boolean::New(env, false);
+}
+
+Napi::Boolean SetIROnRadii(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	if (info[0].IsArray() && info[1].IsArray()) {
+		Napi::Array napiRadii = info[0].As<Napi::Array>();
+		Napi::Array napiWeights = info[1].As<Napi::Array>();
+		int napiRadiiLength = (int)napiRadii.Length();
+		int napiWeightsLength = (int)napiWeights.Length();
+		if (napiRadiiLength == napiWeightsLength) {
+			// Convert them into vectors
+			std::vector<float> radii, weights;
+			for (int i = 0; i < napiRadiiLength; i++) {
+				float radius = (float)napiRadii.Get(Napi::Number::New(env, i)).ToNumber().FloatValue();
+				float weight = (float)napiWeights.Get(Napi::Number::New(env, i)).ToNumber().FloatValue();
+				radii.push_back(radius);
+				weights.push_back(weight);
+				printf("%f, %f", radius, weight);
+			}
+			IROnRadii = radii;
+			IROnWeights = weights;
+			return Napi::Boolean::New(env, true);
+		}
+	}
+
+	return Napi::Boolean::New(env, false);
+}
 
 
 //
 // Napi functions
 //
+
+// Whether to use the hybrid centroiding method
+// @param {Boolean}
+Napi::Boolean UseHybridMethod(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	if (info[0].IsBoolean()) {
+		img.UseHybridMethod = info[0].ToBoolean();
+	}
+
+	return Napi::Boolean::New(env, img.UseHybridMethod);
+}
 
 // Pretend to create a WinAPI window to receive windows messages 
 // Returns true
@@ -534,6 +633,7 @@ Napi::Value InitBuffer(const Napi::CallbackInfo& info) {
 // Set up module to export to JavaScript
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	// Fill exports object with addon functions
+	exports["useHybridMethod"] = Napi::Function::New(env, UseHybridMethod);
 	exports["createWinAPIWindow"] = Napi::Function::New(env, CreateWinAPIWindow);
 	exports["connect"] = Napi::Function::New(env, Connect);
 	exports["getInfo"] = Napi::Function::New(env, GetInfo);
@@ -546,6 +646,12 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	exports["close"] = Napi::Function::New(env, Close);
 	exports["initEmitter"] = Napi::Function::New(env, InitEmitter);
 	exports["initBuffer"] = Napi::Function::New(env, InitBuffer);
+
+	// Only usable on Mac
+	exports["setBaseNumberOfSpots"] = Napi::Function::New(env, SetBaseNumberOfSpots);
+	exports["setNumberOfSpotsVariation"] = Napi::Function::New(env, SetNumberOfSpotsVariation);
+	exports["setIROffRadii"] = Napi::Function::New(env, SetIROffRadii);
+	exports["setIROnRadii"] = Napi::Function::New(env, SetIROnRadii);
 
 	return exports;
 }
