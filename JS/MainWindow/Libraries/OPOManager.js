@@ -90,6 +90,11 @@ const OPOManager = {
 	 * Get the nIR wavelength recorded by the OPO
 	 */
 	get_wavelength: () => {
+		if (!OPOManager.network.connected) {
+			// OPO not connected, send alert of 0
+			OPOMAlerts.info_update.wavelength.alert(0);
+			return;
+		}
 		OPOManager.network.client.write(OPOManager.network.command.get_wavelength, () => {});
 	},
 	/**
@@ -111,9 +116,16 @@ const OPOManager = {
 	 * @param {number} nir_wavelength nIR wavelength (nm)
 	 */
 	goto_nir: async (nir_wavelength) => {
+		if (!OPOManager.network.connected) {
+			// OPO is not connected
+			update_messenger.error(`Cannot go to requested nIR wavelength, OPO is not connected!`);
+			return;
+		}
 		if (nir_wavelength < OPOManager.params.lower_wavelength_bound || nir_wavelength > OPOManager.params.upper_wavelength_bound) {
 			update_messenger.error(
-				`nIR Wavelength ${nir_wavelength} is out of set bounds of ${OPOManager.params.lower_wavelength_bound} - ${OPOManager.params.upper_wavelength_bound}`
+				`nIR wavelength ${nir_wavelength.toFixed(3)}nm is out of set bounds of ${OPOManager.params.lower_wavelength_bound} - ${
+					OPOManager.params.upper_wavelength_bound
+				}`
 			);
 			return;
 		}
@@ -142,6 +154,8 @@ const OPOManager = {
 		// Either "SCOFF" or "STOP ALL" should work - not sure which is the better choice
 		// Dean Guyer said they're basically equivalent but he'd choose "SCOFF"
 		OPOManager.network.client.write(OPOManager.network.command.scanning_off, () => {});
+		// Stop waiting for motors
+		OPOManager.status = OPOMotorState.STOPPED;
 	},
 
 	get_laser_offset: () => OPOManager_get_laser_offset(),

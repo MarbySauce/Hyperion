@@ -6,12 +6,14 @@ const wavemeter = require("bindings")("wavemeter");
 const { ImageManagerMessenger } = require("../JS/MainWindow/Libraries/ImageManager.js");
 const { DetachmentLaserManagerMessenger } = require("../JS/MainWindow/Libraries/DetachmentLaserManager.js");
 const { ExcitationLaserManagerMessenger } = require("../JS/MainWindow/Libraries/ExcitationLaserManager.js");
+const { OPOManagerMessenger } = require("../JS/MainWindow/Libraries/OPOManager.js");
 
 let settings; // Global variable, to be filled in on startup
 
 const IMMessenger = new ImageManagerMessenger();
 const DLMMessenger = new DetachmentLaserManagerMessenger();
 const ELMMessenger = new ExcitationLaserManagerMessenger();
+const OPOMMessenger = new OPOManagerMessenger();
 
 // ORDER OF OPERATIONS WHEN LOADING PROGRAM
 // Main renderer (main.js) creates the MainWindow
