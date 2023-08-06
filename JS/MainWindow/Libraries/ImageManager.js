@@ -618,6 +618,11 @@ function ImageManager_update_vmi(vmi_info) {
 }
 
 async function ImageManager_single_shot(centroid_results) {
+	// If in testing mode, don't save anything
+	if (ImageManager.params.do_not_save_to_file) {
+		update_messenger.update("Single shot saved to file! (Not really)");
+		return;
+	}
 	const fs = require("fs");
 	const { access } = require("fs/promises");
 	const path = require("path");
