@@ -198,23 +198,21 @@ function create_main_window() {
 
 	// Create custom menu for main window
 	let menu = Menu.buildFromTemplate([
+		...(process.platform === "darwin" ? [{ label: app.name }] : []),
 		{
-			label: "Menu",
+			label: "Windows",
+			sublabel: "Hello",
 			submenu: [
 				{
 					label: "Open Live View",
 					click() {
 						// Only open the live view window if it's not open already
-						if (!live_view_window) {
+						if (live_view_window === undefined) {
 							live_view_window = create_live_view_window();
+							live_view_window.setPosition(settings.information.windows.live_view_window.x, settings.information.windows.live_view_window.y);
+							live_view_window.setSize(settings.information.windows.live_view_window.width, settings.information.windows.live_view_window.height);
+							live_view_window.show();
 						}
-					},
-				},
-				// NOTE TO MARTY: Do I want to keep this function in?
-				{
-					label: "Close Camera",
-					click() {
-						send_close_camera_msg();
 					},
 				},
 			],
@@ -242,6 +240,32 @@ function create_main_window() {
 				},
 			],
 		},
+		{
+			label: "External",
+			submenu: [
+				{
+					label: "Camera",
+					submenu: [
+						{
+							label: "Open Camera",
+							click() {},
+						},
+						{
+							label: "Close Camera",
+							click() {},
+						},
+					],
+				},
+				{
+					label: "Open Wavemeter Application",
+					click() {},
+				},
+				{
+					label: "Connect to OPO",
+					click() {},
+				},
+			],
+		},
 	]);
 	Menu.setApplicationMenu(menu);
 
@@ -261,6 +285,8 @@ function create_live_view_window() {
 			backgroundThrottling: false,
 		},
 	});
+	// Get rid of Live View menu bar
+	win.removeMenu();
 
 	win.loadFile("HTML/LVWindow.html");
 	//win.webContents.openDevTools();
@@ -316,17 +342,14 @@ app.on("ready", function () {
 		// Close app when main window is closed
 		main_window.on("closed", function (event) {
 			send_close_camera_msg();
-			main_window = null;
+			main_window = undefined;
 		});
 	}
 
 	if (live_view_window) {
-		// Get rid of Live View menu bar
-		live_view_window.removeMenu();
-
 		// Delete window reference if window is closed
 		live_view_window.on("closed", function (event) {
-			live_view_window = null;
+			live_view_window = undefined;
 		});
 	}
 
