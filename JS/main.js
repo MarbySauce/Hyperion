@@ -272,6 +272,10 @@ function create_main_window() {
 	win.loadFile("HTML/mainWindow2.html");
 	//win.webContents.openDevTools();
 
+	win.webContents.on("render-process-gone", (event, details) => {
+		send_close_camera_msg();
+	})
+
 	return win;
 }
 

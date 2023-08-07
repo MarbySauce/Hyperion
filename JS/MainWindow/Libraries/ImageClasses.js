@@ -270,6 +270,20 @@ class Image {
 	copy() {
 		return new SafeImage(this);
 	}
+
+	read_from_file(file_name) {
+		const fs = require("fs");
+		const path = require("path");
+
+		fs.readFile(path.join(Image.save_directory, file_name), (error, data) => {
+			if (error) console.log(error);
+			else if (data) {
+				data = data.toString();
+				this.image = data.split(" \n").map(row => row.split(" ").map(el => parseInt(el)));
+				this.image.pop();
+			}
+		});
+	}
 }
 
 class IRImage extends Image {

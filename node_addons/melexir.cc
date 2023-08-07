@@ -17,6 +17,7 @@ extern "C" {
     void melexirdll_(double dat[], double sigma[], double fmap[], double base[], double datainv[], int* nr, int* nt);
 }
 
+
 // Hard coded to have 1 hidden map and get only even Legendre components up to L=2
 // I fucking tried to make it customizable but its literally impossible
 Napi::Object Process(const Napi::CallbackInfo& info) {
@@ -45,7 +46,7 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
 	// Give options string to Melexir
 	char options_string[] = "-H1 -LP2 -L2 "; // Should be "-H1 -LP2 -L2 " - anything else might not work correctly!
 	//						Note: You might be able to change the amount of hidden maps - I never tested that part
-	setoptions_(options_string, sizeof(options_string));
+	setoptions_(options_string, strlen(options_string));
 
 	int nl = 2; // Total number of Legendre componenets
 	int nl_even = 2; // Number of even Legendre components
@@ -56,7 +57,12 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
 	int ncol = image_width;
 	int ldd = 2*nrow*nl; //pow(max(nrow, ncol),2); // Largest possible value for length of contracted data (Comes from PrepareVMI3.f90 ln104)
 	double* lp_image = new double[ldd]; // Will be Legendre projection of image
+	printf("nrow: %d, ncol: %d, ldd: %d \n", nrow, ncol, ldd);
 	image2data_(flat_image, &nrow, &nrow, &ncol, lp_image, &ldd);
+	printf("After i2d! \n");
+
+	// Delete flat_image memory
+	delete [] flat_image;
 
 	// Run MELEXIR
 	int nt = nrow * nl;
@@ -81,6 +87,9 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
 		dat[nrow + i] = lp_image[4 * nrow + i]; // Fifth column goes to dat
 		sigma[nrow + i] = lp_image[5 * nrow + i]; // Sixth column goes to sigma
 	}
+
+	// Delete lp_image memory
+	delete [] lp_image;
 
 	melexirdll_(dat, sigma, fmap, base, datainv, &nrow, &nt);
 	// sigma will be the spectrum
@@ -118,6 +127,13 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
 	results["spectrum"] = spectrum;
 	results["residuals"] = residuals;
 	results["best_fit"] = best_fit;
+
+	// Delete memory of all arrays used for melexirdll_()
+	delete [] dat;
+	delete [] sigma;
+	delete [] fmap;
+	delete [] base;
+	delete [] datainv;
 
 	return results;
 }
