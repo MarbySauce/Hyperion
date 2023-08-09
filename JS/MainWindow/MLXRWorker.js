@@ -60,6 +60,37 @@ function fake_process_image(data) {
 		}
 	}
 
+	function gauss(x, xc, s = 1, A = 1) {
+		return A * Math.exp(-((x - xc) ** 2) / (2 * s ** 2));
+	}
+	function fake_spectrum(i, ir_spectrum = false, is_ir = false) {
+		if (ir_spectrum) {
+			if (is_ir) {
+				return (
+					gauss(i + 0.5, 70, 3, 5) +
+					gauss(i + 0.5, 150, 3, 10) +
+					gauss(i + 0.5, 250, 3, 7) +
+					gauss(i + 0.5, 350, 3, 7) +
+					gauss(i + 0.5, 400, 3, 5) +
+					gauss(i + 0.5, 450, 3, 10) +
+					gauss(i + 0.5, 500, 3, 10)
+				);
+			} else {
+				return gauss(i + 0.5, 150, 3, 15) + gauss(i + 0.5, 250, 3, 10) + gauss(i + 0.5, 350, 3, 10) + gauss(i + 0.5, 450, 3, 15);
+			}
+		} else {
+			return (
+				gauss(i + 0.5, 70, 3, 5) +
+				gauss(i + 0.5, 150, 3, 15) +
+				gauss(i + 0.5, 250, 3, 10) +
+				gauss(i + 0.5, 350, 3, 10) +
+				gauss(i + 0.5, 400, 3, 5) +
+				gauss(i + 0.5, 450, 3, 15) +
+				gauss(i + 0.5, 500, 3, 10)
+			);
+		}
+	}
+
 	let image_size = data?.image?.length || data?.images?.ir_off.length;
 	let array_size = Math.round(image_size / 2);
 	if (data.is_ir) {
@@ -75,6 +106,13 @@ function fake_process_image(data) {
 			best_fit: [[...array_fill(array_size)], [...array_fill(array_size)]],
 			residuals: [[...array_fill(array_size)], [...array_fill(array_size)]],
 		};
+		// Fill in spectrum with fake data
+		for (let i = 0; i < array_size; i++) {
+			results_off.spectrum[0][i] = fake_spectrum(i, true, false);
+			results_off.spectrum[1][i] = -0.5 * fake_spectrum(i, true, false); // Beta = -0.5 for all
+			results_on.spectrum[0][i] = fake_spectrum(i, true, true);
+			results_on.spectrum[1][i] = -0.5 * fake_spectrum(i, true, true); // Beta = -0.5 for all
+		}
 		return { is_ir: true, results_off, results_on };
 	} else {
 		let results = {
@@ -83,6 +121,11 @@ function fake_process_image(data) {
 			best_fit: [[...array_fill(array_size)], [...array_fill(array_size)]],
 			residuals: [[...array_fill(array_size)], [...array_fill(array_size)]],
 		};
+		// Fill in spectrum with fake data
+		for (let i = 0; i < array_size; i++) {
+			results.spectrum[0][i] = fake_spectrum(i, false, false);
+			results.spectrum[1][i] = -0.5 * fake_spectrum(i, false, false); // Beta = -0.5 for all
+		}
 		return { is_ir: false, results };
 	}
 }
