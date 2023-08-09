@@ -90,6 +90,10 @@ label {
 	border-radius: 7px;
 }
 
+.background-darker-blue {
+	background: hsl(225, 20%, 30%);
+}
+
 .white-text {
 	color: white;
 }

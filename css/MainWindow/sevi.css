@@ -106,27 +106,45 @@ Right Side
 /* Sevi Mode - Second Page */
 
 /* Sevi Mode - Second Page - PE Spectrum */
-#SeviSpectrumDisplaySection {
-	padding: 10px;
+.spectrum-display-section {
+	padding: 5px;
+	grid-gap: 1%;
 }
-#SeviSpectrumDisplayInner {
+.spectrum-display-inner {
 	padding: 15px 20px 0 10px;
 	background: hsla(225, 20%, 90%, 0.85);
 	align-items: center;
 }
-#SeviSpectrumControl {
-	padding: 5px;
-	padding-left: 10px;
-	grid-gap: 0 5px;
+.spectrum-display-control {
+	padding: 0 1%;
+	grid-gap: 2%;
 	align-items: center;
 	justify-items: center;
 }
-#SpectrumSwitch {
-	width: 80%;
+.spectrum-control-button {
+	width: 100%;
+	height: 80%;
+	font-size: 1.2vw;
 }
-#SeviCalculateSpectrumButton {
-	width: 65%;
-	height: 35%;
+.pe-spectra {
+	max-height: 390px;
+	padding: 0 2%;
+	border: 2px solid rgb(62, 71, 95);
+}
+
+.spectrum-selection-element {
+	display: grid;
+	width: 100%;
+	height: 100%;
+	padding: 5px;
+	align-items: center;
+	border-bottom: 1px solid lightsteelblue;
+}
+.spectrum-selection-element input {
+	height: 55%;
+}
+.spectrum-selection-element label {
+	font-size: 1.5vw;
 }
 
 /* Sevi Mode - Second Page - Recent Scans */

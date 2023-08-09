@@ -650,6 +650,46 @@ function Sevi_Change_Pages() {
 
 *****************************************************************************/
 
+function Sevi_PESpectrum_Display() {
+	const { PESRadio } = require("./Libraries/PESpectrumDisplayClasses.js");
+	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const IMMessenger = new ImageManagerMessenger();
+
+	/****
+			Image Manager Listeners
+	****/
+
+	IMMessenger.listen.event.scan.stop.on(() => {
+		// Clear display
+		clear_sevi_pe_spectra_display();
+		// Get all images from Image Manager and put scan information on the display
+		let all_images = IMMessenger.information.all_images;
+		for (image of all_images) {
+			add_radio_button(image);
+		}
+	});
+
+	/****
+			Functions
+	****/
+
+	function clear_sevi_pe_spectra_display() {
+		const spectra_selection = document.getElementById("SeviSpectrumSelection");
+		const display_length = spectra_selection.children.length;
+		for (let i = 0; i < display_length; i++) {
+			// Remove the first child from section
+			spectra_selection.removeChild(spectra_selection.children[0]);
+		}
+	}
+
+	function add_radio_button(image) {
+		const spectra_selection = document.getElementById("SeviSpectrumSelection");
+
+		let radio = new PESRadio(image);
+		radio.add_to_div(spectra_selection);
+	}
+}
+
 /*****************************************************************************
 
 							RECENT SCANS
@@ -869,6 +909,11 @@ function Sevi_Load_Page(PageInfo) {
 		console.log("Cannot load SEVI tab page up/down buttons:", error);
 	}
 	/*		Second Page		*/
+	try {
+		Sevi_PESpectrum_Display();
+	} catch (error) {
+		console.log("Cannot load SEVI tab PE Spectra Display module:", error);
+	}
 	try {
 		Sevi_Recent_Scans();
 	} catch (error) {

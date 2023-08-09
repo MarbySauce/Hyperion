@@ -273,44 +273,43 @@
 /* Sevi Mode - Second Page - PE Spectrum */
 #SeviSpectrumDisplaySection {
 	grid-area: SpectrumDisplaySection;
-	grid-template-columns: 3fr 1fr;
-	grid-template-areas: "SpectrumDisplayInner SpectrumControl";
+	grid-template-rows: 8fr 1fr;
+	grid-template-columns: 6fr 1fr;
+	grid-template-areas:
+		"SpectrumDisplayInner SpectrumSelection"
+		"SpectrumControl SpectrumSelection";
 }
 #SeviSpectrumDisplayInner {
 	grid-area: SpectrumDisplayInner;
 }
 #SeviSpectrumControl {
 	grid-area: SpectrumControl;
-	grid-template-rows: 1fr 2.6fr 0.7fr 1fr 0.7fr 1fr;
-	grid-template-columns: 1fr 1fr;
-	grid-template-areas:
-		"blank1 blank1"
-		"CalculateSpectrumButton CalculateSpectrumButton"
-		"SpectrumYRangeLabel SpectrumYRangeLabel"
-		"SpectrumYLower SpectrumYUpper"
-		"SpectrumXRangeLabel SpectrumXRangeLabel"
-		"SpectrumXLower SpectrumXUpper";
+	grid-template-columns: 1fr 0.7fr 1.1fr 1.1fr 1.1fr 0.7fr 1fr;
+	grid-template-areas: "ResetZoom blank1 ChangeBasis ShowDifference ShowAnisotropy blank2 Calculate";
+}
+#SeviResetZoom {
+	grid-area: ResetZoom;
+}
+#SeviChangeBasis {
+	grid-area: ChangeBasis;
+}
+#SeviShowDifference {
+	grid-area: ShowDifference;
+}
+#SeviShowAnisotropy {
+	grid-area: ShowAnisotropy;
 }
 #SeviCalculateSpectrumButton {
-	grid-area: CalculateSpectrumButton;
+	grid-area: Calculate;
 }
-#SeviSpectrumYRangeLabel {
-	grid-area: SpectrumYRangeLabel;
+
+#SeviSpectrumSelection {
+	grid-area: SpectrumSelection;
+	grid-auto-rows: 35px;
 }
-#SeviSpectrumYLower {
-	grid-area: SpectrumYLower;
-}
-#SeviSpectrumYUpper {
-	grid-area: SpectrumYUpper;
-}
-#SeviSpectrumXRangeLabel {
-	grid-area: SpectrumXRangeLabel;
-}
-#SeviSpectrumXLower {
-	grid-area: SpectrumXLower;
-}
-#SeviSpectrumXUpper {
-	grid-area: SpectrumXUpper;
+
+.spectrum-selection-element {
+	grid-template-columns: 1fr 3fr;
 }
 
 /* Sevi Mode - Second Page - Recent Scans */
