@@ -16,6 +16,7 @@
 	},
 	"dependencies": {
 		"chart.js": "^4.3.2",
+		"chartjs-plugin-zoom": "^2.0.1",
 		"node-gyp": "^9.4.0",
 		"npm-check": "^6.0.1"
 	},
