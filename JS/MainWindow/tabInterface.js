@@ -47,7 +47,13 @@ function Tab_Control() {
  */
 function change_tab(tab) {
 	// Add functionality for tab switching
-	if (tab === PageInfo.current_tab) return; // Already on that tab, no need to do anything
+	if (tab === PageInfo.current_tab) {
+		// Already on that tab, just make sure it's on the first page
+		let new_tab_first_page = document.getElementById(tab.first_page);
+		let new_tab_second_page = document.getElementById(tab.second_page);
+		if (new_tab_second_page) new_tab_second_page.style.display = "none";
+		if (new_tab_first_page) new_tab_first_page.style.display = "grid";
+	}
 
 	// Depress the current tab and hide content
 	let current_tab = document.getElementById(PageInfo.current_tab.tab);
