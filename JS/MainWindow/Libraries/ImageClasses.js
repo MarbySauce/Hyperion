@@ -279,7 +279,7 @@ class Image {
 			if (error) console.log(error);
 			else if (data) {
 				data = data.toString();
-				this.image = data.split(" \n").map(row => row.split(" ").map(el => parseInt(el)));
+				this.image = data.split(" \n").map((row) => row.split(" ").map((el) => parseInt(el)));
 				this.image.pop();
 			}
 		});
@@ -526,6 +526,8 @@ class SafeImage {
 		this.detachment_measurement = image_class.detachment_measurement.copy();
 		this.excitation_wavelength = image_class.excitation_wavelength.copy();
 		this.excitation_measurement = image_class.excitation_measurement.copy();
+
+		this.pe_spectrum = image_class.pe_spectrum.copy();
 	}
 
 	/** Image ID as a ≥2 digit string */
@@ -731,4 +733,4 @@ class ScanInfo {
 	}
 }
 
-module.exports = { Image, IRImage, EmptyIRImage, ImageType, ScanInfo };
+module.exports = { Image, IRImage, EmptyIRImage, ImageType, ScanInfo, SafeImage, SafeIRImage };
