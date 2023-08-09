@@ -90,10 +90,19 @@ function fake_process_image(data) {
 			);
 		}
 	}
+	function noise(electrons) {
+		return Math.random() * Math.sqrt(electrons);
+	}
 
 	let image_size = data?.image?.length || data?.images?.ir_off.length;
 	let array_size = Math.round(image_size / 2);
 	if (data.is_ir) {
+		// Get sum of all pixels in image
+		let sum_off = data.images.ir_off.map((row) => row.reduce((a, c) => a + c)).reduce((a, c) => a + c);
+		let sum_on = data.images.ir_on.map((row) => row.reduce((a, c) => a + c)).reduce((a, c) => a + c);
+		let electrons_off = sum_off / array_size;
+		let electrons_on = sum_on / array_size;
+
 		let results_off = {
 			radii: [...array_fill(array_size, 0.5, 1)], // Fill array as [0.5, 1.5, 2.5...]
 			spectrum: [[...array_fill(array_size)], [...array_fill(array_size)]], // Fill with all 0's
@@ -108,13 +117,17 @@ function fake_process_image(data) {
 		};
 		// Fill in spectrum with fake data
 		for (let i = 0; i < array_size; i++) {
-			results_off.spectrum[0][i] = fake_spectrum(i, true, false);
-			results_off.spectrum[1][i] = -0.5 * fake_spectrum(i, true, false); // Beta = -0.5 for all
-			results_on.spectrum[0][i] = fake_spectrum(i, true, true);
-			results_on.spectrum[1][i] = -0.5 * fake_spectrum(i, true, true); // Beta = -0.5 for all
+			results_off.spectrum[0][i] = electrons_off * fake_spectrum(i, true, false) + noise(electrons_off);
+			results_off.spectrum[1][i] = -0.5 * electrons_off * fake_spectrum(i, true, false) + noise(electrons_off); // Beta = -0.5 for all
+			results_on.spectrum[0][i] = electrons_on * fake_spectrum(i, true, true) + noise(electrons_on);
+			results_on.spectrum[1][i] = -0.5 * electrons_on * fake_spectrum(i, true, true) + noise(electrons_on); // Beta = -0.5 for all
 		}
 		return { is_ir: true, results_off, results_on };
 	} else {
+		// Get sum of all pixels in image
+		let sum = data.image.map((row) => row.reduce((a, c) => a + c)).reduce((a, c) => a + c);
+		let electrons = sum / array_size;
+
 		let results = {
 			radii: [...array_fill(array_size, 0.5, 1)], // Fill array as [0.5, 1.5, 2.5...]
 			spectrum: [[...array_fill(array_size)], [...array_fill(array_size)]], // Fill with all 0's
@@ -123,8 +136,8 @@ function fake_process_image(data) {
 		};
 		// Fill in spectrum with fake data
 		for (let i = 0; i < array_size; i++) {
-			results.spectrum[0][i] = fake_spectrum(i, false, false);
-			results.spectrum[1][i] = -0.5 * fake_spectrum(i, false, false); // Beta = -0.5 for all
+			results.spectrum[0][i] = electrons * fake_spectrum(i, false, false) + noise(electrons);
+			results.spectrum[1][i] = -0.5 * electrons * fake_spectrum(i, false, false) + noise(electrons); // Beta = -0.5 for all
 		}
 		return { is_ir: false, results };
 	}

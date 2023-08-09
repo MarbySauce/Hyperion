@@ -4,6 +4,8 @@
 
 **************************************************/
 
+const { PESpectrum } = require("./Libraries/PESpectrumClasses.js");
+
 /*************************************************************************************************
 
 								*****************************
@@ -660,6 +662,7 @@ function Sevi_PESpectrum_Display() {
 			Setting up PES Chart
 	****/
 
+	const AllPESRadio = [];
 	let DisplayedPES = new PESpectrumDisplay();
 
 	const zoomOptions = {
@@ -674,17 +677,40 @@ function Sevi_PESpectrum_Display() {
 		},
 	};
 
+	const scales_title = {
+		color: "black",
+		display: true,
+		font: {
+			size: 16,
+		},
+	};
+
 	const chart = new Chart(document.getElementById("SeviPESpectrum").getContext("2d"), {
 		type: "line",
 		options: {
 			responsive: true,
 			maintainAspectRatio: false,
 			animations: false,
+			scales: {
+				x: {
+					type: "linear",
+					title: scales_title,
+				},
+				y: {
+					title: scales_title,
+				},
+			},
 			plugins: {
 				zoom: zoomOptions,
+				title: {
+					text: "",
+					display: true,
+					fullSize: false,
+					align: "end",
+					padding: 0,
+				},
 				legend: {
-					onHover: handleHover,
-					onLeave: handleLeave,
+					fullSize: false,
 				},
 			},
 			elements: {
@@ -695,21 +721,6 @@ function Sevi_PESpectrum_Display() {
 		},
 	});
 
-	// Potentially cool thing? Highlighted dataset is shown with others faded when hovering over legend
-	// (this example only works on bar charts)
-	function handleHover(evt, item, legend) {
-		legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-			colors[index] = index === item.index || color.length === 9 ? color : color + "4D";
-		});
-		legend.chart.update();
-	}
-	function handleLeave(evt, item, legend) {
-		legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-			colors[index] = color.length === 9 ? color.slice(0, -2) : color;
-		});
-		legend.chart.update();
-	}
-
 	/****
 			HTML Element Listeners
 	****/
@@ -719,47 +730,80 @@ function Sevi_PESpectrum_Display() {
 	};
 
 	document.getElementById("SeviChangeBasis").onclick = function () {
-		let show_radial = DisplayedPES.show_radial;
-		if (show_radial) {
-			DisplayedPES.show_radial = false;
+		PESpectrumDisplay.toggle_ebe();
+		if (DisplayedPES.show_ebe) {
+			// eBE plot is now displayed, change button to say R
 			change_basis_button_to_R();
 		} else {
-			DisplayedPES.show_radial = true;
+			// Radial plot is now displayed, change button to say eBE
 			change_basis_button_to_eBE();
 		}
 		update_pes_plot();
 	};
 
-	document.getElementById("SeviShowAnisotropy").onclick = function () {
-		let show_anisotropy = DisplayedPES.show_anisotropy;
-		if (show_anisotropy) {
-			DisplayedPES.show_anisotropy = false;
-			change_anisotropy_button_to_show();
+	document.getElementById("SeviShowDifference").onclick = function () {
+		PESpectrumDisplay.toggle_difference();
+		if (DisplayedPES.show_difference) {
+			// Difference spectrum is now displayed, change button to say IR On/Off
+			change_difference_button_to_ir_on_off();
 		} else {
-			DisplayedPES.show_anisotropy = true;
-			change_anisotropy_button_to_hide();
+			// IR On/Off spectrum is now displayed, change button to say Difference
+			change_difference_button_to_difference();
 		}
 		update_pes_plot();
+	};
+
+	document.getElementById("SeviShowAnisotropy").onclick = function () {
+		PESpectrumDisplay.toggle_anisotropy();
+		if (DisplayedPES.show_anisotropy) {
+			//Aanisotropy is now displayed, change button to say Hide
+			change_anisotropy_button_to_hide();
+		} else {
+			// Anisotropy is no longer displayed, change button to say Show
+			change_anisotropy_button_to_show();
+		}
+		update_pes_plot();
+	};
+
+	document.getElementById("SeviCalculateSpectrumButton").onclick = function () {
+		IMMessenger.request.process_image();
 	};
 
 	/****
 			Image Manager Listeners
 	****/
 
-	IMMessenger.listen.event.melexir.stop.on(() => {
-		// Clear display
-		clear_sevi_pe_spectra_display();
-		// Get all images from Image Manager and put image IDs on the display as a radio button
-		let all_images = IMMessenger.information.all_images;
-		let last_image;
-		for (image of all_images) {
-			add_radio_button(image);
-			last_image = image;
-		}
+	// Disable calculate button when Melexir starts processing
+	IMMessenger.listen.event.melexir.start.on(disable_calculate_button);
 
-		if (last_image.is_ir) DisplayedPES = new IRPESpectrumDisplay(last_image);
-		else DisplayedPES = new PESpectrumDisplay(last_image);
-		update_pes_plot();
+	IMMessenger.listen.event.melexir.stop.on((image) => {
+		// Check if this image is already in PES list
+		let is_not_in_list = true;
+		for (radio of AllPESRadio) {
+			if (image.id === radio.image.id) {
+				// Update that image and end loop
+				radio.update_image(image);
+				// If the updated image is also displayed (i.e. the radio is checked) then update plot
+				if (radio.radio.checked) {
+					DisplayedPES = radio.spectrum_display;
+					update_pes_plot();
+				}
+				is_not_in_list = false;
+				break;
+			}
+		}
+		if (is_not_in_list) {
+			// Create new radio button and add to list
+			add_radio_button(image);
+			// If that is the only image so far, display it
+			if (AllPESRadio.length === 1) {
+				AllPESRadio[0].radio.checked = true;
+				DisplayedPES = AllPESRadio[0].spectrum_display;
+				update_pes_plot();
+			}
+		}
+		// Re-enable calculate button
+		enable_calculate_button();
 	});
 
 	/****
@@ -779,31 +823,42 @@ function Sevi_PESpectrum_Display() {
 		const spectra_selection = document.getElementById("SeviSpectrumSelection");
 
 		let radio = new PESRadio(image);
-
 		radio.set_up_callback((spectrum_display) => {
 			DisplayedPES = spectrum_display;
 			update_pes_plot();
 		});
-
 		radio.add_to_div(spectra_selection);
+
+		AllPESRadio.push(radio);
 	}
 
 	function update_pes_plot() {
 		chart.data = DisplayedPES.data;
 		chart.options.plugins.tooltip = DisplayedPES.tooltip;
-		chart.options.scales.x = DisplayedPES.x_scale;
-		chart.options.scales.y = DisplayedPES.y_scale;
+		chart.options.plugins.title.text = DisplayedPES.plugins_title;
+		chart.options.scales.x.title.text = DisplayedPES.x_axis_title;
+		chart.options.scales.y.title.text = DisplayedPES.y_axis_title;
 		chart.update();
 	}
 
 	function change_basis_button_to_R() {
 		const basis_button = document.getElementById("SeviChangeBasis");
-		basis_button.innerText = "Show R plot";
+		basis_button.innerText = "Show R Plot";
 	}
 
 	function change_basis_button_to_eBE() {
 		const basis_button = document.getElementById("SeviChangeBasis");
-		basis_button.innerText = "Show eBE plot";
+		basis_button.innerText = "Show eBE Plot";
+	}
+
+	function change_difference_button_to_difference() {
+		const difference_button = document.getElementById("SeviShowDifference");
+		difference_button.innerText = "Show Difference";
+	}
+
+	function change_difference_button_to_ir_on_off() {
+		const difference_button = document.getElementById("SeviShowDifference");
+		difference_button.innerText = "Show IR On/Off";
 	}
 
 	function change_anisotropy_button_to_show() {
@@ -814,6 +869,16 @@ function Sevi_PESpectrum_Display() {
 	function change_anisotropy_button_to_hide() {
 		const anisotropy_button = document.getElementById("SeviShowAnisotropy");
 		anisotropy_button.innerText = "Hide Anisotropy";
+	}
+
+	function disable_calculate_button() {
+		const calculate_button = document.getElementById("SeviCalculateSpectrumButton");
+		calculate_button.disabled = true;
+	}
+
+	function enable_calculate_button() {
+		const calculate_button = document.getElementById("SeviCalculateSpectrumButton");
+		calculate_button.disabled = false;
 	}
 }
 

@@ -434,7 +434,7 @@ function ImageManager_melexir_process_image(save_to_file) {
 			image_class.pe_spectrum.save_files();
 		}
 
-		IMAlerts.event.melexir.stop.alert();
+		IMAlerts.event.melexir.stop.alert(image_class.copy());
 	};
 }
 
@@ -1565,7 +1565,7 @@ class IMMessengerCallbackInfoUpdate {
 			on: (callback) => {
 				IMAlerts.info_update.accumulated_image.add_on(callback);
 			},
-			/** Callback called without arguments */
+			/** Callback called with argument `image {Image | IRImage}` */
 			once: (callback) => {
 				IMAlerts.info_update.accumulated_image.add_once(callback);
 			},

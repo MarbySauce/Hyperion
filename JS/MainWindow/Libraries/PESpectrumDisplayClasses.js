@@ -21,6 +21,11 @@ class PESRadio {
 		this.wrapper = document.createElement("div");
 		this.wrapper.classList.add("spectrum-selection-element");
 
+		this.wrapper.onclick = () => {
+			this.radio.checked = true;
+			this.callback_fn(this.spectrum_display);
+		};
+
 		this.wrapper.appendChild(this.radio);
 		this.wrapper.appendChild(this.label);
 
@@ -34,10 +39,9 @@ class PESRadio {
 		radio.value = this.image.id_str;
 		radio.id = this.image.id_str;
 
-		radio.onclick = () => {
-			console.log(this.spectrum_display);
-			this.callback_fn(this.spectrum_display);
-		};
+		//radio.onclick = () => {
+		//	this.callback_fn(this.spectrum_display);
+		//};
 		return radio;
 	}
 
@@ -48,18 +52,47 @@ class PESRadio {
 	add_to_div(div) {
 		div.appendChild(this.wrapper);
 	}
+
+	update_image(image) {
+		if (image.is_ir) this.spectrum_display = new IRPESpectrumDisplay(image);
+		else this.spectrum_display = new PESpectrumDisplay(image);
+	}
 }
 
 class PESpectrumDisplay {
+	static get show_anisotropy() {
+		return PESpectrumDisplay._show_anisotropy || false;
+	}
+	static set show_anisotropy(bool) {
+		PESpectrumDisplay._show_anisotropy = bool === true;
+	}
+
+	static get show_ebe() {
+		return PESpectrumDisplay._show_ebe || false;
+	}
+	static set show_ebe(bool) {
+		PESpectrumDisplay._show_ebe = bool === true;
+	}
+
+	static get show_difference() {
+		return PESpectrumDisplay._show_difference || false;
+	}
+	static set show_difference(bool) {
+		PESpectrumDisplay._show_difference = bool === true;
+	}
+
+	static toggle_anisotropy() {
+		PESpectrumDisplay.show_anisotropy = !PESpectrumDisplay.show_anisotropy;
+	}
+	static toggle_ebe() {
+		PESpectrumDisplay.show_ebe = !PESpectrumDisplay.show_ebe;
+	}
+	static toggle_difference() {
+		PESpectrumDisplay.show_difference = !PESpectrumDisplay.show_difference;
+	}
+
 	constructor(image_class) {
 		this.image = image_class;
-
-		this.show_radial = true;
-		this.show_difference = false;
-		this.show_anisotropy = false;
-		this.can_show_plot = false;
-		this.can_show_ebe = false;
-		this.can_show_difference = false;
 
 		// Extract necessary info
 		this.vmi_constants = this.image?.vmi_info.calibration_constants;
@@ -67,6 +100,49 @@ class PESpectrumDisplay {
 		if (this.vmi_constants?.a > 0 && this.detachment_hv > 0) this.can_show_ebe = true;
 
 		this.process_spectrum();
+	}
+
+	get can_show_plot() {
+		// Defaults to false (instead of undefined)
+		return this._can_show_plot || false;
+	}
+
+	set can_show_plot(bool) {
+		// Set to true if `bool` is true, otherwise set to false
+		this._can_show_plot = bool === true;
+	}
+
+	get can_show_ebe() {
+		return this._can_show_ebe || false;
+	}
+
+	set can_show_ebe(bool) {
+		this._can_show_ebe = bool === true;
+	}
+
+	get can_show_difference() {
+		return this._can_show_difference || false;
+	}
+
+	set can_show_difference(bool) {
+		this._can_show_difference = bool === true;
+	}
+
+	get show_anisotropy() {
+		if (!this.can_show_plot) return false;
+		return PESpectrumDisplay.show_anisotropy || false;
+	}
+
+	get show_ebe() {
+		if (!this.can_show_plot) return false;
+		if (!this.can_show_ebe) return false;
+		return PESpectrumDisplay.show_ebe || false;
+	}
+
+	get show_difference() {
+		if (!this.can_show_plot) return false;
+		if (!this.can_show_difference) return false;
+		return PESpectrumDisplay.show_difference || false;
 	}
 
 	process_spectrum() {
@@ -111,83 +187,60 @@ class PESpectrumDisplay {
 			labels: [],
 			datasets: [],
 		};
-		if (this.can_show_plot) {
-			if (this.show_radial || !this.can_show_ebe) {
-				// Show radial plot
-				returned_data.labels = this.radii;
+		if (!this.can_show_plot) {
+			return returned_data;
+		}
+		if (this.show_ebe) {
+			// Show eBE plot
+			returned_data.labels = this.ebe;
+			returned_data.datasets.push({
+				label: "Intensity",
+				data: this.intensity_ebe,
+				borderColor: "black",
+				pointHitRadius: 10,
+			});
+			if (this.show_anisotropy) {
+				// Also show anisotropy eBE plot
 				returned_data.datasets.push({
-					label: "Intensity",
-					data: this.intensity_r,
-					borderColor: "black",
-					pointHitRadius: 10,
+					label: "Anisotropy",
+					data: this.anisotropy_ebe,
+					borderColor: "red",
+					pointHitRadius: 5,
 				});
-				// Also show anisotropy
-				if (this.show_anisotropy) {
-					returned_data.datasets.push({
-						label: "Anisotropy",
-						data: this.anisotropy_r,
-						borderColor: "red",
-						pointHitRadius: 5,
-					});
-				}
-			} else {
-				// Show eBE plot
-				returned_data.labels = this.ebe;
+			}
+		} else {
+			// Show radial plot
+			returned_data.labels = this.radii;
+			returned_data.datasets.push({
+				label: "Intensity",
+				data: this.intensity_r,
+				borderColor: "black",
+				pointHitRadius: 10,
+			});
+			if (this.show_anisotropy) {
+				// Also show anisotropy radial plot
 				returned_data.datasets.push({
-					label: "Intensity",
-					data: this.intensity_ebe,
-					borderColor: "black",
-					pointHitRadius: 10,
+					label: "Anisotropy",
+					data: this.anisotropy_r,
+					borderColor: "red",
+					pointHitRadius: 5,
 				});
-				// Also show anisotropy
-				if (this.show_anisotropy) {
-					returned_data.datasets.push({
-						label: "Anisotropy",
-						data: this.anisotropy_ebe,
-						borderColor: "red",
-						pointHitRadius: 5,
-					});
-				}
 			}
 		}
 		return returned_data;
 	}
 
-	get x_scale() {
-		if (!this.can_show_plot) return { type: "linear" };
-		let callback_fn = (value) => value;
-		let title = "";
-		if (this.show_radial || !this.can_show_ebe) {
-			callback_fn = (value) => `${Math.round(value)}px`;
-			title = "Radius (px)";
-		} else {
-			callback_fn = (value) => `${Math.round(value)}cm-1`;
-			// \u207B is unicode for superscript "-", and \u00B9 is for superscript "1"
-			title = "eBE (cm\u207B\u00B9)";
-		}
-		return {
-			type: "linear",
-			title: {
-				text: title,
-				color: "black",
-				display: true,
-			},
-			ticks: {
-				callback: callback_fn,
-			},
-		};
+	get x_axis_title() {
+		// \u207B is unicode for superscript "-", and \u00B9 is for superscript "1"
+		if (this.show_ebe) return "eBE (cm\u207B\u00B9)";
+		else if (this.can_show_plot) return "Radius (px)";
+		else return "";
 	}
 
-	get y_scale() {
-		let title = "Electron Intensity";
-		if (this.can_show_difference && this.show_difference) title = "Difference Signal";
-		return {
-			title: {
-				text: title,
-				color: "black",
-				display: true,
-			},
-		};
+	get y_axis_title() {
+		if (this.show_difference) return "Difference Signal";
+		else if (this.can_show_plot) return "Electron Signal";
+		else return "";
 	}
 
 	get tooltip() {
@@ -213,13 +266,8 @@ class PESpectrumDisplay {
 	}
 
 	get plugins_title() {
-		return {
-			display: true,
-			fullSize: false,
-			align: "end",
-			text: `Displaying Image: i${this.image.id_str}`,
-			padding: 0,
-		};
+		if (this.can_show_plot) return `Displaying Image: i${this.image.id_str}`;
+		else return "";
 	}
 }
 
@@ -252,9 +300,11 @@ class IRPESpectrumDisplay extends PESpectrumDisplay {
 		this.anisotropy_on_r = this.anisotropy_on.map((el) => el / max_val);
 		// Calculate difference spectrum
 		this.difference_r = new Array(this.radii.length).fill(0);
+		this.difference_anisotropy_r = new Array(this.radii.length).fill(0);
 		this.zeros = new Array(this.radii.length).fill(0);
 		for (let i = 0; i < this.difference_r.length; i++) {
 			this.difference_r[i] = this.intensity_on_r[i] - this.intensity_off_r[i];
+			this.difference_anisotropy_r[i] = this.anisotropy_on_r[i] - this.anisotropy_off_r[i];
 		}
 		this.can_show_difference = true;
 	}
@@ -281,8 +331,10 @@ class IRPESpectrumDisplay extends PESpectrumDisplay {
 		this.anisotropy_on_ebe = this.anisotropy_on_ebe.map((el) => el / max_val);
 		// Calculate difference spectrum
 		this.difference_ebe = new Array(this.radii.length).fill(0);
+		this.difference_anisotropy_ebe = new Array(this.radii.length).fill(0);
 		for (let i = 0; i < this.difference_ebe.length; i++) {
 			this.difference_ebe[i] = this.intensity_on_ebe[i] - this.intensity_off_ebe[i];
+			this.difference_anisotropy_ebe[i] = this.anisotropy_on_ebe[i] - this.anisotropy_off_ebe[i];
 		}
 	}
 
@@ -291,115 +343,128 @@ class IRPESpectrumDisplay extends PESpectrumDisplay {
 			labels: [],
 			datasets: [],
 		};
-		if (this.can_show_plot) {
-			if (this.show_radial || !this.can_show_ebe) {
-				// Show radial plot
-				returned_data.labels = this.radii;
+		if (this.show_ebe) {
+			// Show eBE plot
+			returned_data.labels = this.ebe;
+			if (this.show_difference) {
+				// Show difference spectrum eBE plot and zero line
 				returned_data.datasets.push({
-					label: "Intensity",
-					data: this.intensity_off_r,
+					label: "Difference",
+					data: this.difference_ebe,
 					borderColor: "black",
 					pointHitRadius: 10,
 				});
-				// Also show anisotropy
 				if (this.show_anisotropy) {
+					// Show difference anisotropy eBE plot
 					returned_data.datasets.push({
 						label: "Anisotropy",
-						data: this.anisotropy_off_r,
+						data: this.difference_anisotropy_ebe,
 						borderColor: "red",
 						pointHitRadius: 5,
 					});
 				}
-			} else {
-				// Show eBE plot
-				returned_data.labels = this.ebe;
 				returned_data.datasets.push({
-					label: "Intensity",
-					data: this.intensity_off_ebe,
+					data: this.zeros,
+					borderColor: "gray",
+					pointHitRadius: 0,
+				});
+			} else {
+				// Show IR On/Off eBE plot
+				// Push IR On first so that it appears on top of IR Off
+				returned_data.datasets.push(
+					{
+						label: "IR On",
+						data: this.intensity_on_ebe,
+						borderColor: "red",
+						pointHitRadius: 10,
+					},
+					{
+						label: "IR Off",
+						data: this.intensity_off_ebe,
+						borderColor: "black",
+						pointHitRadius: 10,
+					}
+				);
+				if (this.show_anisotropy) {
+					// Show IR On/Off anisotropy eBE plot
+					returned_data.datasets.push(
+						{
+							label: "IR On Anisotropy",
+							data: this.anisotropy_on_ebe,
+							borderColor: "darkred",
+							pointHitRadius: 5,
+						},
+						{
+							label: "IR Off Anisotropy",
+							data: this.anisotropy_off_ebe,
+							borderColor: "dimgray",
+							pointHitRadius: 5,
+						}
+					);
+				}
+			}
+		} else {
+			// Show radial plot
+			returned_data.labels = this.radii;
+			if (this.show_difference) {
+				// Show difference spectrum radial plot and zero line
+				returned_data.datasets.push({
+					label: "Difference",
+					data: this.difference_r,
 					borderColor: "black",
 					pointHitRadius: 10,
 				});
-				// Also show anisotropy
 				if (this.show_anisotropy) {
+					// Show difference anisotropy radial plot
 					returned_data.datasets.push({
 						label: "Anisotropy",
-						data: this.anisotropy_off_ebe,
+						data: this.difference_anisotropy_r,
 						borderColor: "red",
 						pointHitRadius: 5,
 					});
+				}
+				returned_data.datasets.push({
+					data: this.zeros,
+					borderColor: "gray",
+					pointHitRadius: 0,
+				});
+			} else {
+				// Show IR On/Off radial plot
+				// Push IR On first so that it appears on top of IR Off
+				returned_data.datasets.push(
+					{
+						label: "IR On",
+						data: this.intensity_on_r,
+						borderColor: "red",
+						pointHitRadius: 10,
+					},
+					{
+						label: "IR Off",
+						data: this.intensity_off_r,
+						borderColor: "black",
+						pointHitRadius: 10,
+					}
+				);
+				if (this.show_anisotropy) {
+					// Show IR On/Off anisotropy radial plot
+					returned_data.datasets.push(
+						{
+							label: "IR On Anisotropy",
+							data: this.anisotropy_on_r,
+							borderColor: "darkred",
+							pointHitRadius: 5,
+						},
+						{
+							label: "IR Off Anisotropy",
+							data: this.anisotropy_off_r,
+							borderColor: "dimgray",
+							pointHitRadius: 5,
+						}
+					);
 				}
 			}
 		}
 		return returned_data;
-	}
-
-	get x_scale() {
-		if (!this.can_show_plot) return { type: "linear" };
-		let callback_fn = (value) => value;
-		let title = "";
-		if (this.show_radial || !this.can_show_ebe) {
-			callback_fn = (value) => `${Math.round(value)}px`;
-			title = "Radius (px)";
-		} else {
-			callback_fn = (value) => `${Math.round(value)}cm-1`;
-			// \u207B is unicode for superscript "-", and \u00B9 is for superscript "1"
-			title = "eBE (cm\u207B\u00B9)";
-		}
-		return {
-			type: "linear",
-			title: {
-				text: title,
-				color: "black",
-				display: true,
-			},
-			ticks: {
-				callback: callback_fn,
-			},
-		};
-	}
-
-	get y_scale() {
-		let title = "Electron Intensity";
-		if (this.can_show_difference && this.show_difference) title = "Difference Signal";
-		return {
-			title: {
-				text: title,
-				color: "black",
-				display: true,
-			},
-		};
-	}
-
-	get tooltip() {
-		return {
-			callbacks: {
-				title: ([context]) => {
-					return `${context.dataset.label}: ${context.raw.toFixed(3)}`;
-				},
-				label: (context) => {
-					if (!this.can_show_plot) return "";
-					let r = this.radii[context.dataIndex];
-					if (r) return `R: ${r.toFixed(2)} px`;
-					else return "";
-				},
-				afterLabel: (context) => {
-					if (!this.can_show_ebe) return "";
-					let ebe = this.ebe[context.dataIndex];
-					if (ebe) return `eBE: ${ebe.toFixed(3)} cm-1`;
-					else return "";
-				},
-			},
-		};
-	}
-
-	get plugins_title() {
-		return {
-			display: true,
-			fullSize: false,
-			align: "end",
-			text: `Displaying Image: i${this.image.id_str}`,
-			padding: 0,
-		};
 	}
 }
 
