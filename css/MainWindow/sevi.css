@@ -114,6 +114,9 @@ Right Side
 	padding: 15px 20px 0 10px;
 	background: hsla(225, 20%, 90%, 0.85);
 	align-items: center;
+	position: relative;
+	height: 36.5vh;
+	width: 76vw;
 }
 .spectrum-display-control {
 	padding: 0 1%;
