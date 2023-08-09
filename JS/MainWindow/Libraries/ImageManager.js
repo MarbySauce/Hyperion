@@ -153,6 +153,12 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, (event, centroid_results) => {
 	ImageManager.current_image.update_image(centroid_results);
 	// Send updates about electron count information
 	IMAlerts.info_update.image.counts.alert(ImageManager.current_image.counts);
+	// (Potentially) send updates about accumulated image
+	if (Number.isInteger(Math.sqrt(ImageManager.current_image.counts.frames.total))) {
+		// Only update if # of frames is a square number
+		//	(so image display is updated less frequently as scan progresses)
+		IMAlerts.info_update.accumulated_image.alert();
+	}
 	// Check if autostop condition has been met
 	ImageManager.autostop.check();
 	// Check if image should be autosaved
@@ -831,7 +837,7 @@ const IMAlerts = {
 			params: new ManagerAlert(),
 			remaining: new ManagerAlert(),
 		},
-		avg_electrons: new ManagerAlert(),
+		accumulated_image: new ManagerAlert(),
 	},
 };
 
@@ -955,6 +961,11 @@ class IMMessengerInformation {
 	/** Get a safe copy of the current image (note: accumulated image is not copied) */
 	get current_image() {
 		return ImageManager.current_image.copy();
+	}
+
+	/** Get a safe copy of the last image (note: accumulated image is not copied) */
+	get last_image() {
+		return ImageManager.last_image.copy();
 	}
 
 	/** Get a safe copy of all images stored in Image Manager */
@@ -1548,6 +1559,17 @@ class IMMessengerCallbackInfoUpdate {
 				return this._remaining;
 			},
 		};
+
+		this._accumulated_image = {
+			/** Callback called without arguments */
+			on: (callback) => {
+				IMAlerts.info_update.accumulated_image.add_on(callback);
+			},
+			/** Callback called without arguments */
+			once: (callback) => {
+				IMAlerts.info_update.accumulated_image.add_once(callback);
+			},
+		};
 	}
 
 	get image() {
@@ -1568,6 +1590,11 @@ class IMMessengerCallbackInfoUpdate {
 
 	get image_series() {
 		return this._image_series;
+	}
+
+	/** Get updates about when the accumulated image is updated (so Image Manager is in charge of when to update) */
+	get accumulated_image() {
+		return this._accumulated_image;
 	}
 }
 

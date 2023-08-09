@@ -375,25 +375,20 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 	};
 
 	/****
-			IPC Event Listeners
-	****/
-
-	ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
-		// If user is not on SEVI tab, ignore
-		if (PageInfo.current_tab !== Tabs.SEVI) return;
-		// Only update display if image is being taken
-		if (IMMessenger.information.status.running) {
-			update_sevi_accumulated_image_display();
-		}
-	});
-
-	/****
 			Image Manager Listeners
 	****/
 
 	IMMessenger.listen.info_update.image_contrast.on((value) => {
 		const display_slider = document.getElementById("SeviDisplaySlider");
 		display_slider.value = value;
+	});
+
+	// Update accumulated image when alert is sent
+	IMMessenger.listen.info_update.accumulated_image.on(() => {
+		// If user is not on SEVI tab, ignore
+		if (PageInfo.current_tab !== Tabs.SEVI) return;
+		//console.log("Updating");
+		update_sevi_accumulated_image_display();
 	});
 
 	// Update accumulated image display when scan is reset
@@ -682,10 +677,15 @@ function Sevi_PESpectrum_Display() {
 	const chart = new Chart(document.getElementById("SeviPESpectrum").getContext("2d"), {
 		type: "line",
 		options: {
+			responsive: true,
 			maintainAspectRatio: false,
 			animations: false,
 			plugins: {
 				zoom: zoomOptions,
+				legend: {
+					onHover: handleHover,
+					onLeave: handleLeave,
+				},
 			},
 			elements: {
 				point: {
@@ -694,6 +694,21 @@ function Sevi_PESpectrum_Display() {
 			},
 		},
 	});
+
+	// Potentially cool thing? Highlighted dataset is shown with others faded when hovering over legend
+	// (this example only works on bar charts)
+	function handleHover(evt, item, legend) {
+		legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
+			colors[index] = index === item.index || color.length === 9 ? color : color + "4D";
+		});
+		legend.chart.update();
+	}
+	function handleLeave(evt, item, legend) {
+		legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
+			colors[index] = color.length === 9 ? color.slice(0, -2) : color;
+		});
+		legend.chart.update();
+	}
 
 	/****
 			HTML Element Listeners

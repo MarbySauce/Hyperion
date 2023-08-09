@@ -521,12 +521,6 @@ function IRAction_Scan_Status() {
 			if (excitation_wavelength.nIR.wavelength > 0) {
 				nir_wavelength.value = excitation_wavelength.nIR.wavelength.toFixed(3);
 				ir_wavenumber.value = excitation_wavelength.energy.wavenumber.toFixed(3);
-				/*let ir_mode_string = excitation_wavelength.selected_mode_str;
-				if (ir_mode_string) {
-					// Capitalize IR (I think it looks better)
-					ir_mode_string = ir_mode_string.charAt(0) + ir_mode_string.slice(1).toUpperCase();
-				}
-				ir_mode.innerText = ir_mode_string;*/
 				ir_mode.innerText = excitation_wavelength.selected_mode.pretty_name;
 			} else {
 				nir_wavelength.value = "";
@@ -583,22 +577,6 @@ function IRAction_Scan_Status() {
 			if (excitation_wavelength.nIR.wavelength > 0) {
 				nir_wavelength.value = excitation_wavelength.nIR.wavelength.toFixed(3);
 				ir_wavenumber.value = excitation_wavelength.energy.wavenumber.toFixed(3);
-				/*let ir_mode_string = "";
-				switch (excitation_wavelength.selected_mode) {
-					case LASER.MODE.EXCITATION.NIR:
-						ir_mode_string = "nIR";
-						break;
-					case LASER.MODE.EXCITATION.IIR:
-						ir_mode_string = "iIR";
-						break;
-					case LASER.MODE.EXCITATION.MIR:
-						ir_mode_string = "mIR";
-						break;
-					case LASER.MODE.EXCITATION.FIR:
-						ir_mode_string = "fIR";
-						break;
-				}
-				ir_mode.innerText = ir_mode_string;*/
 				ir_mode.innerText = excitation_wavelength.selected_mode.pretty_name;
 			} else {
 				nir_wavelength.value = "";
@@ -703,25 +681,20 @@ function IRAction_Accumulated_Image_Display(PageInfo) {
 	};
 
 	/****
-			IPC Event Listeners
-	****/
-
-	ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
-		// If user is not on IR Action tab, ignore
-		if (PageInfo.current_tab !== Tabs.IRACTION) return;
-		// Only update display if image is being taken
-		if (IMMessenger.information.status.running) {
-			update_iraction_accumulated_image_display();
-		}
-	});
-
-	/****
 			Image Manager Listeners
 	****/
 
 	IMMessenger.listen.info_update.image_contrast.on((value) => {
 		const display_slider = document.getElementById("IRActionDisplaySlider");
 		display_slider.value = value;
+	});
+
+	// Update accumulated image when alert is sent
+	IMMessenger.listen.info_update.accumulated_image.on(() => {
+		// If user is not on SEVI tab, ignore
+		if (PageInfo.current_tab !== Tabs.IRACTION) return;
+		//console.log("Updating");
+		update_iraction_accumulated_image_display();
 	});
 
 	// Update accumulated image display when scan is reset

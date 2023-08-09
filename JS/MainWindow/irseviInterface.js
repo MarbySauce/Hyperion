@@ -563,25 +563,20 @@ function IRSevi_Accumulated_Image_Display(PageInfo) {
 	};
 
 	/****
-			IPC Event Listeners
-	****/
-
-	ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
-		// If user is not on IR-SEVI tab, ignore
-		if (PageInfo.current_tab !== Tabs.IRSEVI) return;
-		// Only update display if image is being taken
-		if (IMMessenger.information.status.running) {
-			update_irsevi_accumulated_image_display();
-		}
-	});
-
-	/****
 			Image Manager Listeners
 	****/
 
 	IMMessenger.listen.info_update.image_contrast.on((value) => {
 		const display_slider = document.getElementById("IRSeviDisplaySlider");
 		display_slider.value = value;
+	});
+
+	// Update accumulated image when alert is sent
+	IMMessenger.listen.info_update.accumulated_image.on(() => {
+		// If user is not on SEVI tab, ignore
+		if (PageInfo.current_tab !== Tabs.IRSEVI) return;
+		//console.log("Updating");
+		update_irsevi_accumulated_image_display();
 	});
 
 	// Update accumulated image display when scan is reset
