@@ -665,7 +665,9 @@ function Sevi_PESpectrum_Display() {
 	const AllPESRadio = [];
 	let DisplayedPES = new PESpectrumDisplay();
 
-	const zoomOptions = {
+	const radio_name = "SEVI_pe_spectra";
+
+	const zoom_options = {
 		zoom: {
 			mode: "xy",
 			drag: {
@@ -701,7 +703,7 @@ function Sevi_PESpectrum_Display() {
 				},
 			},
 			plugins: {
-				zoom: zoomOptions,
+				zoom: zoom_options,
 				title: {
 					text: "",
 					display: true,
@@ -822,7 +824,7 @@ function Sevi_PESpectrum_Display() {
 	function add_radio_button(image) {
 		const spectra_selection = document.getElementById("SeviSpectrumSelection");
 
-		let radio = new PESRadio(image);
+		let radio = new PESRadio(image, radio_name);
 		radio.set_up_callback((spectrum_display) => {
 			DisplayedPES = spectrum_display;
 			update_pes_plot();

@@ -843,6 +843,243 @@ function IRSevi_Change_Pages() {
 
 *****************************************************************************/
 
+function IRSevi_PESpectrum_Display() {
+	const { Chart, registerables } = require("chart.js");
+	const { zoomPlugin } = require("chartjs-plugin-zoom");
+	const { PESRadio, PESpectrumDisplay, IRPESpectrumDisplay } = require("./Libraries/PESpectrumDisplayClasses.js");
+	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+
+	if (registerables) Chart.register(...registerables);
+	if (zoomPlugin) Chart.register(zoomPlugin);
+
+	const IMMessenger = new ImageManagerMessenger();
+
+	/****
+			Setting up PES Chart
+	****/
+
+	const AllPESRadio = [];
+	let DisplayedPES = new PESpectrumDisplay();
+
+	const radio_name = "IRSEVI_pe_spectra";
+
+	const zoom_options = {
+		zoom: {
+			mode: "xy",
+			drag: {
+				enabled: true,
+				borderColor: "rgb(54, 162, 235)",
+				borderWidth: 1,
+				backgroundColor: "rgba(54, 162, 235, 0.3)",
+			},
+		},
+	};
+
+	const scales_title = {
+		color: "black",
+		display: true,
+		font: {
+			size: 16,
+		},
+	};
+
+	const chart = new Chart(document.getElementById("IRSeviPESpectrum").getContext("2d"), {
+		type: "line",
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			animations: false,
+			scales: {
+				x: {
+					type: "linear",
+					title: scales_title,
+				},
+				y: {
+					title: scales_title,
+				},
+			},
+			plugins: {
+				zoom: zoom_options,
+				title: {
+					text: "",
+					display: true,
+					fullSize: false,
+					align: "end",
+					padding: 0,
+				},
+				legend: {
+					fullSize: false,
+				},
+			},
+			elements: {
+				point: {
+					radius: 0,
+				},
+			},
+		},
+	});
+
+	/****
+			HTML Element Listeners
+	****/
+
+	document.getElementById("IRSeviResetZoom").onclick = function () {
+		chart.resetZoom();
+	};
+
+	document.getElementById("IRSeviChangeBasis").onclick = function () {
+		PESpectrumDisplay.toggle_ebe();
+		if (DisplayedPES.show_ebe) {
+			// eBE plot is now displayed, change button to say R
+			change_basis_button_to_R();
+		} else {
+			// Radial plot is now displayed, change button to say eBE
+			change_basis_button_to_eBE();
+		}
+		update_pes_plot();
+	};
+
+	document.getElementById("IRSeviShowDifference").onclick = function () {
+		PESpectrumDisplay.toggle_difference();
+		if (DisplayedPES.show_difference) {
+			// Difference spectrum is now displayed, change button to say IR On/Off
+			change_difference_button_to_ir_on_off();
+		} else {
+			// IR On/Off spectrum is now displayed, change button to say Difference
+			change_difference_button_to_difference();
+		}
+		update_pes_plot();
+	};
+
+	document.getElementById("IRSeviShowAnisotropy").onclick = function () {
+		PESpectrumDisplay.toggle_anisotropy();
+		if (DisplayedPES.show_anisotropy) {
+			//Aanisotropy is now displayed, change button to say Hide
+			change_anisotropy_button_to_hide();
+		} else {
+			// Anisotropy is no longer displayed, change button to say Show
+			change_anisotropy_button_to_show();
+		}
+		update_pes_plot();
+	};
+
+	document.getElementById("IRSeviCalculateSpectrumButton").onclick = function () {
+		IMMessenger.request.process_image();
+	};
+
+	/****
+			Image Manager Listeners
+	****/
+
+	// Disable calculate button when Melexir starts processing
+	IMMessenger.listen.event.melexir.start.on(disable_calculate_button);
+
+	IMMessenger.listen.event.melexir.stop.on((image) => {
+		// Check if this image is already in PES list
+		let is_not_in_list = true;
+		for (radio of AllPESRadio) {
+			if (image.id === radio.image.id) {
+				// Update that image and end loop
+				radio.update_image(image);
+				// If the updated image is also displayed (i.e. the radio is checked) then update plot
+				if (radio.radio.checked) {
+					DisplayedPES = radio.spectrum_display;
+					update_pes_plot();
+				}
+				is_not_in_list = false;
+				break;
+			}
+		}
+		if (is_not_in_list) {
+			// Create new radio button and add to list
+			add_radio_button(image);
+			// If that is the only image so far, display it
+			if (AllPESRadio.length === 1) {
+				AllPESRadio[0].radio.checked = true;
+				DisplayedPES = AllPESRadio[0].spectrum_display;
+				update_pes_plot();
+			}
+		}
+		// Re-enable calculate button
+		enable_calculate_button();
+	});
+
+	/****
+			Functions
+	****/
+
+	function clear_irsevi_pe_spectra_display() {
+		const spectra_selection = document.getElementById("IRSeviSpectrumSelection");
+		const display_length = spectra_selection.children.length;
+		for (let i = 0; i < display_length; i++) {
+			// Remove the first child from section
+			spectra_selection.removeChild(spectra_selection.children[0]);
+		}
+	}
+
+	function add_radio_button(image) {
+		const spectra_selection = document.getElementById("IRSeviSpectrumSelection");
+
+		let radio = new PESRadio(image, radio_name);
+		radio.set_up_callback((spectrum_display) => {
+			DisplayedPES = spectrum_display;
+			update_pes_plot();
+		});
+		radio.add_to_div(spectra_selection);
+
+		AllPESRadio.push(radio);
+	}
+
+	function update_pes_plot() {
+		chart.data = DisplayedPES.data;
+		chart.options.plugins.tooltip = DisplayedPES.tooltip;
+		chart.options.plugins.title.text = DisplayedPES.plugins_title;
+		chart.options.scales.x.title.text = DisplayedPES.x_axis_title;
+		chart.options.scales.y.title.text = DisplayedPES.y_axis_title;
+		chart.update();
+	}
+
+	function change_basis_button_to_R() {
+		const basis_button = document.getElementById("IRSeviChangeBasis");
+		basis_button.innerText = "Show R Plot";
+	}
+
+	function change_basis_button_to_eBE() {
+		const basis_button = document.getElementById("IRSeviChangeBasis");
+		basis_button.innerText = "Show eBE Plot";
+	}
+
+	function change_difference_button_to_difference() {
+		const difference_button = document.getElementById("IRSeviShowDifference");
+		difference_button.innerText = "Show Difference";
+	}
+
+	function change_difference_button_to_ir_on_off() {
+		const difference_button = document.getElementById("IRSeviShowDifference");
+		difference_button.innerText = "Show IR On/Off";
+	}
+
+	function change_anisotropy_button_to_show() {
+		const anisotropy_button = document.getElementById("IRSeviShowAnisotropy");
+		anisotropy_button.innerText = "Show Anisotropy";
+	}
+
+	function change_anisotropy_button_to_hide() {
+		const anisotropy_button = document.getElementById("IRSeviShowAnisotropy");
+		anisotropy_button.innerText = "Hide Anisotropy";
+	}
+
+	function disable_calculate_button() {
+		const calculate_button = document.getElementById("IRSeviCalculateSpectrumButton");
+		calculate_button.disabled = true;
+	}
+
+	function enable_calculate_button() {
+		const calculate_button = document.getElementById("IRSeviCalculateSpectrumButton");
+		calculate_button.disabled = false;
+	}
+}
+
 /*****************************************************************************
 
 							RECENT SCANS
@@ -1061,6 +1298,11 @@ function IRSevi_Load_Page(PageInfo) {
 		console.log("Cannot load IR-SEVI tab page up/down buttons:", error);
 	}
 	/*		Second Page		*/
+	try {
+		IRSevi_PESpectrum_Display();
+	} catch (error) {
+		console.log("Cannot load IR-SEVI tab PE Spectra Display module:", error);
+	}
 	try {
 		IRSevi_Recent_Scans();
 	} catch (error) {

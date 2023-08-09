@@ -361,23 +361,18 @@
 			<div class="second-page page grid" id="IRSeviModeSecondPage">
 				<button class="page-up page-button" id="IRSeviPageUp"><i class="arrow arrow-up"></i></button>
 				<!-- IR-SEVI Mode - Second Page - PE Spectrum Display -->
-				<div class="grid background-lighter-blue negative-top-margin" id="IRSeviSpectrumDisplaySection">
-					<div class="background-lighter-blue" id="IRSeviSpectrumDisplayInner">
+				<div class="grid background-lighter-blue negative-top-margin spectrum-display-section" id="IRSeviSpectrumDisplaySection">
+					<div class="background-lighter-blue spectrum-display-inner" id="IRSeviSpectrumDisplayInner">
 						<canvas id="IRSeviPESpectrum"></canvas>
 					</div>
-					<div class="grid background-lighter-blue" id="IRSeviSpectrumControl">
-						<select class="white-text square-button drop-down" name="SpectrumSwitch" id="IRSeviSpectrumSwitch">
-							<option value="on-off">On/Off</option>
-							<option value="difference">Difference</option>
-						</select>
-						<button class="white-text square-button" id="IRSeviCalculateSpectrumButton">Calculate</button>
-						<h4 class="white-text range-label" id="IRSeviSpectrumYRangeLabel">Vertical Axis Range</h4>
-						<input class="input-change axis-range-input" id="IRSeviSpectrumYLower" type="number" placeholder="-" />
-						<input class="input-change axis-range-input" id="IRSeviSpectrumYUpper" type="number" placeholder="-" />
-						<h4 class="white-text range-label" id="IRSeviSpectrumXRangeLabel">Horizontal Axis Range</h4>
-						<input class="input-change axis-range-input" id="IRSeviSpectrumXLower" type="number" placeholder="-" />
-						<input class="input-change axis-range-input" id="IRSeviSpectrumXUpper" type="number" placeholder="-" />
+					<div class="grid background-lighter-blue spectrum-display-control" id="IRSeviSpectrumControl">
+						<button class="square-button spectrum-control-button white-text" id="IRSeviResetZoom">Reset Zoom</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviChangeBasis">Show eBE Plot</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviShowDifference">Show Difference</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviShowAnisotropy">Show Anisotropy</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviCalculateSpectrumButton">Calculate</button>
 					</div>
+					<div class="grid background-lighter-blue pe-spectra" id="IRSeviSpectrumSelection"></div>
 				</div>
 				<!-- IR-SEVI Mode - Second Page - Recent Scans -->
 				<div class="grid background-lighter-blue recent-scans" id="IRSeviRecentScans">

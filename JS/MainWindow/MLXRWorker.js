@@ -90,7 +90,8 @@ function fake_process_image(data) {
 			);
 		}
 	}
-	function noise(electrons) {
+	function noise(electrons, i) {
+		if (i < 25) return Math.random();
 		return Math.random() * Math.sqrt(electrons);
 	}
 
@@ -117,10 +118,10 @@ function fake_process_image(data) {
 		};
 		// Fill in spectrum with fake data
 		for (let i = 0; i < array_size; i++) {
-			results_off.spectrum[0][i] = electrons_off * fake_spectrum(i, true, false) + noise(electrons_off);
-			results_off.spectrum[1][i] = -0.5 * electrons_off * fake_spectrum(i, true, false) + noise(electrons_off); // Beta = -0.5 for all
-			results_on.spectrum[0][i] = electrons_on * fake_spectrum(i, true, true) + noise(electrons_on);
-			results_on.spectrum[1][i] = -0.5 * electrons_on * fake_spectrum(i, true, true) + noise(electrons_on); // Beta = -0.5 for all
+			results_off.spectrum[0][i] = electrons_off * fake_spectrum(i, true, false) + noise(electrons_off, i);
+			results_off.spectrum[1][i] = -0.5 * electrons_off * fake_spectrum(i, true, false) + noise(electrons_off, i); // Beta = -0.5 for all
+			results_on.spectrum[0][i] = electrons_on * fake_spectrum(i, true, true) + noise(electrons_on, i);
+			results_on.spectrum[1][i] = -0.5 * electrons_on * fake_spectrum(i, true, true) + noise(electrons_on, i); // Beta = -0.5 for all
 		}
 		return { is_ir: true, results_off, results_on };
 	} else {
@@ -136,8 +137,8 @@ function fake_process_image(data) {
 		};
 		// Fill in spectrum with fake data
 		for (let i = 0; i < array_size; i++) {
-			results.spectrum[0][i] = electrons * fake_spectrum(i, false, false) + noise(electrons);
-			results.spectrum[1][i] = -0.5 * electrons * fake_spectrum(i, false, false) + noise(electrons); // Beta = -0.5 for all
+			results.spectrum[0][i] = electrons * fake_spectrum(i, false, false) + noise(electrons, i);
+			results.spectrum[1][i] = -0.5 * electrons * fake_spectrum(i, false, false) + noise(electrons, i); // Beta = -0.5 for all
 		}
 		return { is_ir: false, results };
 	}

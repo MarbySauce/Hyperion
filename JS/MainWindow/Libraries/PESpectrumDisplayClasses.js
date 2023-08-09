@@ -5,13 +5,14 @@ const { SafeIRImage, SafeImage } = require("./ImageClasses.js");
 class PESRadio {
 	/**
 	 * @param {SafeImage | SafeIRImage} image
+	 * @param {String} radio_name optional - name used to group radio buttons together
 	 */
-	constructor(image) {
+	constructor(image, radio_name) {
 		this.image = image;
 		if (image.is_ir) this.spectrum_display = new IRPESpectrumDisplay(image);
 		else this.spectrum_display = new PESpectrumDisplay(image);
 
-		this.radio = this.create_radio();
+		this.radio = this.create_radio(radio_name);
 
 		this.label = document.createElement("label");
 		this.label.innerText = `i${this.image.id_str}`;
@@ -32,10 +33,11 @@ class PESRadio {
 		this.callback_fn;
 	}
 
-	create_radio() {
+	create_radio(radio_name) {
 		let radio = document.createElement("input");
 		radio.type = "radio";
-		radio.name = "pe_spectra";
+		if (radio_name) radio.name = radio_name;
+		else radio.name = "pe_spectra";
 		radio.value = this.image.id_str;
 		radio.id = this.image.id_str;
 
@@ -364,6 +366,7 @@ class IRPESpectrumDisplay extends PESpectrumDisplay {
 					});
 				}
 				returned_data.datasets.push({
+					label: "Zero Line",
 					data: this.zeros,
 					borderColor: "gray",
 					pointHitRadius: 0,
@@ -424,6 +427,7 @@ class IRPESpectrumDisplay extends PESpectrumDisplay {
 					});
 				}
 				returned_data.datasets.push({
+					label: "Zero Line",
 					data: this.zeros,
 					borderColor: "gray",
 					pointHitRadius: 0,
