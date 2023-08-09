@@ -57,6 +57,8 @@ async function startup() {
 
 	// Set starting image ID to 1
 	IMMessenger.update.id.set(1);
+	// Set starting VMI to V1
+	IMMessenger.update.vmi_info({ mode: "V1" });
 
 	initialize_mac_fn();
 

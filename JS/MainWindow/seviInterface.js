@@ -651,22 +651,100 @@ function Sevi_Change_Pages() {
 *****************************************************************************/
 
 function Sevi_PESpectrum_Display() {
-	const { PESRadio } = require("./Libraries/PESpectrumDisplayClasses.js");
+	const { Chart, registerables } = require("chart.js");
+	const { zoomPlugin } = require("chartjs-plugin-zoom");
+	const { PESRadio, PESpectrumDisplay, IRPESpectrumDisplay } = require("./Libraries/PESpectrumDisplayClasses.js");
 	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+
+	if (registerables) Chart.register(...registerables);
+	if (zoomPlugin) Chart.register(zoomPlugin);
+
 	const IMMessenger = new ImageManagerMessenger();
+
+	/****
+			Setting up PES Chart
+	****/
+
+	let DisplayedPES = new PESpectrumDisplay();
+
+	const zoomOptions = {
+		zoom: {
+			mode: "xy",
+			drag: {
+				enabled: true,
+				borderColor: "rgb(54, 162, 235)",
+				borderWidth: 1,
+				backgroundColor: "rgba(54, 162, 235, 0.3)",
+			},
+		},
+	};
+
+	const chart = new Chart(document.getElementById("SeviPESpectrum").getContext("2d"), {
+		type: "line",
+		options: {
+			maintainAspectRatio: false,
+			animations: false,
+			plugins: {
+				zoom: zoomOptions,
+			},
+			elements: {
+				point: {
+					radius: 0,
+				},
+			},
+		},
+	});
+
+	/****
+			HTML Element Listeners
+	****/
+
+	document.getElementById("SeviResetZoom").onclick = function () {
+		chart.resetZoom();
+	};
+
+	document.getElementById("SeviChangeBasis").onclick = function () {
+		let show_radial = DisplayedPES.show_radial;
+		if (show_radial) {
+			DisplayedPES.show_radial = false;
+			change_basis_button_to_R();
+		} else {
+			DisplayedPES.show_radial = true;
+			change_basis_button_to_eBE();
+		}
+		update_pes_plot();
+	};
+
+	document.getElementById("SeviShowAnisotropy").onclick = function () {
+		let show_anisotropy = DisplayedPES.show_anisotropy;
+		if (show_anisotropy) {
+			DisplayedPES.show_anisotropy = false;
+			change_anisotropy_button_to_show();
+		} else {
+			DisplayedPES.show_anisotropy = true;
+			change_anisotropy_button_to_hide();
+		}
+		update_pes_plot();
+	};
 
 	/****
 			Image Manager Listeners
 	****/
 
-	IMMessenger.listen.event.scan.stop.on(() => {
+	IMMessenger.listen.event.melexir.stop.on(() => {
 		// Clear display
 		clear_sevi_pe_spectra_display();
-		// Get all images from Image Manager and put scan information on the display
+		// Get all images from Image Manager and put image IDs on the display as a radio button
 		let all_images = IMMessenger.information.all_images;
+		let last_image;
 		for (image of all_images) {
 			add_radio_button(image);
+			last_image = image;
 		}
+
+		if (last_image.is_ir) DisplayedPES = new IRPESpectrumDisplay(last_image);
+		else DisplayedPES = new PESpectrumDisplay(last_image);
+		update_pes_plot();
 	});
 
 	/****
@@ -686,7 +764,41 @@ function Sevi_PESpectrum_Display() {
 		const spectra_selection = document.getElementById("SeviSpectrumSelection");
 
 		let radio = new PESRadio(image);
+
+		radio.set_up_callback((spectrum_display) => {
+			DisplayedPES = spectrum_display;
+			update_pes_plot();
+		});
+
 		radio.add_to_div(spectra_selection);
+	}
+
+	function update_pes_plot() {
+		chart.data = DisplayedPES.data;
+		chart.options.plugins.tooltip = DisplayedPES.tooltip;
+		chart.options.scales.x = DisplayedPES.x_scale;
+		chart.options.scales.y = DisplayedPES.y_scale;
+		chart.update();
+	}
+
+	function change_basis_button_to_R() {
+		const basis_button = document.getElementById("SeviChangeBasis");
+		basis_button.innerText = "Show R plot";
+	}
+
+	function change_basis_button_to_eBE() {
+		const basis_button = document.getElementById("SeviChangeBasis");
+		basis_button.innerText = "Show eBE plot";
+	}
+
+	function change_anisotropy_button_to_show() {
+		const anisotropy_button = document.getElementById("SeviShowAnisotropy");
+		anisotropy_button.innerText = "Show Anisotropy";
+	}
+
+	function change_anisotropy_button_to_hide() {
+		const anisotropy_button = document.getElementById("SeviShowAnisotropy");
+		anisotropy_button.innerText = "Hide Anisotropy";
 	}
 }
 

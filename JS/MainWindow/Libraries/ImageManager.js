@@ -391,6 +391,8 @@ function ImageManager_melexir_process_image(save_to_file) {
 		image_class = ImageManager.current_image;
 	}
 
+	IMAlerts.event.melexir.start.alert();
+
 	let initial_id = image_class.id;
 
 	ImageManager.melexir.worker = new Worker("../JS/MainWindow/MLXRWorker.js");
@@ -425,6 +427,8 @@ function ImageManager_melexir_process_image(save_to_file) {
 		if (save_to_file && !ImageManager.params.do_not_save_to_file) {
 			image_class.pe_spectrum.save_files();
 		}
+
+		IMAlerts.event.melexir.stop.alert();
 	};
 }
 
@@ -801,6 +805,10 @@ const IMAlerts = {
 			cancel: new ManagerAlert(),
 			reset: new ManagerAlert(),
 			stop_or_cancel: new ManagerAlert(),
+		},
+		melexir: {
+			start: new ManagerAlert(),
+			stop: new ManagerAlert(),
 		},
 	},
 	info_update: {
@@ -1312,11 +1320,60 @@ class IMMessengerCallbackEvent {
 				return this._stop_or_cancel;
 			},
 		};
+
+		this._melexir = {
+			_start: {
+				/**
+				 * Execute callback function *every time* Melexir starts processing an accumulated image
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				on: (callback) => {
+					IMAlerts.event.melexir.start.add_on(callback);
+				},
+				/**
+				 * Execute callback function *once the next time* Melexir starts processing an accumulated image
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				once: (callback) => {
+					IMAlerts.event.melexir.start.add_once(callback);
+				},
+			},
+			_stop: {
+				/**
+				 * Execute callback function *every time* Melexir stops processing an accumulated image
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				on: (callback) => {
+					IMAlerts.event.melexir.stop.add_on(callback);
+				},
+				/**
+				 * Execute callback function *once the next time* Melexir stops processing an accumulated image
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				once: (callback) => {
+					IMAlerts.event.melexir.stop.add_once(callback);
+				},
+			},
+
+			/** Listen for Melexir to start processing */
+			get start() {
+				return this._start;
+			},
+			/** Listen for Melexir to stop processing */
+			get stop() {
+				return this._stop;
+			},
+		};
 	}
 
 	/** Set up callback functions to be executed when accumulated image event occurs  */
 	get scan() {
 		return this._scan;
+	}
+
+	/** Set up callback functions to be executed when Melexir is used */
+	get melexir() {
+		return this._melexir;
 	}
 }
 
