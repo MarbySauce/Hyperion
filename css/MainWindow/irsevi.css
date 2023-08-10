@@ -125,31 +125,5 @@ Right Side
 /* See sevi.css for class styling */
 
 /* IR-Sevi Mode - Second Page - Recent Scans */
-#IRSeviRecentScans {
-	padding: 0 25px 5px 25px;
-}
-#IRSeviRecentScansHeader {
-	padding: 5px;
-	padding-bottom: 10px;
-	z-index: 5;
-	border-bottom: black;
-}
-#IRSeviRecentScans h4 {
-	text-align: center;
-	align-self: end;
-	font-size: 1.3vw;
-}
-#IRSeviRecentScansSection {
-	max-height: 390px;
-	padding: 5px;
-	padding-bottom: 0;
-	border: 2px solid rgb(62, 71, 95);
-}
-#IRSeviRecentScans p {
-	text-align: center;
-	font-size: 1.4vw;
-	padding-top: 7px;
-	height: 100%;
-	border-bottom: 1px dotted rgb(62, 71, 95);
-	color: white;
-}
+
+/* See sevi.css for class styling */

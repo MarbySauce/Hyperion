@@ -321,8 +321,10 @@
 	grid-template-columns: 0.7fr 1.3fr 1.5fr 0.8fr 1fr;
 }
 #SeviRecentScansSection {
-	grid-template-columns: 0.7fr 1.3fr 1.5fr 0.8fr 1fr;
 	grid-auto-rows: 35px;
+}
+.recent-scans-row {
+	grid-template-columns: 0.7fr 1.3fr 1.5fr 0.8fr 1fr;
 }
 
 #SeviElectronCountHistory {

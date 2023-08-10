@@ -171,11 +171,20 @@ Right Side
 	padding-bottom: 0;
 	border: 2px solid rgb(62, 71, 95);
 }
-.recent-scans p {
+
+.recent-scans-row {
+	display: grid;
+}
+.recent-scans-image {
+	border-bottom: 1px solid lightsteelblue;
+}
+.recent-scans-subimage {
+	border-bottom: 1px dotted rgb(62, 71, 95);
+}
+.recent-scans-row p {
 	text-align: center;
 	font-size: 1.4vw;
 	padding-top: 7px;
 	height: 100%;
-	border-bottom: 1px dotted rgb(62, 71, 95);
 	color: white;
 }

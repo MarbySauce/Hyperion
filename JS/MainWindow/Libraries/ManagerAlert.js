@@ -15,11 +15,19 @@ class ManagerAlert {
 	alert(...args) {
 		// Execute "on" functions first
 		for (let f of this.on) {
-			f(...args);
+			try {
+				f(...args);
+			} catch (error) {
+				console.log("Could not execute function!", error);
+			}
 		}
 		// Execute "once" functions and remove
 		for (let f of this.once) {
-			f(...args);
+			try {
+				f(...args);
+			} catch (error) {
+				console.log("Could not execute function!", error);
+			}
 		}
 		this.once = [];
 	}
