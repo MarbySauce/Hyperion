@@ -38,7 +38,7 @@ ipc.on("settings-information", (event, settings_information) => {
 
 async function startup() {
 	const { Tabs } = require("../JS/MainWindow/Libraries/Tabs.js");
-	const { Tab_Control, change_tab, PageInfo } = require("../JS/MainWindow/tabInterface.js");
+	const { Tab_Control, Large_Display_Control, change_tab, PageInfo } = require("../JS/MainWindow/tabInterface.js");
 	const { Sevi_Load_Page } = require("../JS/MainWindow/seviInterface.js");
 	const { IRSevi_Load_Page } = require("../JS/MainWindow/irseviInterface.js");
 	const { IRAction_Load_Page } = require("../JS/MainWindow/iractionInterface.js");
@@ -47,6 +47,7 @@ async function startup() {
 	initialize_message_display(document.getElementById("MessageDisplay"));
 	// Load Tab Content startup functions
 	Tab_Control();
+	Large_Display_Control();
 	Sevi_Load_Page(PageInfo);
 	IRSevi_Load_Page(PageInfo);
 	IRAction_Load_Page(PageInfo);

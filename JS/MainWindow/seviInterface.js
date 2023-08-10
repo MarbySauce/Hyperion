@@ -369,6 +369,11 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 			HTML Element Listeners
 	****/
 
+	document.getElementById("SeviDisplay").onclick = function () {
+		const large_display = document.getElementById("LargeDisplaySection");
+		large_display.classList.remove("large-display-hidden");
+	};
+
 	document.getElementById("SeviDisplaySlider").oninput = function () {
 		const display_slider = document.getElementById("SeviDisplaySlider");
 		IMMessenger.update.image_contrast(display_slider.value);
@@ -403,14 +408,20 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 	function update_sevi_accumulated_image_display() {
 		const image_display = document.getElementById("SeviDisplay");
 		const ctx = image_display.getContext("2d");
+		// Also put image on expanded accumulated image display
+		const large_display = document.getElementById("LargeDisplay");
+		const large_ctx = large_display.getContext("2d");
+		// Get image data
 		let image_data = IMMessenger.information.get_image_display(ImageType.IROFF);
 		if (!image_data) return; // No ImageData object was sent
 		// Clear the current image
 		ctx.clearRect(0, 0, image_display.width, image_display.height);
+		large_ctx.clearRect(0, 0, large_display.width, large_display.height);
 		// Put image_data on the display
 		// Have to convert the ImageData object into a bitmap image so that the  image is resized to fill the display correctly
 		createImageBitmap(image_data).then(function (bitmap_img) {
 			ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, image_display.width, image_display.height);
+			large_ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, large_display.width, large_display.height);
 		});
 	}
 }

@@ -555,6 +555,11 @@ function IRSevi_Accumulated_Image_Display(PageInfo) {
 		update_irsevi_accumulated_image_display();
 	};
 
+	document.getElementById("IRSeviDisplay").onclick = function () {
+		const large_display = document.getElementById("LargeDisplaySection");
+		large_display.classList.remove("large-display-hidden");
+	};
+
 	document.getElementById("IRSeviDisplaySlider").oninput = function () {
 		const display_slider = document.getElementById("IRSeviDisplaySlider");
 		IMMessenger.update.image_contrast(display_slider.value);
@@ -590,16 +595,22 @@ function IRSevi_Accumulated_Image_Display(PageInfo) {
 		const image_display = document.getElementById("IRSeviDisplay");
 		const image_display_select = document.getElementById("IRSeviImageDisplaySelect");
 		const ctx = image_display.getContext("2d");
+		// Also put image on expanded accumulated image display
+		const large_display = document.getElementById("LargeDisplay");
+		const large_ctx = large_display.getContext("2d");
+		// Get image data
 		const image_types = [ImageType.IROFF, ImageType.IRON, ImageType.DIFFPOS, ImageType.DIFFNEG];
 		let image_type = image_types[image_display_select.selectedIndex];
 		let image_data = IMMessenger.information.get_image_display(image_type);
 		if (!image_data) return; // No ImageData object was sent
 		// Clear the current image
 		ctx.clearRect(0, 0, image_display.width, image_display.height);
+		large_ctx.clearRect(0, 0, large_display.width, large_display.height);
 		// Put image_data on the display
 		// Have to convert the ImageData object into a bitmap image so that the  image is resized to fill the display correctly
 		createImageBitmap(image_data).then(function (bitmap_img) {
 			ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, image_display.width, image_display.height);
+			large_ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, large_display.width, large_display.height);
 		});
 	}
 }

@@ -67,3 +67,22 @@ body {
 #SettingsContent {
 	grid-area: Content;
 }
+
+#LargeDisplaySection {
+	grid-area: Content;
+	grid-template-columns: 1fr 6fr 1fr;
+	grid-template-areas: "blank Display Close";
+}
+#LargeDisplayWrapper {
+	grid-area: Display;
+	grid-template-areas: "Display";
+}
+#LargeDisplay {
+	grid-area: Display;
+}
+#LargeDisplayHoverBox {
+	grid-area: Display;
+}
+#LargeDisplayClose {
+	grid-area: Close;
+}
