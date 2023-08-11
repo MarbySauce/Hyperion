@@ -85,9 +85,24 @@ label {
 	overflow: scroll;
 }
 
+.page {
+	grid-gap: 20px;
+}
+.first-page {
+	padding: 10px 20px 0 20px;
+}
+.second-page {
+	display: none;
+	padding: 0 20px 15px 20px;
+}
+
 .background-lighter-blue {
 	background: hsl(225, 20%, 40%);
 	border-radius: 7px;
+}
+
+.background-darker-blue {
+	background: hsl(225, 20%, 30%);
 }
 
 .white-text {
@@ -303,7 +318,37 @@ label {
 	width: inherit;
 	background: black;
 }
-.accumulated-image:hover {
+
+/* Large accumulated image */
+.large-display-hidden {
+	display: none;
+}
+.large-display {
+	z-index: 10;
+	padding: 1% 0;
+	background-color: hsla(225, 20%, 35%, 0.5);
+}
+.large-display-wrapper {
+	height: 85vh;
+	aspect-ratio: 1 / 1;
+	justify-self: center;
+	border-radius: 10px;
+	border: 3px solid white;
+}
+.large-display-close {
+	width: 3vw;
+	height: 4vh;
+	font-size: 2vh;
+	background-color: hsl(225, 20%, 10%);
+}
+.hover-box {
+	justify-self: center;
+	align-self: center;
+	width: 20vw;
+	aspect-ratio: 1 / 1;
+	z-index: 20;
+}
+.hover-box:hover ~ #LargeDisplay {
 	transform: scale(2);
 }
 

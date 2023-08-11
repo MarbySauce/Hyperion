@@ -29,6 +29,13 @@
 			<!-- Future tab buttons should be added here -->
 			<button class="tab" id="Settings">Settings</button>
 		</div>
+		<div class="grid large-display-hidden large-display" id="LargeDisplaySection">
+			<div class="grid large-display-wrapper" id="LargeDisplayWrapper">
+				<div class="hover-box" id="LargeDisplayHoverBox"></div>
+				<canvas class="accumulated-image" id="LargeDisplay" width="2000" height="2000"></canvas>
+			</div>
+			<button class="square-button white-text large-display-close" id="LargeDisplayClose">X</button>
+		</div>
 		<!-- SEVI Mode Content -->
 		<div id="SeviModeContent">
 			<!-- SEVI Mode - First Page -->
@@ -156,19 +163,18 @@
 			<div class="second-page page grid" id="SeviModeSecondPage">
 				<button class="page-up page-button" id="SeviPageUp"><i class="arrow arrow-up"></i></button>
 				<!-- SEVI Mode - Second Page - PE Spectrum Display -->
-				<div class="grid background-lighter-blue negative-top-margin" id="SeviSpectrumDisplaySection">
-					<div class="background-lighter-blue" id="SeviSpectrumDisplayInner">
+				<div class="grid background-lighter-blue negative-top-margin spectrum-display-section" id="SeviSpectrumDisplaySection">
+					<div class="background-lighter-blue spectrum-display-inner" id="SeviSpectrumDisplayInner">
 						<canvas id="SeviPESpectrum"></canvas>
 					</div>
-					<div class="grid background-lighter-blue" id="SeviSpectrumControl">
-						<button class="white-text square-button" id="SeviCalculateSpectrumButton">Calculate</button>
-						<h4 class="white-text range-label" id="SeviSpectrumYRangeLabel">Vertical Axis Range</h4>
-						<input class="input-change axis-range-input" id="SeviSpectrumYLower" type="number" placeholder="-" />
-						<input class="input-change axis-range-input" id="SeviSpectrumYUpper" type="number" placeholder="-" />
-						<h4 class="white-text range-label" id="SeviSpectrumXRangeLabel">Horizontal Axis Range</h4>
-						<input class="input-change axis-range-input" id="SeviSpectrumXLower" type="number" placeholder="-" />
-						<input class="input-change axis-range-input" id="SeviSpectrumXUpper" type="number" placeholder="-" />
+					<div class="grid background-lighter-blue spectrum-display-control" id="SeviSpectrumControl">
+						<button class="square-button spectrum-control-button white-text" id="SeviResetZoom">Reset Zoom</button>
+						<button class="square-button spectrum-control-button white-text" id="SeviChangeBasis">Show eBE Plot</button>
+						<button class="square-button spectrum-control-button white-text" id="SeviShowDifference">Show Difference</button>
+						<button class="square-button spectrum-control-button white-text" id="SeviShowAnisotropy">Show Anisotropy</button>
+						<button class="square-button spectrum-control-button white-text" id="SeviCalculateSpectrumButton">Calculate</button>
 					</div>
+					<div class="grid background-lighter-blue pe-spectra" id="SeviSpectrumSelection"></div>
 				</div>
 				<!-- SEVI Mode - Second Page - Recent Scans -->
 				<div class="grid background-lighter-blue recent-scans" id="SeviRecentScans">
@@ -183,7 +189,7 @@
 				</div>
 				<!-- SEVI Mode - Second Page - Electron Count History -->
 				<div class="background-lighter-blue" id="SeviElectronCountHistory">
-					<h2 class="white-text">Put laser wavelength conversion boxes here?</h2>
+					<!--<h2 class="white-text">Put laser wavelength conversion boxes here?</h2>-->
 				</div>
 			</div>
 		</div>
@@ -362,23 +368,18 @@
 			<div class="second-page page grid" id="IRSeviModeSecondPage">
 				<button class="page-up page-button" id="IRSeviPageUp"><i class="arrow arrow-up"></i></button>
 				<!-- IR-SEVI Mode - Second Page - PE Spectrum Display -->
-				<div class="grid background-lighter-blue negative-top-margin" id="IRSeviSpectrumDisplaySection">
-					<div class="background-lighter-blue" id="IRSeviSpectrumDisplayInner">
+				<div class="grid background-lighter-blue negative-top-margin spectrum-display-section" id="IRSeviSpectrumDisplaySection">
+					<div class="background-lighter-blue spectrum-display-inner" id="IRSeviSpectrumDisplayInner">
 						<canvas id="IRSeviPESpectrum"></canvas>
 					</div>
-					<div class="grid background-lighter-blue" id="IRSeviSpectrumControl">
-						<select class="white-text square-button drop-down" name="SpectrumSwitch" id="IRSeviSpectrumSwitch">
-							<option value="on-off">On/Off</option>
-							<option value="difference">Difference</option>
-						</select>
-						<button class="white-text square-button" id="IRSeviCalculateSpectrumButton">Calculate</button>
-						<h4 class="white-text range-label" id="IRSeviSpectrumYRangeLabel">Vertical Axis Range</h4>
-						<input class="input-change axis-range-input" id="IRSeviSpectrumYLower" type="number" placeholder="-" />
-						<input class="input-change axis-range-input" id="IRSeviSpectrumYUpper" type="number" placeholder="-" />
-						<h4 class="white-text range-label" id="IRSeviSpectrumXRangeLabel">Horizontal Axis Range</h4>
-						<input class="input-change axis-range-input" id="IRSeviSpectrumXLower" type="number" placeholder="-" />
-						<input class="input-change axis-range-input" id="IRSeviSpectrumXUpper" type="number" placeholder="-" />
+					<div class="grid background-lighter-blue spectrum-display-control" id="IRSeviSpectrumControl">
+						<button class="square-button spectrum-control-button white-text" id="IRSeviResetZoom">Reset Zoom</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviChangeBasis">Show eBE Plot</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviShowDifference">Show Difference</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviShowAnisotropy">Show Anisotropy</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviCalculateSpectrumButton">Calculate</button>
 					</div>
+					<div class="grid background-lighter-blue pe-spectra" id="IRSeviSpectrumSelection"></div>
 				</div>
 				<!-- IR-SEVI Mode - Second Page - Recent Scans -->
 				<div class="grid background-lighter-blue recent-scans" id="IRSeviRecentScans">
@@ -393,7 +394,7 @@
 				</div>
 				<!-- IR-SEVI Mode - Second Page - Electron Count History -->
 				<div class="background-lighter-blue" id="IRSeviElectronCountHistory">
-					<h2 class="white-text">Put laser wavelength conversion boxes here?</h2>
+					<!--<h2 class="white-text">Put laser wavelength conversion boxes here?</h2>-->
 				</div>
 			</div>
 		</div>
@@ -554,6 +555,66 @@
 				<!-- Page Down Button -->
 				<button class="page-down page-button" id="IRActionPageDown"><i class="arrow arrow-down"></i></button>
 			</div>
+			<div class="second-page page grid" id="IRActionModeSecondPage">
+				<button class="page-up page-button" id="IRActionPageUp"><i class="arrow arrow-up"></i></button>
+				<div class="grid background-lighter-blue negative-top-margin" id="IRActionSpectrumDisplaySection">
+					<div class="background-lighter-blue action-pe-spectrum-display-inner" id="IRActionPESpectrumDisplayInner">
+						<canvas id="IRActionPESpectrum"></canvas>
+					</div>
+					<div class="grid background-lighter-blue spectrum-display-control" id="IRActionPESpectrumControl">
+						<button class="square-button spectrum-control-button white-text" id="IRActionPESResetZoom">Reset Zoom</button>
+						<button class="square-button spectrum-control-button white-text" id="IRActionChangeBasis">Show eBE Plot</button>
+					</div>
+					<div class="resize-button" id="IRActionResizeLeft">
+						<div class="white-text resize-button-text"><</div>
+					</div>
+					<div class="resize-button" id="IRActionResizeCenter">
+						<div class="white-text resize-button-text">•</div>
+					</div>
+					<div class="resize-button" id="IRActionResizeRight">
+						<div class="white-text resize-button-text">></div>
+					</div>
+					<div class="background-lighter-blue action-action-spectrum-display-inner" id="IRActionActionSpectrumDisplayInner">
+						<canvas id="IRActionActionSpectrum"></canvas>
+					</div>
+					<div class="grid background-lighter-blue spectrum-display-control" id="IRActionActionSpectrumControl">
+						<button class="square-button spectrum-control-button white-text" id="IRActionActionResetZoom">Reset Zoom</button>
+						<button class="square-button spectrum-control-button white-text" id="IRActionNormalize">Normalize</button>
+					</div>
+				</div>
+				<div class="grid background-lighter-blue" id="IRActionPeakSelection">
+					<div class="peak-selection" id="IRActionDepletionSelection">
+						<h3 class="peak-title white-text">Depletion</h3>
+						<input type="number" class="input-change r-select initial-r" id="DepletionRi" placeholder="Ri (px)" />
+						<input type="number" class="input-change r-select final-r" id="DepletionRf" placeholder="Rf (px)" />
+						<button class="image-id-button add-peak" id="DepletionAdd">+</button>
+						<div class="grid all-peaks" id="DepletionAllPeaks"></div>
+						<button class="square-button white-text show-peaks" id="ShowDepletion">Show Depletion</button>
+					</div>
+					<div class="peak-selection" id="IRActionGrowthSelection">
+						<h3 class="peak-title white-text">Growth</h3>
+						<input type="number" class="input-change r-select initial-r" id="GrowthRi" placeholder="Ri (px)" />
+						<input type="number" class="input-change r-select final-r" id="GrowthRf" placeholder="Rf (px)" />
+						<button class="image-id-button add-peak" id="GrowthAdd">+</button>
+						<div class="grid all-peaks" id="GrowthAllPeaks"></div>
+						<button class="square-button white-text show-peaks" id="ShowGrowth">Show Growth</button>
+					</div>
+				</div>
+				<div class="grid background-lighter-blue" id="IRActionSpectrumSelectionSection">
+					<div class="grid background-lighter-blue" id="IRActionSpectrumSelectionHeader">
+						<h4 class="white-text">Use?</h4>
+						<h4 class="white-text">Show?</h4>
+						<h4 class="white-text">ID</h4>
+						<h4 class="white-text">nIR (nm)</h4>
+						<h4 class="white-text">St.Dev. (nm)</h4>
+						<h4 class="white-text">IR (cm<sup>-1</sup>)</h4>
+					</div>
+					<div class="grid background-lighter-blue pe-spectra" id="IRActionSpectrumSelection"></div>
+					<div class="grid background-lighter-blue justify-align-center" id="IRActionSpectrumSelectionFooter">
+						<button class="square-button white-text" id="IRActionCalculate">Calculate</button>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<!-- Future tabs should be added here (before settings section) -->
@@ -632,17 +693,6 @@
 			</div>
 		</div>
 
-		<!--<script src="../JS/mainDefinitions.js"></script>
-		<script src="../JS/mainFunctions.js"></script>-->
 		<script src="../JS/MainWindow/startup.js"></script>
-		<!--<script src="../JS/MainWindow2/interface.js"></script>-->
-		<!--<script src="../JS/MainWindow2/seviInterface.js"></script>-->
-		<!--<script src="../JS/MainWindow/irseviInterface.js"></script>
-		<script src="../JS/MainWindow/iractionInterface.js"></script>
-		<script src="../JS/MainWindow/sevi.js"></script>
-		<script src="../JS/MainWindow/iraction.js"></script>
-		<script src="../JS/MainWindow/wavelength.js"></script>
-		<script src="../JS/MainWindow/messenger.js"></script>
-		<script src="../JS/testing.js"></script>-->
 	</body>
 </html>

@@ -47,7 +47,6 @@ function Tab_Control() {
  */
 function change_tab(tab) {
 	// Add functionality for tab switching
-	if (tab === PageInfo.current_tab) return; // Already on that tab, no need to do anything
 
 	// Depress the current tab and hide content
 	let current_tab = document.getElementById(PageInfo.current_tab.tab);
@@ -68,6 +67,30 @@ function change_tab(tab) {
 	if (new_tab_first_page) new_tab_first_page.style.display = "grid";
 
 	PageInfo.current_tab = tab;
+
+	// Also hide large accumulated image display
+	hide_large_display();
+}
+
+/*****************************************************************************
+
+					LARGE ACCUMULATED IMAGE DISPLAY
+
+*****************************************************************************/
+
+function Large_Display_Control() {
+	document.getElementById("LargeDisplayClose").onclick = function () {
+		hide_large_display();
+	};
+
+	document.getElementById("LargeDisplaySection").onclick = function () {
+		hide_large_display();
+	};
+}
+
+function hide_large_display() {
+	const large_display = document.getElementById("LargeDisplaySection");
+	large_display.classList.add("large-display-hidden");
 }
 
 /*****************************************************************************
@@ -80,4 +103,4 @@ const PageInfo = {
 	current_tab: Tabs.NONE,
 };
 
-module.exports = { Tab_Control, change_tab, PageInfo };
+module.exports = { Tab_Control, Large_Display_Control, change_tab, PageInfo };

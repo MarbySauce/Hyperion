@@ -14,11 +14,6 @@ class PESpectrum {
 	}
 
 	constructor() {
-		//this.radii;
-		//this.spectrum;
-		//this.residuals;
-		//this.best_fit;
-
 		this.save_spectrum = false;
 		this.save_residuals = false;
 		this.save_best_fit = false;
@@ -123,6 +118,14 @@ class PESpectrum {
 			});
 		}
 	}
+
+	/**
+	 * Return a safe copy of this PE spectrum class instance
+	 * @returns {SafePESpectrum} safe copy of this PE Spectrum
+	 */
+	copy() {
+		return new SafePESpectrum(this);
+	}
 }
 
 class IRPESpectrum extends PESpectrum {
@@ -221,6 +224,118 @@ class IRPESpectrum extends PESpectrum {
 			}
 		}
 	}
+
+	/**
+	 * Return a safe copy of this PE spectrum class instance
+	 * @returns {SafeIRPESpectrum} safe copy of this PE Spectrum
+	 */
+	copy() {
+		return new SafeIRPESpectrum(this);
+	}
 }
 
-module.exports = { PESpectrum, IRPESpectrum };
+/************************************************** 
+
+		Safe Photoelectron Spectrum Classes
+
+**************************************************/
+
+// Safe version of PESpectrum class that can't save to file, etc.
+class SafePESpectrum {
+	/**
+	 * @param {PESpectrum} pe_spectrum_class
+	 */
+	constructor(pe_spectrum_class) {
+		this.id = pe_spectrum_class.id;
+
+		if (pe_spectrum_class.radii) this.radii = [...pe_spectrum_class.radii];
+		if (pe_spectrum_class.spectrum) this.spectrum = [[...pe_spectrum_class.spectrum[0]], [...pe_spectrum_class.spectrum[1]]];
+		if (pe_spectrum_class.residuals) this.residuals = [[...pe_spectrum_class.residuals[0]], [...pe_spectrum_class.residuals[1]]];
+		if (pe_spectrum_class.best_fit) this.best_fit = [[...pe_spectrum_class.best_fit[0]], [...pe_spectrum_class.best_fit[1]]];
+	}
+
+	get id() {
+		if (this._id) return this._id;
+		else return (this._id = 1);
+	}
+
+	set id(val) {
+		this._id = val;
+	}
+
+	get id_str() {
+		if (this.id < 10) return `0${this.id}`;
+		else return this.id.toString();
+	}
+
+	get formatted_date() {
+		let today = new Date();
+		let day = ("0" + today.getDate()).slice(-2);
+		let month = ("0" + (today.getMonth() + 1)).slice(-2);
+		let year = today.getFullYear().toString().slice(-2);
+		return month + day + year;
+	}
+
+	/** PE spectrum file name */
+	get pes_file_name() {
+		return `${this.formatted_date}m${this.id_str}_pes.dat`;
+	}
+
+	/** PE spectrum best fit file name */
+	get sim_file_name() {
+		return `${this.formatted_date}m${this.id_str}_sim.dat`;
+	}
+
+	/** PE spectrum residuals file name */
+	get res_file_name() {
+		return `${this.formatted_date}m${this.id_str}_res.dat`;
+	}
+
+	/** IR PE spectrum file name */
+	get pes_file_name_ir() {
+		return "";
+	}
+
+	/** IR PE spectrum best fit file name */
+	get sim_file_name_ir() {
+		return "";
+	}
+
+	/** IR PE spectrum residuals file name */
+	get res_file_name_ir() {
+		return "";
+	}
+}
+
+class SafeIRPESpectrum extends SafePESpectrum {
+	constructor(pe_spectrum_class) {
+		super(pe_spectrum_class);
+
+		if (pe_spectrum_class.radii_off) this.radii_off = [...pe_spectrum_class.radii_off];
+		if (pe_spectrum_class.spectrum_off) this.spectrum_off = [[...pe_spectrum_class.spectrum_off[0]], [...pe_spectrum_class.spectrum_off[1]]];
+		if (pe_spectrum_class.residuals_off) this.residuals_off = [[...pe_spectrum_class.residuals_off[0]], [...pe_spectrum_class.residuals_off[1]]];
+		if (pe_spectrum_class.best_fit_off) this.best_fit_off = [[...pe_spectrum_class.best_fit_off[0]], [...pe_spectrum_class.best_fit_off[1]]];
+
+		if (pe_spectrum_class.radii_on) this.radii_on = [...pe_spectrum_class.radii_on];
+		if (pe_spectrum_class.spectrum_on) this.spectrum_on = [[...pe_spectrum_class.spectrum_on[0]], [...pe_spectrum_class.spectrum_on[1]]];
+		if (pe_spectrum_class.residuals_on) this.residuals_on = [[...pe_spectrum_class.residuals_on[0]], [...pe_spectrum_class.residuals_on[1]]];
+		if (pe_spectrum_class.best_fit_on) this.best_fit_on = [[...pe_spectrum_class.best_fit_on[0]], [...pe_spectrum_class.best_fit_on[1]]];
+	}
+
+	/** IR PE spectrum file name */
+	get pes_file_name_ir() {
+		return `${this.formatted_date}m${this.id_str}_IR_pes.dat`;
+	}
+
+	/** IR PE spectrum best fit file name */
+	get sim_file_name_ir() {
+		return `${this.formatted_date}m${this.id_str}_IR_sim.dat`;
+	}
+
+	/** IR PE spectrum residuals file name */
+	get res_file_name_ir() {
+		return `${this.formatted_date}m${this.id_str}_IR_res.dat`;
+	}
+}
+
+module.exports = { PESpectrum, IRPESpectrum, SafePESpectrum, SafeIRPESpectrum };

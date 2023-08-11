@@ -153,6 +153,12 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, (event, centroid_results) => {
 	ImageManager.current_image.update_image(centroid_results);
 	// Send updates about electron count information
 	IMAlerts.info_update.image.counts.alert(ImageManager.current_image.counts);
+	// (Potentially) send updates about accumulated image
+	if (Number.isInteger(Math.sqrt(ImageManager.current_image.counts.frames.total))) {
+		// Only update if # of frames is a square number
+		//	(so image display is updated less frequently as scan progresses)
+		IMAlerts.info_update.accumulated_image.alert();
+	}
 	// Check if autostop condition has been met
 	ImageManager.autostop.check();
 	// Check if image should be autosaved
@@ -391,6 +397,8 @@ function ImageManager_series_send_progress() {
 		image_class = ImageManager.current_image;
 	}
 
+	IMAlerts.event.melexir.start.alert();
+
 	let initial_id = image_class.id;
 
 	ImageManager.melexir.worker = new Worker("../JS/MainWindow/MLXRWorker.js");
@@ -425,6 +433,8 @@ function ImageManager_series_send_progress() {
 		if (save_to_file && !ImageManager.params.do_not_save_to_file) {
 			image_class.pe_spectrum.save_files();
 		}
+
+		IMAlerts.event.melexir.stop.alert(image_class.copy());
 	};
 }*/
 
@@ -844,6 +854,10 @@ const IMAlerts = {
 			reset: new ManagerAlert(),
 			stop_or_cancel: new ManagerAlert(),
 		},
+		melexir: {
+			start: new ManagerAlert(),
+			stop: new ManagerAlert(),
+		},
 	},
 	info_update: {
 		image: {
@@ -865,7 +879,7 @@ const IMAlerts = {
 			params: new ManagerAlert(),
 			remaining: new ManagerAlert(),
 		},
-		avg_electrons: new ManagerAlert(),
+		accumulated_image: new ManagerAlert(),
 	},
 };
 
@@ -989,6 +1003,11 @@ class IMMessengerInformation {
 	/** Get a safe copy of the current image (note: accumulated image is not copied) */
 	get current_image() {
 		return ImageManager.current_image.copy();
+	}
+
+	/** Get a safe copy of the last image (note: accumulated image is not copied) */
+	get last_image() {
+		return ImageManager.last_image.copy();
 	}
 
 	/** Get a safe copy of all images stored in Image Manager */
@@ -1354,11 +1373,60 @@ class IMMessengerCallbackEvent {
 				return this._stop_or_cancel;
 			},
 		};
+
+		this._melexir = {
+			_start: {
+				/**
+				 * Execute callback function *every time* Melexir starts processing an accumulated image
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				on: (callback) => {
+					IMAlerts.event.melexir.start.add_on(callback);
+				},
+				/**
+				 * Execute callback function *once the next time* Melexir starts processing an accumulated image
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				once: (callback) => {
+					IMAlerts.event.melexir.start.add_once(callback);
+				},
+			},
+			_stop: {
+				/**
+				 * Execute callback function *every time* Melexir stops processing an accumulated image
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				on: (callback) => {
+					IMAlerts.event.melexir.stop.add_on(callback);
+				},
+				/**
+				 * Execute callback function *once the next time* Melexir stops processing an accumulated image
+				 * @param {Function} callback function to execute on event - called with no arguments
+				 */
+				once: (callback) => {
+					IMAlerts.event.melexir.stop.add_once(callback);
+				},
+			},
+
+			/** Listen for Melexir to start processing */
+			get start() {
+				return this._start;
+			},
+			/** Listen for Melexir to stop processing */
+			get stop() {
+				return this._stop;
+			},
+		};
 	}
 
 	/** Set up callback functions to be executed when accumulated image event occurs  */
 	get scan() {
 		return this._scan;
+	}
+
+	/** Set up callback functions to be executed when Melexir is used */
+	get melexir() {
+		return this._melexir;
 	}
 }
 
@@ -1533,6 +1601,17 @@ class IMMessengerCallbackInfoUpdate {
 				return this._remaining;
 			},
 		};
+
+		this._accumulated_image = {
+			/** Callback called without arguments */
+			on: (callback) => {
+				IMAlerts.info_update.accumulated_image.add_on(callback);
+			},
+			/** Callback called with argument `image {Image | IRImage}` */
+			once: (callback) => {
+				IMAlerts.info_update.accumulated_image.add_once(callback);
+			},
+		};
 	}
 
 	get image() {
@@ -1553,6 +1632,11 @@ class IMMessengerCallbackInfoUpdate {
 
 	get image_series() {
 		return this._image_series;
+	}
+
+	/** Get updates about when the accumulated image is updated (so Image Manager is in charge of when to update) */
+	get accumulated_image() {
+		return this._accumulated_image;
 	}
 }
 

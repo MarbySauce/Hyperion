@@ -38,7 +38,7 @@ ipc.on("settings-information", (event, settings_information) => {
 
 async function startup() {
 	const { Tabs } = require("../JS/MainWindow/Libraries/Tabs.js");
-	const { Tab_Control, change_tab, PageInfo } = require("../JS/MainWindow/tabInterface.js");
+	const { Tab_Control, Large_Display_Control, change_tab, PageInfo } = require("../JS/MainWindow/tabInterface.js");
 	const { Sevi_Load_Page } = require("../JS/MainWindow/seviInterface.js");
 	const { IRSevi_Load_Page } = require("../JS/MainWindow/irseviInterface.js");
 	const { IRAction_Load_Page } = require("../JS/MainWindow/iractionInterface.js");
@@ -47,6 +47,7 @@ async function startup() {
 	initialize_message_display(document.getElementById("MessageDisplay"));
 	// Load Tab Content startup functions
 	Tab_Control();
+	Large_Display_Control();
 	Sevi_Load_Page(PageInfo);
 	IRSevi_Load_Page(PageInfo);
 	IRAction_Load_Page(PageInfo);
@@ -57,6 +58,8 @@ async function startup() {
 
 	// Set starting image ID to 1
 	IMMessenger.update.id.set(1);
+	// Set starting VMI to V1
+	IMMessenger.update.vmi_info({ mode: "V1" });
 
 	initialize_mac_fn();
 
@@ -145,3 +148,21 @@ async function test_ss() {
 	}
 	console.log("Done", id);
 }
+
+document.getElementById("IRActionResizeLeft").onclick = function () {
+	const display_section = document.getElementById("IRActionSpectrumDisplaySection");
+	display_section.classList.remove("resized-right");
+	display_section.classList.add("resized-left");
+};
+
+document.getElementById("IRActionResizeCenter").onclick = function () {
+	const display_section = document.getElementById("IRActionSpectrumDisplaySection");
+	display_section.classList.remove("resized-right");
+	display_section.classList.remove("resized-left");
+};
+
+document.getElementById("IRActionResizeRight").onclick = function () {
+	const display_section = document.getElementById("IRActionSpectrumDisplaySection");
+	display_section.classList.add("resized-right");
+	display_section.classList.remove("resized-left");
+};

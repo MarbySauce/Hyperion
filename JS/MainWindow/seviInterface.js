@@ -4,6 +4,8 @@
 
 **************************************************/
 
+const { PESpectrum } = require("./Libraries/PESpectrumClasses.js");
+
 /*************************************************************************************************
 
 								*****************************
@@ -355,8 +357,6 @@ function Sevi_Laser_Control() {
 *****************************************************************************/
 
 function Sevi_Accumulated_Image_Display(PageInfo) {
-	const ipc = require("electron").ipcRenderer;
-	const { IPCMessages } = require("../Messages.js");
 	const { ImageType } = require("./Libraries/ImageClasses.js");
 	const { Tabs } = require("./Libraries/Tabs.js");
 	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
@@ -367,6 +367,11 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 			HTML Element Listeners
 	****/
 
+	document.getElementById("SeviDisplay").onclick = function () {
+		const large_display = document.getElementById("LargeDisplaySection");
+		large_display.classList.remove("large-display-hidden");
+	};
+
 	document.getElementById("SeviDisplaySlider").oninput = function () {
 		const display_slider = document.getElementById("SeviDisplaySlider");
 		IMMessenger.update.image_contrast(display_slider.value);
@@ -375,25 +380,20 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 	};
 
 	/****
-			IPC Event Listeners
-	****/
-
-	ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
-		// If user is not on SEVI tab, ignore
-		if (PageInfo.current_tab !== Tabs.SEVI) return;
-		// Only update display if image is being taken
-		if (IMMessenger.information.status.running) {
-			update_sevi_accumulated_image_display();
-		}
-	});
-
-	/****
 			Image Manager Listeners
 	****/
 
 	IMMessenger.listen.info_update.image_contrast.on((value) => {
 		const display_slider = document.getElementById("SeviDisplaySlider");
 		display_slider.value = value;
+	});
+
+	// Update accumulated image when alert is sent
+	IMMessenger.listen.info_update.accumulated_image.on(() => {
+		// If user is not on SEVI tab, ignore
+		if (PageInfo.current_tab !== Tabs.SEVI) return;
+		//console.log("Updating");
+		update_sevi_accumulated_image_display();
 	});
 
 	// Update accumulated image display when scan is reset
@@ -406,14 +406,20 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 	function update_sevi_accumulated_image_display() {
 		const image_display = document.getElementById("SeviDisplay");
 		const ctx = image_display.getContext("2d");
+		// Also put image on expanded accumulated image display
+		const large_display = document.getElementById("LargeDisplay");
+		const large_ctx = large_display.getContext("2d");
+		// Get image data
 		let image_data = IMMessenger.information.get_image_display(ImageType.IROFF);
 		if (!image_data) return; // No ImageData object was sent
 		// Clear the current image
 		ctx.clearRect(0, 0, image_display.width, image_display.height);
+		large_ctx.clearRect(0, 0, large_display.width, large_display.height);
 		// Put image_data on the display
 		// Have to convert the ImageData object into a bitmap image so that the  image is resized to fill the display correctly
 		createImageBitmap(image_data).then(function (bitmap_img) {
 			ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, image_display.width, image_display.height);
+			large_ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, large_display.width, large_display.height);
 		});
 	}
 }
@@ -650,6 +656,243 @@ function Sevi_Change_Pages() {
 
 *****************************************************************************/
 
+function Sevi_PESpectrum_Display() {
+	const { Chart, registerables } = require("chart.js");
+	const { zoomPlugin } = require("chartjs-plugin-zoom");
+	const { PESRadio, PESpectrumDisplay, IRPESpectrumDisplay } = require("./Libraries/PESpectrumDisplayClasses.js");
+	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+
+	if (registerables) Chart.register(...registerables);
+	if (zoomPlugin) Chart.register(zoomPlugin);
+
+	const IMMessenger = new ImageManagerMessenger();
+
+	/****
+			Setting up PES Chart
+	****/
+
+	const AllPESRadio = [];
+	let DisplayedPES = new PESpectrumDisplay();
+
+	const radio_name = "SEVI_pe_spectra";
+
+	const zoom_options = {
+		zoom: {
+			mode: "xy",
+			drag: {
+				enabled: true,
+				borderColor: "rgb(54, 162, 235)",
+				borderWidth: 1,
+				backgroundColor: "rgba(54, 162, 235, 0.3)",
+			},
+		},
+	};
+
+	const scales_title = {
+		color: "black",
+		display: true,
+		font: {
+			size: 16,
+		},
+	};
+
+	const chart = new Chart(document.getElementById("SeviPESpectrum").getContext("2d"), {
+		type: "line",
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			animations: false,
+			scales: {
+				x: {
+					type: "linear",
+					title: scales_title,
+				},
+				y: {
+					title: scales_title,
+				},
+			},
+			plugins: {
+				zoom: zoom_options,
+				title: {
+					text: "",
+					display: true,
+					fullSize: false,
+					align: "end",
+					padding: 0,
+				},
+				legend: {
+					fullSize: false,
+				},
+			},
+			elements: {
+				point: {
+					radius: 0,
+				},
+			},
+		},
+	});
+
+	/****
+			HTML Element Listeners
+	****/
+
+	document.getElementById("SeviResetZoom").onclick = function () {
+		chart.resetZoom();
+	};
+
+	document.getElementById("SeviChangeBasis").onclick = function () {
+		PESpectrumDisplay.toggle_ebe();
+		if (DisplayedPES.show_ebe) {
+			// eBE plot is now displayed, change button to say R
+			change_basis_button_to_R();
+		} else {
+			// Radial plot is now displayed, change button to say eBE
+			change_basis_button_to_eBE();
+		}
+		update_pes_plot();
+	};
+
+	document.getElementById("SeviShowDifference").onclick = function () {
+		PESpectrumDisplay.toggle_difference();
+		if (DisplayedPES.show_difference) {
+			// Difference spectrum is now displayed, change button to say IR On/Off
+			change_difference_button_to_ir_on_off();
+		} else {
+			// IR On/Off spectrum is now displayed, change button to say Difference
+			change_difference_button_to_difference();
+		}
+		update_pes_plot();
+	};
+
+	document.getElementById("SeviShowAnisotropy").onclick = function () {
+		PESpectrumDisplay.toggle_anisotropy();
+		if (DisplayedPES.show_anisotropy) {
+			//Aanisotropy is now displayed, change button to say Hide
+			change_anisotropy_button_to_hide();
+		} else {
+			// Anisotropy is no longer displayed, change button to say Show
+			change_anisotropy_button_to_show();
+		}
+		update_pes_plot();
+	};
+
+	document.getElementById("SeviCalculateSpectrumButton").onclick = function () {
+		IMMessenger.request.process_image();
+	};
+
+	/****
+			Image Manager Listeners
+	****/
+
+	// Disable calculate button when Melexir starts processing
+	IMMessenger.listen.event.melexir.start.on(disable_calculate_button);
+
+	IMMessenger.listen.event.melexir.stop.on((image) => {
+		// Check if this image is already in PES list
+		let is_not_in_list = true;
+		for (radio of AllPESRadio) {
+			if (image.id === radio.image.id) {
+				// Update that image and end loop
+				radio.update_image(image);
+				// If the updated image is also displayed (i.e. the radio is checked) then update plot
+				if (radio.radio.checked) {
+					DisplayedPES = radio.spectrum_display;
+					update_pes_plot();
+				}
+				is_not_in_list = false;
+				break;
+			}
+		}
+		if (is_not_in_list) {
+			// Create new radio button and add to list
+			add_radio_button(image);
+			// If that is the only image so far, display it
+			if (AllPESRadio.length === 1) {
+				AllPESRadio[0].radio.checked = true;
+				DisplayedPES = AllPESRadio[0].spectrum_display;
+				update_pes_plot();
+			}
+		}
+		// Re-enable calculate button
+		enable_calculate_button();
+	});
+
+	/****
+			Functions
+	****/
+
+	function clear_sevi_pe_spectra_display() {
+		const spectra_selection = document.getElementById("SeviSpectrumSelection");
+		const display_length = spectra_selection.children.length;
+		for (let i = 0; i < display_length; i++) {
+			// Remove the first child from section
+			spectra_selection.removeChild(spectra_selection.children[0]);
+		}
+	}
+
+	function add_radio_button(image) {
+		const spectra_selection = document.getElementById("SeviSpectrumSelection");
+
+		let radio = new PESRadio(image, radio_name);
+		radio.set_up_callback((spectrum_display) => {
+			DisplayedPES = spectrum_display;
+			update_pes_plot();
+		});
+		radio.add_to_div(spectra_selection);
+
+		AllPESRadio.push(radio);
+	}
+
+	function update_pes_plot() {
+		chart.data = DisplayedPES.data;
+		chart.options.plugins.tooltip = DisplayedPES.tooltip;
+		chart.options.plugins.title.text = DisplayedPES.plugins_title;
+		chart.options.scales.x.title.text = DisplayedPES.x_axis_title;
+		chart.options.scales.y.title.text = DisplayedPES.y_axis_title;
+		chart.update();
+	}
+
+	function change_basis_button_to_R() {
+		const basis_button = document.getElementById("SeviChangeBasis");
+		basis_button.innerText = "Show R Plot";
+	}
+
+	function change_basis_button_to_eBE() {
+		const basis_button = document.getElementById("SeviChangeBasis");
+		basis_button.innerText = "Show eBE Plot";
+	}
+
+	function change_difference_button_to_difference() {
+		const difference_button = document.getElementById("SeviShowDifference");
+		difference_button.innerText = "Show Difference";
+	}
+
+	function change_difference_button_to_ir_on_off() {
+		const difference_button = document.getElementById("SeviShowDifference");
+		difference_button.innerText = "Show IR On/Off";
+	}
+
+	function change_anisotropy_button_to_show() {
+		const anisotropy_button = document.getElementById("SeviShowAnisotropy");
+		anisotropy_button.innerText = "Show Anisotropy";
+	}
+
+	function change_anisotropy_button_to_hide() {
+		const anisotropy_button = document.getElementById("SeviShowAnisotropy");
+		anisotropy_button.innerText = "Hide Anisotropy";
+	}
+
+	function disable_calculate_button() {
+		const calculate_button = document.getElementById("SeviCalculateSpectrumButton");
+		calculate_button.disabled = true;
+	}
+
+	function enable_calculate_button() {
+		const calculate_button = document.getElementById("SeviCalculateSpectrumButton");
+		calculate_button.disabled = false;
+	}
+}
+
 /*****************************************************************************
 
 							RECENT SCANS
@@ -657,33 +900,39 @@ function Sevi_Change_Pages() {
 *****************************************************************************/
 
 function Sevi_Recent_Scans() {
-	const { SafeIRImage, SafeImage } = require("./Libraries/ImageClasses.js");
+	const { RecentScansRow } = require("./Libraries/RecentScansClasses.js");
 	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
 	const IMMessenger = new ImageManagerMessenger();
+
+	const AllRecentScans = [];
 
 	/****
 			Image Manager Listeners
 	****/
 
 	IMMessenger.listen.event.scan.stop.on(() => {
-		// Clear display
-		clear_sevi_recent_scan_display();
-		// Get all images from Image Manager and put scan information on the display
-		let all_images = IMMessenger.information.all_images;
-		for (image of all_images) {
-			if (image.is_ir) {
-				show_sevi_ir_scan_info(image);
-			} else {
-				show_sevi_scan_info(image);
+		let image = IMMessenger.information.last_image;
+		// Check if this image is already in recent scans list
+		for (scan of AllRecentScans) {
+			if (image.id === scan.id) {
+				// Update that image and re-fill recent scans section
+				scan.update_info(image);
+				clear_recent_scan_display();
+				fill_recent_scan_display();
+				return;
 			}
 		}
+		// If we're here, then this image has not been in the recent scans section
+		let row = new RecentScansRow(image);
+		AllRecentScans.push(row);
+		row.add_to_div(document.getElementById("SeviRecentScansSection"));
 	});
 
 	/****
 			Functions
 	****/
 
-	function clear_sevi_recent_scan_display() {
+	function clear_recent_scan_display() {
 		const recent_scans = document.getElementById("SeviRecentScansSection");
 		const display_length = recent_scans.children.length;
 		for (let i = 0; i < display_length; i++) {
@@ -692,107 +941,10 @@ function Sevi_Recent_Scans() {
 		}
 	}
 
-	/**
-	 * @param {SafeImage | SafeIRImage} image_class
-	 */
-	function show_sevi_scan_info(image_class) {
+	function fill_recent_scan_display() {
 		const recent_scans = document.getElementById("SeviRecentScansSection");
-
-		// To add: Image ID, Detachment (converted) wavelength, Detachment (converted) wavenumber, Frame count, Electron count
-		const vals_to_add = [];
-		vals_to_add.push(`i${image_class.id_str}`); // Image ID
-		// Converted detachment wavelength
-		let wavelength = image_class.detachment_wavelength.energy.wavelength;
-		if (wavelength > 0) wavelength = `${wavelength.toFixed(3)} nm`;
-		else wavelength = ""; // Don't show wavelength if not stored
-		vals_to_add.push(wavelength);
-		// Converted detachment wavenumber
-		let wavenumber = image_class.detachment_wavelength.energy.wavenumber;
-		if (wavenumber > 0) wavenumber = `${wavenumber.toFixed(3)} cm-1`;
-		else wavenumber = ""; // Don't show wavenumber if not stored
-		vals_to_add.push(wavenumber);
-		// Frame count
-		let frame_count = image_class.counts.frames.total;
-		if (frame_count > 1000) frame_count = `${(frame_count / 1000).toFixed(1)}k`;
-		vals_to_add.push(frame_count);
-		// Electron count
-		let electron_count = image.counts.electrons.total;
-		if (electron_count > 1e4) electron_count = electron_count.toExponential(2);
-		vals_to_add.push(electron_count);
-
-		// Add information to recent scans section as <p> elements
-		let tag;
-		for (let i = 0; i < vals_to_add.length; i++) {
-			tag = document.createElement("p");
-			tag.style.borderBottom = "1px solid lightsteelblue";
-			text_node = document.createTextNode(vals_to_add[i]);
-			tag.appendChild(text_node);
-			recent_scans.appendChild(tag);
-		}
-	}
-
-	function show_sevi_ir_scan_info(image_class) {
-		const recent_scans = document.getElementById("SeviRecentScansSection");
-
-		// To add: Image ID, Detachment (converted) wavelength, Detachment (converted) wavenumber, Frame (off) count, Electron (off) count
-		const vals_to_add = [];
-		vals_to_add.push(`i${image_class.id_str}`); // Image ID
-		// Converted detachment wavelength
-		let wavelength = image_class.detachment_wavelength.energy.wavelength;
-		if (wavelength > 0) wavelength = `${wavelength.toFixed(3)} nm`;
-		else wavelength = ""; // Don't show wavelength if not stored
-		vals_to_add.push(wavelength);
-		// Converted detachment wavenumber
-		let wavenumber = image_class.detachment_wavelength.energy.wavenumber;
-		if (wavenumber > 0) wavenumber = `${wavenumber.toFixed(3)} cm-1`;
-		else wavenumber = ""; // Don't show wavenumber if not stored
-		vals_to_add.push(wavenumber);
-		// Frame (IR off) count
-		let frame_count = image_class.counts.frames.off;
-		if (frame_count > 1000) frame_count = `${(frame_count / 1000).toFixed(1)}k`;
-		vals_to_add.push(frame_count);
-		// Electron (IR off) count
-		let electron_count = image.counts.electrons.off;
-		if (electron_count > 1e4) electron_count = electron_count.toExponential(2);
-		vals_to_add.push(electron_count);
-
-		// To add: (blank), Excitation (nIR) wavelength, Excitation (converted) wavenumber, Frame (on) count, Electron (on) count
-		const ir_vals_to_add = [];
-		ir_vals_to_add.push("");
-		// Excitation (nIR) wavelength
-		wavelength = image_class.excitation_wavelength.nIR.wavelength;
-		if (wavelength > 0) wavelength = `${wavelength.toFixed(3)} nm`;
-		else wavelength = ""; // Don't show wavelength if not stored
-		ir_vals_to_add.push(wavelength);
-		// Excitation (converted) wavenumber
-		wavenumber = image_class.excitation_wavelength.energy.wavenumber;
-		if (wavenumber > 0) wavenumber = `${wavenumber.toFixed(3)} cm-1`;
-		else wavenumber = ""; // Don't show wavenumber if not stored
-		ir_vals_to_add.push(wavenumber);
-		// Frame (IR on) count
-		frame_count = image_class.counts.frames.on;
-		if (frame_count > 1000) frame_count = `${(frame_count / 1000).toFixed(1)}k`;
-		ir_vals_to_add.push(frame_count);
-		// Electron (IR on) count
-		electron_count = image.counts.electrons.on;
-		if (electron_count > 1e4) electron_count = electron_count.toExponential(2);
-		ir_vals_to_add.push(electron_count);
-
-		// Add information to recent scans section as <p> elements
-		let tag;
-		for (let i = 0; i < vals_to_add.length; i++) {
-			tag = document.createElement("p");
-			text_node = document.createTextNode(vals_to_add[i]);
-			tag.appendChild(text_node);
-			recent_scans.appendChild(tag);
-		}
-		// Add information to recent scans section as <p> elements
-		for (let i = 0; i < ir_vals_to_add.length; i++) {
-			tag = document.createElement("p");
-			tag.style.borderBottom = "1px solid lightsteelblue";
-			text_node = document.createTextNode(ir_vals_to_add[i]);
-			tag.appendChild(text_node);
-			recent_scans.appendChild(tag);
+		for (scan of AllRecentScans) {
+			scan.add_to_div(recent_scans);
 		}
 	}
 }
@@ -869,6 +1021,11 @@ function Sevi_Load_Page(PageInfo) {
 		console.log("Cannot load SEVI tab page up/down buttons:", error);
 	}
 	/*		Second Page		*/
+	try {
+		Sevi_PESpectrum_Display();
+	} catch (error) {
+		console.log("Cannot load SEVI tab PE Spectra Display module:", error);
+	}
 	try {
 		Sevi_Recent_Scans();
 	} catch (error) {

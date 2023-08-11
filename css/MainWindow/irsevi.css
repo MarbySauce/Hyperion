@@ -2,16 +2,6 @@
 	display: none; /* Set to none so that it looks cleaner on startup */
 }
 
-#IRSeviModeFirstPage {
-	padding: 10px 20px 0 20px;
-	grid-gap: 20px;
-}
-#IRSeviModeSecondPage {
-	display: none;
-	padding: 0 20px 30px 20px;
-	grid-gap: 20px;
-}
-
 /* First Page - Left Side */
 
 /* File Naming */
@@ -121,55 +111,9 @@ Right Side
 /* IR-Sevi Mode - Second Page */
 
 /* IR-Sevi Mode - Second Page - PE Spectrum */
-#IRSeviSpectrumDisplaySection {
-	padding: 10px;
-}
-#IRSeviSpectrumDisplayInner {
-	padding: 15px 20px 0 10px;
-	background: hsla(225, 20%, 90%, 0.85);
-	align-items: center;
-}
-#IRSeviSpectrumControl {
-	padding: 5px;
-	padding-left: 10px;
-	grid-gap: 0 5px;
-	align-items: center;
-	justify-items: center;
-}
-#SpectrumSwitch {
-	width: 80%;
-}
-#IRSeviCalculateSpectrumButton {
-	width: 65%;
-	height: 35%;
-}
+
+/* See sevi.css for class styling */
 
 /* IR-Sevi Mode - Second Page - Recent Scans */
-#IRSeviRecentScans {
-	padding: 0 25px 5px 25px;
-}
-#IRSeviRecentScansHeader {
-	padding: 5px;
-	padding-bottom: 10px;
-	z-index: 5;
-	border-bottom: black;
-}
-#IRSeviRecentScans h4 {
-	text-align: center;
-	align-self: end;
-	font-size: 1.3vw;
-}
-#IRSeviRecentScansSection {
-	max-height: 390px;
-	padding: 5px;
-	padding-bottom: 0;
-	border: 2px solid rgb(62, 71, 95);
-}
-#IRSeviRecentScans p {
-	text-align: center;
-	font-size: 1.4vw;
-	padding-top: 7px;
-	height: 100%;
-	border-bottom: 1px dotted rgb(62, 71, 95);
-	color: white;
-}
+
+/* See sevi.css for class styling */

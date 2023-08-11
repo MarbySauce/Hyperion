@@ -521,12 +521,6 @@ function IRAction_Scan_Status() {
 			if (excitation_wavelength.nIR.wavelength > 0) {
 				nir_wavelength.value = excitation_wavelength.nIR.wavelength.toFixed(3);
 				ir_wavenumber.value = excitation_wavelength.energy.wavenumber.toFixed(3);
-				/*let ir_mode_string = excitation_wavelength.selected_mode_str;
-				if (ir_mode_string) {
-					// Capitalize IR (I think it looks better)
-					ir_mode_string = ir_mode_string.charAt(0) + ir_mode_string.slice(1).toUpperCase();
-				}
-				ir_mode.innerText = ir_mode_string;*/
 				ir_mode.innerText = excitation_wavelength.selected_mode.pretty_name;
 			} else {
 				nir_wavelength.value = "";
@@ -583,22 +577,6 @@ function IRAction_Scan_Status() {
 			if (excitation_wavelength.nIR.wavelength > 0) {
 				nir_wavelength.value = excitation_wavelength.nIR.wavelength.toFixed(3);
 				ir_wavenumber.value = excitation_wavelength.energy.wavenumber.toFixed(3);
-				/*let ir_mode_string = "";
-				switch (excitation_wavelength.selected_mode) {
-					case LASER.MODE.EXCITATION.NIR:
-						ir_mode_string = "nIR";
-						break;
-					case LASER.MODE.EXCITATION.IIR:
-						ir_mode_string = "iIR";
-						break;
-					case LASER.MODE.EXCITATION.MIR:
-						ir_mode_string = "mIR";
-						break;
-					case LASER.MODE.EXCITATION.FIR:
-						ir_mode_string = "fIR";
-						break;
-				}
-				ir_mode.innerText = ir_mode_string;*/
 				ir_mode.innerText = excitation_wavelength.selected_mode.pretty_name;
 			} else {
 				nir_wavelength.value = "";
@@ -679,8 +657,6 @@ function IRAction_Scan_Status() {
 *****************************************************************************/
 
 function IRAction_Accumulated_Image_Display(PageInfo) {
-	const ipc = require("electron").ipcRenderer;
-	const { IPCMessages } = require("../Messages.js");
 	const { ImageType } = require("./Libraries/ImageClasses.js");
 	const { Tabs } = require("./Libraries/Tabs.js");
 	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
@@ -695,6 +671,11 @@ function IRAction_Accumulated_Image_Display(PageInfo) {
 		update_iraction_accumulated_image_display();
 	};
 
+	document.getElementById("IRActionDisplay").onclick = function () {
+		const large_display = document.getElementById("LargeDisplaySection");
+		large_display.classList.remove("large-display-hidden");
+	};
+
 	document.getElementById("IRActionDisplaySlider").oninput = function () {
 		const display_slider = document.getElementById("IRActionDisplaySlider");
 		IMMessenger.update.image_contrast(display_slider.value);
@@ -703,25 +684,20 @@ function IRAction_Accumulated_Image_Display(PageInfo) {
 	};
 
 	/****
-			IPC Event Listeners
-	****/
-
-	ipc.on(IPCMessages.UPDATE.NEWFRAME, async () => {
-		// If user is not on IR Action tab, ignore
-		if (PageInfo.current_tab !== Tabs.IRACTION) return;
-		// Only update display if image is being taken
-		if (IMMessenger.information.status.running) {
-			update_iraction_accumulated_image_display();
-		}
-	});
-
-	/****
 			Image Manager Listeners
 	****/
 
 	IMMessenger.listen.info_update.image_contrast.on((value) => {
 		const display_slider = document.getElementById("IRActionDisplaySlider");
 		display_slider.value = value;
+	});
+
+	// Update accumulated image when alert is sent
+	IMMessenger.listen.info_update.accumulated_image.on(() => {
+		// If user is not on SEVI tab, ignore
+		if (PageInfo.current_tab !== Tabs.IRACTION) return;
+		//console.log("Updating");
+		update_iraction_accumulated_image_display();
 	});
 
 	// Update accumulated image display when scan is reset
@@ -735,16 +711,22 @@ function IRAction_Accumulated_Image_Display(PageInfo) {
 		const image_display = document.getElementById("IRActionDisplay");
 		const image_display_select = document.getElementById("IRActionImageDisplaySelect");
 		const ctx = image_display.getContext("2d");
+		// Also put image on expanded accumulated image display
+		const large_display = document.getElementById("LargeDisplay");
+		const large_ctx = large_display.getContext("2d");
+		// Get image data
 		const image_types = [ImageType.IROFF, ImageType.IRON, ImageType.DIFFPOS, ImageType.DIFFNEG];
 		let image_type = image_types[image_display_select.selectedIndex];
 		let image_data = IMMessenger.information.get_image_display(image_type);
 		if (!image_data) return; // No ImageData object was sent
 		// Clear the current image
 		ctx.clearRect(0, 0, image_display.width, image_display.height);
+		large_ctx.clearRect(0, 0, large_display.width, large_display.height);
 		// Put image_data on the display
 		// Have to convert the ImageData object into a bitmap image so that the  image is resized to fill the display correctly
 		createImageBitmap(image_data).then(function (bitmap_img) {
 			ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, image_display.width, image_display.height);
+			large_ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, large_display.width, large_display.height);
 		});
 	}
 }
@@ -855,6 +837,169 @@ function IRAction_Counts() {
 
 *****************************************************************************/
 
+function IRAction_Change_Pages() {
+	const { Tabs } = require("./Libraries/Tabs.js");
+
+	/****
+			HTML Element Listeners
+	****/
+
+	document.getElementById("IRActionPageDown").onclick = function () {
+		load_iraction_second_page();
+	};
+
+	document.getElementById("IRActionPageUp").onclick = function () {
+		load_iraction_first_page();
+	};
+
+	function load_iraction_first_page() {
+		const first_page = document.getElementById(Tabs.IRACTION.first_page);
+		const second_page = document.getElementById(Tabs.IRACTION.second_page);
+		// Hide second page and show first page
+		second_page.style.display = "none";
+		first_page.style.display = "grid";
+	}
+
+	function load_iraction_second_page() {
+		const first_page = document.getElementById(Tabs.IRACTION.first_page);
+		const second_page = document.getElementById(Tabs.IRACTION.second_page);
+		// Hide first page and show second page
+		first_page.style.display = "none";
+		second_page.style.display = "grid";
+	}
+}
+
+/*************************************************************************************************
+
+								******************************
+								* IR ACTION MODE SECOND PAGE *
+								******************************
+
+*************************************************************************************************/
+
+/*****************************************************************************
+
+							SPECTRA DISPLAYS
+
+*****************************************************************************/
+
+function IRAction_Spectra_Displays() {
+	const { Chart, registerables } = require("chart.js");
+	const { zoomPlugin } = require("chartjs-plugin-zoom");
+	const { ActionSpectraRow } = require("./Libraries/ActionPESpectrumClasses.js");
+	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+
+	if (registerables) Chart.register(...registerables);
+	if (zoomPlugin) Chart.register(zoomPlugin);
+
+	const IMMessenger = new ImageManagerMessenger();
+
+	const zoom_options = {
+		zoom: {
+			mode: "xy",
+			drag: {
+				enabled: true,
+				borderColor: "rgb(54, 162, 235)",
+				borderWidth: 1,
+				backgroundColor: "rgba(54, 162, 235, 0.3)",
+			},
+		},
+	};
+
+	const scales_title = {
+		color: "black",
+		display: true,
+		font: {
+			size: 16,
+		},
+	};
+
+	const pe_chart = new Chart(document.getElementById("IRActionPESpectrum").getContext("2d"), {
+		type: "line",
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			animations: false,
+			scales: {
+				x: {
+					type: "linear",
+					title: scales_title,
+				},
+				y: {
+					title: scales_title,
+				},
+			},
+			plugins: {
+				zoom: zoom_options,
+				title: {
+					text: "",
+					display: true,
+					fullSize: false,
+					align: "end",
+					padding: 0,
+				},
+				legend: {
+					fullSize: false,
+				},
+			},
+			elements: {
+				point: {
+					radius: 0,
+				},
+			},
+		},
+	});
+
+	const action_chart = new Chart(document.getElementById("IRActionActionSpectrum").getContext("2d"), {
+		type: "line",
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			animations: false,
+			scales: {
+				x: {
+					type: "linear",
+					title: scales_title,
+				},
+				y: {
+					title: scales_title,
+				},
+			},
+			plugins: {
+				zoom: zoom_options,
+				title: {
+					text: "",
+					display: true,
+					fullSize: false,
+					align: "end",
+					padding: 0,
+				},
+				legend: {
+					fullSize: false,
+				},
+			},
+			elements: {
+				point: {
+					radius: 0,
+				},
+			},
+		},
+	});
+
+	IMMessenger.listen.event.melexir.stop.on((image) => {
+		if (image.is_ir) {
+			let asr = new ActionSpectraRow(image);
+			asr.add_to_div(document.getElementById("IRActionSpectrumSelection"));
+		}
+	});
+}
+
+/*****************************************************************************
+
+							PAGE LOADING
+
+*****************************************************************************/
+
 function IRAction_Load_Page(PageInfo) {
 	const { Tabs } = require("./Libraries/Tabs.js");
 	const { IRActionManagerMessenger } = require("./Libraries/IRActionManager");
@@ -892,6 +1037,17 @@ function IRAction_Load_Page(PageInfo) {
 		IRAction_Counts();
 	} catch (error) {
 		console.log("Cannot load IR Action tab Electron/Frame Counts module:", error);
+	}
+	try {
+		IRAction_Change_Pages();
+	} catch (error) {
+		console.log("Cannot load IR Action tab page up/down buttons:", error);
+	}
+	/*		Second Page		*/
+	try {
+		IRAction_Spectra_Displays();
+	} catch (error) {
+		console.log("Cannot load IR Action tab Spectra Displays module:", error);
 	}
 }
 
