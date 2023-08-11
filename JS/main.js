@@ -317,6 +317,7 @@ function create_invisible_window() {
 	return win;
 }
 
+
 //app.whenReady().then(function () {
 app.on("ready", function () {
 	// Read settings from file
@@ -591,4 +592,32 @@ ipcMain.on("hybrid-method", function (event, message) {
 	if (invisible_window) {
 		invisible_window.webContents.send("hybrid-method", message);
 	}
+});
+
+
+/********** RUNNING MELEXIR **********/
+
+function create_mlxr_window() {
+    win = new BrowserWindow({
+		show: false,
+		webPreferences: {
+			nodeIntegration: true,
+			contextIsolation: false,
+		},
+	});
+
+	win.loadFile("HTML/mlxrWindow.html");
+	return win;
+}
+
+ipcMain.on("process-mlxr", (event, data) => {
+    let win = create_mlxr_window();
+    win.on("ready-to-show", () => {
+        win.webContents.send("run_mlxr", data);
+        ipcMain.once("mlxr_results", (event, results) => {
+            if (main_window) main_window.webContents.send("mlxr-results", results);
+            win.close();
+            win = undefined;
+        })
+    });
 });

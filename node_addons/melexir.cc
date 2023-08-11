@@ -57,9 +57,7 @@ Napi::Object Process(const Napi::CallbackInfo& info) {
 	int ncol = image_width;
 	int ldd = 2*nrow*nl; //pow(max(nrow, ncol),2); // Largest possible value for length of contracted data (Comes from PrepareVMI3.f90 ln104)
 	double* lp_image = new double[ldd]; // Will be Legendre projection of image
-	printf("nrow: %d, ncol: %d, ldd: %d \n", nrow, ncol, ldd);
 	image2data_(flat_image, &nrow, &nrow, &ncol, lp_image, &ldd);
-	printf("After i2d! \n");
 
 	// Delete flat_image memory
 	delete [] flat_image;
