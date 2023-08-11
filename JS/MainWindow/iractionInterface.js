@@ -886,9 +886,13 @@ function IRAction_Change_Pages() {
 function IRAction_Spectra_Displays() {
 	const { Chart, registerables } = require("chart.js");
 	const { zoomPlugin } = require("chartjs-plugin-zoom");
+	const { ActionSpectraRow } = require("./Libraries/ActionPESpectrumClasses.js");
+	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
 
 	if (registerables) Chart.register(...registerables);
 	if (zoomPlugin) Chart.register(zoomPlugin);
+
+	const IMMessenger = new ImageManagerMessenger();
 
 	const zoom_options = {
 		zoom: {
@@ -981,6 +985,13 @@ function IRAction_Spectra_Displays() {
 			},
 		},
 	});
+
+	IMMessenger.listen.event.melexir.stop.on((image) => {
+		if (image.is_ir) {
+			let asr = new ActionSpectraRow(image);
+			asr.add_to_div(document.getElementById("IRActionSpectrumSelection"));
+		}
+	});
 }
 
 /*****************************************************************************
@@ -1033,11 +1044,11 @@ function IRAction_Load_Page(PageInfo) {
 		console.log("Cannot load IR Action tab page up/down buttons:", error);
 	}
 	/*		Second Page		*/
-	//try {
-	//	IRAction_Spectra_Displays();
-	//} catch (error) {
-	//	console.log("Cannot load IR Action tab Spectra Displays module:", error);
-	//}
+	try {
+		IRAction_Spectra_Displays();
+	} catch (error) {
+		console.log("Cannot load IR Action tab Spectra Displays module:", error);
+	}
 }
 
 /**

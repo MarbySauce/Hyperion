@@ -474,5 +474,30 @@
 
 #IRActionSpectrumSelectionSection {
 	grid-area: SpectrumSelection;
-	grid-template-rows: 1fr 5fr 1fr;
+	grid-template-rows: 1fr 8fr 1fr;
+}
+
+#IRActionSpectrumSelectionHeader {
+	grid-template-columns: 1fr 1fr 1fr 2fr 2fr 2fr;
+}
+
+#IRActionSpectrumSelection {
+	grid-auto-rows: 35px;
+}
+
+.action-spectrum-selection-outer {
+	display: grid;
+	grid-template-columns: 1fr 12fr;
+}
+.action-spectrum-selection-inner {
+	display: grid;
+	grid-template-columns: 1fr 2fr 10fr;
+}
+
+#IRActionSpectrumSelectionFooter {
+	grid-template-columns: 2fr 1fr;
+	grid-template-areas: "blank Calculate";
+}
+#IRActionCalculate {
+	grid-area: Calculate;
 }

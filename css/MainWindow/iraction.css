@@ -227,3 +227,30 @@
 #IRActionSpectrumSelectionSection {
 	padding: 1%;
 }
+
+#IRActionSpectrumSelectionHeader {
+	align-items: center;
+	justify-items: center;
+	padding: 1%;
+	grid-gap: 1%;
+}
+
+#IRActionSpectrumSelection {
+	max-height: 349px;
+}
+
+.action-spectrum-selection-outer {
+	border-bottom: 1px solid black;
+	align-items: center;
+	justify-items: center;
+}
+
+.action-spectrum-checkbox {
+	width: 50%;
+	height: 50%;
+}
+
+#IRActionCalculate {
+	width: 60%;
+	height: 80%;
+}
