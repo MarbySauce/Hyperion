@@ -453,6 +453,8 @@ function ImageManager_melexir_process_image(save_to_file) {
 		image_class = ImageManager.current_image;
 	}
 
+	image_class.pe_spectrum.update_settings(ImageManager.melexir.params);
+
 	let melexir_arguments = {};
 	if (image_class.is_ir) {
 		melexir_arguments.is_ir = true;
@@ -475,8 +477,11 @@ function ImageManager_melexir_process_image(save_to_file) {
 		}
 
 		if (save_to_file && !ImageManager.params.do_not_save_to_file) {
+			console.log("Saving to file");
 			image_class.pe_spectrum.save_files();
 		}
+
+		IMAlerts.event.melexir.stop.alert(image_class.copy());
 	});
 }
 
