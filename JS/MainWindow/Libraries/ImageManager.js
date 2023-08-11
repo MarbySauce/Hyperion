@@ -107,6 +107,7 @@ const ImageManager = {
 			save_best_fit: false,
 			save_residuals: false,
 		},
+		times_run: 0,
 		process_image: (save_to_file) => ImageManager_melexir_process_image(save_to_file),
 	},
 	all_images: [],
@@ -381,6 +382,12 @@ function ImageManager_melexir_process_image(save_to_file) {
 		return;
 	}
 
+	if (process.platform === "win32" && ImageManager.melexir.times_run > 65) {
+		// For some reason, on Windows, MELEXIR crashes on the 68th attempt.
+		//	In order to prevent, stop running melexir
+		return;
+	}
+
 	// Figure out which image to process
 	// If there is a current image, process that
 	// If not, process last image (if it is not empty)
@@ -413,9 +420,11 @@ function ImageManager_melexir_process_image(save_to_file) {
 			ir_off: image_class.images.ir_off,
 			ir_on: image_class.images.ir_on,
 		};
+		ImageManager.melexir.times_run += 2; // MLXR is run twice for IR images
 	} else {
 		melexir_arguments.is_ir = false;
 		melexir_arguments.image = image_class.image;
+		ImageManager.melexir.times_run++;
 	}
 
 	worker.postMessage(melexir_arguments);
