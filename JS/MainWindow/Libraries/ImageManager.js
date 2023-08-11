@@ -408,7 +408,6 @@ function ImageManager_melexir_process_image(save_to_file) {
 
 	ipc.send("process-mlxr", melexir_arguments);
 	ipc.once("mlxr-results", (event, melexir_results) => {
-		console.log(melexir_results);
 		if (melexir_results.is_ir) {
 			image_class.pe_spectrum.update(melexir_results.results_off, melexir_results.results_on);
 		} else {
@@ -416,7 +415,6 @@ function ImageManager_melexir_process_image(save_to_file) {
 		}
 
 		if (save_to_file && !ImageManager.params.do_not_save_to_file) {
-			console.log("Saving to file");
 			image_class.pe_spectrum.save_files();
 		}
 
