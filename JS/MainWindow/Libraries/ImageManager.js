@@ -107,7 +107,6 @@ const ImageManager = {
 			save_best_fit: false,
 			save_residuals: false,
 		},
-		times_run: 0,
 		process_image: (save_to_file) => ImageManager_melexir_process_image(save_to_file),
 	},
 	all_images: [],
@@ -374,81 +373,12 @@ function ImageManager_series_send_progress() {
 	IMAlerts.info_update.image_series.remaining.alert(remaining);
 }
 
-/* Running Melexir / Meveler */
-
-/*function ImageManager_melexir_process_image(save_to_file) {
-	if (ImageManager.melexir.worker) {
-		// Worker already exists (which means it's already processing something)
-		return;
-	}
-
-	if (process.platform === "win32" && ImageManager.melexir.times_run > 65) {
-		// For some reason, on Windows, MELEXIR crashes on the 68th attempt.
-		//	In order to prevent, stop running melexir
-		return;
-	}
-
-	// Figure out which image to process
-	// If there is a current image, process that
-	// If not, process last image (if it is not empty)
-
-	let image_class;
-	if (ImageManager.current_image.is_empty) {
-		if (ImageManager.last_image.is_empty) {
-			// Neither image has an accumulated image, do nothing
-			return;
-		} else {
-			image_class = ImageManager.last_image;
-		}
-	} else {
-		image_class = ImageManager.current_image;
-	}
-
-	IMAlerts.event.melexir.start.alert();
-
-	let initial_id = image_class.id;
-
-	ImageManager.melexir.worker = new Worker("../JS/MainWindow/MLXRWorker.js");
-	let worker = ImageManager.melexir.worker;
-
-	image_class.pe_spectrum.update_settings(ImageManager.melexir.params);
-
-	let melexir_arguments = {};
-	if (image_class.is_ir) {
-		melexir_arguments.is_ir = true;
-		melexir_arguments.images = {
-			ir_off: image_class.images.ir_off,
-			ir_on: image_class.images.ir_on,
-		};
-		ImageManager.melexir.times_run += 2; // MLXR is run twice for IR images
-	} else {
-		melexir_arguments.is_ir = false;
-		melexir_arguments.image = image_class.image;
-		ImageManager.melexir.times_run++;
-	}
-
-	worker.postMessage(melexir_arguments);
-
-	// Wait for Melexir to complete
-	worker.onmessage = (event) => {
-		if (event.data.is_ir) {
-			image_class.pe_spectrum.update(event.data.results_off, event.data.results_on);
-		} else {
-			image_class.pe_spectrum.update(event.data.results);
-		}
-		ImageManager.melexir.worker.terminate();
-		ImageManager.melexir.worker = undefined;
-
-		if (save_to_file && !ImageManager.params.do_not_save_to_file) {
-			image_class.pe_spectrum.save_files();
-		}
-
-		IMAlerts.event.melexir.stop.alert(image_class.copy());
-	};
-}*/
+/* Running Melexir */
 
 function ImageManager_melexir_process_image(save_to_file) {
 	const melexir = require("bindings")("melexir");
+
+	IMAlerts.event.melexir.start.alert();
 
 	let image_class;
 	if (ImageManager.current_image.is_empty) {
