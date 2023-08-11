@@ -85,6 +85,17 @@ label {
 	overflow: scroll;
 }
 
+.page {
+	grid-gap: 20px;
+}
+.first-page {
+	padding: 10px 20px 0 20px;
+}
+.second-page {
+	display: none;
+	padding: 0 20px 15px 20px;
+}
+
 .background-lighter-blue {
 	background: hsl(225, 20%, 40%);
 	border-radius: 7px;

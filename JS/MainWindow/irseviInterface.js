@@ -539,8 +539,6 @@ function IRSevi_Laser_Control() {
 *****************************************************************************/
 
 function IRSevi_Accumulated_Image_Display(PageInfo) {
-	const ipc = require("electron").ipcRenderer;
-	const { IPCMessages } = require("../Messages.js");
 	const { ImageType } = require("./Libraries/ImageClasses.js");
 	const { Tabs } = require("./Libraries/Tabs.js");
 	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");

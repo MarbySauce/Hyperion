@@ -48,7 +48,7 @@
 #IRActionImageReset {
 	grid-area: ImageReset;
 }
-#IRActionRemeasureWavelengt {
+#IRActionRemeasureWavelength {
 	grid-area: RemeasureWavelength;
 }
 
@@ -346,4 +346,133 @@
 
 #IRActionPageDown {
 	grid-area: IRActionPageDown;
+}
+
+/* IR Action Mode - Second Page */
+
+#IRActionModeSecondPage {
+	grid-template-rows: 30px 7fr 8fr;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"IRActionPageUp IRActionPageUp"
+		"SpectrumDisplaySection SpectrumDisplaySection"
+		"PeakSelection SpectrumSelection";
+}
+
+#IRActionPageUp {
+	grid-area: IRActionPageUp;
+}
+
+#IRActionSpectrumDisplaySection {
+	grid-area: SpectrumDisplaySection;
+	grid-template-columns: 40fr 1fr 1fr 1fr 40fr;
+	grid-template-rows: 8fr 1fr;
+	grid-template-areas:
+		"PES ResizeLeft ResizeCenter ResizeRight Action"
+		"PESButtons ResizeLeft ResizeCenter ResizeRight ActionButtons";
+}
+#IRActionSpectrumDisplaySection.resized-left {
+	grid-template-columns: 20fr 1fr 1fr 1fr 60fr;
+}
+#IRActionSpectrumDisplaySection.resized-right {
+	grid-template-columns: 60fr 1fr 1fr 1fr 20fr;
+}
+
+#IRActionPESpectrumDisplayInner {
+	grid-area: PES;
+}
+#IRActionPESpectrumControl {
+	grid-area: PESButtons;
+	grid-template-columns: 1fr 1.7fr 1.1fr;
+	grid-template-areas: "ResetZoom blank ChangeBasis";
+}
+.resized-left #IRActionPESpectrumControl {
+	grid-template-columns: 1fr 0.2fr 1.1fr;
+}
+.resized-right #IRActionPESpectrumControl {
+	grid-template-columns: 1fr 4.5fr 1.1fr;
+}
+#IRActionPESResetZoom {
+	grid-area: ResetZoom;
+}
+#IRActionChangeBasis {
+	grid-area: ChangeBasis;
+}
+
+#IRActionResizeLeft {
+	grid-area: ResizeLeft;
+}
+#IRActionResizeCenter {
+	grid-area: ResizeCenter;
+}
+#IRActionResizeRight {
+	grid-area: ResizeRight;
+}
+
+#IRActionActionSpectrumDisplayInner {
+	grid-area: Action;
+}
+#IRActionActionSpectrumControl {
+	grid-area: ActionButtons;
+	grid-template-columns: 1fr 1.7fr 1.1fr;
+	grid-template-areas: "ResetZoom blank Normalize";
+}
+.resized-left #IRActionActionSpectrumControl {
+	grid-template-columns: 1fr 4.5fr 1.1fr;
+}
+.resized-right #IRActionActionSpectrumControl {
+	grid-template-columns: 1fr 0.2fr 1.1fr;
+}
+#IRActionActionResetZoom {
+	grid-area: ResetZoom;
+}
+#IRActionNormalize {
+	grid-area: Normalize;
+}
+
+#IRActionPeakSelection {
+	grid-area: PeakSelection;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas: "DepletionSelection GrowthSelection";
+}
+
+#IRActionDepletionSelection {
+	grid-area: DepletionSelection;
+}
+#IRActionGrowthSelection {
+	grid-area: GrowthSelection;
+}
+
+.peak-selection {
+	display: grid;
+	grid-template-rows: 1fr 1fr 6fr 1fr;
+	grid-template-columns: 2fr 2fr 1fr;
+	grid-template-areas:
+		"Title Title Title"
+		"Ri Rf AddPeak"
+		"AllPeaks AllPeaks AllPeaks"
+		"blank ShowPeaks ShowPeaks";
+}
+.peak-title {
+	grid-area: Title;
+}
+.initial-r {
+	grid-area: Ri;
+}
+.final-r {
+	grid-area: Rf;
+}
+.add-peak {
+	grid-area: AddPeak;
+}
+.all-peaks {
+	grid-area: AllPeaks;
+}
+.show-peaks {
+	grid-area: ShowPeaks;
+}
+
+#IRActionSpectrumSelectionSection {
+	grid-area: SpectrumSelection;
+	grid-template-rows: 1fr 5fr 1fr;
 }

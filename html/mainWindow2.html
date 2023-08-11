@@ -555,6 +555,57 @@
 				<!-- Page Down Button -->
 				<button class="page-down page-button" id="IRActionPageDown"><i class="arrow arrow-down"></i></button>
 			</div>
+			<div class="second-page page grid" id="IRActionModeSecondPage">
+				<button class="page-up page-button" id="IRActionPageUp"><i class="arrow arrow-up"></i></button>
+				<div class="grid background-lighter-blue negative-top-margin" id="IRActionSpectrumDisplaySection">
+					<div class="background-lighter-blue action-pe-spectrum-display-inner" id="IRActionPESpectrumDisplayInner">
+						<canvas id="IRActionPESpectrum"></canvas>
+					</div>
+					<div class="grid background-lighter-blue spectrum-display-control" id="IRActionPESpectrumControl">
+						<button class="square-button spectrum-control-button white-text" id="IRActionPESResetZoom">Reset Zoom</button>
+						<button class="square-button spectrum-control-button white-text" id="IRActionChangeBasis">Show eBE Plot</button>
+					</div>
+					<div class="resize-button" id="IRActionResizeLeft">
+						<div class="white-text resize-button-text"><</div>
+					</div>
+					<div class="resize-button" id="IRActionResizeCenter">
+						<div class="white-text resize-button-text">•</div>
+					</div>
+					<div class="resize-button" id="IRActionResizeRight">
+						<div class="white-text resize-button-text">></div>
+					</div>
+					<div class="background-lighter-blue action-action-spectrum-display-inner" id="IRActionActionSpectrumDisplayInner">
+						<canvas id="IRActionActionSpectrum"></canvas>
+					</div>
+					<div class="grid background-lighter-blue spectrum-display-control" id="IRActionActionSpectrumControl">
+						<button class="square-button spectrum-control-button white-text" id="IRActionActionResetZoom">Reset Zoom</button>
+						<button class="square-button spectrum-control-button white-text" id="IRActionNormalize">Normalize</button>
+					</div>
+				</div>
+				<div class="grid background-lighter-blue" id="IRActionPeakSelection">
+					<div class="peak-selection" id="IRActionDepletionSelection">
+						<h3 class="peak-title white-text">Depletion</h3>
+						<input type="number" class="input-change r-select initial-r" id="DepletionRi" placeholder="Ri (px)" />
+						<input type="number" class="input-change r-select final-r" id="DepletionRf" placeholder="Rf (px)" />
+						<button class="image-id-button add-peak" id="DepletionAdd">+</button>
+						<div class="grid all-peaks" id="DepletionAllPeaks"></div>
+						<button class="square-button white-text show-peaks" id="ShowDepletion">Show Depletion</button>
+					</div>
+					<div class="peak-selection" id="IRActionGrowthSelection">
+						<h3 class="peak-title white-text">Growth</h3>
+						<input type="number" class="input-change r-select initial-r" id="GrowthRi" placeholder="Ri (px)" />
+						<input type="number" class="input-change r-select final-r" id="GrowthRf" placeholder="Rf (px)" />
+						<button class="image-id-button add-peak" id="GrowthAdd">+</button>
+						<div class="grid all-peaks" id="GrowthAllPeaks"></div>
+						<button class="square-button white-text show-peaks" id="ShowGrowth">Show Growth</button>
+					</div>
+				</div>
+				<div class="grid background-lighter-blue" id="IRActionSpectrumSelectionSection">
+					<div class="grid background-lighter-blue" id="IRActionSpectrumSelectionHeader"></div>
+					<div class="grid background-lighter-blue pe-spectra" id="IRActionSpectrumSelection"></div>
+					<div class="grid background-lighter-blue" id="IRActionSpectrumSelectionFooter"></div>
+				</div>
+			</div>
 		</div>
 
 		<!-- Future tabs should be added here (before settings section) -->

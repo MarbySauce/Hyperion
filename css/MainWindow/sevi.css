@@ -2,16 +2,6 @@
 	display: none; /* Set to none so that it looks cleaner on startup */
 }
 
-#SeviModeFirstPage {
-	padding: 10px 20px 0 20px;
-	grid-gap: 20px;
-}
-#SeviModeSecondPage {
-	display: none;
-	padding: 0 20px 15px 20px;
-	grid-gap: 20px;
-}
-
 /* First Page - Left Side */
 
 /* FileNaming */

@@ -657,8 +657,6 @@ function IRAction_Scan_Status() {
 *****************************************************************************/
 
 function IRAction_Accumulated_Image_Display(PageInfo) {
-	const ipc = require("electron").ipcRenderer;
-	const { IPCMessages } = require("../Messages.js");
 	const { ImageType } = require("./Libraries/ImageClasses.js");
 	const { Tabs } = require("./Libraries/Tabs.js");
 	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
@@ -671,6 +669,11 @@ function IRAction_Accumulated_Image_Display(PageInfo) {
 
 	document.getElementById("IRActionImageDisplaySelect").oninput = function () {
 		update_iraction_accumulated_image_display();
+	};
+
+	document.getElementById("IRActionDisplay").onclick = function () {
+		const large_display = document.getElementById("LargeDisplaySection");
+		large_display.classList.remove("large-display-hidden");
 	};
 
 	document.getElementById("IRActionDisplaySlider").oninput = function () {
@@ -708,16 +711,22 @@ function IRAction_Accumulated_Image_Display(PageInfo) {
 		const image_display = document.getElementById("IRActionDisplay");
 		const image_display_select = document.getElementById("IRActionImageDisplaySelect");
 		const ctx = image_display.getContext("2d");
+		// Also put image on expanded accumulated image display
+		const large_display = document.getElementById("LargeDisplay");
+		const large_ctx = large_display.getContext("2d");
+		// Get image data
 		const image_types = [ImageType.IROFF, ImageType.IRON, ImageType.DIFFPOS, ImageType.DIFFNEG];
 		let image_type = image_types[image_display_select.selectedIndex];
 		let image_data = IMMessenger.information.get_image_display(image_type);
 		if (!image_data) return; // No ImageData object was sent
 		// Clear the current image
 		ctx.clearRect(0, 0, image_display.width, image_display.height);
+		large_ctx.clearRect(0, 0, large_display.width, large_display.height);
 		// Put image_data on the display
 		// Have to convert the ImageData object into a bitmap image so that the  image is resized to fill the display correctly
 		createImageBitmap(image_data).then(function (bitmap_img) {
 			ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, image_display.width, image_display.height);
+			large_ctx.drawImage(bitmap_img, 0, 0, image_data.width, image_data.height, 0, 0, large_display.width, large_display.height);
 		});
 	}
 }
@@ -828,6 +837,158 @@ function IRAction_Counts() {
 
 *****************************************************************************/
 
+function IRAction_Change_Pages() {
+	const { Tabs } = require("./Libraries/Tabs.js");
+
+	/****
+			HTML Element Listeners
+	****/
+
+	document.getElementById("IRActionPageDown").onclick = function () {
+		load_iraction_second_page();
+	};
+
+	document.getElementById("IRActionPageUp").onclick = function () {
+		load_iraction_first_page();
+	};
+
+	function load_iraction_first_page() {
+		const first_page = document.getElementById(Tabs.IRACTION.first_page);
+		const second_page = document.getElementById(Tabs.IRACTION.second_page);
+		// Hide second page and show first page
+		second_page.style.display = "none";
+		first_page.style.display = "grid";
+	}
+
+	function load_iraction_second_page() {
+		const first_page = document.getElementById(Tabs.IRACTION.first_page);
+		const second_page = document.getElementById(Tabs.IRACTION.second_page);
+		// Hide first page and show second page
+		first_page.style.display = "none";
+		second_page.style.display = "grid";
+	}
+}
+
+/*************************************************************************************************
+
+								******************************
+								* IR ACTION MODE SECOND PAGE *
+								******************************
+
+*************************************************************************************************/
+
+/*****************************************************************************
+
+							SPECTRA DISPLAYS
+
+*****************************************************************************/
+
+function IRAction_Spectra_Displays() {
+	const { Chart, registerables } = require("chart.js");
+	const { zoomPlugin } = require("chartjs-plugin-zoom");
+
+	if (registerables) Chart.register(...registerables);
+	if (zoomPlugin) Chart.register(zoomPlugin);
+
+	const zoom_options = {
+		zoom: {
+			mode: "xy",
+			drag: {
+				enabled: true,
+				borderColor: "rgb(54, 162, 235)",
+				borderWidth: 1,
+				backgroundColor: "rgba(54, 162, 235, 0.3)",
+			},
+		},
+	};
+
+	const scales_title = {
+		color: "black",
+		display: true,
+		font: {
+			size: 16,
+		},
+	};
+
+	const pe_chart = new Chart(document.getElementById("IRActionPESpectrum").getContext("2d"), {
+		type: "line",
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			animations: false,
+			scales: {
+				x: {
+					type: "linear",
+					title: scales_title,
+				},
+				y: {
+					title: scales_title,
+				},
+			},
+			plugins: {
+				zoom: zoom_options,
+				title: {
+					text: "",
+					display: true,
+					fullSize: false,
+					align: "end",
+					padding: 0,
+				},
+				legend: {
+					fullSize: false,
+				},
+			},
+			elements: {
+				point: {
+					radius: 0,
+				},
+			},
+		},
+	});
+
+	const action_chart = new Chart(document.getElementById("IRActionActionSpectrum").getContext("2d"), {
+		type: "line",
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			animations: false,
+			scales: {
+				x: {
+					type: "linear",
+					title: scales_title,
+				},
+				y: {
+					title: scales_title,
+				},
+			},
+			plugins: {
+				zoom: zoom_options,
+				title: {
+					text: "",
+					display: true,
+					fullSize: false,
+					align: "end",
+					padding: 0,
+				},
+				legend: {
+					fullSize: false,
+				},
+			},
+			elements: {
+				point: {
+					radius: 0,
+				},
+			},
+		},
+	});
+}
+
+/*****************************************************************************
+
+							PAGE LOADING
+
+*****************************************************************************/
+
 function IRAction_Load_Page(PageInfo) {
 	const { Tabs } = require("./Libraries/Tabs.js");
 	const { IRActionManagerMessenger } = require("./Libraries/IRActionManager");
@@ -866,6 +1027,17 @@ function IRAction_Load_Page(PageInfo) {
 	} catch (error) {
 		console.log("Cannot load IR Action tab Electron/Frame Counts module:", error);
 	}
+	try {
+		IRAction_Change_Pages();
+	} catch (error) {
+		console.log("Cannot load IR Action tab page up/down buttons:", error);
+	}
+	/*		Second Page		*/
+	//try {
+	//	IRAction_Spectra_Displays();
+	//} catch (error) {
+	//	console.log("Cannot load IR Action tab Spectra Displays module:", error);
+	//}
 }
 
 /**

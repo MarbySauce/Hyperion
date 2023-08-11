@@ -148,3 +148,21 @@ async function test_ss() {
 	}
 	console.log("Done", id);
 }
+
+document.getElementById("IRActionResizeLeft").onclick = function () {
+	const display_section = document.getElementById("IRActionSpectrumDisplaySection");
+	display_section.classList.remove("resized-right");
+	display_section.classList.add("resized-left");
+};
+
+document.getElementById("IRActionResizeCenter").onclick = function () {
+	const display_section = document.getElementById("IRActionSpectrumDisplaySection");
+	display_section.classList.remove("resized-right");
+	display_section.classList.remove("resized-left");
+};
+
+document.getElementById("IRActionResizeRight").onclick = function () {
+	const display_section = document.getElementById("IRActionSpectrumDisplaySection");
+	display_section.classList.add("resized-right");
+	display_section.classList.remove("resized-left");
+};
