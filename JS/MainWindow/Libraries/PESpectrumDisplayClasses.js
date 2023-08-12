@@ -24,7 +24,7 @@ class PESRadio {
 
 		this.wrapper.onclick = () => {
 			this.radio.checked = true;
-			this.callback_fn(this.spectrum_display);
+			if (this.callback_fn) this.callback_fn(this.spectrum_display);
 		};
 
 		this.wrapper.appendChild(this.radio);
@@ -357,6 +357,9 @@ class IRPESpectrumDisplay extends PESpectrumDisplay {
 			labels: [],
 			datasets: [],
 		};
+		if (!this.can_show_plot) {
+			return returned_data;
+		}
 		if (this.show_ebe) {
 			// Show eBE plot
 			returned_data.labels = this.ebe;

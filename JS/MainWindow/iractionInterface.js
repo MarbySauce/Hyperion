@@ -877,121 +877,160 @@ function IRAction_Change_Pages() {
 
 *************************************************************************************************/
 
-/*****************************************************************************
+function IRAction_Second_Page() {
+	const { ActionModeAnalyzer } = require("./Libraries/ActionPESpectrumClasses.js");
+	const { UpdateMessenger } = require("./Libraries/UpdateMessenger.js");
 
-							SPECTRA DISPLAYS
+	// Messenger used for displaying update or error messages to the Message Display
+	const update_messenger = new UpdateMessenger();
 
-*****************************************************************************/
+	const AMAnalyzer = new ActionModeAnalyzer(document.getElementById("IRActionPESpectrum"), document.getElementById("IRActionActionSpectrum"));
 
-function IRAction_Spectra_Displays() {
-	const { Chart, registerables } = require("chart.js");
-	const { zoomPlugin } = require("chartjs-plugin-zoom");
-	const { ActionSpectraRow } = require("./Libraries/ActionPESpectrumClasses.js");
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	AMAnalyzer.set_depletion_div(document.getElementById("DepletionAllPeaks"));
+	AMAnalyzer.set_growth_div(document.getElementById("GrowthAllPeaks"));
+	AMAnalyzer.set_images_div(document.getElementById("IRActionSpectrumSelection"));
 
-	if (registerables) Chart.register(...registerables);
-	if (zoomPlugin) Chart.register(zoomPlugin);
+	/*****************************************************************************
 
-	const IMMessenger = new ImageManagerMessenger();
+								SPECTRA DISPLAYS
 
-	const zoom_options = {
-		zoom: {
-			mode: "xy",
-			drag: {
-				enabled: true,
-				borderColor: "rgb(54, 162, 235)",
-				borderWidth: 1,
-				backgroundColor: "rgba(54, 162, 235, 0.3)",
-			},
-		},
+	*****************************************************************************/
+
+	/****
+			HTML Event Listeners
+	****/
+
+	document.getElementById("IRActionResizeLeft").onclick = function () {
+		const display_section = document.getElementById("IRActionSpectrumDisplaySection");
+		display_section.classList.remove("resized-right");
+		display_section.classList.add("resized-left");
 	};
 
-	const scales_title = {
-		color: "black",
-		display: true,
-		font: {
-			size: 16,
-		},
+	document.getElementById("IRActionResizeCenter").onclick = function () {
+		const display_section = document.getElementById("IRActionSpectrumDisplaySection");
+		display_section.classList.remove("resized-right");
+		display_section.classList.remove("resized-left");
 	};
 
-	const pe_chart = new Chart(document.getElementById("IRActionPESpectrum").getContext("2d"), {
-		type: "line",
-		options: {
-			responsive: true,
-			maintainAspectRatio: false,
-			animations: false,
-			scales: {
-				x: {
-					type: "linear",
-					title: scales_title,
-				},
-				y: {
-					title: scales_title,
-				},
-			},
-			plugins: {
-				zoom: zoom_options,
-				title: {
-					text: "",
-					display: true,
-					fullSize: false,
-					align: "end",
-					padding: 0,
-				},
-				legend: {
-					fullSize: false,
-				},
-			},
-			elements: {
-				point: {
-					radius: 0,
-				},
-			},
-		},
-	});
+	document.getElementById("IRActionResizeRight").onclick = function () {
+		const display_section = document.getElementById("IRActionSpectrumDisplaySection");
+		display_section.classList.add("resized-right");
+		display_section.classList.remove("resized-left");
+	};
 
-	const action_chart = new Chart(document.getElementById("IRActionActionSpectrum").getContext("2d"), {
-		type: "line",
-		options: {
-			responsive: true,
-			maintainAspectRatio: false,
-			animations: false,
-			scales: {
-				x: {
-					type: "linear",
-					title: scales_title,
-				},
-				y: {
-					title: scales_title,
-				},
-			},
-			plugins: {
-				zoom: zoom_options,
-				title: {
-					text: "",
-					display: true,
-					fullSize: false,
-					align: "end",
-					padding: 0,
-				},
-				legend: {
-					fullSize: false,
-				},
-			},
-			elements: {
-				point: {
-					radius: 0,
-				},
-			},
-		},
-	});
+	document.getElementById("IRActionPESResetZoom").onclick = function () {
+		AMAnalyzer.reset_pes_zoom();
+	};
 
-	IMMessenger.listen.event.melexir.stop.on((image) => {
-		if (image.is_ir) {
-			let asr = new ActionSpectraRow(image);
-			asr.add_to_div(document.getElementById("IRActionSpectrumSelection"));
+	document.getElementById("IRActionChangeBasis").onclick = function () {
+		let ebe_shown = AMAnalyzer.toggle_ebe_plot();
+		if (ebe_shown) change_basis_button_to_R();
+		else change_basis_button_to_eBE();
+	};
+
+	document.getElementById("IRActionActionResetZoom").onclick = function () {
+		AMAnalyzer.reset_action_zoom();
+	};
+
+	/****
+			Functions
+	****/
+
+	function change_basis_button_to_R() {
+		const basis_button = document.getElementById("IRActionChangeBasis");
+		basis_button.innerText = "Show R Plot";
+	}
+
+	function change_basis_button_to_eBE() {
+		const basis_button = document.getElementById("IRActionChangeBasis");
+		basis_button.innerText = "Show eBE Plot";
+	}
+
+	/*****************************************************************************
+
+								PEAK SELECTION
+
+	*****************************************************************************/
+
+	/****
+			HTML Event Listeners
+	****/
+
+	document.getElementById("DepletionAdd").onclick = function () {
+		let Ri_input = document.getElementById("DepletionRi");
+		let Rf_input = document.getElementById("DepletionRf");
+		let Ri = parseFloat(Ri_input.value);
+		let Rf = parseFloat(Rf_input.value);
+		if (Ri > 0 && Rf > 0 && Ri !== Rf) {
+			AMAnalyzer.add_depletion_peak(Ri, Rf);
+			// Clear inputs
+			Ri_input.value = "";
+			Rf_input.value = "";
+		} else {
+			update_messenger.error("Invalid Depletion Options for Ri and Rf!");
 		}
-	});
+	};
+
+	document.getElementById("ShowDepletion").onclick = function () {
+		let is_shown = AMAnalyzer.toggle_depletion_peaks();
+		if (is_shown) change_depletion_button_to_hide();
+		else change_depletion_button_to_show();
+	};
+
+	document.getElementById("GrowthAdd").onclick = function () {
+		let Ri_input = document.getElementById("GrowthRi");
+		let Rf_input = document.getElementById("GrowthRf");
+		let Ri = parseFloat(Ri_input.value);
+		let Rf = parseFloat(Rf_input.value);
+		if (Ri > 0 && Rf > 0 && Ri !== Rf) {
+			AMAnalyzer.add_growth_peak(Ri, Rf);
+			// Clear inputs
+			Ri_input.value = "";
+			Rf_input.value = "";
+		} else {
+			update_messenger.error("Invalid Growth Options for Ri and Rf!");
+		}
+	};
+
+	document.getElementById("ShowGrowth").onclick = function () {
+		let is_shown = AMAnalyzer.toggle_growth_peaks();
+		if (is_shown) change_growth_button_to_hide();
+		else change_growth_button_to_show();
+	};
+
+	/****
+			Functions
+	****/
+
+	function change_depletion_button_to_show() {
+		const depletion_button = document.getElementById("ShowDepletion");
+		depletion_button.innerText = "Show Depletion";
+	}
+
+	function change_depletion_button_to_hide() {
+		const depletion_button = document.getElementById("ShowDepletion");
+		depletion_button.innerText = "Hide Depletion";
+	}
+
+	function change_growth_button_to_show() {
+		const growth_button = document.getElementById("ShowGrowth");
+		growth_button.innerText = "Show Growth";
+	}
+
+	function change_growth_button_to_hide() {
+		const growth_button = document.getElementById("ShowGrowth");
+		growth_button.innerText = "Hide Growth";
+	}
+
+	/*****************************************************************************
+
+								SPECTRUM SELECTION
+
+	*****************************************************************************/
+
+	/****
+			HTML Event Listeners
+	****/
 }
 
 /*****************************************************************************
@@ -1045,9 +1084,9 @@ function IRAction_Load_Page(PageInfo) {
 	}
 	/*		Second Page		*/
 	try {
-		IRAction_Spectra_Displays();
+		IRAction_Second_Page();
 	} catch (error) {
-		console.log("Cannot load IR Action tab Spectra Displays module:", error);
+		console.log("Cannot load IR Action tab Second Page:", error);
 	}
 }
 

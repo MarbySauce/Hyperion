@@ -467,7 +467,12 @@
 }
 .all-peaks {
 	grid-area: AllPeaks;
+	grid-auto-rows: 35px;
 }
+.action-spectrum-peak-row {
+	grid-template-columns: 2fr 2fr 1fr;
+}
+
 .show-peaks {
 	grid-area: ShowPeaks;
 }
@@ -486,12 +491,10 @@
 }
 
 .action-spectrum-selection-outer {
-	display: grid;
-	grid-template-columns: 1fr 12fr;
+	grid-template-columns: 1fr 8fr;
 }
 .action-spectrum-selection-inner {
-	display: grid;
-	grid-template-columns: 1fr 2fr 10fr;
+	grid-template-columns: 1fr 1.2fr 2fr 2fr 2fr;
 }
 
 #IRActionSpectrumSelectionFooter {

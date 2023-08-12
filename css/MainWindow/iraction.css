@@ -173,25 +173,6 @@
 	cursor: default;
 }
 
-#IRActionPeakImageSelection {
-	grid-gap: 1%;
-	align-items: center;
-	justify-items: center;
-	padding: 0 1%;
-}
-.image-selection-drop-down {
-	width: 80%;
-	height: 60%;
-	text-align: center;
-}
-.image-selection-drop-down:focus-visible {
-	outline: none;
-}
-#IRActionPeakCalculate {
-	width: 50%;
-	height: 60%;
-}
-
 .peak-selection {
 	border: 2px solid rgb(62, 71, 95);
 	border-radius: 7px;
@@ -210,6 +191,12 @@
 	padding: 5px;
 	padding-bottom: 0;
 }
+.action-spectrum-peak-row {
+	display: grid;
+	justify-items: center;
+	align-items: center;
+	border-bottom: 1px dotted rgb(62, 71, 95);
+}
 .r-select {
 	width: 70%;
 	height: 80%;
@@ -217,6 +204,10 @@
 }
 .add-peak {
 	width: 60%;
+	height: 70%;
+}
+.delete-peak {
+	width: 50%;
 	height: 70%;
 }
 .show-peaks {
@@ -237,12 +228,22 @@
 
 #IRActionSpectrumSelection {
 	max-height: 349px;
+	border: 2px solid rgb(62, 71, 95);
 }
 
 .action-spectrum-selection-outer {
-	border-bottom: 1px solid black;
+	display: grid;
+	border-bottom: 1px dotted rgb(62, 71, 95);
 	align-items: center;
 	justify-items: center;
+	width: 100%;
+}
+.action-spectrum-selection-inner {
+	display: grid;
+	width: 100%;
+}
+.action-spectrum-selection-inner label {
+	text-align: center;
 }
 
 .action-spectrum-checkbox {

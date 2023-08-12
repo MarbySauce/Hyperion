@@ -981,6 +981,13 @@ function Sevi_Load_Page(PageInfo) {
 			if (tab) tab.classList.add("highlighted-tab");
 		}
 	});
+	IMMessenger.listen.event.scan.resume.on(() => {
+		// Make sure it's not an IR-SEVI scan
+		if (!IMMessenger.information.image_info.is_ir) {
+			let tab = document.getElementById(Tabs.SEVI.tab);
+			if (tab) tab.classList.add("highlighted-tab");
+		}
+	});
 	// Remove tab highlight if SEVI scan is stopped or canceled
 	IMMessenger.listen.event.scan.stop_or_cancel.on(() => {
 		let tab = document.getElementById(Tabs.SEVI.tab);
