@@ -604,6 +604,7 @@ function create_mlxr_window() {
 		},
 	});
 
+	//win.webContents.openDevTools();
 	win.loadFile("HTML/mlxrWindow.html");
 	return win;
 }

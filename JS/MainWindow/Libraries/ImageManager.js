@@ -67,6 +67,7 @@ const ImageManager = {
 			width: 0,
 			height: 0,
 		},
+		sim_center_wn: undefined,
 	},
 	info: {
 		vmi: {},
@@ -405,6 +406,9 @@ function ImageManager_melexir_process_image(save_to_file) {
 		melexir_arguments.is_ir = false;
 		melexir_arguments.image = image_class.image;
 	}
+	// Used only for simulating on Mac
+	melexir_arguments.wn = image_class.excitation_wavelength.energy.wavenumber;
+	melexir_arguments.center_wn = ImageManager.params.sim_center_wn;
 
 	ipc.send("process-mlxr", melexir_arguments);
 	ipc.once("mlxr-results", (event, melexir_results) => {
@@ -1141,6 +1145,11 @@ class IMMessengerUpdate {
 	 */
 	image_series(length) {
 		ImageManager.series.update(length);
+	}
+
+	// Used only for simulating spectra on Mac
+	sim_center_wn(wn) {
+		ImageManager.params.sim_center_wn = wn;
 	}
 }
 

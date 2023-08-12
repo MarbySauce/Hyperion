@@ -989,12 +989,12 @@ function IRAction_Second_Page() {
 			HTML Event Listeners
 	****/
 
-	AMAnalyzer.add_depletion_peak(140, 160);
-	AMAnalyzer.add_depletion_peak(240, 260);
-	AMAnalyzer.add_depletion_peak(340, 360);
-	AMAnalyzer.add_growth_peak(60, 80);
-	AMAnalyzer.add_growth_peak(390, 410);
-	AMAnalyzer.add_growth_peak(490, 510);
+	AMAnalyzer.add_growth_peak(140, 160);
+	AMAnalyzer.add_growth_peak(240, 260);
+	AMAnalyzer.add_growth_peak(340, 360);
+	AMAnalyzer.add_depletion_peak(190, 210);
+	AMAnalyzer.add_depletion_peak(290, 310);
+	AMAnalyzer.add_depletion_peak(390, 410);
 
 	document.getElementById("DepletionAdd").onclick = function () {
 		let Ri_input = document.getElementById("DepletionRi");
