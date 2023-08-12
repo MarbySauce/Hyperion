@@ -414,17 +414,20 @@
 }
 #IRActionActionSpectrumControl {
 	grid-area: ActionButtons;
-	grid-template-columns: 1fr 1.7fr 1.1fr;
-	grid-template-areas: "ResetZoom blank Normalize";
+	grid-template-columns: 1fr 0.3fr 1.1fr 0.3fr 1.1fr;
+	grid-template-areas: "ResetZoom blank1 HideLines blank2 Normalize";
 }
 .resized-left #IRActionActionSpectrumControl {
-	grid-template-columns: 1fr 4.5fr 1.1fr;
+	grid-template-columns: 1fr 1.7fr 1.1fr 1.7fr 1.1fr;
 }
 .resized-right #IRActionActionSpectrumControl {
-	grid-template-columns: 1fr 0.2fr 1.1fr;
+	grid-template-columns: 1fr 0fr 1.1fr 0fr 1.1fr;
 }
 #IRActionActionResetZoom {
 	grid-area: ResetZoom;
+}
+#IRActionHideLines {
+	grid-area: HideLines;
 }
 #IRActionNormalize {
 	grid-area: Normalize;
@@ -498,9 +501,5 @@
 }
 
 #IRActionSpectrumSelectionFooter {
-	grid-template-columns: 2fr 1fr;
-	grid-template-areas: "blank Calculate";
-}
-#IRActionCalculate {
-	grid-area: Calculate;
+	grid-template-columns: 2.8fr 1fr 1.2fr 1fr 3fr 3fr;
 }

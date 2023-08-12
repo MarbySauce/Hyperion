@@ -7,6 +7,7 @@ const { ImageManagerMessenger } = require("../JS/MainWindow/Libraries/ImageManag
 const { DetachmentLaserManagerMessenger } = require("../JS/MainWindow/Libraries/DetachmentLaserManager.js");
 const { ExcitationLaserManagerMessenger } = require("../JS/MainWindow/Libraries/ExcitationLaserManager.js");
 const { OPOManagerMessenger } = require("../JS/MainWindow/Libraries/OPOManager.js");
+const { IRActionManagerMessenger } = require("../JS/MainWindow/Libraries/IRActionManager.js");
 
 let settings; // Global variable, to be filled in on startup
 
@@ -14,6 +15,7 @@ const IMMessenger = new ImageManagerMessenger();
 const DLMMessenger = new DetachmentLaserManagerMessenger();
 const ELMMessenger = new ExcitationLaserManagerMessenger();
 const OPOMMessenger = new OPOManagerMessenger();
+const IRAMMessenger = new IRActionManagerMessenger();
 
 // ORDER OF OPERATIONS WHEN LOADING PROGRAM
 // Main renderer (main.js) creates the MainWindow
@@ -71,6 +73,7 @@ function process_settings() {
 	IMMessenger.update.process_settings(settings);
 	DLMMessenger.update.process_settings(settings);
 	ELMMessenger.update.process_settings(settings);
+	IRAMMessenger.update.process_settings(settings);
 }
 
 /* Functions for simulating wavemeter on Mac */
@@ -88,7 +91,7 @@ function mac_wavelength(channel) {
 		// Send wavelength as the OPO's wavelength with some noise added
 		let wl = ELMMessenger.opo.information.wavelength || 745;
 		// Add some noise
-		wl += norm_rand(0, 0.1);
+		wl += norm_rand(0, 0.3);
 		// Small chance of wavelength being very far off
 		if (Math.random() < 0.1) {
 			wl -= 20;

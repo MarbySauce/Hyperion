@@ -1,7 +1,12 @@
 const { Chart, registerables } = require("chart.js");
 const { zoomPlugin } = require("chartjs-plugin-zoom");
+const { Image } = require("./ImageClasses.js");
 const { ImageManagerMessenger } = require("./ImageManager.js");
-const { IRActionManagerMessenger } = require("./IRActionManager");
+const { IRActionManagerMessenger } = require("./IRActionManager.js");
+const { UpdateMessenger } = require("./UpdateMessenger.js");
+
+// Messenger used for displaying update or error messages to the Message Display
+const update_messenger = new UpdateMessenger();
 
 if (registerables) Chart.register(...registerables);
 if (zoomPlugin) Chart.register(zoomPlugin);
@@ -57,14 +62,19 @@ class ActionSpectraRow {
 	}
 
 	get_image_info(image) {
-		let nir_wl = image.excitation_wavelength.energy.wavelength;
-		if (nir_wl > 0) this.nir_label.innerText = nir_wl.toFixed(3);
+		this.nir_wl = image.excitation_wavelength.nIR.wavelength;
+		if (this.nir_wl > 0) this.nir_label.innerText = this.nir_wl.toFixed(3);
 
 		let stdev = image.excitation_measurement.reduced_stats.stdev;
-		if (nir_wl > 0) this.stdev_label.innerText = stdev.toFixed(5);
+		if (this.nir_wl > 0) this.stdev_label.innerText = stdev.toFixed(5);
 
-		let ir_energy = image.excitation_wavelength.energy.wavenumber;
-		if (ir_energy > 0) this.ir_label.innerText = ir_energy.toFixed(3);
+		this.ir_energy = image.excitation_wavelength.energy.wavenumber;
+		if (this.ir_energy > 0) this.ir_label.innerText = this.ir_energy.toFixed(3);
+
+		this.electrons = {
+			on: image.counts.electrons.on,
+			off: image.counts.electrons.off,
+		};
 	}
 
 	set_up_callback(callback_fn) {
@@ -358,6 +368,407 @@ class ActionPESpectrumDisplay {
 
 /***************************************************/
 
+// Classes for cycling through colors
+class ActionColors {
+	static Depletion = new ActionColors(["darkblue", "darkmagenta", "blue", "darkturquoise", "blueviolet", "dodgerblue"]);
+	static Growth = new ActionColors(["red", "firebrick", "deeppink", "tomato", "darkred", "fuchsia", "indianred"]);
+
+	constructor(colors) {
+		this.colors = colors;
+		this.index = 0;
+	}
+
+	get next() {
+		let c = this.colors[this.index];
+		this.index++;
+		this.index %= this.colors.length;
+		return c;
+	}
+}
+
+class ActionSpectrumCalculator {
+	constructor(all_spectra, depletion_peaks, growth_peaks) {
+		this.all_spectra = all_spectra;
+		this.depletion_peaks = depletion_peaks;
+		this.growth_peaks = growth_peaks;
+
+		this.energies = []; // Simple array of numbers
+		this.intensity_off = [];
+		this.image_ids = [];
+		this.depletion = []; // { label: "", values: [] } <- for each peak
+		this.growth = [];
+
+		this.normalized_depletion = []; // { label: "", values: [] } <- for each peak
+		this.normalized_growth = [];
+
+		this.save_id = 1;
+	}
+
+	/**
+	 * Calculate sum of elements in array starting from index `a` and ending at index `b`
+	 * @param {Array} array
+	 * @param {Number} a
+	 * @param {Number} b
+	 * @returns {Number}
+	 */
+	sum(array, a, b) {
+		let s = 0;
+		let value;
+		for (let i = a; i <= b; i++) {
+			value = array[i];
+			if (value) s += value;
+		}
+		return s;
+	}
+
+	get_energies() {
+		this.energies = [];
+		for (let row of this.all_spectra) {
+			if (!row.checkbox.checked) {
+				// Ignore this spectrum
+				continue;
+			}
+			this.energies.push(row.ir_energy);
+			this.image_ids.push(row.id_str);
+		}
+	}
+
+	calculate_depletion() {
+		this.depletion = [];
+		this.intensity_off = [];
+		let label, peak_intensity_off, peak_depletion, Ri, Rf, sum_off, sum_on, max_intensity;
+		let max_intensity_off = 0;
+		for (let peak of this.depletion_peaks) {
+			Ri = peak.Ri;
+			Rf = peak.Rf;
+			label = `${Ri}-${Rf}px`;
+			peak_intensity_off = [];
+			peak_depletion = { label: label, values: [] };
+			for (let row of this.all_spectra) {
+				if (!row.checkbox.checked) {
+					// Ignore this spectrum
+					continue;
+				}
+				sum_off = this.sum(row.spectrum_display.intensity_off, Ri, Rf);
+				peak_intensity_off.push(sum_off);
+				sum_on = this.sum(row.spectrum_display.intensity_on, Ri, Rf);
+				peak_depletion.values.push(1 - sum_on / sum_off);
+			}
+			// We want to normalize the growth peaks to the largest intensity IR Off peak
+			// Figure out which peak shows the highest intensity and save that to this.intensity_off
+			max_intensity = Math.max(...peak_intensity_off);
+			if (max_intensity > max_intensity_off) {
+				max_intensity_off = max_intensity;
+				this.intensity_off = [...peak_intensity_off];
+			}
+			this.depletion.push(peak_depletion);
+		}
+	}
+
+	calculate_growth() {
+		this.growth = [];
+		let label, peak_growth, Ri, Rf, sum_off, sum_on, dividend, row;
+		for (let peak of this.growth_peaks) {
+			Ri = peak.Ri;
+			Rf = peak.Rf;
+			label = `${Ri}-${Rf}px`;
+			peak_growth = { label: label, values: [] };
+			for (let i = 0; i < this.all_spectra.length; i++) {
+				row = this.all_spectra[i];
+				if (!row.checkbox.checked) {
+					// Ignore this spectrum
+					continue;
+				}
+				sum_off = this.sum(row.spectrum_display.intensity_off, Ri, Rf);
+				sum_on = this.sum(row.spectrum_display.intensity_on, Ri, Rf);
+				dividend = this.intensity_off[i] || 1; // Default to 1 if value is not defined
+				peak_growth.values.push((sum_on - sum_off) / dividend);
+			}
+			this.growth.push(peak_growth);
+		}
+	}
+
+	calculate() {
+		this.get_energies();
+		this.calculate_depletion();
+		this.calculate_growth();
+		this.sort_arrays();
+		this.normalize();
+	}
+
+	// Sort all values together based on energy
+	sort_arrays() {
+		// Combine arrays together
+		let list = [];
+		let element;
+		for (let i = 0; i < this.energies.length; i++) {
+			element = { energy: this.energies[i], id_str: this.image_ids[i], depletion: [], growth: [] };
+			for (let peak of this.depletion) {
+				element.depletion.push(peak.values[i]);
+			}
+			for (let peak of this.growth) {
+				element.growth.push(peak.values[i]);
+			}
+			list.push(element);
+		}
+		// Sort list by energy
+		list.sort(function (a, b) {
+			return a.energy < b.energy ? -1 : a.energy == b.energy ? 0 : 1;
+		});
+		// Unpack list
+		for (let i = 0; i < list.length; i++) {
+			this.energies[i] = list[i].energy;
+			this.image_ids[i] = list[i].id_str;
+			for (let j = 0; j < list[i].depletion.length; j++) {
+				this.depletion[j].values[i] = list[i].depletion[j];
+			}
+			for (let j = 0; j < list[i].growth.length; j++) {
+				this.growth[j].values[i] = list[i].growth[j];
+			}
+		}
+	}
+
+	normalize() {
+		this.normalized_depletion = [];
+		this.normalized_growth = [];
+		let norm_peak, max_val;
+		for (let peak of this.depletion) {
+			norm_peak = { label: peak.label };
+			max_val = Math.max(...peak.values);
+			norm_peak.values = peak.values.map((e) => e / max_val);
+			this.normalized_depletion.push(norm_peak);
+		}
+		for (let peak of this.growth) {
+			norm_peak = { label: peak.label };
+			max_val = Math.max(...peak.values);
+			norm_peak.values = peak.values.map((e) => e / max_val);
+			this.normalized_growth.push(norm_peak);
+		}
+	}
+
+	get data() {
+		// Reset color cycle
+		ActionColors.Depletion.index = 0;
+		ActionColors.Growth.index = 0;
+		const returned_data = {
+			datasets: [],
+		};
+		let d, color;
+		for (let peak of this.depletion) {
+			d = this.energies.map((val, i) => {
+				return { x: val, y: peak.values[i] };
+			});
+			color = ActionColors.Depletion.next;
+			returned_data.datasets.push({
+				label: `D: ${peak.label}`,
+				data: d,
+				borderColor: color,
+				backgroundColor: color,
+				pointHitRadius: 5,
+			});
+		}
+		for (let peak of this.growth) {
+			d = this.energies.map((val, i) => {
+				return { x: val, y: peak.values[i] };
+			});
+			color = ActionColors.Growth.next;
+			returned_data.datasets.push({
+				label: `G: ${peak.label}`,
+				data: d,
+				borderColor: color,
+				backgroundColor: color,
+				pointHitRadius: 5,
+			});
+		}
+		return returned_data;
+	}
+
+	get norm_data() {
+		// Reset color cycle
+		ActionColors.Depletion.index = 0;
+		ActionColors.Growth.index = 0;
+		const returned_data = {
+			datasets: [],
+		};
+		let d, color;
+		for (let peak of this.normalized_depletion) {
+			d = this.energies.map((val, i) => {
+				return { x: val, y: peak.values[i] };
+			});
+			color = ActionColors.Depletion.next;
+			returned_data.datasets.push({
+				label: `D: ${peak.label}`,
+				data: d,
+				borderColor: color,
+				backgroundColor: color,
+				pointHitRadius: 5,
+			});
+		}
+		for (let peak of this.normalized_growth) {
+			d = this.energies.map((val, i) => {
+				return { x: val, y: peak.values[i] };
+			});
+			color = ActionColors.Growth.next;
+			returned_data.datasets.push({
+				label: `G: ${peak.label}`,
+				data: d,
+				borderColor: color,
+				backgroundColor: color,
+				pointHitRadius: 5,
+			});
+		}
+		return returned_data;
+	}
+
+	get tooltip() {
+		return {
+			callbacks: {
+				beforeTitle: ([context]) => {
+					let label = context.dataset.label;
+					let id_str = this.all_spectra[context.dataIndex]?.id_str;
+					let new_label;
+					if (label[0] === "D") new_label = "Depletion ";
+					else if (label[0] === "G") new_label = "Growth ";
+					else new_label = "";
+					if (id_str) new_label += `(i${id_str})`;
+					return new_label;
+				},
+				title: ([context]) => {
+					let label = context.dataset.label;
+					if (label[0] === "D" || label[0] === "G") return `R${label.slice(1)}`;
+					else return label;
+				},
+				label: (context) => {
+					let dataset_index = context.datasetIndex;
+					let data_index = context.dataIndex;
+					let depl_length = this.depletion.length;
+					let val;
+					if (dataset_index >= depl_length) {
+						// Growth peak
+						val = this.growth[dataset_index - depl_length].values[data_index] * 100;
+					} else {
+						// Depletion peak
+						val = this.depletion[dataset_index].values[data_index] * 100;
+					}
+					return `Raw: ${val.toFixed(1)}%`;
+				},
+				afterLabel: (context) => {
+					let dataset_index = context.datasetIndex;
+					let data_index = context.dataIndex;
+					let depl_length = this.depletion.length;
+					let val;
+					if (dataset_index >= depl_length) {
+						// Growth peak
+						val = this.normalized_growth[dataset_index - depl_length].values[data_index] * 100;
+					} else {
+						// Depletion peak
+						val = this.normalized_depletion[dataset_index].values[data_index] * 100;
+					}
+					return `Norm'd: ${val.toFixed(1)}%`;
+				},
+			},
+		};
+	}
+
+	get file_name() {
+		return `${this.formatted_date}a${this.save_id_str}.dwt`;
+	}
+
+	/** Current date, formatted as MMDDYY */
+	get formatted_date() {
+		let today = new Date();
+		let day = ("0" + today.getDate()).slice(-2);
+		let month = ("0" + (today.getMonth() + 1)).slice(-2);
+		let year = today.getFullYear().toString().slice(-2);
+		return month + day + year;
+	}
+
+	get save_id_str() {
+		if (this.save_id < 10) return `0${this.save_id}`;
+		else return this.save_id.toString();
+	}
+
+	set_save_id_input(input) {
+		this.save_id_input = input;
+	}
+
+	decrease_save_id() {
+		if (this.save_id > 1) {
+			this.save_id--;
+		}
+		this.update_save_id_display();
+	}
+
+	increase_save_id() {
+		this.save_id++;
+		this.update_save_id_display();
+	}
+
+	update_save_id_display() {
+		if (this.save_id_input) this.save_id_input.value = this.save_id;
+	}
+
+	save_spectrum() {
+		if (this.energies.length === 0) return; // Nothing to save
+		//if (Image.do_not_save_to_file) return; // Override save
+		const fs = require("fs");
+		const path = require("path");
+		// Get save directory (I know this isn't a great way to do it but w/ever)
+		let save_dir = Image.save_directory;
+		// Convert spectrum to string
+		let spectrum_str = this.#convert_spectrum_to_text();
+		// Save to file
+		fs.writeFile(path.join(save_dir, this.file_name), spectrum_str, (error) => {
+			if (error) {
+				update_messenger.error(`IR Action Spectrum a${this.save_id_str} could not be saved! Error logged to console`);
+				console.log(`Could not save IR Action Spectrum a${this.save_id_str}:`, error);
+			} else {
+				update_messenger.update(`IR Action Spectrum a${this.save_id_str} has been saved to ${this.file_name}!`);
+				// Uptick save id
+				this.increase_save_id();
+			}
+		});
+	}
+
+	#convert_spectrum_to_text() {
+		function pad_left(string, length) {
+			while (string.length < length) string = " " + string;
+			return string;
+		}
+
+		let header = "Img,   IR(cm-1),    e- on,   e- off";
+		for (let peak of this.depletion) {
+			header += `, ${pad_left(`D:${peak.label}`, 11)}`;
+		}
+		for (let peak of this.growth) {
+			header += `, ${pad_left(`G:${peak.label}`, 11)}`;
+		}
+
+		let body = "";
+		let e_on, e_off, e_on_str, e_off_str, depl_str, growth_str;
+		for (let i = 0; i < this.energies.length; i++) {
+			body += " \n";
+			body += `i${this.image_ids[i]}`;
+			body += `, ${pad_left(this.energies[i].toFixed(3), 10)}`;
+			e_on = this.all_spectra[i].electrons.on;
+			e_off = this.all_spectra[i].electrons.off;
+			e_on_str = `${e_on > 1e4 ? e_on.toExponential(2) : e_on.toString()}`;
+			e_off_str = `${e_off > 1e4 ? e_off.toExponential(2) : e_off.toString()}`;
+			body += `, ${pad_left(e_on_str, 8)}`;
+			body += `, ${pad_left(e_off_str, 8)}`;
+			for (let peak of this.depletion) {
+				body += `, ${pad_left(peak.values[i].toFixed(4), 11)}`;
+			}
+			for (let peak of this.growth) {
+				body += `, ${pad_left(peak.values[i].toFixed(4), 11)}`;
+			}
+		}
+		return header + body;
+	}
+}
+
+/***************************************************/
+
 const zoom_options = {
 	zoom: {
 		mode: "xy",
@@ -430,6 +841,7 @@ const action_chart_options = {
 			},
 			y: {
 				title: scales_title,
+				suggestedMin: 0,
 			},
 		},
 		plugins: {
@@ -454,6 +866,8 @@ const action_chart_options = {
 
 class ActionModeAnalyzer {
 	constructor(pes_chart_ctx, action_chart_ctx) {
+		this.pes_chart_ctx = pes_chart_ctx;
+		this.action_chart_ctx = action_chart_ctx;
 		this.pes_chart = new Chart(pes_chart_ctx, pes_chart_options);
 		this.action_chart = new Chart(action_chart_ctx, action_chart_options);
 
@@ -465,10 +879,16 @@ class ActionModeAnalyzer {
 		this.depletion_peaks = [];
 		this.growth_peaks = [];
 
+		this.spectrum_calculator = new ActionSpectrumCalculator(this.all_spectra, this.depletion_peaks, this.growth_peaks);
+
 		this.show_depletion = false;
 		this.show_growth = false;
 
 		this.auto_check = false;
+
+		this.show_lines = true;
+
+		this.show_normalized = false;
 
 		this.IMMessenger.listen.event.melexir.stop.on((image) => {
 			if (!image.is_ir) {
@@ -506,6 +926,17 @@ class ActionModeAnalyzer {
 				}
 			}
 		});
+
+		// Have images taken during IR Action scan be used for action spectrum automatically
+		this.IRAMMessenger.listen.event.scan.start.on(() => {
+			this.auto_check = true;
+		});
+		this.IRAMMessenger.listen.event.scan.stop_or_cancel.on(() => {
+			// 5s delay to give MLXR time to process
+			setTimeout(() => {
+				this.auto_check = false;
+			}, 5000);
+		});
 	}
 
 	reset_pes_zoom() {
@@ -519,7 +950,25 @@ class ActionModeAnalyzer {
 		this.#update_pes_plot();
 		return this.displayed_spectrum.show_ebe;
 	}
-	toggle_normalize() {}
+	toggle_normalize() {
+		this.show_normalized = !this.show_normalized;
+		this.#update_action_plot();
+		return this.show_normalized;
+	}
+
+	toggle_lines() {
+		this.show_lines = !this.show_lines;
+		if (this.show_lines) action_chart_options.type = "line";
+		else action_chart_options.type = "scatter";
+		if (this.action_chart) {
+			// Need to reset zoom first or else it can't be reset
+			this.action_chart.resetZoom();
+			this.action_chart.destroy();
+		}
+		this.action_chart = new Chart(this.action_chart_ctx, action_chart_options);
+		this.#update_action_plot();
+		return this.show_lines;
+	}
 
 	set_depletion_div(div) {
 		this.depletion_div = div;
@@ -529,6 +978,9 @@ class ActionModeAnalyzer {
 	}
 	set_images_div(div) {
 		this.images_div = div;
+	}
+	set_save_id_input(input) {
+		this.spectrum_calculator.set_save_id_input(input);
 	}
 
 	add_depletion_peak(Ri, Rf) {
@@ -582,16 +1034,27 @@ class ActionModeAnalyzer {
 		this.#update_pes_plot();
 		return this.show_depletion;
 	}
-	set_depletion_callback(callback) {}
 	toggle_growth_peaks() {
 		this.show_growth = !this.show_growth;
 		this.#update_pes_plot();
 		return this.show_growth;
 	}
-	set_growth_callback(callback) {}
 
-	calculate_spectrum() {}
-	save_spectrum() {}
+	decrease_save_id() {
+		this.spectrum_calculator.decrease_save_id();
+	}
+
+	increase_save_id() {
+		this.spectrum_calculator.increase_save_id();
+	}
+
+	calculate_spectrum() {
+		this.spectrum_calculator.calculate();
+		this.#update_action_plot();
+	}
+	save_spectrum() {
+		this.spectrum_calculator.save_spectrum();
+	}
 
 	/* Functions Used Internally */
 	#clear_depletion_div() {
@@ -618,19 +1081,6 @@ class ActionModeAnalyzer {
 	#fill_growth_div() {
 		for (let row of this.growth_peaks) {
 			row.add_to_div(this.growth_div);
-		}
-	}
-	#clear_images_div() {
-		if (this.images_div) {
-			const length = this.images_div.children.length;
-			for (let i = 0; i < length; i++) {
-				this.images_div.removeChild(this.images_div.children[0]);
-			}
-		}
-	}
-	#fill_images_div() {
-		for (let row of this.all_spectra) {
-			row.add_to_div(this.images_div);
 		}
 	}
 
@@ -713,6 +1163,13 @@ class ActionModeAnalyzer {
 				},
 			});
 		}
+	}
+
+	#update_action_plot() {
+		if (this.show_normalized) this.action_chart.data = this.spectrum_calculator.norm_data;
+		else this.action_chart.data = this.spectrum_calculator.data;
+		this.action_chart.options.plugins.tooltip = this.spectrum_calculator.tooltip;
+		this.action_chart.update();
 	}
 }
 

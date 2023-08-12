@@ -185,8 +185,8 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 	// Next, measure wavelength, giving OPO internal wavelength as the expected result
 	ExcitationLaserManager.goto.step = GoToStep.MEASURING;
 	let measurement = await EWMMessenger.request.measurement.start(opo_wl);
-	// Figure out desired nIR wavelength and account for offset
-	let desired_nir = desired_wavelength.nIR.wavelength - OPOMMessenger.information.offset;
+
+	let desired_nir; // = desired_wavelength.nIR.wavelength - OPOMMessenger.information.offset;
 	for (let i = 0; i < move_attempts; i++) {
 		// Check if GoTo was paused or canceled
 		while (ExcitationLaserManager.goto.status === GoToState.PAUSED) {
@@ -200,6 +200,9 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 			ELMAlerts.event.goto.stop_or_cancel.alert();
 			return;
 		}
+
+		// Figure out desired nIR wavelength and account for offset
+		desired_nir = desired_wavelength.nIR.wavelength - OPOMMessenger.information.offset;
 
 		// Adjust the speed of the OPO based on how far the laser has to move
 		// If it's more than 10nm away, have OPO move quickly (3 nm/sec)
@@ -242,7 +245,6 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 			break;
 		}
 		// If not, try again (assuming more attempts left)
-		desired_nir = desired_wavelength.nIR.wavelength - OPOMMessenger.information.offset;
 	}
 
 	ExcitationLaserManager.goto.step = GoToStep.NONE;

@@ -426,7 +426,8 @@ class OPOMMessengerUpdate {
 	 * @param {Number} value (measured wavelength - OPO internal wavelength)
 	 */
 	laser_offset(value) {
-		if (value && !isNaN(value)) OPOManager.laser_offsets.push(value);
+		// Offset shouldn't be more than 1.5nm, if it is something went wrong
+		if (Math.abs(value) < 1.5) OPOManager.laser_offsets.push(value);
 	}
 
 	/**

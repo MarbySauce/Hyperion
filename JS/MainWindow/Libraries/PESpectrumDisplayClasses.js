@@ -228,18 +228,6 @@ class PESpectrumDisplay {
 					pointHitRadius: 5,
 				});
 			}
-			// NOTE TO MARTY: This is a way to fill below the spectra
-			let new_arr = new Array(this.radii.length).fill(null);
-			for (let i = 140; i < 161; i++) {
-				new_arr[i] = this.intensity_r[i];
-			}
-			returned_data.datasets.push({
-				data: new_arr,
-				fill: {
-					target: "origin",
-					above: "darkgray",
-				},
-			});
 		}
 		return returned_data;
 	}
@@ -481,31 +469,6 @@ class IRPESpectrumDisplay extends PESpectrumDisplay {
 						}
 					);
 				}
-				// NOTE TO MARTY: This is a way to fill below the spectra
-				let new_arr1 = new Array(this.radii.length).fill(null);
-				let new_arr2 = new Array(this.radii.length).fill(null);
-				for (let i = 140; i < 161; i++) {
-					new_arr1[i] = this.intensity_off_r[i];
-				}
-				for (let i = 390; i < 411; i++) {
-					new_arr2[i] = this.intensity_on_r[i];
-				}
-				returned_data.datasets.push(
-					{
-						data: new_arr1,
-						fill: {
-							target: "origin",
-							above: "hsla(0, 0%, 0%, 0.5)",
-						},
-					},
-					{
-						data: new_arr2,
-						fill: {
-							target: "origin",
-							above: "hsla(0, 100%, 50%, 0.5)",
-						},
-					}
-				);
 			}
 		}
 		return returned_data;

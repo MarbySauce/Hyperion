@@ -889,6 +889,7 @@ function IRAction_Second_Page() {
 	AMAnalyzer.set_depletion_div(document.getElementById("DepletionAllPeaks"));
 	AMAnalyzer.set_growth_div(document.getElementById("GrowthAllPeaks"));
 	AMAnalyzer.set_images_div(document.getElementById("IRActionSpectrumSelection"));
+	AMAnalyzer.set_save_id_input(document.getElementById("IRActionSaveCounter"));
 
 	/*****************************************************************************
 
@@ -932,6 +933,18 @@ function IRAction_Second_Page() {
 		AMAnalyzer.reset_action_zoom();
 	};
 
+	document.getElementById("IRActionHideLines").onclick = function () {
+		let lines_shown = AMAnalyzer.toggle_lines();
+		if (lines_shown) change_lines_button_to_hide();
+		else change_lines_button_to_show();
+	};
+
+	document.getElementById("IRActionNormalize").onclick = function () {
+		let is_normalized = AMAnalyzer.toggle_normalize();
+		if (is_normalized) change_normalize_button_to_unnormalize();
+		else change_normalize_button_to_normalize();
+	};
+
 	/****
 			Functions
 	****/
@@ -946,6 +959,26 @@ function IRAction_Second_Page() {
 		basis_button.innerText = "Show eBE Plot";
 	}
 
+	function change_lines_button_to_show() {
+		const lines_button = document.getElementById("IRActionHideLines");
+		lines_button.innerText = "Show Lines";
+	}
+
+	function change_lines_button_to_hide() {
+		const lines_button = document.getElementById("IRActionHideLines");
+		lines_button.innerText = "Hide Lines";
+	}
+
+	function change_normalize_button_to_normalize() {
+		const normalize_button = document.getElementById("IRActionNormalize");
+		normalize_button.innerText = "Normalize";
+	}
+
+	function change_normalize_button_to_unnormalize() {
+		const normalize_button = document.getElementById("IRActionNormalize");
+		normalize_button.innerText = "Unnormalize";
+	}
+
 	/*****************************************************************************
 
 								PEAK SELECTION
@@ -955,6 +988,13 @@ function IRAction_Second_Page() {
 	/****
 			HTML Event Listeners
 	****/
+
+	AMAnalyzer.add_depletion_peak(140, 160);
+	AMAnalyzer.add_depletion_peak(240, 260);
+	AMAnalyzer.add_depletion_peak(340, 360);
+	AMAnalyzer.add_growth_peak(60, 80);
+	AMAnalyzer.add_growth_peak(390, 410);
+	AMAnalyzer.add_growth_peak(490, 510);
 
 	document.getElementById("DepletionAdd").onclick = function () {
 		let Ri_input = document.getElementById("DepletionRi");
@@ -1031,6 +1071,22 @@ function IRAction_Second_Page() {
 	/****
 			HTML Event Listeners
 	****/
+
+	document.getElementById("IRActionSaveCounterDown").onclick = function () {
+		AMAnalyzer.decrease_save_id();
+	};
+
+	document.getElementById("IRActionSaveCounterUp").onclick = function () {
+		AMAnalyzer.increase_save_id();
+	};
+
+	document.getElementById("IRActionSaveActionSpectrum").onclick = function () {
+		AMAnalyzer.save_spectrum();
+	};
+
+	document.getElementById("IRActionCalculate").onclick = function () {
+		AMAnalyzer.calculate_spectrum();
+	};
 }
 
 /*****************************************************************************

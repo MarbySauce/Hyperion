@@ -251,7 +251,17 @@
 	height: 50%;
 }
 
-#IRActionCalculate {
+#IRActionSpectrumSelectionFooter label {
+	width: 80%;
+	font-size: 1.8vh;
+	text-align: right;
+}
+#IRActionSpectrumSelectionFooter input {
 	width: 60%;
+	height: 80%;
+	text-align: center;
+}
+#IRActionSpectrumSelectionFooter button {
+	width: 80%;
 	height: 80%;
 }

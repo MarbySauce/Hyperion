@@ -87,7 +87,7 @@ const IRActionManager = {
 		final_energy: 0, // cm-1
 		step_size: 0, // cm-1
 		images_per_step: 1,
-		move_wavelenght_every_time: false,
+		move_wavelength_every_time: false,
 		acceptance_range: 0.75,
 	},
 
@@ -271,7 +271,7 @@ function IRActionManager_update_options(action_options) {
 }
 
 function IRActionManager_process_settings(settings) {
-	if (settings?.action) IRActionManager.params.move_wavelenght_every_time = settings.action.move_wavelenght_every_time;
+	if (settings?.action) IRActionManager.params.move_wavelength_every_time = settings.action.move_wavelength_every_time;
 	if (settings?.laser?.excitation) IRActionManager.params.acceptance_range = settings.laser.excitation.acceptance_range;
 }
 
@@ -307,11 +307,11 @@ function initialize_action_queue() {
 		for (let i = step_image_number; i < IRActionManager.params.images_per_step; i++) {
 			action_image = new ActionImage();
 			action_image.expected_excitation_energy.get_nir({ wavenumber: energy });
-			console.log(
-				`New queued image: (${
-					action_image.expected_excitation_energy.selected_mode_str
-				}) ${action_image.expected_excitation_energy.energy.wavenumber.toFixed(3)} cm-1`
-			);
+			//console.log(
+			//	`New queued image: (${
+			//		action_image.expected_excitation_energy.selected_mode_str
+			//	}) ${action_image.expected_excitation_energy.energy.wavenumber.toFixed(3)} cm-1`
+			//);
 			action_image.step_image_number = i;
 			IRActionManager.image_queue.push(action_image);
 		}
@@ -354,7 +354,7 @@ async function run_action_scan() {
 		last_image = IRActionManager.completed_images[IRActionManager.completed_images.length - 1];
 		last_energy = last_image?.excitation_energy.energy.wavenumber || 0;
 		desired_energy = current_image.expected_excitation_energy.energy.wavenumber;
-		if (IRActionManager.params.move_wavelenght_every_time) {
+		if (IRActionManager.params.move_wavelength_every_time) {
 			// If wavelength is within acceptance range of desired energy, don't move
 			move_wavelength = Math.abs(desired_energy - last_energy) > IRActionManager.params.acceptance_range;
 		} else {

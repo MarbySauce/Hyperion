@@ -270,11 +270,11 @@ function create_main_window() {
 	Menu.setApplicationMenu(menu);
 
 	win.loadFile("HTML/mainWindow2.html");
-	//win.webContents.openDevTools();
+	win.webContents.openDevTools();
 
 	win.webContents.on("render-process-gone", (event, details) => {
 		send_close_camera_msg();
-	})
+	});
 
 	return win;
 }
@@ -316,7 +316,6 @@ function create_invisible_window() {
 
 	return win;
 }
-
 
 //app.whenReady().then(function () {
 app.on("ready", function () {
@@ -594,11 +593,10 @@ ipcMain.on("hybrid-method", function (event, message) {
 	}
 });
 
-
 /********** RUNNING MELEXIR **********/
 
 function create_mlxr_window() {
-    win = new BrowserWindow({
+	win = new BrowserWindow({
 		show: false,
 		webPreferences: {
 			nodeIntegration: true,
@@ -611,13 +609,13 @@ function create_mlxr_window() {
 }
 
 ipcMain.on("process-mlxr", (event, data) => {
-    let win = create_mlxr_window();
-    win.on("ready-to-show", () => {
-        win.webContents.send("run_mlxr", data);
-        ipcMain.once("mlxr_results", (event, results) => {
-            if (main_window) main_window.webContents.send("mlxr-results", results);
-            win.close();
-            win = undefined;
-        })
-    });
+	let win = create_mlxr_window();
+	win.on("ready-to-show", () => {
+		win.webContents.send("run_mlxr", data);
+		ipcMain.once("mlxr_results", (event, results) => {
+			if (main_window) main_window.webContents.send("mlxr-results", results);
+			win.close();
+			win = undefined;
+		});
+	});
 });
