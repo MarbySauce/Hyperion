@@ -27,6 +27,7 @@
 .action-status-label {
 	width: 100%;
 	font-size: 1.5vw;
+	z-index: 1;
 }
 .action-status-hv {
 	width: 90%;
@@ -80,6 +81,9 @@
 	width: 80%;
 	text-align: center;
 	border-bottom: 1px solid white;
+}
+#IRActionProgressBarOuter {
+	display: none;
 }
 
 /* Fisrt Page - Image Display */

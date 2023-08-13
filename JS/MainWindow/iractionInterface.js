@@ -497,6 +497,7 @@ function IRAction_Scan_Status() {
 		if (!image_amount_info) {
 			// Clear display
 			current_image.innerText = "";
+			hide_iraction_progress_bar();
 			return;
 		}
 		// Stringify image progress
@@ -507,6 +508,9 @@ function IRAction_Scan_Status() {
 		current_image.innerText = image_string;
 		// Flash label as notification of change
 		flash_iraction_status_label("IRActionStatusCurrentImageLabel");
+		// Update progress bar
+		show_iraction_progress_bar();
+		update_iraction_progress_bar((100 * (image_amount_info.image_number - 1)) / image_amount_info.total_image_number);
 	}
 
 	/**
@@ -647,6 +651,28 @@ function IRAction_Scan_Status() {
 		else current_step.innerText = "";
 		// Flash label as notification of change
 		flash_iraction_status_label("IRActionStatusCurrentStepLabel");
+	}
+
+	function update_iraction_progress_bar(percent) {
+		const progress_bar = document.getElementById("IRActionProgressBar");
+		// Move progress bar
+		if (percent) {
+			if (percent > 100) percent = 100;
+			else if (percent < 0) percent = 0;
+			progress_bar.style.left = `-${100 - percent}%`;
+		} else {
+			progress_bar.style.left = "-100%";
+		}
+	}
+
+	function show_iraction_progress_bar() {
+		const progress_bar = document.getElementById("IRActionProgressBarOuter");
+		progress_bar.style.display = "grid";
+	}
+
+	function hide_iraction_progress_bar() {
+		const progress_bar = document.getElementById("IRActionProgressBarOuter");
+		progress_bar.style.display = "none";
 	}
 }
 
@@ -1071,6 +1097,11 @@ function IRAction_Second_Page() {
 	/****
 			HTML Event Listeners
 	****/
+
+	document.getElementById("IRActionAutoCheck").oninput = function () {
+		let is_checked = document.getElementById("IRActionAutoCheck").checked;
+		ActionModeAnalyzer.auto_check = is_checked;
+	};
 
 	document.getElementById("IRActionSaveCounterDown").onclick = function () {
 		AMAnalyzer.decrease_save_id();

@@ -481,7 +481,7 @@ class ActionSpectrumCalculator {
 				}
 				sum_off = this.sum(row.spectrum_display.intensity_off, Ri, Rf);
 				sum_on = this.sum(row.spectrum_display.intensity_on, Ri, Rf);
-				dividend = this.intensity_off[i] || 1; // Default to 1 if value is not defined
+				dividend = this.intensity_off[i] || row.electrons.off || 1; // Default to 1 if value is not defined
 				peak_growth.values.push((sum_on - sum_off) / dividend);
 			}
 			this.growth.push(peak_growth);
@@ -865,6 +865,13 @@ const action_chart_options = {
 /***************************************************/
 
 class ActionModeAnalyzer {
+	static get auto_check() {
+		return ActionModeAnalyzer._auto_check || false;
+	}
+	static set auto_check(bool) {
+		ActionModeAnalyzer._auto_check = bool === true;
+	}
+
 	constructor(pes_chart_ctx, action_chart_ctx) {
 		this.pes_chart_ctx = pes_chart_ctx;
 		this.action_chart_ctx = action_chart_ctx;
@@ -883,8 +890,6 @@ class ActionModeAnalyzer {
 
 		this.show_depletion = false;
 		this.show_growth = false;
-
-		this.auto_check = false;
 
 		this.show_lines = true;
 
@@ -911,7 +916,7 @@ class ActionModeAnalyzer {
 			}
 			if (is_not_in_list) {
 				// Create new row and add to list
-				let row = new ActionSpectraRow(image, this.auto_check);
+				let row = new ActionSpectraRow(image, ActionModeAnalyzer.auto_check);
 				row.set_up_callback((spectrum_display) => {
 					this.displayed_spectrum = spectrum_display;
 					this.#update_pes_plot();
@@ -929,12 +934,12 @@ class ActionModeAnalyzer {
 
 		// Have images taken during IR Action scan be used for action spectrum automatically
 		this.IRAMMessenger.listen.event.scan.start.on(() => {
-			this.auto_check = true;
+			ActionModeAnalyzer.auto_check = true;
 		});
 		this.IRAMMessenger.listen.event.scan.stop_or_cancel.on(() => {
 			// 5s delay to give MLXR time to process
 			setTimeout(() => {
-				this.auto_check = false;
+				ActionModeAnalyzer.auto_check = false;
 			}, 5000);
 		});
 	}

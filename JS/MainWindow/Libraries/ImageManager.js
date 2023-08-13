@@ -922,6 +922,13 @@ class IMMessengerInformation {
 				return { on: ImageManager.autosave.on, delay: ImageManager.autosave.delay };
 			},
 		};
+
+		this._image_series = {
+			/** Number of images remaining in image series */
+			get remaining() {
+				return ImageManager.series.progress;
+			},
+		};
 	}
 
 	/** Status of Image Manager */
@@ -991,12 +998,12 @@ class IMMessengerRequest {
 			 * @param {Boolean} return_promise whether to return promise (useful if waiting for scan to finish)
 			 * @returns {void | Promise} resolves when image is stopped, rejects when image is canceled
 			 */
-			start: (return_promise) => {
+			start: (return_promise, dont_reject = false) => {
 				ImageManager.start_scan(false);
 				if (return_promise) {
 					let promise = new Promise((resolve, reject) => {
 						IMAlerts.event.scan.stop.add_once(resolve);
-						IMAlerts.event.scan.cancel.add_once(reject);
+						if (!dont_reject) IMAlerts.event.scan.cancel.add_once(reject);
 					});
 					return promise;
 				}
@@ -1006,12 +1013,12 @@ class IMMessengerRequest {
 			 * @param {Boolean} return_promise whether to return promise (useful if waiting for scan to finish)
 			 * @returns {void | Promise} resolves when image is stopped, rejects when image is canceled
 			 */
-			start_ir: (return_promise) => {
+			start_ir: (return_promise, dont_reject = false) => {
 				ImageManager.start_scan(true);
 				if (return_promise) {
 					let promise = new Promise((resolve, reject) => {
 						IMAlerts.event.scan.stop.add_once(resolve);
-						IMAlerts.event.scan.cancel.add_once(reject);
+						if (!dont_reject) IMAlerts.event.scan.cancel.add_once(reject);
 					});
 					return promise;
 				}

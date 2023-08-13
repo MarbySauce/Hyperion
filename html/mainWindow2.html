@@ -483,6 +483,9 @@
 					<div class="grid action-status-row justify-align-center" id="IRActionStatusCurrentImage">
 						<label class="white-text action-status-label status-label left-align" id="IRActionStatusCurrentImageLabel">Current Image:</label>
 						<label class="white-text action-status-label center-align" id="IRActionStatusCurrentImageValues"></label>
+						<div class="progress-bar-outer" id="IRActionProgressBarOuter">
+							<div class="white-text progress-bar" id="IRActionProgressBar"></div>
+						</div>
 					</div>
 					<div class="grid action-status-row justify-align-center" id="IRActionStatusCurrentEnergy">
 						<label class="white-text action-status-label status-label left-align" id="IRActionStatusCurrentEnergyLabel">Current Energy:</label>
@@ -612,6 +615,7 @@
 					</div>
 					<div class="grid background-lighter-blue" id="IRActionSpectrumSelection"></div>
 					<div class="grid background-lighter-blue justify-align-center" id="IRActionSpectrumSelectionFooter">
+						<input type="checkbox" id="IRActionAutoCheck" />
 						<label class="white-text">Save ID:</label>
 						<button class="image-id-button" id="IRActionSaveCounterDown">-</button>
 						<input class="input-read" type="number" value="1" id="IRActionSaveCounter" readonly />
