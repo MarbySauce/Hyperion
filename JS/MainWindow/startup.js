@@ -91,6 +91,7 @@ function process_settings() {
 
 /* Useful functions that don't fit into UI */
 
+// !!! This doesn't work correctly yet!
 async function rough_action_scan(starting_energy, final_energy) {
 	const { Image } = require("../JS/MainWindow/Libraries/ImageClasses.js");
 	const { ExcitationWavelength } = require("../JS/MainWindow/Libraries/WavelengthClasses.js");

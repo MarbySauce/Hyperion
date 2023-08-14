@@ -638,6 +638,10 @@ class ActionSpectrumCalculator {
 					if (label[0] === "D" || label[0] === "G") return `R${label.slice(1)}`;
 					else return label;
 				},
+				afterTitle: ([context]) => {
+					let data_index = context.dataIndex;
+					return `E: ${this.energies[data_index].toFixed(3)}cm-1`;
+				},
 				label: (context) => {
 					let dataset_index = context.datasetIndex;
 					let data_index = context.dataIndex;

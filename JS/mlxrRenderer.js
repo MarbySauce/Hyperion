@@ -62,10 +62,10 @@ function fake_process_image(data) {
 		return Math.random() * Math.sqrt(electrons);
 	}
 	function gs_spectrum(i) {
-		return gauss(i + 0.5, 100, 3, 2) + gauss(i + 0.5, 200, 3, 5) + gauss(i + 0.5, 300, 3, 7) + gauss(i + 0.5, 400, 3, 10);
+		return gauss(i + 0.5, 100, 3, 0.2) + gauss(i + 0.5, 200, 3, 0.5) + gauss(i + 0.5, 300, 3, 0.7) + gauss(i + 0.5, 400, 3, 1.0);
 	}
 	function es_spectrum(i) {
-		return gauss(i + 0.5, 50, 3, 1) + gauss(i + 0.5, 150, 3, 2) + gauss(i + 0.5, 250, 3, 3.5) + gauss(i + 0.5, 350, 3, 5);
+		return gauss(i + 0.5, 50, 3, 0.1) + gauss(i + 0.5, 150, 3, 0.2) + gauss(i + 0.5, 250, 3, 0.35) + gauss(i + 0.5, 350, 3, 0.5);
 	}
 	function ir_off_spectrum(i, electrons) {
 		return electrons * gs_spectrum(i) + noise(electrons, i);
@@ -75,12 +75,12 @@ function fake_process_image(data) {
 	}
 	function ir_on_spectrum(i, electrons, wn, center_wn) {
 		let excited = 0.5;
-		if (center_wn) excited = gauss(wn, center_wn, 1.2, 0.5);
+		if (center_wn) excited = gauss(wn, center_wn, 1.2, 0.25);
 		return electrons * ((1 - excited) * gs_spectrum(i) + excited * es_spectrum(i)) + noise(electrons, i);
 	}
 	function ir_on_anisotropy(i, electrons, beta_gs, beta_es, wn, center_wn) {
 		let excited = 0.5;
-		if (center_wn) excited = gauss(wn, center_wn, 1.2, 0.5);
+		if (center_wn) excited = gauss(wn, center_wn, 1.2, 0.25);
 		return electrons * ((1 - excited) * beta_gs * gs_spectrum(i) + excited * beta_es * es_spectrum(i)) + noise(electrons, i);
 	}
 

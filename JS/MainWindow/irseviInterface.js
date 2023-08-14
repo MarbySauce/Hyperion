@@ -880,6 +880,7 @@ function IRSevi_PESpectrum_Display() {
 				borderColor: "rgb(54, 162, 235)",
 				borderWidth: 1,
 				backgroundColor: "rgba(54, 162, 235, 0.3)",
+				threshold: 0.5,
 			},
 		},
 	};
