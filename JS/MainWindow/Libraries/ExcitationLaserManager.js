@@ -215,6 +215,7 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 		// Tell OPO to move and wait for it to complete
 		ExcitationLaserManager.goto.step = GoToStep.MOVING;
 		OPOMMessenger.request.goto(desired_nir);
+		console.log("GOTO, desired wavelength: %.3f, offset: %.3f, calculated: %.3f", desired_nir, OPOMMessenger.information.offset, desired_wavelength.nIR.wavelength);
 		while (OPOMMessenger.information.status.moving) {
 			// While waiting for OPO to stop moving, check if GoTo was paused or canceled again
 			while (ExcitationLaserManager.goto.status === GoToState.PAUSED) {

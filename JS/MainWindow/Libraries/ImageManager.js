@@ -160,7 +160,7 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, (event, centroid_results) => {
 	//	//	(so image display is updated less frequently as scan progresses)
 	//	IMAlerts.info_update.accumulated_image.alert();
 	//}
-	if (ImageManager.current_image.counts.frames.total % 10 === 0) {
+	if ((ImageManager.current_image.counts.frames.total + 2) % 10 === 0) {
 		// Only update if # of frames is a multiple of 10
 		IMAlerts.info_update.accumulated_image.alert();
 	}
@@ -454,6 +454,8 @@ function ImageManager_start_scan(is_ir) {
 	// Delete the accumulated image in last_image to save memory
 	ImageManager.last_image.delete_image();
 	ImageManager.status = IMState.RUNNING;
+	// Reset autosave counter
+	ImageManager.autosave.counter = 0;
 	// Alert that a new image has been started
 	IMAlerts.event.scan.start.alert();
 	IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);

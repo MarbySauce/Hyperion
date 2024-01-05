@@ -78,9 +78,9 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, function (event, centroid_results) {
 	LiveViewContext.putImageData(LVData, -xOffset, -yOffset);
 
 	// Add counts to chart
-	//eChartData.updateData(centroid_results);
-	//eChartData.updateChart(eChart);
-	newChart.update(centroid_results);
+	eChartData.updateData(centroid_results);
+	eChartData.updateChart(eChart);
+	//newChart.update(centroid_results);
 
 	// Update average counters
 	averageCount.update(centroid_results);

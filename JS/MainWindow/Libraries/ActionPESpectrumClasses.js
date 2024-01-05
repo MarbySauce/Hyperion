@@ -423,6 +423,7 @@ class ActionSpectrumCalculator {
 
 	get_energies() {
 		this.energies = [];
+		this.image_ids = [];
 		for (let row of this.all_spectra) {
 			if (!row.checkbox.checked) {
 				// Ignore this spectrum
@@ -625,7 +626,8 @@ class ActionSpectrumCalculator {
 			callbacks: {
 				beforeTitle: ([context]) => {
 					let label = context.dataset.label;
-					let id_str = this.all_spectra[context.dataIndex]?.id_str;
+					//let id_str = this.all_spectra[context.dataIndex]?.id_str;
+					let id_str = this.image_ids[context.dataIndex];
 					let new_label;
 					if (label[0] === "D") new_label = "Depletion ";
 					else if (label[0] === "G") new_label = "Growth ";

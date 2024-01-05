@@ -31,8 +31,16 @@ function process_image(data) {
 
 		// If images are blank Melexir may crash -> don't process blank images
 		let results_off, results_on;
-		if (sum_off > 0) results_off = melexir.process(data.images.ir_off);
-		if (sum_on > 0) results_on = melexir.process(data.images.ir_on);
+		if (sum_off > 0) {
+			results_off = melexir.process(data.images.ir_off);
+		} else {
+			results_off = {"radii": [], "spectrum": [], "residuals": [], "best_fit": []};
+		}
+		if (sum_on > 0) {
+			results_on = melexir.process(data.images.ir_on);
+		} else {
+			results_on = {"radii": [], "spectrum": [], "residuals": [], "best_fit": []};
+		}
 		return { is_ir: true, results_off, results_on };
 	} else {
 		// Get sum of all pixels in image

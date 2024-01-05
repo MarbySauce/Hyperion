@@ -439,15 +439,15 @@ class ExcitationWavelength {
 			// Near IR
 			this.nIR.wavenumber = given_energy.wavenumber;
 			this.selected_mode = this.MODE.NIR;
-		} else if (4500 < given_energy.wavenumber && given_energy.wavenumber < 7400) {
+		} else if (4650 < given_energy.wavenumber && given_energy.wavenumber < 7400) {
 			// Intermediate IR
 			this.iIR.wavenumber = given_energy.wavenumber;
 			this.selected_mode = this.MODE.IIR;
-		} else if (2000 < given_energy.wavenumber && given_energy.wavenumber < 4500) {
+		} else if (2000 < given_energy.wavenumber && given_energy.wavenumber <= 4650) {
 			// Mid IR
 			this.mIR.wavenumber = given_energy.wavenumber;
 			this.selected_mode = this.MODE.MIR;
-		} else if (625 < given_energy.wavenumber && given_energy.wavenumber < 2000) {
+		} else if (625 < given_energy.wavenumber && given_energy.wavenumber <= 2000) {
 			// Far IR
 			this.fIR.wavenumber = given_energy.wavenumber;
 			this.selected_mode = this.MODE.FIR;
