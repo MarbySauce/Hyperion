@@ -90,6 +90,9 @@ class Image {
 
 		this.pe_spectrum = new PESpectrum();
 
+		this.canceled = false; // Whether the Image was canceled after being started
+		// If `canceled` is true, information about this image will not be saved to scan_information.json
+
 		this.reset_image();
 	}
 

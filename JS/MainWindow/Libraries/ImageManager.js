@@ -227,55 +227,66 @@ function ImageManager_autosave_update_info(autosave_params) {
 
 function ImageManager_autostop_check() {
 	// First and second check will be IR Off and On if image is IRSEVI image and both = true
-	let first_value = 0;
+	let first_value = 0; // Values that are actually held by the scan (e.g. number of electrons currently in accumulated image)
 	let second_value = 0;
-	let first_match_value, second_match_value;
+	let stopping_value; // Value to meet required to stop the scan
 	let counts = ImageManager.current_image.counts;
 	let progress = 0;
 	let to_stop = false;
+	// First check which criterion should be used to determine whether to stop the scan
 	switch (ImageManager.autostop.method) {
 		case AutostopMethod.ELECTRONS:
-			first_match_value = ImageManager.autostop.value.electrons * AutostopMethod.ELECTRONS.multiplier; // Convert to 1e5 electrons
-			second_match_value = first_match_value;
+			stopping_value = ImageManager.autostop.value.electrons * AutostopMethod.ELECTRONS.multiplier; // Convert to 1e5 electrons
 			first_value = counts.electrons.off;
 			second_value = counts.electrons.on;
 			break;
 		case AutostopMethod.FRAMES:
-			first_match_value = ImageManager.autostop.value.frames * AutostopMethod.FRAMES.multiplier; // Convert to 1k frames
-			second_match_value = first_match_value;
+			stopping_value = ImageManager.autostop.value.frames * AutostopMethod.FRAMES.multiplier; // Convert to 1k frames
 			first_value = counts.frames.off;
 			second_value = counts.frames.on;
 			break;
 		case AutostopMethod.NONE:
-			first_match_value = Infinity; // Make it impossible to match
-			second_match_value = first_match_value;
+			stopping_value = Infinity; // Make it impossible to match
 			break;
 	}
-	// If the current image is SEVI, need to check image totals
-	// If the current image is IR-SEVI, need to check each image individually
+	// Next, check whether the criteria for stopping the scan have been met
+	// If the current scan is a SEVI image, need to check the combined values of each image (IR Off and IR On)
+	// If the current scan is an IR-SEVI image, need to check each image individually
 	if (ImageManager.current_image.is_ir) {
-		if (!ImageManager.autostop.both) {
-			// While image is IR-SEVI, user only wants to stop if one image meets autostop conditions
-			first_value = Math.max(first_value, second_value);
-			// Don't check second value (second_value = second_match_value is all that matters for next steps)
-			second_value = 1e10;
-			second_match_value = 1e10;
+		// IR-SEVI scan, check images individually
+		if (ImageManager.autostop.both) {
+			// Both images need to meet stopping criteria
+			if (first_value >= stopping_value && second_value >= stopping_value) {
+				// Both images meet stopping criteria, stop scan and set progress to 100%
+				progress = 100;
+				to_stop = true;
+			} else {
+				// At least one image has not met criteria, update progress as that image's proximity to completion
+				progress = 100 * Math.min(first_value / stopping_value, second_value / stopping_value);
+			}
+		} else {
+			// Only one image needs to meet criteria to stop
+			if (first_value >= stopping_value || second_value >= stopping_value) {
+				// At least one image meets stopping criteria, stop scan and set progress to 100%
+				progress = 100;
+				to_stop = true;
+			} else {
+				// Update progress to whichever image is closer to completion
+				progress = 100 * Math.max(first_value / stopping_value, second_value / stopping_value);
+			}
 		}
-		// User wants to check both images, no need to do anything
 	} else {
-		// Image is SEVI, need to check totals
-		first_value += second_value;
-		// Don't check second value (second_value = second_match_value is all that matters for next steps)
-		second_value = 1e10;
-		second_match_value = 1e10;
+		// SEVI scan, check combined total
+		if (first_value + second_value >= stopping_value) {
+			// Image meets stopping criteria, stop scan and set progress to 100%
+			progress = 100;
+			to_stop = true;
+		} else {
+			progress = (100 * (first_value + second_value)) / stopping_value;
+		}
 	}
-	// Update progress to whatever image is further away from completion
-	progress = 100 * Math.min(first_value / first_match_value, second_value / second_match_value);
-	// Check if conditions were met
-	if (first_value >= first_match_value && second_value >= second_match_value) {
-		progress = 100;
-		// Stop image
-		to_stop = true;
+	// Stop scan if criteria have been met
+	if (to_stop) {
 		ImageManager.stop_scan();
 	}
 	// Update ImageManager
@@ -521,9 +532,10 @@ function ImageManager_resume_scan(resume_last) {
 			break;
 		case IMState.STOPPED: // (2) or (3)
 			if (ImageManager.last_image.is_empty) break; // (3) Do nothing
-			// else (2)
+			// else (3)
 			if (resume_last) {
 				ImageManager.current_image = ImageManager.last_image;
+				ImageManager.current_image.canceled = false; // Update `canceled` value to reflect image was resumed
 				ImageManager.last_image = EmptyImage;
 				ImageManager.status = IMState.RUNNING;
 				IMAlerts.event.scan.resume.alert();
@@ -543,6 +555,8 @@ function ImageManager_cancel_scan() {
 	}
 	// Stop scan
 	ImageManager.status = IMState.STOPPED;
+	// Set `canceled` value of current image to true
+	ImageManager.current_image.canceled = true;
 	// Move current image to last image, and empty current image
 	// But first, delete the accumulated image in last_image to save memory
 	ImageManager.last_image.delete_image();
@@ -692,6 +706,10 @@ function ImageManager_save_scan_information() {
 	let all_scan_info = [];
 	let image_scan_info;
 	for (let image of ImageManager.all_images) {
+		// If image was canceled, do not save information to scan_information.json
+		if (image.canceled) {
+			continue;
+		}
 		image_scan_info = image.scan_information;
 		// Fill in all VMI calibration constants
 		image_scan_info.vmi.all_constants = ImageManager.info.vmi;
