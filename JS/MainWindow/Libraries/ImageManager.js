@@ -228,7 +228,7 @@ function ImageManager_autosave_update_info(autosave_params) {
 function ImageManager_autostop_check() {
 	// First and second check will be IR Off and On if image is IRSEVI image and both = true
 	let first_value = 0; // Values that are actually held by the scan (e.g. number of electrons currently in accumulated image)
-	let second_value = 0;
+	let second_value = 0; // first_value is IR Off, second_value is IR On
 	let stopping_value; // Value to meet required to stop the scan
 	let counts = ImageManager.current_image.counts;
 	let progress = 0;
@@ -301,6 +301,7 @@ function ImageManager_autostop_update_info(autostop_params) {
 	// If only updating the method, autostop_params.value should be undefined
 	// If only updating the value, autostop_params.method should be undefined
 	// If updating both, neither .value or .method should be undefined
+	// If the value was deleted by the user, .value will be "" rather than undefined
 	if (autostop_params?.method && autostop_params?.value) {
 		// Update both
 		ImageManager.autostop.method = autostop_params.method;
@@ -318,6 +319,13 @@ function ImageManager_autostop_update_info(autostop_params) {
 			ImageManager.autostop.value.electrons = autostop_params.value;
 		} else if (ImageManager.autostop.method === AutostopMethod.FRAMES) {
 			ImageManager.autostop.value.frames = autostop_params.value;
+		}
+	} else if (autostop_params?.value === "") {
+		// Value was deleted by user, update to Infinity to signify autostopping has been disabled
+		if (ImageManager.autostop.method === AutostopMethod.ELECTRONS) {
+			ImageManager.autostop.value.electrons = Infinity;
+		} else if (ImageManager.autostop.method === AutostopMethod.FRAMES) {
+			ImageManager.autostop.value.frames = Infinity;
 		}
 	}
 	// Update status of whether autostop is being used (method != none and value != infinity)
