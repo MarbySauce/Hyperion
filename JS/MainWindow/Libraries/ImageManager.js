@@ -758,6 +758,7 @@ function ImageManager_read_scan_information() {
 			for (let scan_info of json_data) {
 				image_class = ScanInfo.get_image_class(scan_info);
 				ImageManager.all_images.push(image_class);
+				IMAlerts.info_update.recent_scans.alert(image_class);
 			}
 			ImageManager.update_information(image_class);
 		}
@@ -858,6 +859,7 @@ const IMAlerts = {
 			remaining: new ManagerAlert(),
 		},
 		accumulated_image: new ManagerAlert(),
+		recent_scans: new ManagerAlert(),
 	},
 };
 
@@ -1593,13 +1595,24 @@ class IMMessengerCallbackInfoUpdate {
 		};
 
 		this._accumulated_image = {
-			/** Callback called without arguments */
+			/** Callback called with argument `image {Image | IRImage}` */
 			on: (callback) => {
 				IMAlerts.info_update.accumulated_image.add_on(callback);
 			},
 			/** Callback called with argument `image {Image | IRImage}` */
 			once: (callback) => {
 				IMAlerts.info_update.accumulated_image.add_once(callback);
+			},
+		};
+
+		this._recent_scans = {
+			/** Callback called with argument `scan_info` {ScanInfo} */
+			on: (callback) => {
+				IMAlerts.info_update.recent_scans.add_on(callback);
+			},
+			/** Callback called with argument `scan_info` {ScanInfo} */
+			once: (callback) => {
+				IMAlerts.info_update.recent_scans.add_once(callback);
 			},
 		};
 	}
@@ -1627,6 +1640,11 @@ class IMMessengerCallbackInfoUpdate {
 	/** Get updates about when the accumulated image is updated (so Image Manager is in charge of when to update) */
 	get accumulated_image() {
 		return this._accumulated_image;
+	}
+
+	/** Get updates about recent scan information that was read from scan_information.json */
+	get recent_scans() {
+		return this._recent_scans;
 	}
 }
 

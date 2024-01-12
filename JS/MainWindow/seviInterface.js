@@ -928,6 +928,14 @@ function Sevi_Recent_Scans() {
 		row.add_to_div(document.getElementById("SeviRecentScansSection"));
 	});
 
+	// Update recent scans section if images were read from scan_information.json
+	// (i.e. images were taken today but the program was restarted)
+	IMMessenger.listen.info_update.recent_scans.on((image) => {
+		let row = new RecentScansRow(image);
+		AllRecentScans.push(row);
+		row.add_to_div(document.getElementById("SeviRecentScansSection"));
+	});
+
 	/****
 			Functions
 	****/
