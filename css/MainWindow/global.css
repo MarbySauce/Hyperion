@@ -189,7 +189,7 @@ label {
 	-webkit-appearance: none;
 	background: hsla(225, 20%, 25%, 1);
 	height: 40%;
-	width: 80%;
+	width: 95%;
 	border-radius: 5px;
 	margin-top: 2px;
 }
@@ -203,6 +203,15 @@ label {
 	border: 1px solid black;
 }
 /* Slider hover affects are controlled in mainFunctions.js */
+
+.display-slider-checkbox {
+	justify-self: center;
+	height: 50%;
+	width: 55%;
+	border-radius: 5px;
+	background: hsla(225, 20%, 65%, 1);
+	border: 1px solid black;
+}
 
 .HoverText {
 	padding: 2px;

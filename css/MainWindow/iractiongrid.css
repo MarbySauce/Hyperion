@@ -267,7 +267,7 @@
 	grid-template-areas:
 		"Title IRImageDisplay"
 		"Display Display"
-		"Slider Slider";
+		"SliderDiv SliderDiv";
 }
 #IRActionImageDisplaySelect {
 	grid-area: IRImageDisplay;
@@ -278,8 +278,16 @@
 #IRActionDisplayWrapper {
 	grid-area: Display;
 }
+#IRActionDisplaySliderDiv {
+	grid-area: SliderDiv;
+	grid-template-columns: 1fr 14fr 1fr;
+	grid-template-areas: "blank Slider Checkbox";
+}
 #IRActionDisplaySlider {
 	grid-area: Slider;
+}
+#IRActionDisplayCheckbox {
+	grid-area: Checkbox;
 }
 
 /* IR Action Mode - First Page - Electron Counters */

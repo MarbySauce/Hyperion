@@ -237,7 +237,7 @@
 	grid-template-areas:
 		"Title IRImageDisplay"
 		"Display Display"
-		"Slider Slider";
+		"SliderDiv SliderDiv";
 }
 #IRSeviImageDisplaySelect {
 	grid-area: IRImageDisplay;
@@ -248,8 +248,16 @@
 #IRSeviDisplayWrapper {
 	grid-area: Display;
 }
+#IRSeviDisplaySliderDiv {
+	grid-area: SliderDiv;
+	grid-template-columns: 1fr 14fr 1fr;
+	grid-template-areas: "blank Slider Checkbox";
+}
 #IRSeviDisplaySlider {
 	grid-area: Slider;
+}
+#IRSeviDisplayCheckbox {
+	grid-area: Checkbox;
 }
 
 /* IR-Sevi Mode - Right Side - Electron Counters */

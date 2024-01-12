@@ -57,6 +57,7 @@ const ImageManager = {
 	status: IMState.STOPPED,
 	params: {
 		image_contrast: 0.5,
+		decreased_image_contrast: false,
 		centroid: {
 			use_hybrid_method: true,
 			bin_size: 100,
@@ -124,6 +125,9 @@ const ImageManager = {
 	increase_id: () => ImageManager_increase_id(),
 	decrease_id: () => ImageManager_decrease_id(),
 	set_id: (id) => ImageManager_set_id(id),
+
+	enable_decreased_contrast: () => ImageManager_enable_decreased_contrast(),
+	disable_decreased_contrast: () => ImageManager_disable_decreased_contrast(),
 
 	update_vmi: (vmi_info) => ImageManager_update_vmi(vmi_info),
 
@@ -592,6 +596,9 @@ function ImageManager_get_image_display(which_image) {
 	if (ImageManager.current_image.is_empty) image_obj = ImageManager.last_image;
 	else image_obj = ImageManager.current_image;
 	let contrast = ImageManager.params.image_contrast;
+	if (ImageManager.params.decreased_image_contrast) {
+		contrast /= 10;
+	}
 	return image_obj.get_image_display(which_image, contrast);
 }
 
@@ -617,6 +624,16 @@ function ImageManager_set_id(id) {
 	IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);
 	IMAlerts.info_update.image.file_name.alert(ImageManager.current_image.file_name);
 	IMAlerts.info_update.image.file_name_ir.alert(ImageManager.current_image.file_name_ir);
+}
+
+function ImageManager_enable_decreased_contrast() {
+	ImageManager.params.decreased_image_contrast = true;
+	IMAlerts.info_update.decreased_contrast.alert(true);
+}
+
+function ImageManager_disable_decreased_contrast() {
+	ImageManager.params.decreased_image_contrast = false;
+	IMAlerts.info_update.decreased_contrast.alert(false);
 }
 
 function ImageManager_update_vmi(vmi_info) {
@@ -847,6 +864,7 @@ const IMAlerts = {
 			vmi_info: new ManagerAlert(),
 		},
 		contrast: new ManagerAlert(),
+		decreased_contrast: new ManagerAlert(),
 		autosave: {
 			params: new ManagerAlert(),
 		},
@@ -1129,11 +1147,27 @@ class IMMessengerUpdate {
 				ImageManager.set_id(id);
 			},
 		};
+
+		this._decreased_contrast = {
+			/** Enable decreased contrast */
+			enable: () => {
+				ImageManager.enable_decreased_contrast();
+			},
+			/** Disable decreased contrast */
+			disable: () => {
+				ImageManager.disable_decreased_contrast();
+			},
+		};
 	}
 
 	/** Update information related to image ID */
 	get id() {
 		return this._id;
+	}
+
+	/** Update whether to decrease image contrast by factor of 10 */
+	get decreased_contrast() {
+		return this._decreased_contrast;
 	}
 
 	/**
@@ -1517,6 +1551,17 @@ class IMMessengerCallbackInfoUpdate {
 			},
 		};
 
+		this._decreased_contrast = {
+			/** Callback called with argument `decreased_contrast {Boolean}` - whether decreased contrast is enabled */
+			on: (callback) => {
+				IMAlerts.info_update.decreased_contrast.add_on(callback);
+			},
+			/** Callback called with argument `decreased_contrast {Boolean}` - whether decreased contrast is enabled */
+			once: (callback) => {
+				IMAlerts.info_update.decreased_contrast.add_once(callback);
+			},
+		};
+
 		this._autosave = {
 			_params: {
 				/** Callback called with argument `autosave_params {Object: { on: {Boolean}, delay: {Number} }}` */
@@ -1623,6 +1668,10 @@ class IMMessengerCallbackInfoUpdate {
 
 	get image_contrast() {
 		return this._image_contrast;
+	}
+
+	get decreased_contrast() {
+		return this._decreased_contrast;
 	}
 
 	get autosave() {

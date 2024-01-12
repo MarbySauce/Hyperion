@@ -379,6 +379,15 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 		update_sevi_accumulated_image_display();
 	};
 
+	document.getElementById("SeviDisplayCheckbox").onclick = function () {
+		const checkbox = document.getElementById("SeviDisplayCheckbox");
+		if (checkbox.checked) {
+			IMMessenger.update.decreased_contrast.enable();
+		} else {
+			IMMessenger.update.decreased_contrast.disable();
+		}
+	};
+
 	/****
 			Image Manager Listeners
 	****/
@@ -398,6 +407,12 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 
 	// Update accumulated image display when scan is reset
 	IMMessenger.listen.event.scan.reset.on(update_sevi_accumulated_image_display);
+
+	// Update whether decreased contrast checkbox is enabled
+	IMMessenger.listen.info_update.decreased_contrast.on((checked) => {
+		const checkbox = document.getElementById("SeviDisplayCheckbox");
+		checkbox.checked = checked;
+	});
 
 	/****
 			Functions

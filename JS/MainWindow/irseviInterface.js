@@ -565,6 +565,15 @@ function IRSevi_Accumulated_Image_Display(PageInfo) {
 		update_irsevi_accumulated_image_display();
 	};
 
+	document.getElementById("IRSeviDisplayCheckbox").onclick = function () {
+		const checkbox = document.getElementById("IRSeviDisplayCheckbox");
+		if (checkbox.checked) {
+			IMMessenger.update.decreased_contrast.enable();
+		} else {
+			IMMessenger.update.decreased_contrast.disable();
+		}
+	};
+
 	/****
 			Image Manager Listeners
 	****/
@@ -584,6 +593,12 @@ function IRSevi_Accumulated_Image_Display(PageInfo) {
 
 	// Update accumulated image display when scan is reset
 	IMMessenger.listen.event.scan.reset.on(update_irsevi_accumulated_image_display);
+
+	// Update whether decreased contrast checkbox is enabled
+	IMMessenger.listen.info_update.decreased_contrast.on((checked) => {
+		const checkbox = document.getElementById("IRSeviDisplayCheckbox");
+		checkbox.checked = checked;
+	});
 
 	/****
 			Functions

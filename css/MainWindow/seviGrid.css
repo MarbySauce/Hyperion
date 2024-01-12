@@ -166,7 +166,7 @@
 	grid-template-areas:
 		"Title"
 		"Display"
-		"Slider";
+		"SliderDiv";
 }
 #SeviImageDisplay h3 {
 	grid-area: Title;
@@ -174,8 +174,16 @@
 #SeviDisplayWrapper {
 	grid-area: Display;
 }
+#SeviDisplaySliderDiv {
+	grid-area: SliderDiv;
+	grid-template-columns: 1fr 14fr 1fr;
+	grid-template-areas: "blank Slider Checkbox";
+}
 #SeviDisplaySlider {
 	grid-area: Slider;
+}
+#SeviDisplayCheckbox {
+	grid-area: Checkbox;
 }
 
 /* Sevi Mode - Right Side - Electron Counters */
