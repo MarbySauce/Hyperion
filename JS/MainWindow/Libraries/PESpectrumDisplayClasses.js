@@ -329,6 +329,12 @@ class IRPESpectrumDisplay extends PESpectrumDisplay {
 		let max_val = Math.max(...this.intensity_off_ebe) || 1;
 		this.intensity_off_ebe = this.intensity_off_ebe.map((el) => el / max_val);
 		this.anisotropy_off_ebe = this.anisotropy_off_ebe.map((el) => el / max_val);
+		// If there are far more electrons in the IR On image, normalize it separately
+		// (user is likely using OPO/A to detach)
+		let ir_max_val = Math.max(...this.intensity_on_ebe) || 1;
+		if (ir_max_val > 10 * max_val) {
+			max_val = ir_max_val;
+		}
 		this.intensity_on_ebe = this.intensity_on_ebe.map((el) => el / max_val);
 		this.anisotropy_on_ebe = this.anisotropy_on_ebe.map((el) => el / max_val);
 		// Calculate difference spectrum

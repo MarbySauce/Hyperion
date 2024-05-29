@@ -571,6 +571,6 @@ function ExcitationWavelength_convert_fir(instance, fir_energy) {
 DetachmentWavelength.YAG_wl = 1064;
 ExcitationWavelength.YAG_wl = 1064;
 // Set H2 Raman frequency
-DetachmentWavelength.H2_wn = 4055.201;
+DetachmentWavelength.H2_wn = 4155.281;
 
 module.exports = { WavelengthMode, DetachmentMode, DetachmentWavelength, ExcitationMode, ExcitationWavelength };

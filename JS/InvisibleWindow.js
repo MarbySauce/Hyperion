@@ -86,8 +86,9 @@ function startup() {
 	nRet = camera.createWinAPIWindow();
 	console.log("Create window:", nRet);
 
+	// NOTE TO MARTY: putting the left offset at 140 centers the phosphor screen on the accumulated image
 	// Set AoI (Change later to be done with settings file)
-	camera.setAoI(768, 768, 100, 0); // (AoI-Width, AoI-Height, left-offset, top-offset)
+	camera.setAoI(768, 768, 140, 0); // (AoI-Width, AoI-Height, left-offset, top-offset)
 
 	// Set IR LED areas
 	camera.setLEDArea(0, 100, 250, 450); // (x-start, x-end, y-start, y-end)
