@@ -109,14 +109,14 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 		float radius = Radii[radiusIndex];
 		
 		// Using the physics def. of spherical coords
-		float phi = 2 * pi * ((rand() % 1000) / 1000.0);		 // (0,2pi)
-		float costheta = 2.0 * ((rand() % 1000) / 1000.0) - 1.0; // (-1,1)
+		float phi = 2 * pi * ((rand() % RAND_MAX) / (1.0 * RAND_MAX)); 			// (0, 2pi)
+		float costheta = 2.0 * ((rand() % RAND_MAX) / (1.0 * RAND_MAX)) - 1.0; 	// (-1, 1)
 		float theta = acos(costheta);
 		float centerX = imageCenterX + radius * sin(theta) * cos(phi); // Converting to Cartesian coords
 		float centerY = imageCenterY + radius * cos(theta);
 		float widthX = (rand() % 50 + 100) / 10.0; // Randomly chooses widths btw 10.0 and 15.0 pixels (closer to real spot sizes)
 		float widthY = (rand() % 50 + 100) / 10.0;
-		float percentIntensity = (rand() % 60 + 0) / 100.0; // Choosing intensity btw 50% and 110%
+		float percentIntensity = (rand() % 60 + 50) / 100.0; // Choosing intensity btw 50% and 110%
 
 		// Add the spot to the image
 		for (int Y = centerY - 8; Y < centerY + 9; Y++)
@@ -584,8 +584,7 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 		}
 		// (Upper time limit to test if any frames are missed)
 		// Simulate image
-		unsigned int randint = 1000 * triggerDelay.time; // RNG seed
-		//triggerDelay.start(); // Restart trigger timer
+		unsigned int randint = ((unsigned long long)triggerDelay.time) % UINT_MAX; // RNG seed
 		simulateImage(simulatedImage, randint);
 		// Get image pitch
 		int pPitch = camera.width;
@@ -594,12 +593,7 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 		// Return calculated centers
 		sendCentroids();
 		simulationCount++;
-	} //else if (triggerDelay.time >= 55 /* ms */) {
-		// Act as if laser still fired (i.e. missed event)
-		//isIROn = !isIROn;
-		// Reset the timer
-	//	triggerDelay.start();
-	//}
+	}
 }
 
 // Pretend to close the camera
