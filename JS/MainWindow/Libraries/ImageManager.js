@@ -158,12 +158,10 @@ ipc.on(IPCMessages.UPDATE.NEWFRAME, (event, centroid_results) => {
 	ImageManager.current_image.update_image(centroid_results);
 	// Send updates about electron count information
 	IMAlerts.info_update.image.counts.alert(ImageManager.current_image.counts);
+
 	// (Potentially) send updates about accumulated image
-	//if (Number.isInteger(Math.sqrt(ImageManager.current_image.counts.frames.total))) {
-	//	// Only update if # of frames is a square number
-	//	//	(so image display is updated less frequently as scan progresses)
-	//	IMAlerts.info_update.accumulated_image.alert();
-	//}
+	// TODO: Change this so that the interval is a setting that can be altered while
+	//	the program is open
 	if ((ImageManager.current_image.counts.frames.total + 2) % 10 === 0) {
 		// Only update if # of frames is a multiple of 10
 		IMAlerts.info_update.accumulated_image.alert();

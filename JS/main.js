@@ -269,7 +269,7 @@ function create_main_window() {
 	]);
 	Menu.setApplicationMenu(menu);
 
-	win.loadFile("HTML/mainWindow2.html");
+	win.loadFile("HTML/mainWindow.html");
 	win.webContents.openDevTools();
 
 	win.webContents.on("render-process-gone", (event, details) => {
