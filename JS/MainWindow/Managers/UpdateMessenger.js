@@ -1,4 +1,4 @@
-const { sleep } = require("./Sleep");
+const { sleep } = require("../../Libraries/Sleep");
 
 const Messenger = {
 	messages: [],

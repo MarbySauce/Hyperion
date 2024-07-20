@@ -4,10 +4,10 @@
 
 **************************************************/
 
-const { ManagerAlert } = require("./ManagerAlert.js");
-const { sleep } = require("./Sleep.js");
-const { ExcitationWavelength, ExcitationMode } = require("./WavelengthClasses.js");
-const { WavemeterMeasurement } = require("./WavemeterClasses.js");
+const { ManagerAlert } = require("../../Libraries/ManagerAlert.js");
+const { sleep } = require("../../Libraries/Sleep.js");
+const { ExcitationWavelength, ExcitationMode } = require("../Libraries/WavelengthClasses.js");
+const { WavemeterMeasurement } = require("../Libraries/WavemeterClasses.js");
 const { ExcitationWavemeterManagerMessenger } = require("./WavemeterManager.js");
 const { OPOManagerMessenger } = require("./OPOManager.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");
@@ -215,7 +215,12 @@ async function ExcitationLaserManager_goto_ir(desired_energy) {
 		// Tell OPO to move and wait for it to complete
 		ExcitationLaserManager.goto.step = GoToStep.MOVING;
 		OPOMMessenger.request.goto(desired_nir);
-		console.log("GOTO, desired wavelength: %.3f, offset: %.3f, calculated: %.3f", desired_nir, OPOMMessenger.information.offset, desired_wavelength.nIR.wavelength);
+		console.log(
+			"GOTO, desired wavelength: %.3f, offset: %.3f, calculated: %.3f",
+			desired_nir,
+			OPOMMessenger.information.offset,
+			desired_wavelength.nIR.wavelength
+		);
 		while (OPOMMessenger.information.status.moving) {
 			// While waiting for OPO to stop moving, check if GoTo was paused or canceled again
 			while (ExcitationLaserManager.goto.status === GoToState.PAUSED) {

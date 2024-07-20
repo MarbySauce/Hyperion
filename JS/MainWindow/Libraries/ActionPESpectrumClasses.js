@@ -1,9 +1,9 @@
 const { Chart, registerables } = require("chart.js");
 const { zoomPlugin } = require("chartjs-plugin-zoom");
 const { Image } = require("./ImageClasses.js");
-const { ImageManagerMessenger } = require("./ImageManager.js");
-const { IRActionManagerMessenger } = require("./IRActionManager.js");
-const { UpdateMessenger } = require("./UpdateMessenger.js");
+const { ImageManagerMessenger } = require("../Managers/ImageManager.js");
+const { IRActionManagerMessenger } = require("../Managers/IRActionManager.js");
+const { UpdateMessenger } = require("../Managers/UpdateMessenger.js");
 
 // Messenger used for displaying update or error messages to the Message Display
 const update_messenger = new UpdateMessenger();

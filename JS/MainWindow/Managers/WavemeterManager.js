@@ -5,9 +5,9 @@
 **************************************************/
 
 const wavemeter = require("bindings")("wavemeter");
-const { sleep } = require("./Sleep.js");
-const { ManagerAlert } = require("./ManagerAlert.js");
-const { WavemeterMeasurement } = require("./WavemeterClasses.js");
+const { sleep } = require("../../Libraries/Sleep.js");
+const { ManagerAlert } = require("../../Libraries/ManagerAlert.js");
+const { WavemeterMeasurement } = require("../Libraries/WavemeterClasses.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");
 
 // Messenger used for displaying update or error messages to the Message Display

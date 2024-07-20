@@ -19,7 +19,7 @@
 *****************************************************************************/
 
 function IRSevi_Scan_Control() {
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 
 	const IMMessenger = new ImageManagerMessenger();
 
@@ -171,7 +171,7 @@ function IRSevi_Scan_Control() {
 *****************************************************************************/
 
 function IRSevi_File_Naming() {
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 	const IMMessenger = new ImageManagerMessenger();
 
 	/****
@@ -242,10 +242,10 @@ function IRSevi_File_Naming() {
 *****************************************************************************/
 
 function IRSevi_Laser_Control() {
-	const { InputDelay } = require("./Libraries/InputDelay.js");
+	const { InputDelay } = require("../Libraries/InputDelay.js");
 	const { DetachmentMode, ExcitationMode } = require("./Libraries/WavelengthClasses.js");
-	const { DetachmentLaserManagerMessenger } = require("./Libraries/DetachmentLaserManager.js");
-	const { ExcitationLaserManagerMessenger } = require("./Libraries/ExcitationLaserManager.js");
+	const { DetachmentLaserManagerMessenger } = require("./Managers/DetachmentLaserManager.js");
+	const { ExcitationLaserManagerMessenger } = require("./Managers/ExcitationLaserManager.js");
 	const DLMMessenger = new DetachmentLaserManagerMessenger();
 	const ELMMessenger = new ExcitationLaserManagerMessenger();
 
@@ -541,7 +541,7 @@ function IRSevi_Laser_Control() {
 function IRSevi_Accumulated_Image_Display(PageInfo) {
 	const { ImageType } = require("./Libraries/ImageClasses.js");
 	const { Tabs } = require("./Libraries/Tabs.js");
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 
 	const IMMessenger = new ImageManagerMessenger();
 
@@ -635,9 +635,9 @@ function IRSevi_Accumulated_Image_Display(PageInfo) {
 *****************************************************************************/
 
 function IRSevi_Counts() {
-	const { InputDelay } = require("./Libraries/InputDelay.js");
-	const { ImageManagerMessenger, AutostopMethod } = require("./Libraries/ImageManager.js");
-	const { AverageElectronManagerMessenger, Rolling20Frames } = require("./Libraries/AverageElectronManager.js");
+	const { InputDelay } = require("../Libraries/InputDelay.js");
+	const { ImageManagerMessenger, AutostopMethod } = require("./Managers/ImageManager.js");
+	const { AverageElectronManagerMessenger, Rolling20Frames } = require("./Managers/AverageElectronManager.js");
 
 	const IMMessenger = new ImageManagerMessenger();
 	const EAMMessenger = new AverageElectronManagerMessenger();
@@ -871,7 +871,7 @@ function IRSevi_PESpectrum_Display() {
 	const { Chart, registerables } = require("chart.js");
 	const { zoomPlugin } = require("chartjs-plugin-zoom");
 	const { PESRadio, PESpectrumDisplay, IRPESpectrumDisplay } = require("./Libraries/PESpectrumDisplayClasses.js");
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 
 	if (registerables) Chart.register(...registerables);
 	if (zoomPlugin) Chart.register(zoomPlugin);
@@ -1113,7 +1113,7 @@ function IRSevi_PESpectrum_Display() {
 
 function IRSevi_Recent_Scans() {
 	const { RecentScansRow } = require("./Libraries/RecentScansClasses.js");
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 	const IMMessenger = new ImageManagerMessenger();
 
 	const AllRecentScans = [];
@@ -1183,7 +1183,7 @@ function IRSevi_Recent_Scans() {
 
 function IRSevi_Load_Page(PageInfo) {
 	const { Tabs } = require("./Libraries/Tabs.js");
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 	const IMMessenger = new ImageManagerMessenger();
 
 	// Show/hide image series button based on settings

@@ -5,8 +5,8 @@
 **************************************************/
 
 const ipc = require("electron").ipcRenderer;
-const { Image, IRImage, EmptyIRImage, ImageType, ScanInfo } = require("./ImageClasses.js");
-const { ManagerAlert } = require("./ManagerAlert.js");
+const { Image, IRImage, EmptyIRImage, ImageType, ScanInfo } = require("../Libraries/ImageClasses.js");
+const { ManagerAlert } = require("../../Libraries/ManagerAlert.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");
 const { DetachmentLaserManagerMessenger } = require("./DetachmentLaserManager.js");
 const { ExcitationLaserManagerMessenger } = require("./ExcitationLaserManager.js");

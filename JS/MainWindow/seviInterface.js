@@ -21,8 +21,8 @@ const { PESpectrum } = require("./Libraries/PESpectrumClasses.js");
 *****************************************************************************/
 
 function Sevi_Scan_Control() {
-	const { UpdateMessenger } = require("./Libraries/UpdateMessenger.js");
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { UpdateMessenger } = require("./Managers/UpdateMessenger.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 
 	const update_messenger = new UpdateMessenger();
 	const IMMessenger = new ImageManagerMessenger();
@@ -175,7 +175,7 @@ function Sevi_Scan_Control() {
 *****************************************************************************/
 
 function Sevi_File_Naming() {
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 	const IMMessenger = new ImageManagerMessenger();
 
 	/****
@@ -237,9 +237,9 @@ function Sevi_File_Naming() {
 *****************************************************************************/
 
 function Sevi_Laser_Control() {
-	const { InputDelay } = require("./Libraries/InputDelay.js");
+	const { InputDelay } = require("../Libraries/InputDelay.js");
 	const { DetachmentMode } = require("./Libraries/WavelengthClasses.js");
-	const { DetachmentLaserManagerMessenger } = require("./Libraries/DetachmentLaserManager.js");
+	const { DetachmentLaserManagerMessenger } = require("./Managers/DetachmentLaserManager.js");
 	const DLMMessenger = new DetachmentLaserManagerMessenger();
 
 	/****
@@ -359,7 +359,7 @@ function Sevi_Laser_Control() {
 function Sevi_Accumulated_Image_Display(PageInfo) {
 	const { ImageType } = require("./Libraries/ImageClasses.js");
 	const { Tabs } = require("./Libraries/Tabs.js");
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 
 	const IMMessenger = new ImageManagerMessenger();
 
@@ -446,9 +446,9 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 *****************************************************************************/
 
 function Sevi_Counts() {
-	const { InputDelay } = require("./Libraries/InputDelay.js");
-	const { ImageManagerMessenger, AutostopMethod } = require("./Libraries/ImageManager.js");
-	const { AverageElectronManagerMessenger, Rolling20Frames } = require("./Libraries/AverageElectronManager.js");
+	const { InputDelay } = require("../Libraries/InputDelay.js");
+	const { ImageManagerMessenger, AutostopMethod } = require("./Managers/ImageManager.js");
+	const { AverageElectronManagerMessenger, Rolling20Frames } = require("./Managers/AverageElectronManager.js");
 
 	const IMMessenger = new ImageManagerMessenger();
 	const EAMMessenger = new AverageElectronManagerMessenger();
@@ -675,7 +675,7 @@ function Sevi_PESpectrum_Display() {
 	const { Chart, registerables } = require("chart.js");
 	const { zoomPlugin } = require("chartjs-plugin-zoom");
 	const { PESRadio, PESpectrumDisplay, IRPESpectrumDisplay } = require("./Libraries/PESpectrumDisplayClasses.js");
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 
 	if (registerables) Chart.register(...registerables);
 	if (zoomPlugin) Chart.register(zoomPlugin);
@@ -916,7 +916,7 @@ function Sevi_PESpectrum_Display() {
 
 function Sevi_Recent_Scans() {
 	const { RecentScansRow } = require("./Libraries/RecentScansClasses.js");
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 	const IMMessenger = new ImageManagerMessenger();
 
 	const AllRecentScans = [];
@@ -986,7 +986,7 @@ function Sevi_Recent_Scans() {
 
 function Sevi_Load_Page(PageInfo) {
 	const { Tabs } = require("./Libraries/Tabs.js");
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 	const IMMessenger = new ImageManagerMessenger();
 
 	// Show/hide image series button based on settings

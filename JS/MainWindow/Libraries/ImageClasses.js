@@ -1,7 +1,7 @@
 const { DetachmentWavelength, ExcitationWavelength, DetachmentMode, ExcitationMode } = require("./WavelengthClasses.js");
 const { WavemeterMeasurement } = require("./WavemeterClasses.js");
 const { PESpectrum, IRPESpectrum } = require("./PESpectrumClasses.js");
-const { UpdateMessenger } = require("./UpdateMessenger.js");
+const { UpdateMessenger } = require("../Managers/UpdateMessenger.js");
 
 // Messenger used for displaying update or error messages to the Message Display
 const update_messenger = new UpdateMessenger();

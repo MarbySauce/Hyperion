@@ -11,9 +11,9 @@
 *****************************************************************************/
 
 function IRAction_Scan_Control_and_Options() {
-	const { IRActionManagerMessenger, ActionOptions } = require("./Libraries/IRActionManager");
-	const { ImageManagerMessenger, AutostopMethod } = require("./Libraries/ImageManager.js");
-	const { UpdateMessenger } = require("./Libraries/UpdateMessenger.js");
+	const { IRActionManagerMessenger, ActionOptions } = require("./Managers/IRActionManager");
+	const { ImageManagerMessenger, AutostopMethod } = require("./Managers/ImageManager.js");
+	const { UpdateMessenger } = require("./Managers/UpdateMessenger.js");
 
 	// Messenger used for displaying update or error messages to the Message Display
 	const update_messenger = new UpdateMessenger();
@@ -402,7 +402,7 @@ function IRAction_Scan_Control_and_Options() {
 *****************************************************************************/
 
 function IRAction_Scan_Status() {
-	const { IRActionManagerMessenger } = require("./Libraries/IRActionManager");
+	const { IRActionManagerMessenger } = require("./Managers/IRActionManager");
 
 	// Messenger used for displaying update or error messages to the Message Display
 	const IRAMMessenger = new IRActionManagerMessenger();
@@ -685,7 +685,7 @@ function IRAction_Scan_Status() {
 function IRAction_Accumulated_Image_Display(PageInfo) {
 	const { ImageType } = require("./Libraries/ImageClasses.js");
 	const { Tabs } = require("./Libraries/Tabs.js");
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 
 	const IMMessenger = new ImageManagerMessenger();
 
@@ -779,9 +779,9 @@ function IRAction_Accumulated_Image_Display(PageInfo) {
 *****************************************************************************/
 
 function IRAction_Counts() {
-	const { ImageManagerMessenger } = require("./Libraries/ImageManager.js");
-	const { IRActionManagerMessenger } = require("./Libraries/IRActionManager");
-	const { AverageElectronManagerMessenger, Rolling20Frames } = require("./Libraries/AverageElectronManager.js");
+	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
+	const { IRActionManagerMessenger } = require("./Managers/IRActionManager.js");
+	const { AverageElectronManagerMessenger, Rolling20Frames } = require("./Managers/AverageElectronManager.js");
 
 	const IRAMMessenger = new IRActionManagerMessenger();
 	const IMMessenger = new ImageManagerMessenger();
@@ -920,7 +920,7 @@ function IRAction_Change_Pages() {
 
 function IRAction_Second_Page() {
 	const { ActionModeAnalyzer } = require("./Libraries/ActionPESpectrumClasses.js");
-	const { UpdateMessenger } = require("./Libraries/UpdateMessenger.js");
+	const { UpdateMessenger } = require("./Managers/UpdateMessenger.js");
 
 	// Messenger used for displaying update or error messages to the Message Display
 	const update_messenger = new UpdateMessenger();
@@ -1136,7 +1136,7 @@ function IRAction_Second_Page() {
 
 function IRAction_Load_Page(PageInfo) {
 	const { Tabs } = require("./Libraries/Tabs.js");
-	const { IRActionManagerMessenger } = require("./Libraries/IRActionManager");
+	const { IRActionManagerMessenger } = require("./Managers/IRActionManager.js");
 	const IRAMMessenger = new IRActionManagerMessenger();
 
 	// Show tab highlight if IR Action scan is being taken

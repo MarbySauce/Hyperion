@@ -6,9 +6,9 @@
 
 // OPO/A is controlled through TCP communication, which is done through JS module Net
 const net = require("net");
-const { ManagerAlert } = require("./ManagerAlert.js");
-const { sleep } = require("./Sleep.js");
-const { ExcitationWavelength, ExcitationMode } = require("./WavelengthClasses.js");
+const { ManagerAlert } = require("../../Libraries/ManagerAlert.js");
+const { sleep } = require("../../Libraries/Sleep.js");
+const { ExcitationWavelength, ExcitationMode } = require("../Libraries/WavelengthClasses.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");
 
 // Messenger used for displaying update or error messages to the Message Display

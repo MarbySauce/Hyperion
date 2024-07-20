@@ -4,9 +4,9 @@
 
 **************************************************/
 
-const { ManagerAlert } = require("./ManagerAlert.js");
-const { DetachmentWavelength, DetachmentMode } = require("./WavelengthClasses.js");
-const { WavemeterMeasurement } = require("./WavemeterClasses.js");
+const { ManagerAlert } = require("../../Libraries/ManagerAlert.js");
+const { DetachmentWavelength, DetachmentMode } = require("../Libraries/WavelengthClasses.js");
+const { WavemeterMeasurement } = require("../Libraries/WavemeterClasses.js");
 const { DetachmentWavemeterManagerMessenger } = require("./WavemeterManager.js");
 
 const DWMMessenger = new DetachmentWavemeterManagerMessenger();

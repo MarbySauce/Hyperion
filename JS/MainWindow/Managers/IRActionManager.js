@@ -5,8 +5,8 @@
 **************************************************/
 
 const { performance } = require("perf_hooks");
-const { ManagerAlert } = require("./ManagerAlert.js");
-const { ExcitationWavelength, ExcitationMode } = require("./WavelengthClasses.js");
+const { ManagerAlert } = require("../../Libraries/ManagerAlert.js");
+const { ExcitationWavelength, ExcitationMode } = require("../Libraries/WavelengthClasses.js");
 const { ExcitationLaserManagerMessenger } = require("./ExcitationLaserManager.js");
 const { ImageManagerMessenger } = require("./ImageManager.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");

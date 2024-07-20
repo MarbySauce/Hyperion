@@ -1,6 +1,6 @@
 const ipc = require("electron").ipcRenderer;
-const { ManagerAlert } = require("./ManagerAlert.js");
-const { average } = require("./WavemeterClasses");
+const { ManagerAlert } = require("../../Libraries/ManagerAlert.js");
+const { average } = require("../Libraries/WavemeterClasses.js");
 
 class Rolling20Frames {
 	constructor() {

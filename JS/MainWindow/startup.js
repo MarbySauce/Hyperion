@@ -1,13 +1,13 @@
 // Libraries
 const ipc = require("electron").ipcRenderer;
 const { IPCMessages } = require("../JS/Messages.js");
-const { UpdateMessenger, initialize_message_display } = require("../JS/MainWindow/Libraries/UpdateMessenger.js");
+const { UpdateMessenger, initialize_message_display } = require("../JS/MainWindow/Managers/UpdateMessenger.js");
 const wavemeter = require("bindings")("wavemeter");
-const { ImageManagerMessenger, AutostopMethod } = require("../JS/MainWindow/Libraries/ImageManager.js");
-const { DetachmentLaserManagerMessenger } = require("../JS/MainWindow/Libraries/DetachmentLaserManager.js");
-const { ExcitationLaserManagerMessenger } = require("../JS/MainWindow/Libraries/ExcitationLaserManager.js");
-const { OPOManagerMessenger } = require("../JS/MainWindow/Libraries/OPOManager.js");
-const { IRActionManagerMessenger } = require("../JS/MainWindow/Libraries/IRActionManager.js");
+const { ImageManagerMessenger, AutostopMethod } = require("../JS/MainWindow/Managers/ImageManager.js");
+const { DetachmentLaserManagerMessenger } = require("../JS/MainWindow/Managers/DetachmentLaserManager.js");
+const { ExcitationLaserManagerMessenger } = require("../JS/MainWindow/Managers/ExcitationLaserManager.js");
+const { OPOManagerMessenger } = require("../JS/MainWindow/Managers/OPOManager.js");
+const { IRActionManagerMessenger } = require("../JS/MainWindow/Managers/IRActionManager.js");
 const { ActionModeAnalyzer } = require("../JS/MainWindow/Libraries/ActionPESpectrumClasses.js");
 
 let settings; // Global variable, to be filled in on startup
