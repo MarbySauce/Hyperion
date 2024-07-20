@@ -577,7 +577,6 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 	// Check if it's been more than 50ms since the last trigger event
 	triggerDelay.end();
 	repCount = floor(triggerDelay.time / 50);
-	//if (triggerDelay.time > 50 /* ms */ && triggerDelay.time < 60 /* ms */) {
 	while (simulationCount < repCount) {
 		if (repCount - simulationCount >= 3) {
 			simulationCount = repCount;
