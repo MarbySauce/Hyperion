@@ -391,7 +391,7 @@ Napi::Boolean SetPixelClock(const Napi::CallbackInfo& info) {
 	int pixClock = (int)info[0].ToNumber().Int32Value();
 
 	// Set pixel clock
-	nRet = is_PixelClock(hCam, IS_PIXELCLOCK_CMD_SET, (void*)&pixClock, sizeof(pixClock));
+	int nRet = is_PixelClock(hCam, IS_PIXELCLOCK_CMD_SET, (void*)&pixClock, sizeof(pixClock));
 	if (nRet != IS_SUCCESS) {
 		std::cout << "Setting pixel clock failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 		return Napi::Boolean::New(env, false);
@@ -678,15 +678,15 @@ void Close(const Napi::CallbackInfo& info) {
 
 	// Disable messages
 	nRet = is_EnableMessage(hCam, IS_FRAME, NULL);
-	std::cout << "\nDisable messages: " << GetErrorFromCode(nRet) << std::endl;
+	std::cout << "\nDisable messages - Code " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 
 	// Stop image capture
 	nRet = is_StopLiveVideo(hCam, IS_WAIT);
-	std::cout << "Stop video: " << GetErrorFromCode(nRet) << std::endl;
+	std::cout << "Stop video - Code " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 
 	// Close camera
 	nRet = is_ExitCamera(hCam);
-	std::cout << "Exit camera: " << GetErrorFromCode(nRet) << std::endl;
+	std::cout << "Exit camera - Code " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 
 	camera.connected = false;
 }
