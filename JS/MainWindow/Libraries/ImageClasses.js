@@ -451,8 +451,8 @@ class EmptyIRImage extends IRImage {
  */
 function Image_update_image(image, centers, difference_image, difference_increment = 1) {
 	let X, Y;
-	let initial_width = settings?.camera?.x_AoI || 1;
-	let initial_height = settings?.camera?.y_AoI || 1;
+	let initial_width = settings?.camera?.AoI_width || 1;
+	let initial_height = settings?.camera?.AoI_height || 1;
 	let final_width = settings?.centroid?.bin_size || 1;
 	let final_height = settings?.centroid?.bin_size || 1;
 	for (let i = 0; i < centers.length; i++) {

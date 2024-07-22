@@ -30,6 +30,9 @@ const OPOManager = {
 	params: {
 		lower_wavelength_bound: 710,
 		upper_wavelength_bound: 880,
+		fir_lower_wavelength_bound: 725, // Lower bound in fIR mode
+		fir_upper_wavelength_bound: 765, // Upper bound in fIR mode
+		in_fir_mode: false, // Whether OPO/A is using fIR crystal
 	},
 	network: {
 		client: new net.Socket(),
@@ -280,10 +283,13 @@ function OPOManager_get_last_laser_offset() {
 
 function OPOManager_process_settings(settings) {
 	if (settings?.opo) {
-		OPOManager.network.config.host = settings.opo.host;
-		OPOManager.network.config.port = settings.opo.port;
-		OPOManager.params.lower_wavelength_bound = settings.opo.lower_wavelength_bound;
-		OPOManager.params.upper_wavelength_bound = settings.opo.upper_wavelength_bound;
+		OPOManager.network.config.host = settings.excitation_laser.host;
+		OPOManager.network.config.port = settings.excitation_laser.port;
+		OPOManager.params.lower_wavelength_bound = settings.excitation_laser.lower_wavelength_bound;
+		OPOManager.params.upper_wavelength_bound = settings.excitation_laser.upper_wavelength_bound;
+		OPOManager.params.fir_lower_wavelength_bound = settings.excitation_laser.fir_lower_wavelength_bound;
+		OPOManager.params.fir_upper_wavelength_bound = settings.excitation_laser.fir_upper_wavelength_bound;
+		OPOManager.params.in_fir_mode = settings.excitation_laser.in_fir_mode;
 	}
 	// Connect to OPO/A Computer
 	OPOManager.network.connect();

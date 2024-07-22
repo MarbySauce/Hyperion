@@ -8,6 +8,7 @@
 #include <napi.h>
 #include <windows.h>
 #include <uEye.h>
+#include "uEyeErrors.h"
 
 // Global variables
 Camera camera; // Contains important info about the camera
@@ -84,7 +85,7 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info) {
 		camera.connected = true;
 	} else {
 		camera.connected = false;
-		std::cout << "Could not connect to camera. Error: " << nRet << std::endl;
+		std::cout << "Could not connect to camera. Error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 	}
 
 	return Napi::Boolean::New(env, camera.connected);
@@ -261,8 +262,7 @@ void SetNoiseArea(const Napi::CallbackInfo& info) {
 
 // Apply camera settings
 // Returns false unless all were successful
-// NOTE: Each of these should be separate functions, and ApplySettings should be a JS setting
-Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
+Napi::Boolean ApplyDefaultSettings(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	// Initialize image array for centroiding
@@ -282,86 +282,29 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 	// Set color mode
 	nRet = is_SetColorMode(hCam, IS_CM_MONO8);
 	if (nRet != IS_SUCCESS) {
-		std::cout << "Setting color mode failed with error: " << nRet << std::endl;
+		std::cout << "Setting color mode failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
 
 	// Set display mode
 	nRet = is_SetDisplayMode(hCam, IS_SET_DM_DIB);
 	if (nRet != IS_SUCCESS) {
-		std::cout << "Setting display mode failed with error: " << nRet << std::endl;
+		std::cout << "Setting display mode failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
-
-	// Set area of interest
-	/*IS_RECT AreaOfInterest; // Object to contain AoI info
-	AreaOfInterest.s32X = 100; // Left offset
-	AreaOfInterest.s32Y = 0; // Top offset
-	AreaOfInterest.s32Width = 768; // Image width
-	AreaOfInterest.s32Height = 768; // Image height
-	nRet = is_AOI(hCam, IS_AOI_IMAGE_SET_AOI, (void*)&AreaOfInterest, sizeof(AreaOfInterest));
-	if (nRet != IS_SUCCESS) {
-		std::cout << "Setting AoI failed with error: " << nRet << std::endl;
-		return Napi::Boolean::New(env, false);
-	}*/
 
 	// Allocate memory for images
 	// Fills pMem with image memory address
 	nRet = is_AllocImageMem(hCam, camera.width, camera.height, 8, &camera.pMem, &camera.memID);
 	if (nRet != IS_SUCCESS) {
-		std::cout << "Allocating memory failed with error: " << nRet << std::endl;
+		std::cout << "Allocating memory failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
 
 	// Tell camera where to put image data
 	nRet = is_SetImageMem(hCam, camera.pMem, camera.memID);
 	if (nRet != IS_SUCCESS) {
-		std::cout << "Setting active memory failed with error: " << nRet << std::endl;
-		return Napi::Boolean::New(env, false);
-	}
-
-	// Set trigger to rising-edge external
-	nRet = is_SetExternalTrigger(hCam, IS_SET_TRIGGER_LO_HI);
-	if (nRet != IS_SUCCESS) {
-		std::cout << "Setting trigger failed with error: " << nRet << std::endl;
-		return Napi::Boolean::New(env, false);
-	}
-
-	// Recommended order of operations is:
-	//      set pixel clock
-	//      set frame rate
-	//      set exposure
-
-	// Set pixel clock
-	int pixClock = 30; // MHz
-	nRet = is_PixelClock(hCam, IS_PIXELCLOCK_CMD_SET, (void*)&pixClock, sizeof(pixClock));
-	if (nRet != IS_SUCCESS) {
-		std::cout << "Setting pixel clock failed with error: " << nRet << std::endl;
-		return Napi::Boolean::New(env, false);
-	}
-
-	// No need to set frame rate
-
-	// Set exposure
-	double exposure = 6; // ms
-	nRet = is_Exposure(hCam, IS_EXPOSURE_CMD_SET_EXPOSURE, &exposure, sizeof(exposure));
-	if (nRet != IS_SUCCESS) {
-		std::cout << "Setting exposure failed with error: " << nRet << std::endl;
-		return Napi::Boolean::New(env, false);
-	}
-
-	// Set hardware gain
-	int gain = 75;
-	nRet = is_SetHardwareGain(hCam, gain, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER);
-	if (nRet != IS_SUCCESS) {
-		std::cout << "Setting gain failed with error: " << nRet << std::endl;
-		return Napi::Boolean::New(env, false);
-	}
-
-	// Start image capture
-	nRet = is_CaptureVideo(hCam, IS_WAIT);
-	if (nRet != IS_SUCCESS) {
-		std::cout << "Starting capture failed with error: " << nRet << std::endl;
+		std::cout << "Setting active memory failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
 	
@@ -369,7 +312,7 @@ Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
 }
 
 // Set the camera trigger
-Napi::Boolean SetTrigger(Napi::CallbackInfo& info) {
+Napi::Boolean SetTrigger(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	int argLength = info.Length(); // Number of arguments passed
@@ -417,7 +360,40 @@ Napi::Boolean SetTrigger(Napi::CallbackInfo& info) {
 	// Set the trigger mode
 	int nRet = is_SetExternalTrigger(hCam, triggerMode);
 	if (nRet != IS_SUCCESS) {
-		std::cout << "Setting trigger failed with error: " << nRet << std::endl;
+		std::cout << "Setting trigger failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Return a success value
+	return Napi::Boolean::New(env, true);
+}
+
+Napi::Boolean SetPixelClock(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	int argLength = info.Length(); // Number of arguments passed
+
+	// Check that only 1 argument is passed
+	if (argLength != 1) {
+		Napi::Error::New(env, "setPixelClock requires only 1 argument").
+			ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Check that the argument is a number
+	if (!info[0].IsNumber()) {
+		Napi::Error::New(env, "setPixelClock: Pixel Clock value must be a number").
+			ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Convert Napi number to C++ int
+	int pixClock = (int)info[0].ToNumber().Int32Value();
+
+	// Set pixel clock
+	nRet = is_PixelClock(hCam, IS_PIXELCLOCK_CMD_SET, (void*)&pixClock, sizeof(pixClock));
+	if (nRet != IS_SUCCESS) {
+		std::cout << "Setting pixel clock failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
 
@@ -426,7 +402,7 @@ Napi::Boolean SetTrigger(Napi::CallbackInfo& info) {
 }
 
 // Set the camera exposure
-Napi::Boolean SetExposure(Napi::CallbackInfo& info) {
+Napi::Boolean SetExposure(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	int argLength = info.Length(); // Number of arguments passed
@@ -452,7 +428,7 @@ Napi::Boolean SetExposure(Napi::CallbackInfo& info) {
 	double exposure_range[3]; // [min, max, increment]
 	int nRet = is_Exposure(hCam, IS_EXPOSURE_CMD_GET_EXPOSURE_RANGE, &exposure_range, sizeof(exposure_range));
 	if (nRet != IS_SUCCESS) {
-		std::cout << "Getting exposure failed with error: " << nRet << std::endl;
+		std::cout << "Getting exposure failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
 
@@ -466,7 +442,7 @@ Napi::Boolean SetExposure(Napi::CallbackInfo& info) {
 	// Set the exposure
 	nRet = is_Exposure(hCam, IS_EXPOSURE_CMD_SET_EXPOSURE, &exposure, sizeof(exposure));
 	if (nRet != IS_SUCCESS) {
-		std::cout << "Setting exposure failed with error: " << nRet << std::endl;
+		std::cout << "Setting exposure failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
 
@@ -475,7 +451,7 @@ Napi::Boolean SetExposure(Napi::CallbackInfo& info) {
 }
 
 // Set the camera gain
-Napi::Boolean SetGain(Napi::CallbackInfo& info) {
+Napi::Boolean SetGain(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	int argLength = info.Length(); // Number of arguments passed
@@ -507,7 +483,39 @@ Napi::Boolean SetGain(Napi::CallbackInfo& info) {
 	// Set the gain
 	int nRet = is_SetHardwareGain(hCam, gain, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER);
 	if (nRet != IS_SUCCESS) {
-		std::cout << "Setting gain failed with error: " << nRet << std::endl;
+		std::cout << "Setting gain failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
+		return Napi::Boolean::New(env, false);
+	}
+
+	// Return a success value
+	return Napi::Boolean::New(env, true);
+}
+
+/**
+ * @brief Set whether gain boost is applied
+ * @param {Boolean} SetGainBoost 
+ * @returns Success or Failure bool
+ */
+Napi::Boolean SetGainBoost(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	if (!info[0].IsBoolean()) {
+		Napi::Error::New(env, "setGainBoost requires Boolean as argument").
+			ThrowAsJavaScriptException();
+		return Napi::Boolean::New(env, false);
+	}
+
+	bool SetGainBoostBool = info[0].ToBoolean();
+
+	int nRet;
+	if (SetGainBoostBool) {
+		nRet = is_SetGainBoost(hCam, IS_SET_GAINBOOST_ON); // Turn on gain boost
+	} else {
+		nRet = is_SetGainBoost(hCam, IS_SET_GAINBOOST_OFF); // Turn off gain boost
+	}
+
+	if (nRet != IS_SUCCESS) {
+		std::cout << "Setting gain boost failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
 
@@ -516,12 +524,12 @@ Napi::Boolean SetGain(Napi::CallbackInfo& info) {
 }
 
 // Start camera image capture
-Napi::Boolean StartCapture(Napi::CallbackInfo& info) {
+Napi::Boolean StartCapture(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	int nRet = is_CaptureVideo(hCam, IS_WAIT);
 	if (nRet != IS_SUCCESS) {
-		std::cout << "Starting capture failed with error: " << nRet << std::endl;
+		std::cout << "Starting capture failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
 
@@ -530,7 +538,7 @@ Napi::Boolean StartCapture(Napi::CallbackInfo& info) {
 }
 
 // Enable Windows messages
-Napi::Boolean EnableMessages(Napi::CallbackInfo& info) {
+Napi::Boolean EnableMessages(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	// Check to make sure WinAPI window was created
@@ -542,7 +550,7 @@ Napi::Boolean EnableMessages(Napi::CallbackInfo& info) {
 	// Enable frame event messages
 	int nRet = is_EnableMessage(hCam, IS_FRAME, hWnd);
 	if (nRet != IS_SUCCESS) {
-		std::cout << "Enable messages failed with error: " << nRet << std::endl;
+		std::cout << "Enable messages failed with error " << nRet << ": " << GetErrorFromCode(nRet) << std::endl;
 		return Napi::Boolean::New(env, false);
 	}
 
@@ -645,7 +653,7 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 				// Lock the image memory so it's not overwritten while centroiding
 				nRet = is_LockSeqBuf(hCam, IS_IGNORE_PARAMETER, camera.pMem);
 				if (nRet != IS_SUCCESS) {
-					std::cout << "Failed to lock image: " << nRet << std::endl;
+					std::cout << "Failed to lock image: " << GetErrorFromCode(nRet) << std::endl;
 				}
 				// Get image pitch
 				int pPitch;
@@ -655,7 +663,7 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 				// Unlock the image memory
 				nRet = is_UnlockSeqBuf(hCam, IS_IGNORE_PARAMETER, camera.pMem);
 				if (nRet != IS_SUCCESS) {
-					std::cout << "Failed to unlock image: " << nRet << std::endl;
+					std::cout << "Failed to unlock image: " << GetErrorFromCode(nRet) << std::endl;
 				}
 				// Return calculated centers
 				sendCentroids();
@@ -670,15 +678,15 @@ void Close(const Napi::CallbackInfo& info) {
 
 	// Disable messages
 	nRet = is_EnableMessage(hCam, IS_FRAME, NULL);
-	std::cout << "\nDisable messages: " << nRet << std::endl;
+	std::cout << "\nDisable messages: " << GetErrorFromCode(nRet) << std::endl;
 
 	// Stop image capture
 	nRet = is_StopLiveVideo(hCam, IS_WAIT);
-	std::cout << "Stop video: " << nRet << std::endl;
+	std::cout << "Stop video: " << GetErrorFromCode(nRet) << std::endl;
 
 	// Close camera
 	nRet = is_ExitCamera(hCam);
-	std::cout << "Exit camera: " << nRet << std::endl;
+	std::cout << "Exit camera: " << GetErrorFromCode(nRet) << std::endl;
 
 	camera.connected = false;
 }
@@ -714,11 +722,16 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	exports["createWinAPIWindow"] = Napi::Function::New(env, CreateWinAPIWindow);
 	exports["connect"] = Napi::Function::New(env, Connect);
 	exports["getInfo"] = Napi::Function::New(env, GetInfo);
+	exports["applyDefaultSettings"] = Napi::Function::New(env, ApplyDefaultSettings);
 	exports["setAoI"] = Napi::Function::New(env, SetAoI);
 	exports["setLEDArea"] = Napi::Function::New(env, SetLEDArea);
 	exports["setNoiseArea"] = Napi::Function::New(env, SetNoiseArea);
-	exports["applySettings"] = Napi::Function::New(env, ApplySettings);
+	exports["setTrigger"] = Napi::Function::New(env, SetTrigger);
+	exports["setPixelClock"] = Napi::Function::New(env, SetPixelClock);
 	exports["setExposure"] = Napi::Function::New(env, SetExposure);
+	exports["setGain"] = Napi::Function::New(env, SetGain);
+	exports["setGainBoost"] = Napi::Function::New(env, SetGainBoost);
+	exports["startCapture"] = Napi::Function::New(env, StartCapture);
 	exports["enableMessages"] = Napi::Function::New(env, EnableMessages);
 	exports["checkMessages"] = Napi::Function::New(env, CheckMessages);
 	exports["close"] = Napi::Function::New(env, Close);

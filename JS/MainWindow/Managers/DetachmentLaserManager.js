@@ -52,8 +52,8 @@ function DetachmentLaserManager_update_mode(mode) {
 }
 
 function DetachmentLaserManager_process_settings(settings) {
-	if (settings?.laser?.detachment) {
-		DetachmentWavelength.YAG_wl = settings.laser.detachment.yag_fundamental;
+	if (settings?.detachment_laser) {
+		DetachmentWavelength.YAG_wl = settings.detachment_laser.yag_fundamental;
 	}
 	// Also update settings for Detachment Wavemeter Manager
 	const DWMMessenger = new DetachmentWavemeterManagerMessenger();

@@ -1,6 +1,6 @@
 const ipc = require("electron").ipcRenderer;
 const { Chart, registerables } = require("chart.js");
-const { IPCMessages } = require("../JS/Messages.js");
+const { IPCMessages } = require("../JS/Libraries/Messages.js");
 
 if (registerables) Chart.register(...registerables);
 
@@ -18,11 +18,11 @@ let settings;
 // Startup
 window.onload = function () {
 	// Send message to main process that the window is ready
-	ipc.send("live-view-window-ready", null);
+	ipc.send(IPCMessages.READY.LIVEVIEW);
 };
 
 // Recieve setting information and go through startup procedure
-ipc.on("settings-information", (event, settings_information) => {
+ipc.on(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
 	settings = settings_information;
 	Startup();
 });

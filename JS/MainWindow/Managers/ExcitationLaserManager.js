@@ -134,11 +134,11 @@ function ExcitationLaserManager_update_mode(mode) {
 }
 
 function ExcitationLaserManager_process_settings(settings) {
-	if (settings?.laser?.excitation) {
-		ExcitationLaserManager.params.acceptance_range = settings.laser.excitation.acceptance_range;
-		ExcitationLaserManager.params.move_attempts = settings.laser.excitation.move_attempts;
-		ExcitationLaserManager.params.wavemeter_channel = settings.laser.excitation.wavemeter_channel;
-		ExcitationWavelength.YAG_wl = settings.laser.excitation.yag_fundamental;
+	if (settings?.excitation_laser) {
+		ExcitationLaserManager.params.acceptance_range = settings.excitation_laser.acceptance_range;
+		ExcitationLaserManager.params.move_attempts = settings.excitation_laser.move_attempts;
+		ExcitationLaserManager.params.wavemeter_channel = settings.excitation_laser.wavemeter_channel;
+		ExcitationWavelength.YAG_wl = settings.excitation_laser.yag_fundamental;
 	}
 	// Also update settings for Excitation Wavemeter Manager and OPO/A
 	EWMMessenger.update.process_settings(settings);

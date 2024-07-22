@@ -1,141 +1,170 @@
-/*			Libraries					*/
-
 const ipc = require("electron").ipcRenderer;
 const EventEmitter = require("events").EventEmitter;
 const camera = require("bindings")("camera");
-const { IPCMessages } = require("../JS/Messages.js");
+const { IPCMessages } = require("../JS/Libraries/Messages.js");
+const { Settings } = require("../JS/Libraries/SettingsClasses.js");
+const { GetErrorFromCode } = require("../JS/Libraries/uEyeErrorCodes.js");
 
-/*******************
- *
- * 	Settings that need to be sent to the camera
- * - centroid.hybrid_method
- * - camera. (all)
- *
- *
- *
- *********************/
+/*****************************************************************************
 
-//
-/*			Event Listeners				*/
-//
+									STARTUP
 
-//window.onload = function () {
-//	startup();
-//};
+*****************************************************************************/
 
-// Startup
+let settings = new Settings(); // Where all settings parameters will be stored (initialize as blank)
+
+// Tell Main that this window is ready
+// (Startup procedure will happen once settings are sent)
 window.onload = function () {
-	// Send message to main process that the window is ready
-	ipc.send("invisible-window-ready", null);
+	ipc.send(IPCMessages.READY.INVISIBLE);
 };
 
-//
-/*			Centroid variables			*/
-//
-
-let settings;
-
-let check_messages = false;
-
-// Don't send centroid info for the first 2.5s so that the rest of the program can load
-let send_centroid_info = false;
-setTimeout(() => {
-	send_centroid_info = true;
-}, 2500);
-
-//
-/*			Centroid functions			*/
-//
-
 function startup() {
-	let nRet; // Temp variable for success of camera commands
+	set_up_emitter();
 
-	const emitter = new EventEmitter(); // Emit messages between C++ and JS
+	open_camera();
 
-	// Set up emitter messages
+	start_image_capture();
+}
+
+// Set up Event Emitter to communicate between C++ and JS
+function set_up_emitter() {
+	const emitter = new EventEmitter();
+
+	// Set up listener for messages from C++
 	emitter.on("new-image", (centroid_results) => {
 		if (!centroid_results) {
+			// Messsage is blank
 			return;
 		}
 
-		// Send data to other renderer windows
-		if (send_centroid_info) {
-			ipc.send(IPCMessages.UPDATE.NEWFRAME, centroid_results);
-		}
+		// Send data to Main (and from there to other renderer windows)
+		ipc.send(IPCMessages.UPDATE.NEWFRAME, centroid_results);
 	});
 
-	// Initialize emitter
+	// Initialize emitter on C++ side
 	camera.initEmitter(emitter.emit.bind(emitter));
+}
+
+// Connect to camera and apply settings
+function open_camera() {
+	let ReturnCode;
+
+	if (settings.ISBLANK) {
+		// Settings have not been filled in yet, send an error and return
+		console.error("Settings have not been initialized! Cannot connect to camera");
+		return;
+	}
+
+	// Create WinAPI Window (to recieve camera trigger messages)
+	camera.createWinAPIWindow();
 
 	// Connect to the camera
-	nRet = camera.connect();
-	console.log("Connect to camera:", nRet);
+	ReturnCode = camera.connect();
+	console.log(`Connect to camera: ${ReturnCode} - ${GetErrorFromCode(ReturnCode)}`);
 
 	// Get camera info
-	let camInfo = camera.getInfo();
-	console.log("Camera info: ", camInfo);
+	// Also applies certain settings like image size and color mode
+	let CameraInfo = camera.getInfo();
+	console.log("Camera info:", CameraInfo);
 
-	// Adjust camera settings
-	nRet = camera.applySettings();
-	console.log("Apply settings:", nRet);
-
-	// Initialize buffer
+	// Initialize image buffer
 	camera.initBuffer();
 
-	// Create WinAPI Window (to receive camera trigger messages)
-	nRet = camera.createWinAPIWindow();
-	console.log("Create window:", nRet);
+	// Apply camera settings
+	apply_camera_settings();
+}
 
-	// NOTE TO MARTY: putting the left offset at 140 centers the phosphor screen on the accumulated image
-	// Set AoI (Change later to be done with settings file)
-	camera.setAoI(768, 768, 140, 0); // (AoI-Width, AoI-Height, left-offset, top-offset)
+function apply_camera_settings() {
+	let C = settings.camera; // Camera settings
 
-	// Set IR LED areas
-	camera.setLEDArea(0, 100, 250, 450); // (x-start, x-end, y-start, y-end)
-	camera.setNoiseArea(0, 100, 0, 250); // (x-start, x-end, y-start, y-end)
+	// Apply default camera settings (the ones that I don't think need to be adjustable in Hyperion settings)
+	// These include: Color mode, Display mode, and memory allocation
+	camera.applyDefaultSettings();
+
+	// Centroiding Area of Interest (only looks in this area for electron spots)
+	// NOTE: As of this writing (July 2024), putting left offset = 140 centers the phosphor screen on the accumulated image
+	camera.setAoI(C.AoI_width, C.AoI_height, C.x_offset, C.y_offset); // (AoI-Width, AoI-Height, left-offset, top-offset)
+
+	// LED area is part of screen where IR On/Off LED appears (should not be in area of interest)
+	camera.setLEDArea(C.LED_area.x_start, C.LED_area.x_end, C.LED_area.y_start, C.LED_area.y_end); // (x-start, x-end, y-start, y-end)
+
+	// Noise area is part of screen outside of area of interest where only noisy pixels appear (to compare against LED)
+	camera.setNoiseArea(C.Noise_area.x_start, C.Noise_area.x_end, C.Noise_area.y_start, C.Noise_area.y_end); // (x-start, x-end, y-start, y-end)
+
+	// uEye recommends applying settings in order as 1) Pixel clock, 2) Frame rate, 3) Exposure
+	// We don't need to apply frame rate
+	camera.setPixelClock(C.pixel_clock);
+	camera.setExposure(C.exposure_time);
+
+	// Set gain percentage and gain boost
+	camera.setGain(C.gain);
+	camera.setGainBoost(C.gain_boost);
+
+	// Set trigger mode (0 - No trigger, 1 - Falling edge, 2 - Rising edge, 3 - Software trigger)
+	camera.setTrigger(C.trigger);
+
+	// Whether to use Hybrid centroiding method (HGCM) or just CoM method
+	camera.useHybridMethod(settings.centroid.use_hybrid_method);
+}
+
+// Start image capture and processing
+function start_image_capture() {
+	// Start image capture
+	camera.startCapture();
 
 	// Start processing images
 	if (camera.enableMessages()) {
-		console.log("Messages enabled");
+		console.log("Messages enabled!");
 		check_messages = true;
 		message_loop();
+	} else {
+		console.error("Cannot enable messages!");
 	}
 }
 
+/*****************************************************************************
+
+								MESSAGE LOOP
+
+*****************************************************************************/
+
+let check_messages = false; // Boolean used to check whether to stay in message loop
+
+// At the end of the event loop cycle, check if there is a new camera frame from the uEye camera
+// If there is one, C++ code (camera_[OS].cc) will centroid the image and return the centroids
+// 	using the EventEmitter.
 function message_loop() {
 	if (check_messages) {
 		setTimeout(() => {
-			// Re-execute this function at the end of event loop cycle
 			message_loop();
 		}, 0);
-		//check_messages = false;
-		camera.checkMessages();
+		camera.checkMessages(); // Check for new camera frame
 	}
 }
 
-// End the message loop and close the camera
+// End message loop and close the camera
 function close_camera() {
 	check_messages = false;
-	camera.close();
-	console.log("Camera Closed!");
+	camera.close(); // Error codes will be printed to terminal on C++ side
 }
 
-//
-/*			Messengers				*/
-//
+/*****************************************************************************
+
+								IPC MESSAGES
+
+*****************************************************************************/
 
 // Recieve setting information and go through startup procedure
-ipc.on("settings-information", (event, settings_information) => {
+ipc.on(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
 	settings = settings_information;
+	console.log("Settings received!");
+	console.log(settings);
 	startup();
 });
 
-// Turn on / off hybrid method
-ipc.on("hybrid-method", function (event, message) {
-	//centroid.useHybrid(message);
-});
-
-ipc.on("close-camera", function (event, message) {
+// Close camera and notify Main that camera has been closed
+ipc.on(IPCMessages.UPDATE.CLOSECAMERA, function (event, message) {
 	close_camera();
-	ipc.send("camera-closed", null);
+	ipc.send(IPCMessages.UPDATE.CAMERACLOSED);
 });

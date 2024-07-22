@@ -203,9 +203,9 @@ class WavemeterManager {
 		}
 
 		// This is a gross way to do it but it works so whatever
-		let type = this.name.toLowerCase(); // e.g. "Excitation" -> "excitation"
-		if (settings?.laser[type]?.wavemeter_channel) {
-			this.params.channel = settings.laser[type].wavemeter_channel; // Only works for Excitation and Detachment static instances
+		let channel = this.name.toLowerCase() + "_laser_channel"; // e.g. "Excitation" -> "excitation_laser_channel"
+		if (settings?.wavemeter[channel]) {
+			this.params.channel = settings.wavemeter[channel]; // Only works for Excitation and Detachment static instances
 		}
 	}
 }

@@ -179,7 +179,6 @@ Napi::Boolean SetIROffRadii(const Napi::CallbackInfo& info) {
 				float weight = (float)napiWeights.Get(Napi::Number::New(env, i)).ToNumber().FloatValue();
 				radii.push_back(radius);
 				weights.push_back(weight);
-				printf("%f, %f", radius, weight);
 			}
 			IROffRadii = radii;
 			IROffWeights = weights;
@@ -206,7 +205,6 @@ Napi::Boolean SetIROnRadii(const Napi::CallbackInfo& info) {
 				float weight = (float)napiWeights.Get(Napi::Number::New(env, i)).ToNumber().FloatValue();
 				radii.push_back(radius);
 				weights.push_back(weight);
-				printf("%f, %f", radius, weight);
 			}
 			IROnRadii = radii;
 			IROnWeights = weights;
@@ -288,7 +286,7 @@ Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 // Initialize image for centroiding
 // Get pMem;
 // Returns true unless camera was not "initialized"
-Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
+Napi::Boolean ApplyDefaultSettings(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	// Initialize image array for centroiding
@@ -439,7 +437,16 @@ void SetNoiseArea(const Napi::CallbackInfo& info) {
 
 // Set the camera trigger
 // Returns true
-Napi::Boolean SetTrigger(Napi::CallbackInfo& info) {
+Napi::Boolean SetTrigger(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
+// Set the camera pixel clock
+// Returns true
+Napi::Boolean SetPixelClock(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	// Return true
@@ -448,7 +455,7 @@ Napi::Boolean SetTrigger(Napi::CallbackInfo& info) {
 
 // Set the camera exposure
 // Returns true
-Napi::Boolean SetExposure(Napi::CallbackInfo& info) {
+Napi::Boolean SetExposure(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	// Return true
@@ -457,7 +464,16 @@ Napi::Boolean SetExposure(Napi::CallbackInfo& info) {
 
 // Set the camera gain
 // Returns true
-Napi::Boolean SetGain(Napi::CallbackInfo& info) {
+Napi::Boolean SetGain(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
+// Set the camera gain boost
+// Returns true
+Napi::Boolean SetGainBoost(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	// Return true
@@ -466,7 +482,7 @@ Napi::Boolean SetGain(Napi::CallbackInfo& info) {
 
 // Start camera image capture
 // Returns true
-Napi::Boolean StartCapture(Napi::CallbackInfo& info) {
+Napi::Boolean StartCapture(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	// Return true
@@ -630,10 +646,16 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	exports["createWinAPIWindow"] = Napi::Function::New(env, CreateWinAPIWindow);
 	exports["connect"] = Napi::Function::New(env, Connect);
 	exports["getInfo"] = Napi::Function::New(env, GetInfo);
+	exports["applyDefaultSettings"] = Napi::Function::New(env, ApplyDefaultSettings);
 	exports["setAoI"] = Napi::Function::New(env, SetAoI);
 	exports["setLEDArea"] = Napi::Function::New(env, SetLEDArea);
 	exports["setNoiseArea"] = Napi::Function::New(env, SetNoiseArea);
-	exports["applySettings"] = Napi::Function::New(env, ApplySettings);
+	exports["setTrigger"] = Napi::Function::New(env, SetTrigger);
+	exports["setPixelClock"] = Napi::Function::New(env, SetPixelClock);
+	exports["setExposure"] = Napi::Function::New(env, SetExposure);
+	exports["setGain"] = Napi::Function::New(env, SetGain);
+	exports["setGainBoost"] = Napi::Function::New(env, SetGainBoost);
+	exports["startCapture"] = Napi::Function::New(env, StartCapture);
 	exports["enableMessages"] = Napi::Function::New(env, EnableMessages);
 	exports["checkMessages"] = Napi::Function::New(env, CheckMessages);
 	exports["close"] = Napi::Function::New(env, Close);

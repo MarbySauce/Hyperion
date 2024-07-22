@@ -272,7 +272,7 @@ function IRActionManager_update_options(action_options) {
 
 function IRActionManager_process_settings(settings) {
 	if (settings?.action) IRActionManager.params.move_wavelength_every_time = settings.action.move_wavelength_every_time;
-	if (settings?.laser?.excitation) IRActionManager.params.acceptance_range = settings.laser.excitation.acceptance_range;
+	if (settings?.excitation_laser) IRActionManager.params.acceptance_range = settings.excitation_laser.acceptance_range;
 }
 
 function initialize_action_queue() {

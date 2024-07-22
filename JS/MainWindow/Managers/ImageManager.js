@@ -10,7 +10,7 @@ const { ManagerAlert } = require("../../Libraries/ManagerAlert.js");
 const { UpdateMessenger } = require("./UpdateMessenger.js");
 const { DetachmentLaserManagerMessenger } = require("./DetachmentLaserManager.js");
 const { ExcitationLaserManagerMessenger } = require("./ExcitationLaserManager.js");
-const { IPCMessages } = require("../../Messages.js");
+const { IPCMessages } = require("../../Libraries/Messages.js");
 
 const update_messenger = new UpdateMessenger(); // Messenger used for displaying update or error messages to the Message Display
 const DLMMessenger = new DetachmentLaserManagerMessenger();
@@ -798,7 +798,7 @@ function ImageManager_update_information(image_class) {
 
 function ImageManager_process_settings(settings) {
 	if (!settings) return; // settings is blank
-	if (settings?.centroid?.hybrid_method !== undefined) ImageManager.params.centroid.use_hybrid_method = settings.centroid.hybrid_method;
+	if (settings?.centroid?.use_hybrid_method !== undefined) ImageManager.params.centroid.use_hybrid_method = settings.centroid.use_hybrid_method;
 	if (settings?.centroid?.bin_size !== undefined) {
 		ImageManager.params.centroid.bin_size = settings.centroid.bin_size;
 		Image.bin_size = settings.centroid.bin_size;
@@ -812,9 +812,9 @@ function ImageManager_process_settings(settings) {
 		Image.do_not_save_to_file = settings.testing.do_not_save_to_file;
 	}
 
-	if (settings?.save_directory?.full_dir !== undefined) {
-		ImageManager.info.save_directory = settings.save_directory.full_dir;
-		Image.save_directory = settings.save_directory.full_dir;
+	if (settings?.save_directory?.full_directory !== undefined) {
+		ImageManager.info.save_directory = settings.save_directory.full_directory;
+		Image.save_directory = settings.save_directory.full_directory;
 	}
 
 	if (settings?.autosave) ImageManager.autosave.update_info(settings.autosave);

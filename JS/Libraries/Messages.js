@@ -1,0 +1,22 @@
+// These are the messages sent between all rendered windows and the main process (i.e. main.js)
+const IPCMessages = {
+	READY: {
+		MAINWINDOW: "IPC-MAIN-WINDOW-READY",
+		LIVEVIEW: "IPC-LV-WINDOW-READY",
+		INVISIBLE: "IPC-INVISIBLE-WINDOW-READY",
+	},
+	LOADED: {
+		MAINWINDOW: "IPC-MAIN-WINDOW-LOADED",
+	},
+	INFORMATION: {
+		SETTINGS: "IPC-SETTINGS-INFORMATION",
+		TEMPSETTINGS: "IPC-TEMP-SETTINGS-INFORMATION",
+	},
+	UPDATE: {
+		NEWFRAME: "IPC-NEW-CAMERA-FRAME",
+		CLOSECAMERA: "IPC-CLOSE-CAMERA",
+		CAMERACLOSED: "IPC-CAMERA-CLOSED",
+	},
+};
+
+module.exports = { IPCMessages };

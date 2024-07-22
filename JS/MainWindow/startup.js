@@ -1,6 +1,6 @@
 // Libraries
 const ipc = require("electron").ipcRenderer;
-const { IPCMessages } = require("../JS/Messages.js");
+const { IPCMessages } = require("../JS/Libraries/Messages.js");
 const { UpdateMessenger, initialize_message_display } = require("../JS/MainWindow/Managers/UpdateMessenger.js");
 const wavemeter = require("bindings")("wavemeter");
 const { ImageManagerMessenger, AutostopMethod } = require("../JS/MainWindow/Managers/ImageManager.js");
@@ -33,7 +33,8 @@ window.onload = function () {
 };
 
 // Recieve setting information and go through startup procedure
-ipc.on("settings-information", (event, settings_information) => {
+ipc.on(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
+	console.log("Settings received!");
 	settings = settings_information;
 	process_settings();
 	startup();
