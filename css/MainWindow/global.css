@@ -503,6 +503,11 @@ label {
 	height: 25px;
 	text-align: center;
 }
+.settings-number-input-very-long {
+	width: 15%;
+	height: 25px;
+	text-align: center;
+}
 
 .unit-label {
 	padding: 0 0 0 0;
