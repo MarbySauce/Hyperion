@@ -21,16 +21,45 @@
 	width: 20px;
 }
 
+#Trigger {
+	height: 40px;
+	width: 150px;
+}
+
 /* Centroid Settings */
+
+#CentroidBinSize {
+	height: 40px;
+	width: 170px;
+}
+
+/* Saving Settings */
+
+#ChangeSaveDirectoryButton {
+	width: 100px;
+	height: 40px;
+}
+#SettingsSaveDirectory {
+	width: 500px;
+	height: 40px;
+}
 
 /* Save Button */
 
 #SaveButtonSection {
 	padding: 10px;
-	padding-left: 90%;
+	padding-left: 75%;
 }
 
+#ResetSettingsButton {
+	width: 80px;
+	height: 50px;
+}
+#UpdateSettingsButton {
+	width: 80px;
+	height: 50px;
+}
 #SaveSettingsButton {
-	width: 100%;
-	height: 50%;
+	width: 80px;
+	height: 50px;
 }

@@ -498,6 +498,11 @@ label {
 	height: 25px;
 	text-align: center;
 }
+.settings-number-input-long {
+	width: 10%;
+	height: 25px;
+	text-align: center;
+}
 
 .unit-label {
 	padding: 0 0 0 0;
@@ -512,6 +517,10 @@ label {
 	padding-left: 20px;
 	color: white;
 	border-bottom: 1px dotted white;
+}
+
+.settings-drop-down {
+	padding-left: 1%;
 }
 
 /* Get rid of input arrows */

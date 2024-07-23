@@ -640,19 +640,53 @@
 		<!-- Settings Section -->
 		<div id="SettingsContent">
 			<h1 id="SettingsTitle">Settings</h1>
+			<br /><br />
+			<!-- Camera Settings -->
 			<div class="settings-section" id="CameraSettingsContent">
 				<h3 class="settings-section-title">Camera Settings</h3>
 				<br />
-				<label class="settings-input-label" for="AoIx">AoI Width:</label>
-				<input type="number" class="settings-number-input input-change" id="AoIx" />
-				<label class="settings-input-label" for="AoIy">AoI Height:</label>
-				<input type="number" class="settings-number-input input-change" id="AoIy" />
-				<br /><br />
+				<!-- Area of Interest -->
+				<h4 class="white-text">Centroiding Area of Interest</h4>
+				<br />
+				<label class="settings-input-label" for="AoIWidth">AoI Width:</label>
+				<input type="number" class="settings-number-input input-change" id="AoIWidth" />
+				<label class="settings-input-label" for="AoIHeight">AoI Height:</label>
+				<input type="number" class="settings-number-input input-change" id="AoIHeight" />
 				<label class="settings-input-label" for="xOffset">Offset Left:</label>
 				<input type="number" class="settings-number-input input-change" id="xOffset" />
 				<label class="settings-input-label" for="yOffset">Offset Top:</label>
 				<input type="number" class="settings-number-input input-change" id="yOffset" />
 				<br /><br />
+				<!-- LED Area -->
+				<h4 class="white-text">IR On/Off LED Area</h4>
+				<br />
+				<label class="settings-input-label" for="LEDXStart">LED x start:</label>
+				<input type="number" class="settings-number-input input-change" id="LEDXStart" />
+				<label class="settings-input-label" for="LEDXEnd">LED x end:</label>
+				<input type="number" class="settings-number-input input-change" id="LEDXEnd" />
+				<label class="settings-input-label" for="LEDYStart">LED y start:</label>
+				<input type="number" class="settings-number-input input-change" id="LEDYStart" />
+				<label class="settings-input-label" for="LEDYEnd">LED y end:</label>
+				<input type="number" class="settings-number-input input-change" id="LEDYEnd" />
+				<br /><br />
+				<!-- LED NOISE Area -->
+				<h4 class="white-text">Noise Area (for IR On/Off LED)</h4>
+				<br />
+				<label class="settings-input-label" for="NoiseXStart">Noise x start:</label>
+				<input type="number" class="settings-number-input input-change" id="NoiseXStart" />
+				<label class="settings-input-label" for="NoiseXEnd">Noise x end:</label>
+				<input type="number" class="settings-number-input input-change" id="NoiseXEnd" />
+				<label class="settings-input-label" for="NoiseYStart">Noise y start:</label>
+				<input type="number" class="settings-number-input input-change" id="NoiseYStart" />
+				<label class="settings-input-label" for="NoiseYEnd">Noise y end:</label>
+				<input type="number" class="settings-number-input input-change" id="NoiseYEnd" />
+				<br /><br />
+				<!-- Camera Parameters -->
+				<h4 class="white-text">Camera Parameters</h4>
+				<br />
+				<label class="settings-input-label" for="PixelClock">Pixel Clock:</label>
+				<input type="number" class="settings-number-input input-change" id="PixelClock" />
+				<label class="unit-label" for="PixelClock">MHz</label>
 				<label class="settings-input-label" for="ExposureTime">Exposure Time:</label>
 				<input type="number" class="settings-number-input input-change" id="ExposureTime" />
 				<label class="unit-label" for="ExposureTime">ms</label>
@@ -662,52 +696,208 @@
 				<label class="settings-input-label" for="GainBoost">Use Gain Boost:</label>
 				<input type="checkbox" id="GainBoost" />
 				<br /><br />
+				<!-- Triggering Parameters -->
+				<h4 class="white-text">Triggering Parameters</h4>
+				<br />
 				<label class="settings-input-label">Trigger:</label>
-				<label class="settings-input-label" for="InternalTrigger">Internal Trigger</label>
-				<input type="radio" name="Trigger" id="InternalTrigger" value="InternalTrigger" />
-				<label class="settings-input-label" for="RisingEdge">Rising Edge</label>
-				<input type="radio" name="Trigger" id="RisingEdge" value="RisingEdge" />
-				<label class="settings-input-label" for="FallingEdge">Falling Edge</label>
-				<input type="radio" name="Trigger" id="FallingEdge" value="FallingEdge" />
+				<select class="white-text square-button drop-down settings-drop-down" name="Trigger" id="Trigger">
+					<option value="TriggerOff">Trigger Off</option>
+					<option value="Falling Edge">Falling Edge ¯¯\_</option>
+					<option value="Rising Edge">Rising Edge _/¯¯</option>
+					<option value="Software Trigger">Software Trigger</option>
+				</select>
 				<br /><br />
-				<label class="settings-input-label" for="TriggerDelay">Trigger Delay:</label>
-				<input type="number" class="settings-number-input input-change" id="TriggerDelay" />
-				<label class="unit-label" for="TriggerDelay">ms</label>
-				<!--
-					flash settings
-					Location of IR light
-				-->
 			</div>
+			<br />
+			<!-- Centroiding Settings -->
 			<div class="settings-section" id="CentroidingSettingsContent">
 				<h3 class="settings-section-title">Centroid Settings</h3>
 				<br />
-				<label class="settings-input-label" for="RawAccumulation">Accumulate Raw Spots</label>
-				<input type="radio" name="CentroidAccumulationRadio" id="RawAccumulation" value="Raw" />
-				<label class="settings-input-label" for="CentroidAccumulation">Accumulate Centroids</label>
-				<input type="radio" name="CentroidAccumulationRadio" id="CentroidAccumulation" value="Centroid" />
-				<br /><br />
 				<label class="settings-input-label" for="HybridMethod">Use Hybrid Method</label>
 				<input type="checkbox" id="HybridMethod" />
 				<br /><br />
-				<label class="settings-input-label" for="CentroidBinSize">Additional Centroid Binning Size:</label>
-				<input class="settings-number-input input-change" id="CentroidBinSize" type="number" min="0" max="4096" />
-				<label class="unit-label" for="CentroidBinSize"><sup>2</sup></label>
+				<label class="settings-input-label" for="CentroidBinSize">Centroid Binning Size:</label>
+				<select class="white-text square-button drop-down settings-drop-down" name="CentroidBinSize" id="CentroidBinSize">
+					<option value="Small">Small (768x768)</option>
+					<option value="Regular">Regular (1024x1024)</option>
+					<option value="Big">Big (1536x1536)</option>
+					<option value="Large">Large (2048x2048)</option>
+					<option value="Huge">Huge (3072x3072)</option>
+					<option value="Massive">Massive (4096x4096)</option>
+				</select>
+				<br /><br />
 			</div>
+			<br />
+			<!-- Settings related to saving files -->
+			<div class="settings-section" id="SavingSettingsContent">
+				<h3 class="settings-section-title">Saving Settings</h3>
+				<br />
+				<label class="settings-input-label" for="SettingsSaveDirectory">Current Save Directory:</label>
+				<input class="white-text input-read file-name-display" id="SettingsSaveDirectory" readonly />
+				<button class="square-button white-text" id="ChangeSaveDirectoryButton">Change</button>
+				<br /><br />
+				<label class="settings-input-label" for="AutosaveDelay">Autosave Delay:</label>
+				<input type="number" class="settings-number-input input-change" id="AutosaveDelay" min="0" />
+				<label class="unit-label" for="AutosaveDelay">seconds</label>
+				<br /><br />
+				<h4 class="white-text">MELEXIR Settings</h4>
+				<br />
+				<label class="settings-input-label" for="ProcessOnSave">Process with MELEXIR when image is saved:</label>
+				<input type="checkbox" id="ProcessOnSave" />
+				<br /><br />
+				<label class="settings-input-label" for="SaveSpectrum">Save photoelectron spectrum to file:</label>
+				<input type="checkbox" id="SaveSpectrum" />
+				<br /><br />
+				<label class="settings-input-label" for="SaveBestFit">Save best fit spectrum:</label>
+				<input type="checkbox" id="SaveBestFit" />
+				<label class="settings-input-label" for="SaveResiduals">Save residuals:</label>
+				<input type="checkbox" id="SaveResiduals" />
+				<br /><br />
+			</div>
+			<br />
+			<!-- Various Settings -->
+			<div class="settings-section" id="VariousSettingsContent">
+				<h3 class="settings-section-title">Various Settings</h3>
+				<br />
+				<label class="settings-input-label" for="MoveWavelengthEveryTime"
+					>Attempt to move IR wavelength between images at the same energy step:</label
+				>
+				<input type="checkbox" id="MoveWavelengthEveryTime" />
+				<br /><br />
+				<label class="settings-input-label" for="AutostopOnBoth">Autostop scan only when both images meet criteria (or first image to):</label>
+				<input type="checkbox" id="AutostopOnBoth" />
+				<br /><br />
+				<label class="settings-input-label" for="ShowImageSeriesMenu">Show image series menu on start button:</label>
+				<input type="checkbox" id="ShowImageSeriesMenu" />
+				<br /><br />
+				<label class="settings-input-label" for="TestingDontSave">(FOR TESTING PURPOSES) Don't save anything to file:</label>
+				<input type="checkbox" id="TestingDontSave" />
+				<br /><br />
+			</div>
+			<br />
+			<!-- Laser and Wavemeter Settings -->
+			<div class="settings-section" id="LaserSettingsContent">
+				<h3 class="settings-section-title">Laser and Wavemeter Settings</h3>
+				<br />
+				<!-- Detachment Laser -->
+				<h4 class="white-text">Detachment Laser Settings</h4>
+				<br />
+				<label class="settings-input-label" for="DetachmentYAGFundamental">Detachment Nd:YAG Fundamental Wavelength:</label>
+				<input type="number" class="settings-number-input input-change" id="DetachmentYAGFundamental" />
+				<label class="unit-label" for="DetachmentYAGFundamental">nm</label>
+				<br /><br />
+				<!-- Excitation Laser -->
+				<h4 class="white-text">Excitation Laser Settings</h4>
+				<br />
+				<label class="settings-input-label" for="ExcitationYAGFundamental">Excitation Nd:YAG Fundamental Wavelength:</label>
+				<input type="number" class="settings-number-input input-change" id="ExcitationYAGFundamental" />
+				<label class="unit-label" for="ExcitationYAGFundamental">nm</label>
+				<br /><br />
+				<label class="settings-input-label" for="LowerWavelengthBound">nIR Wavelength Bounds:</label>
+				<input type="number" class="settings-number-input input-change" id="LowerWavelengthBound" />
+				<label class="unit-label" for="LowerWavelengthBound"> - </label>
+				<input type="number" class="settings-number-input input-change" id="UpperWavelengthBound" />
+				<label class="unit-label" for="UpperWavelengthBound">nm</label>
+				<br /><br />
+				<label class="settings-input-label" for="FIRLowerWavelengthBound">(in fIR Mode) nIR Wavelength Bounds:</label>
+				<input type="number" class="settings-number-input input-change" id="FIRLowerWavelengthBound" />
+				<label class="unit-label" for="FIRLowerWavelengthBound"> - </label>
+				<input type="number" class="settings-number-input input-change" id="FIRUpperWavelengthBound" />
+				<label class="unit-label" for="FIRUpperWavelengthBound">nm</label>
+				<br /><br />
+				<label class="settings-input-label" for="InFIRMode">OPO/A in fIR Mode:</label>
+				<input type="checkbox" id="InFIRMode" />
+				<br /><br />
+				<label class="settings-input-label" for="GoToMoveAttempts">GoTo Wavelength Move Attempts:</label>
+				<input type="number" class="settings-number-input input-change" id="GoToMoveAttempts" />
+				<label class="settings-input-label" for="GoToAcceptanceRange">GoTo Acceptance Range:</label>
+				<input type="number" class="settings-number-input input-change" id="GoToAcceptanceRange" />
+				<label class="unit-label" for="GoToAcceptanceRange">cm<sup>-1</sup></label>
+				<br /><br />
+				<label class="settings-input-label" for="OPOHost">OPO/A Network Host Address:</label>
+				<input type="number" class="settings-number-input input-change" id="OPOHost" />
+				<label class="settings-input-label" for="OPOPort">Port:</label>
+				<input type="number" class="settings-number-input input-change" id="OPOPort" />
+				<br /><br />
+				<!-- Wavemeter -->
+				<h4 class="white-text">Wavemeter Settings</h4>
+				<br />
+				<label class="settings-input-label" for="CollectionLength">Wavelength Collection Length:</label>
+				<input type="number" class="settings-number-input input-change" id="CollectionLength" />
+				<label class="settings-input-label" for="MaxFailCount">Max Fail Count:</label>
+				<input type="number" class="settings-number-input input-change" id="MaxFailCount" />
+				<label class="settings-input-label" for="MaxBadMeasurement">Max Bad Measurements:</label>
+				<input type="number" class="settings-number-input input-change" id="MaxBadMeasurement" />
+				<br /><br />
+				<label class="settings-input-label" for="DetachmentChannel">Wavemeter Channels - Detachment Laser:</label>
+				<input type="number" class="settings-number-input input-change" id="DetachmentChannel" />
+				<label class="settings-input-label" for="ExcitationChannel">Excitation Laser:</label>
+				<input type="number" class="settings-number-input input-change" id="ExcitationChannel" />
+				<br /><br />
+			</div>
+			<br />
+			<!-- VMI Calibration Constants-->
+			<div class="settings-section" id="VMISettingsContent">
+				<h3 class="settings-section-title">VMI Calibration Constants</h3>
+				<br />
+				<h4 class="white-text">eKE = a * R<sup>2</sup> + b * R<sup>4</sup></h4>
+				<br />
+				<label class="settings-input-label" for="V1aConstant">V1 - a:</label>
+				<input type="number" class="settings-number-input-long input-change" id="V1aConstant" />
+				<label class="settings-input-label" for="V1aConstant"> b:</label>
+				<input type="number" class="settings-number-input-long input-change" id="V1bConstant" />
+				<br /><br />
+				<label class="settings-input-label" for="V2aConstant">V2 - a:</label>
+				<input type="number" class="settings-number-input-long input-change" id="V2aConstant" />
+				<label class="settings-input-label" for="V2aConstant"> b:</label>
+				<input type="number" class="settings-number-input-long input-change" id="V2bConstant" />
+				<br /><br />
+				<label class="settings-input-label" for="V3aConstant">V3 - a:</label>
+				<input type="number" class="settings-number-input-long input-change" id="V3aConstant" />
+				<label class="settings-input-label" for="V3aConstant"> b:</label>
+				<input type="number" class="settings-number-input-long input-change" id="V3bConstant" />
+				<br /><br />
+				<label class="settings-input-label" for="V4aConstant">V4 - a:</label>
+				<input type="number" class="settings-number-input-long input-change" id="V4aConstant" />
+				<label class="settings-input-label" for="V4aConstant"> b:</label>
+				<input type="number" class="settings-number-input-long input-change" id="V4bConstant" />
+				<br /><br />
+			</div>
+			<br />
+			<!-- Display Settings -->
 			<div class="settings-section" id="DisplaySettingsContent">
-				<!--
-					Show red circles for centroids
-					?Show e- graph or previous files on main page
-					Startup page size and location
-				-->
+				<!-- Window size and location-->
+				<h3 class="settings-section-title">Window Display Settings</h3>
+				<br />
+				<!-- Main Window -->
+				<h4 class="white-text">Main Window</h4>
+				<br />
+				<label class="settings-input-label" for="MainWindowWidth">Width:</label>
+				<input type="number" class="settings-number-input input-change" id="MainWindowWidth" />
+				<label class="settings-input-label" for="MainWindowHeight">Height:</label>
+				<input type="number" class="settings-number-input input-change" id="MainWindowHeight" />
+				<label class="settings-input-label" for="MainWindowX">(Upper left corner) x position:</label>
+				<input type="number" class="settings-number-input input-change" id="MainWindowX" />
+				<label class="settings-input-label" for="MainWindowY">y position:</label>
+				<input type="number" class="settings-number-input input-change" id="MainWindowY" />
+				<br /><br />
+				<!-- Live View Window -->
+				<h4 class="white-text">Live View Window</h4>
+				<br />
+				<label class="settings-input-label" for="LiveViewWindowWidth">Width:</label>
+				<input type="number" class="settings-number-input input-change" id="LiveViewWindowWidth" />
+				<label class="settings-input-label" for="LiveViewWindowHeight">Height:</label>
+				<input type="number" class="settings-number-input input-change" id="LiveViewWindowHeight" />
+				<label class="settings-input-label" for="LiveViewWindowX">(Upper left corner) x position:</label>
+				<input type="number" class="settings-number-input input-change" id="LiveViewWindowX" />
+				<label class="settings-input-label" for="LiveViewWindowY">y position:</label>
+				<input type="number" class="settings-number-input input-change" id="LiveViewWindowY" />
+				<br /><br />
 			</div>
-			<div class="settings-section" id="PostProcessSettingsContent">
-				<!--
-					Location of MEVELER stuff
-				-->
-			</div>
-			<div class="settings-section" id="SavingSettingsContent"></div>
 			<div class="settings-section" id="SaveButtonSection">
 				<!-- Add text that says "Saved!" when save button clicked -->
+				<button class="square-button white-text" id="ResetSettingsButton">Reset</button>
+				<button class="square-button white-text" id="UpdateSettingsButton">Update</button>
 				<button class="square-button white-text" id="SaveSettingsButton">Save</button>
 			</div>
 		</div>
