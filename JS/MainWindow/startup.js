@@ -33,8 +33,7 @@ window.onload = function () {
 };
 
 // Recieve setting information and go through startup procedure
-ipc.on(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
-	console.log("Settings received!");
+ipc.once(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
 	settings = settings_information;
 	process_settings();
 	startup();
@@ -46,6 +45,7 @@ async function startup() {
 	const { Sevi_Load_Page } = require("../JS/MainWindow/seviInterface.js");
 	const { IRSevi_Load_Page } = require("../JS/MainWindow/irseviInterface.js");
 	const { IRAction_Load_Page } = require("../JS/MainWindow/iractionInterface.js");
+	const { Settings_Load_Page } = require("../JS/MainWindow/settingsInterface.js");
 
 	// Initialize message display
 	initialize_message_display(document.getElementById("MessageDisplay"));
@@ -55,6 +55,7 @@ async function startup() {
 	Sevi_Load_Page(PageInfo);
 	IRSevi_Load_Page(PageInfo);
 	IRAction_Load_Page(PageInfo);
+	Settings_Load_Page();
 
 	// Go to Sevi Mode tab
 	change_tab(Tabs.SEVI); // From interface.js
