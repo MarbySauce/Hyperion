@@ -22,9 +22,12 @@ window.onload = function () {
 };
 
 // Recieve setting information and go through startup procedure
-ipc.on(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
+ipc.once(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
 	settings = settings_information;
 	Startup();
+	ipc.on(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
+		settings = settings_information;
+	});
 });
 
 function Startup() {

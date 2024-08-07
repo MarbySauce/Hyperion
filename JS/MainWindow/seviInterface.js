@@ -989,12 +989,21 @@ function Sevi_Load_Page(PageInfo) {
 	const { ImageManagerMessenger } = require("./Managers/ImageManager.js");
 	const IMMessenger = new ImageManagerMessenger();
 
+	const ipc = require("electron").ipcRenderer;
+	const { IPCMessages } = require("../Libraries/Messages.js");
+
 	// Show/hide image series button based on settings
-	const sevi_controls = document.getElementById("SeviScanControls");
-	if (sevi_controls) {
-		if (settings?.image_series.show_menu) sevi_controls.classList.remove("hide-image-series");
-		else sevi_controls.classList.add("hide-image-series");
+	function show_hide_image_series_button(new_settings) {
+		const sevi_controls = document.getElementById("SeviScanControls");
+		if (sevi_controls) {
+			if (new_settings?.image_series.show_menu) sevi_controls.classList.remove("hide-image-series");
+			else sevi_controls.classList.add("hide-image-series");
+		}
 	}
+	show_hide_image_series_button(settings);
+	ipc.on(IPCMessages.INFORMATION.SETTINGS, (event, new_settings) => {
+		show_hide_image_series_button(new_settings);
+	});
 
 	// Show tab highlight if SEVI scan is being taken
 	IMMessenger.listen.event.scan.start.on(() => {

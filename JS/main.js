@@ -38,8 +38,8 @@ const Windows = {
 		open_live_view_window: true,
 		open_invisible_window: true,
 		open_main_dev_tools: true,
-		open_live_view_dev_tools: true,
-		open_invisible_dev_tools: true,
+		open_live_view_dev_tools: false,
+		open_invisible_dev_tools: false,
 	},
 	main: undefined, // Main Window
 	live_view: undefined, // Live View Window
@@ -235,14 +235,19 @@ function close_windows() {
 /** Shut down the app safely */
 function shut_down_app() {
 	// Save settings to file and close Main and Live View windows
-	SettingsManager.save(() => {
-		// Close windows after files are saved
-		delete_empty_folder();
-		if (Windows.main) Windows.main.close();
-		if (Windows.live_view) Windows.live_view.close();
-		Windows.main = undefined;
-		Windows.live_view = undefined;
-	});
+	//SettingsManager.save(() => {
+	//	// Close windows after files are saved
+	//	delete_empty_folder();
+	//	if (Windows.main) Windows.main.close();
+	//	if (Windows.live_view) Windows.live_view.close();
+	//	Windows.main = undefined;
+	//	Windows.live_view = undefined;
+	//});
+	delete_empty_folder();
+	if (Windows.main) Windows.main.close();
+	if (Windows.live_view) Windows.live_view.close();
+	Windows.main = undefined;
+	Windows.live_view = undefined;
 	// Send message to invisible window to close camera
 	if (Windows.invisible) Windows.invisible.webContents.send(IPCMessages.UPDATE.CLOSECAMERA);
 }
@@ -285,6 +290,8 @@ function SettingsManager_read() {
 			SettingsManager.settings.testing = saved_settings["testing"];
 
 			SettingsManager.settings.ISBLANK = false; // Settings have been updated
+
+			SettingsManager.temp_settings = SettingsManager.settings;
 
 			// Create folders to save images
 			create_folders();
@@ -343,9 +350,67 @@ function send_settings(window) {
  */
 function send_temp_settings(window) {
 	if (window) {
-		window.webContents.send(IPCMessages.INFORMATION.TEMPSETTINGS, SettingsManager.temp_settings);
+		window.webContents.send(IPCMessages.INFORMATION.SETTINGS, SettingsManager.temp_settings);
 	}
 }
+
+function check_for_new_window_size(new_settings, old_settings) {
+	if (new_settings.windows.main.x !== old_settings.windows.main.x) return true;
+	if (new_settings.windows.main.y !== old_settings.windows.main.y) return true;
+	if (new_settings.windows.main.width !== old_settings.windows.main.width) return true;
+	if (new_settings.windows.main.height !== old_settings.windows.main.height) return true;
+	if (new_settings.windows.live_view.x !== old_settings.windows.live_view.x) return true;
+	if (new_settings.windows.live_view.y !== old_settings.windows.live_view.y) return true;
+	if (new_settings.windows.live_view.width !== old_settings.windows.live_view.width) return true;
+	if (new_settings.windows.live_view.height !== old_settings.windows.live_view.height) return true;
+	return false;
+}
+
+/****
+		IPC Event Listeners
+****/
+
+ipcMain.on(IPCMessages.INFORMATION.RESET, (event) => {
+	if (check_for_new_window_size(SettingsManager.settings, SettingsManager.temp_settings)) {
+		resize_main_window(SettingsManager.settings.windows);
+		resize_live_view_window(SettingsManager.settings.windows);
+	}
+	SettingsManager.temp_settings = SettingsManager.settings;
+	send_settings(Windows.main);
+	send_settings(Windows.live_view);
+	send_settings(Windows.invisible);
+});
+
+/**
+ * Recieve temporary update to settings
+ */
+ipcMain.on(IPCMessages.INFORMATION.TEMPSETTINGS, (event, temp_settings) => {
+	// Update windows and send settings around
+	if (check_for_new_window_size(temp_settings, SettingsManager.temp_settings)) {
+		resize_main_window(temp_settings.windows);
+		resize_live_view_window(temp_settings.windows);
+	}
+	SettingsManager.temp_settings = temp_settings;
+	send_temp_settings(Windows.main);
+	send_temp_settings(Windows.live_view);
+	send_temp_settings(Windows.invisible);
+});
+
+/**
+ * Recieve update to settings and save to file
+ */
+ipcMain.on(IPCMessages.INFORMATION.SETTINGS, (event, settings) => {
+	// Update windows and send settings around
+	if (check_for_new_window_size(settings, SettingsManager.settings)) {
+		resize_main_window(settings.windows);
+		resize_live_view_window(settings.windows);
+	}
+	SettingsManager.settings = settings;
+	send_settings(Windows.main);
+	send_settings(Windows.live_view);
+	send_settings(Windows.invisible);
+	SettingsManager.save();
+});
 
 /*****************************************************************************
 

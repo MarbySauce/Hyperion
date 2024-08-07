@@ -156,11 +156,13 @@ function close_camera() {
 *****************************************************************************/
 
 // Recieve setting information and go through startup procedure
-ipc.on(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
+ipc.once(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
 	settings = settings_information;
-	console.log("Settings received!");
-	console.log(settings);
 	startup();
+	ipc.on(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
+		settings = settings_information;
+		apply_camera_settings();
+	});
 });
 
 // Close camera and notify Main that camera has been closed

@@ -37,6 +37,11 @@ ipc.once(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
 	settings = settings_information;
 	process_settings();
 	startup();
+	// Update settings whenever new ones are recieved from main process
+	ipc.on(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
+		settings = settings_information;
+		process_settings();
+	});
 });
 
 async function startup() {
