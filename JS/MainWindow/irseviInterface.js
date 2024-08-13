@@ -598,6 +598,7 @@ function IRSevi_Accumulated_Image_Display(PageInfo) {
 	IMMessenger.listen.info_update.decreased_contrast.on((checked) => {
 		const checkbox = document.getElementById("IRSeviDisplayCheckbox");
 		checkbox.checked = checked;
+		update_irsevi_accumulated_image_display();
 	});
 
 	/****

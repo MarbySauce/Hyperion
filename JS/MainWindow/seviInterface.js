@@ -412,6 +412,7 @@ function Sevi_Accumulated_Image_Display(PageInfo) {
 	IMMessenger.listen.info_update.decreased_contrast.on((checked) => {
 		const checkbox = document.getElementById("SeviDisplayCheckbox");
 		checkbox.checked = checked;
+		update_sevi_accumulated_image_display();
 	});
 
 	/****
