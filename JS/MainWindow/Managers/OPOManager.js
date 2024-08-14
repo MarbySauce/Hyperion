@@ -292,7 +292,9 @@ function OPOManager_process_settings(settings) {
 		OPOManager.params.in_fir_mode = settings.excitation_laser.in_fir_mode;
 	}
 	// Connect to OPO/A Computer
-	OPOManager.network.connect();
+	if (!OPOManager.network.connected) {
+		OPOManager.network.connect();
+	}
 	// Set to wavelength mode when connection is established
 	OPOMAlerts.event.connection.open.add_once(() => {
 		// Set to wavelength mode
