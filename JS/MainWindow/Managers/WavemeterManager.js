@@ -298,6 +298,11 @@ class WMMessengerRequest {
 	get measurement() {
 		return this._measurement;
 	}
+
+	/** Open the wavemeter app */
+	open() {
+		wavemeter.startApplication();
+	}
 }
 
 /***************************************** 

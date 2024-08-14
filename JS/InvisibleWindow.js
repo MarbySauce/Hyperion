@@ -170,3 +170,7 @@ ipc.on(IPCMessages.UPDATE.CLOSECAMERA, function (event, message) {
 	close_camera();
 	ipc.send(IPCMessages.UPDATE.CAMERACLOSED);
 });
+
+ipc.on(IPCMessages.CONNECT.CAMERA, () => {
+	open_camera();
+});

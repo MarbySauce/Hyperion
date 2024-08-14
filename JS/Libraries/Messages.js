@@ -19,6 +19,11 @@ const IPCMessages = {
 		CAMERACLOSED: "IPC-CAMERA-CLOSED",
 		SAVEDIRECTORY: "IPC-UPDATE-SAVE-DIR",
 	},
+	CONNECT: {
+		CAMERA: "IPC-OPEN-CAMERA",
+		WAVEMETER: "IPC-OPEN-WAVEMETER",
+		OPO: "IPC-CONNECT-OPO",
+	},
 };
 
 module.exports = { IPCMessages };

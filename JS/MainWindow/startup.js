@@ -44,6 +44,14 @@ ipc.once(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
 	});
 });
 
+ipc.on(IPCMessages.CONNECT.WAVEMETER, (event) => {
+	ELMMessenger.wavemeter.request.open();
+});
+
+ipc.on(IPCMessages.CONNECT.OPO, (event) => {
+	OPOMMessenger.request.connect();
+});
+
 async function startup() {
 	const { Tabs } = require("../JS/MainWindow/Libraries/Tabs.js");
 	const { Tab_Control, Large_Display_Control, change_tab, PageInfo } = require("../JS/MainWindow/tabInterface.js");

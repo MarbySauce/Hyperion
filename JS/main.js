@@ -109,21 +109,38 @@ function create_main_window() {
 					submenu: [
 						{
 							label: "Open Camera",
-							click() {},
+							click() {
+								// Send message to invisible window to close camera
+								if (Windows.invisible) {
+									Windows.invisible.webContents.send(IPCMessages.CONNECT.CAMERA);
+								} else {
+									create_invisible_window();
+									Windows.invisible.webContents.send(IPCMessages.CONNECT.CAMERA);
+								}
+							},
 						},
 						{
 							label: "Close Camera",
-							click() {},
+							click() {
+								// Send message to invisible window to close camera
+								if (Windows.invisible) Windows.invisible.webContents.send(IPCMessages.UPDATE.CLOSECAMERA);
+							},
 						},
 					],
 				},
 				{
 					label: "Open Wavemeter Application",
-					click() {},
+					click() {
+						// Send message to main window to open wavemeter application
+						if (Windows.main) Windows.main.webContents.send(IPCMessages.CONNECT.WAVEMETER);
+					},
 				},
 				{
 					label: "Connect to OPO",
-					click() {},
+					click() {
+						// Send message to main window to connect to OPO/A
+						if (Windows.main) Windows.main.webContents.send(IPCMessages.CONNECT.OPO);
+					},
 				},
 			],
 		},
