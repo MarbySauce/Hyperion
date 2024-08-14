@@ -97,6 +97,7 @@ class PESpectrumDisplay {
 		this.image = image_class;
 
 		// Extract necessary info
+		this.bin_size = this.image?.bin_size || 1024;
 		this.vmi_constants = this.image?.vmi_info.calibration_constants;
 		this.detachment_hv = this.image?.detachment_wavelength.energy.wavenumber;
 		if (this.vmi_constants?.a > 0 && this.detachment_hv > 0) this.can_show_ebe = true;
@@ -155,8 +156,14 @@ class PESpectrumDisplay {
 			this.intensity = this.spectrum[0];
 			this.anisotropy = this.spectrum[1];
 		}
+		this.adjust_radii();
 		this.normalize_radial_spectrum();
 		this.normalize_ebe_spectrum();
+	}
+
+	adjust_radii() {
+		if (!this.can_show_plot) return;
+		this.radii = this.radii.map((el) => el * (1024 / this.bin_size));
 	}
 
 	normalize_radial_spectrum() {

@@ -31,16 +31,6 @@ class ImageType {
 class Image {
 	/* Static method */
 
-	/** Centroiding bin size */
-	static get bin_size() {
-		return Image._bin_size || 100;
-	}
-
-	static set bin_size(size) {
-		size = Math.round(size); // Round to an integer
-		if (size > 0) Image._bin_size = size;
-	}
-
 	/** For testing purposes, whether to save images to file */
 	static get do_not_save_to_file() {
 		return Image._do_not_save_to_file;
@@ -60,7 +50,7 @@ class Image {
 	}
 
 	/* Instance methods */
-	constructor() {
+	constructor(bin_size) {
 		this.counts = {
 			electrons: {
 				on: 0,
@@ -73,6 +63,7 @@ class Image {
 				total: 0,
 			},
 		};
+		this.bin_size = bin_size;
 
 		this.vmi_info = {
 			index: 0,
@@ -129,6 +120,16 @@ class Image {
 	/** IR Image file name */
 	get file_name_ir() {
 		return "";
+	}
+
+	/** Centroiding bin size */
+	get bin_size() {
+		return this._bin_size || 100;
+	}
+
+	set bin_size(size) {
+		size = Math.round(size); // Round to an integer
+		if (size > 0) this._bin_size = size;
 	}
 
 	/** Whether image is IR */
@@ -195,15 +196,15 @@ class Image {
 	 */
 	update_image(centroid_results) {
 		// Update image with electrons
-		Image_update_image(this.image, centroid_results.com_centers); // CoM Centroids
-		Image_update_image(this.image, centroid_results.hgcm_centers); // HGCM Centroids
+		Image_update_image(this.image, centroid_results.com_centers, undefined, this.bin_size); // CoM Centroids
+		Image_update_image(this.image, centroid_results.hgcm_centers, undefined, this.bin_size); // HGCM Centroids
 	}
 
 	/**
 	 * Reset accumulated image
 	 */
 	reset_image() {
-		let bin_size = Image.bin_size;
+		let bin_size = this.bin_size;
 		this.image = Array.from(Array(bin_size), () => new Array(bin_size).fill(0));
 	}
 
@@ -290,8 +291,8 @@ class Image {
 }
 
 class IRImage extends Image {
-	constructor() {
-		super();
+	constructor(bin_size) {
+		super(bin_size);
 
 		this.pe_spectrum = new IRPESpectrum();
 	}
@@ -324,15 +325,15 @@ class IRImage extends Image {
 			difference_increment = -1;
 		}
 		// Update image with electrons
-		Image_update_image(image_to_update, centroid_results.com_centers, this.images.difference, difference_increment); // CoM Centroids
-		Image_update_image(image_to_update, centroid_results.hgcm_centers, this.images.difference, difference_increment); // HGCM Centroids
+		Image_update_image(image_to_update, centroid_results.com_centers, this.images.difference, this.bin_size, difference_increment); // CoM Centroids
+		Image_update_image(image_to_update, centroid_results.hgcm_centers, this.images.difference, this.bin_size, difference_increment); // HGCM Centroids
 	}
 
 	/**
 	 * Reset accumulated images
 	 */
 	reset_image() {
-		let bin_size = Image.bin_size;
+		let bin_size = this.bin_size;
 		this.images = {};
 		this.images.ir_off = Array.from(Array(bin_size), () => new Array(bin_size).fill(0));
 		this.images.ir_on = Array.from(Array(bin_size), () => new Array(bin_size).fill(0));
@@ -447,21 +448,22 @@ class EmptyIRImage extends IRImage {
  * @param {Array} image accumulated image - 2D array to add centroids to
  * @param {Array} centers array of centroid positions [[X,Y],...]
  * @param {Array} difference_image difference accumulated image - 2D array
+ * @param {number} bin_size size of image to bin centroids into
  * @param {number} difference_increment amount to increment difference image pixel value (+1 for IR On, -1 for IR Off)
  */
-function Image_update_image(image, centers, difference_image, difference_increment = 1) {
+function Image_update_image(image, centers, difference_image, bin_size, difference_increment = 1) {
 	let X, Y;
 	let initial_width = settings?.camera?.AoI_width || 1;
 	let initial_height = settings?.camera?.AoI_height || 1;
-	let final_width = settings?.centroid?.bin_size || 1;
-	let final_height = settings?.centroid?.bin_size || 1;
+	//let final_width = settings?.centroid?.bin_size || 1;
+	//let final_height = settings?.centroid?.bin_size || 1;
 	for (let i = 0; i < centers.length; i++) {
 		// Make sure centroid is not blank (i.e. [0, 0])
 		//if (centers[i][0] === 0 && centers[i][1] === 0) continue;
 		[X, Y] = centers[i];
 		// Need to account for accumulated image size and round to ints
-		X = Math.round((X * final_width) / initial_width);
-		Y = Math.round((Y * final_height) / initial_height);
+		X = Math.round((X * bin_size) / initial_width);
+		Y = Math.round((Y * bin_size) / initial_height);
 		if (image[Y] === undefined || image[Y][X] === undefined) {
 			continue; // X,Y point is outside of image
 		}
@@ -513,6 +515,7 @@ class SafeImage {
 	 */
 	constructor(image_class) {
 		this.id = image_class.id;
+		this.bin_size = image_class.bin_size;
 
 		this.counts = {
 			electrons: { ...image_class.counts.electrons },
@@ -606,7 +609,6 @@ class ScanInfo {
 
 		// Image information
 		image_class.id = scan_info.image.id;
-		// NOTE TO MARTY: Need something for PES?
 		let electrons_off = scan_info.image.electrons_off;
 		let electrons_on = scan_info.image.electrons_on;
 		image_class.counts.electrons = {
@@ -621,6 +623,7 @@ class ScanInfo {
 			off: frames_off,
 			total: frames_off + frames_on,
 		};
+		image_class.bin_size = scan_info.image.bin_size;
 
 		// Laser Information
 		// Detachment wavelength
@@ -671,6 +674,7 @@ class ScanInfo {
 			electrons_on: image_class.counts.electrons.on,
 			frames_off: image_class.counts.frames.off,
 			frames_on: image_class.counts.frames.on,
+			bin_size: image_class.bin_size,
 		};
 
 		this.laser = {

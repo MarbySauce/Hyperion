@@ -69,6 +69,7 @@ const ImageManager = {
 			height: 0,
 		},
 		sim_center_wn: undefined,
+		scan_info_was_read: false, // whether scan info has been read yet
 	},
 	info: {
 		vmi: {},
@@ -459,11 +460,12 @@ function ImageManager_start_scan(is_ir) {
 		return;
 	}
 	let new_image;
+	let bin_size = ImageManager.params.centroid.bin_size;
 	if (is_ir) {
-		new_image = new IRImage();
+		new_image = new IRImage(bin_size);
 		update_messenger.update("New IR-SEVI Scan Started!");
 	} else {
-		new_image = new Image();
+		new_image = new Image(bin_size);
 		update_messenger.update("New SEVI Scan Started!");
 	}
 	// Update (new) current image info with that from (old) current image
@@ -755,6 +757,11 @@ function ImageManager_read_scan_information() {
 	const fs = require("fs");
 	const path = require("path");
 
+	if (ImageManager.params.scan_info_was_read) {
+		// Scan information was already read
+		return;
+	}
+
 	let file_name = path.join(ImageManager.info.save_directory, "scan_information.json");
 	fs.readFile(file_name, (error, data) => {
 		if (error) {
@@ -778,6 +785,7 @@ function ImageManager_read_scan_information() {
 			ImageManager.update_information(image_class);
 		}
 	});
+	ImageManager.params.scan_info_was_read = true;
 }
 
 /**
@@ -801,7 +809,6 @@ function ImageManager_process_settings(settings) {
 	if (settings?.centroid?.use_hybrid_method !== undefined) ImageManager.params.centroid.use_hybrid_method = settings.centroid.use_hybrid_method;
 	if (settings?.centroid?.bin_size !== undefined) {
 		ImageManager.params.centroid.bin_size = settings.centroid.bin_size;
-		Image.bin_size = settings.centroid.bin_size;
 	}
 
 	if (settings?.camera?.width !== undefined) ImageManager.params.camera.width = settings.camera.width;
