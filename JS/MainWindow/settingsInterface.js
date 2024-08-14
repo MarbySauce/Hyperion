@@ -26,6 +26,10 @@ function Settings_Load_Page() {
 			HTML Element Listeners
 	****/
 
+	document.getElementById("ChangeSaveDirectoryButton").onclick = function () {
+		ipc.send(IPCMessages.UPDATE.SAVEDIRECTORY);
+	};
+
 	document.getElementById("ResetSettingsButton").onclick = function () {
 		ipc.send(IPCMessages.INFORMATION.RESET);
 		update_messenger.update("Settings Reset!");

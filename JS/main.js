@@ -464,6 +464,31 @@ function delete_empty_folder() {
 	});
 }
 
+function prompt_update_save_directory() {
+	dialog
+		.showOpenDialog({
+			title: "Choose Base Save Directory (Not Year or Day Directories)",
+			buttonLabel: "Choose Folder",
+			defaultPath: app.getPath("documents"),
+			properties: ["openDirectory"],
+		})
+		.then(update_save_directory_setting)
+		.catch(function (err) {
+			console.log(err);
+		});
+}
+
+function update_save_directory_setting(save_result) {
+	if (!save_result.canceled) {
+		let save_path = save_result.filePaths[0];
+		SettingsManager.settings.save_directory.base_directory = save_path;
+		create_folders();
+		//SettingsManager.get_full_directory();
+		send_settings(Windows.main);
+		SettingsManager.save();
+	}
+}
+
 /*****************************************************************************
 
 								MELEXIR CONTROL
@@ -539,4 +564,8 @@ ipcMain.on(IPCMessages.UPDATE.NEWFRAME, (event, info) => {
 ipcMain.on(IPCMessages.UPDATE.CAMERACLOSED, () => {
 	if (Windows.invisible) Windows.invisible.close();
 	Windows.invisible = undefined;
+});
+
+ipcMain.on(IPCMessages.UPDATE.SAVEDIRECTORY, () => {
+	prompt_update_save_directory();
 });
