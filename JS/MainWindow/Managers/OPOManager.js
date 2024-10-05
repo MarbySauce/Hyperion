@@ -267,6 +267,10 @@ async function wait_for_opo_motors() {
 function OPOManager_get_laser_offset() {
 	if (OPOManager.laser_offsets.length === 0) return 0;
 	// else: average all offsets and return
+	// Only average the last 5 offsets
+	while (OPOManager.laser_offsets.length > 5) {
+		OPOManager.laser_offsets.shift(); // Get rid of older offsets
+	}
 	let sum = OPOManager.laser_offsets.reduce((accumulator, current_value) => {
 		return accumulator + current_value;
 	});

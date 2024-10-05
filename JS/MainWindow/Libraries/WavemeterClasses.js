@@ -88,8 +88,12 @@ function average(array) {
 		sum += array[i];
 		sum2 += array[i] ** 2;
 	}
-	const average = sum / len;
-	const stdev = Math.sqrt(sum2 / len - average ** 2);
+	let average = sum / len;
+	let stdev = Math.sqrt(sum2 / len - average ** 2);
+
+	if (isNaN(average)) average = 0;
+	if (isNaN(stdev)) stdev = -1;
+
 	return { average, stdev };
 }
 
