@@ -1,11 +1,15 @@
 * {
 	box-sizing: border-box;
 	font-family: helvetica;
+	margin: 0;
+	padding: 0;
 }
 
 html,
 body {
 	background: hsl(225, 20%, 35%);
+	width: 100%;
+	height: 100%;
 }
 
 body {
@@ -15,12 +19,24 @@ body {
 	overflow-y: hidden;
 }
 
+.grid {
+	display: grid;
+	overflow: scroll;
+}
+
 .white-text {
-	color: whitesmoke;
-	font-size: large;
-	width: 150px;
+	color: white;
+}
+.center-text {
 	text-align: center;
-	padding: 5px 25%;
+}
+.centered-large-text {
+	text-align: center;
+	align-self: center;
+	font-size: large;
+}
+.large .centered-large-text {
+	font-size: xx-large;
 }
 
 .background-lighter-blue {
@@ -32,43 +48,125 @@ body {
 	background: hsla(225, 20%, 80%, 1);
 	border: 1px solid hsla(225, 20%, 10%, 1);
 	border-radius: 3px;
-	font-size: large;
-	width: 150px;
-	height: 30px;
 	text-align: center;
-	margin: 3px 25%;
-	padding: 3px;
+	width: 50%;
+	height: 100%;
+	font-size: large;
 }
 .input-read:focus-visible {
 	border: 1px solid hsla(225, 20%, 10%, 1);
 	outline: none;
 	outline-offset: 0;
 }
+.large .input-read {
+	font-size: 120px;
+	width: 100%;
+}
 
-.display-on-scan {
-	visibility: hidden;
+.square-button {
+	height: 100%;
+	border-radius: 10px;
+	border: none;
+	background: hsla(225, 20%, 10%, 0.6);
+}
+.square-button:hover {
+	background: hsla(225, 20%, 25%, 1);
+	border: 1px solid hsla(0, 100%, 100%, 0.5);
+}
+.square-button:active {
+	background: hsla(225, 20%, 35%, 1);
+	border: 1px solid hsla(0, 100%, 100%, 0.7);
+	color: hsla(0, 100%, 100%, 0.8);
+}
+.square-button:disabled {
+	border: 1px solid hsla(0, 0%, 0%, 0.2);
+	opacity: 0.6;
 }
 
 #LiveVideoView {
+	margin: 10px;
 	border-radius: 15px;
 	background: white;
-	grid-area: "Display";
+	grid-area: Display;
 }
 
 #RightSide {
-	padding: 20px;
-	grid-area: "Information";
+	padding: 10px;
+	grid-area: Information;
 }
 
 #CountInformation {
+	height: 100%;
+	width: 100%;
 	padding: 20px;
-	display: block;
+	display: grid;
+	grid-template-rows: 60px 1fr 60px 200px 2.5fr;
+	grid-template-areas:
+		"Header"
+		"AverageCounts"
+		"Button"
+		"Chart"
+		"blank";
+}
+#CountInformation.large {
+	grid-template-rows: 40px 1fr 50px 200px 0fr;
+}
+
+#eCountTitle {
+	grid-area: Header;
+	text-align: center;
+	font-size: x-large;
+}
+
+#AverageCounts {
+	display: grid;
+	grid-gap: 5px;
+	grid-area: AverageCounts;
+	grid-template-columns: 1fr 2fr;
+	grid-template-rows: 1fr 1fr 1fr;
+	grid-template-areas:
+		"IROffLabel IROff"
+		"IROnLabel IROn"
+		"TotalLabel Total";
+}
+.large #AverageCounts {
+	grid-gap: 10px;
+	grid-template-columns: 1fr 4fr;
+}
+#IROffLabel {
+	grid-area: IROffLabel;
+}
+#IROffCount {
+	grid-area: IROff;
+}
+#IROnLabel {
+	grid-area: IROnLabel;
+}
+#IROnCount {
+	grid-area: IROn;
+}
+#TotalLabel {
+	grid-area: TotalLabel;
+}
+#TotalCount {
+	grid-area: Total;
+}
+
+#EnlargeDiv {
+	grid-area: Button;
+	padding: 2%;
+	grid-template-columns: 3fr 1fr;
+	grid-template-areas: "blank Button";
+}
+#EnlargeButton {
+	grid-area: Button;
 }
 
 #eChart {
+	grid-area: Chart;
 	background: lightgray;
 	max-height: 200px;
-	max-width: 300px;
+	max-width: 350px;
 	border-radius: 10px;
 	border: 1.5px solid black;
 	padding: 10px;

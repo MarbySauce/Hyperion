@@ -37,8 +37,8 @@ const Windows = {
 	params: {
 		open_live_view_window: true,
 		open_invisible_window: true,
-		open_main_dev_tools: true,
-		open_live_view_dev_tools: false,
+		open_main_dev_tools: false,
+		open_live_view_dev_tools: true,
 		open_invisible_dev_tools: false,
 	},
 	main: undefined, // Main Window
