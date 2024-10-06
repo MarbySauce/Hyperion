@@ -117,3 +117,28 @@ Right Side
 /* IR-Sevi Mode - Second Page - Recent Scans */
 
 /* See sevi.css for class styling */
+
+/* IR-Sevi Mode - Second Page - Unit Conversion */
+
+#IRSeviUnitConversion {
+	align-items: center;
+	justify-items: center;
+	grid-gap: 0 10px;
+	padding: 10px 30px 10px 10px;
+}
+#IRSeviUnitConversion .hv-display {
+	height: 80%;
+	font-size: medium;
+}
+
+#IRSeviUnitTitle {
+	border-bottom: 2px solid white;
+	margin-left: 20px;
+	text-align: center;
+	width: 100%;
+}
+.unit-conversion-label {
+	border-bottom: 1px solid white;
+	text-align: center;
+	width: 100%;
+}

@@ -62,7 +62,7 @@ function open_camera() {
 	// Connect to the camera
 	ReturnCode = camera.connect();
 	console.log(`Connect to camera: ${ReturnCode} - ${GetErrorFromCode(ReturnCode)}`);
-	if (ReturnCode !== 0) {
+	if (ReturnCode != 0 && ReturnCode !== true) {
 		setTimeout(() => {
 			ipc.send(IPCMessages.UPDATE.CAMERAERROR, `Could not connect to camera! Error code: ${ReturnCode} - ${GetErrorFromCode(ReturnCode)}`);
 		}, 1000); // Delay message by 1s in case window loading times vary

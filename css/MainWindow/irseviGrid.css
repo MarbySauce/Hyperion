@@ -360,7 +360,7 @@
 	grid-template-areas:
 		"IRSeviPageUp IRSeviPageUp"
 		"SpectrumDisplaySection SpectrumDisplaySection"
-		"RecentScans ElectronCountHistory";
+		"RecentScans UnitConversion";
 }
 
 #IRSeviPageUp {
@@ -417,6 +417,59 @@
 	grid-auto-rows: 35px;
 }
 
-#IRSeviElectronCountHistory {
-	grid-area: ElectronCountHistory;
+#IRSeviUnitConversion {
+	grid-area: UnitConversion;
+	grid-template-rows: 2fr 1fr 2fr 2fr 6fr;
+	grid-template-columns: 0.5fr 1fr 1fr 1fr 1fr;
+	grid-template-areas:
+		"Title Title Title Title Title"
+		"blank0 nIR iIR mIR fIR"
+		"WN nIRWN iIRWN mIRWN fIRWN"
+		"NM nIRNM iIRNM mIRNM fIRNM"
+		"b1 b1 b1 b1 b1";
+}
+#IRSeviUnitTitle {
+	grid-area: Title;
+}
+#IRSeviUnitLabelnIR {
+	grid-area: nIR;
+}
+#IRSeviUnitLabeliIR {
+	grid-area: iIR;
+}
+#IRSeviUnitLabelmIR {
+	grid-area: mIR;
+}
+#IRSeviUnitLabelfIR {
+	grid-area: fIR;
+}
+#IRSeviUnitLabelWN {
+	grid-area: WN;
+}
+#IRSeviUnitnIRWN {
+	grid-area: nIRWN;
+}
+#IRSeviUnitiIRWN {
+	grid-area: iIRWN;
+}
+#IRSeviUnitmIRWN {
+	grid-area: mIRWN;
+}
+#IRSeviUnitfIRWN {
+	grid-area: fIRWN;
+}
+#IRSeviUnitLabelNM {
+	grid-area: NM;
+}
+#IRSeviUnitnIRNM {
+	grid-area: nIRNM;
+}
+#IRSeviUnitiIRNM {
+	grid-area: iIRNM;
+}
+#IRSeviUnitmIRNM {
+	grid-area: mIRNM;
+}
+#IRSeviUnitfIRNM {
+	grid-area: fIRNM;
 }

@@ -87,7 +87,7 @@ class LaserModeEnergy {
 	}
 
 	set wavelength(value) {
-		if (value === 0) {
+		if (value === 0 && false) {
 			this.instance.reset();
 		} else {
 			this._wavelength = value;
@@ -96,7 +96,7 @@ class LaserModeEnergy {
 		}
 	}
 	set wavenumber(value) {
-		if (value === 0) {
+		if (value === 0 && false) {
 			this.instance.reset();
 		} else {
 			this._wavenumber = value;

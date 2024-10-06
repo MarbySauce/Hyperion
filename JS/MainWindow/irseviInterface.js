@@ -1176,6 +1176,60 @@ function IRSevi_Recent_Scans() {
 
 *****************************************************************************/
 
+function IRSevi_Unit_Conversions() {
+	const { ExcitationMode, ExcitationWavelength } = require("./Libraries/WavelengthClasses.js");
+
+	const UnitInputs = [
+		document.getElementById("IRSeviUnitnIRWN"), // nIR cm^-1
+		document.getElementById("IRSeviUnitiIRWN"), // iIR cm^-1
+		document.getElementById("IRSeviUnitmIRWN"), // mIR cm^-1
+		document.getElementById("IRSeviUnitfIRWN"), // fIR cm^-1
+		document.getElementById("IRSeviUnitnIRNM"), // nIR nm
+		document.getElementById("IRSeviUnitiIRNM"), // iIR nm
+		document.getElementById("IRSeviUnitmIRNM"), // mIR nm
+		document.getElementById("IRSeviUnitfIRNM"), // fIR nm
+	];
+
+	const EnergyConverter = new ExcitationWavelength();
+
+	/****
+			HTML Element Listeners
+	****/
+
+	for (let i = 0; i < UnitInputs.length; i++) {
+		UnitInputs[i].oninput = () => {
+			get_energy_value(i, parseFloat(UnitInputs[i].value));
+		};
+	}
+
+	/****
+			Functions
+	****/
+
+	function get_energy_value(current_input, input_value) {
+		let modes = ["nIR", "iIR", "mIR", "fIR"];
+		if (current_input < 4) {
+			EnergyConverter[modes[current_input]].wavenumber = input_value;
+		} else {
+			EnergyConverter[modes[current_input - 4]].wavelength = input_value;
+		}
+		unit_convert(current_input);
+	}
+
+	// Update all input boxes except the one that was updated by the user
+	function unit_convert(current_input) {
+		let modes = ["nIR", "iIR", "mIR", "fIR"];
+		for (let i = 0; i < UnitInputs.length; i++) {
+			if (i === current_input) continue;
+			if (i < 4) {
+				UnitInputs[i].value = EnergyConverter[modes[i]].wavenumber.toFixed(3);
+			} else {
+				UnitInputs[i].value = EnergyConverter[modes[i - 4]].wavelength.toFixed(3);
+			}
+		}
+	}
+}
+
 /*****************************************************************************
 
 							PAGE LOADING
@@ -1263,6 +1317,11 @@ function IRSevi_Load_Page(PageInfo) {
 		IRSevi_Recent_Scans();
 	} catch (error) {
 		console.log("Cannot load IR-SEVI tab Recent Scans module:", error);
+	}
+	try {
+		IRSevi_Unit_Conversions();
+	} catch (error) {
+		console.log("Cannot load IR-SEVI tab Unit Conversions module:", error);
 	}
 }
 
