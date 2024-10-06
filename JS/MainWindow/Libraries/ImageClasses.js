@@ -596,6 +596,13 @@ class SafeIRImage extends SafeImage {
 
 **************************************************/
 
+// If number is NaN, return 0
+// otherwise return number
+function check_NaN(number) {
+	if (isNaN(number)) return 0;
+	else return number;
+}
+
 class ScanInfo {
 	/**
 	 * Get an Image or IRImage class instance with values filled out from `scan_info`
@@ -609,15 +616,15 @@ class ScanInfo {
 
 		// Image information
 		image_class.id = scan_info.image.id;
-		let electrons_off = scan_info.image.electrons_off;
-		let electrons_on = scan_info.image.electrons_on;
+		let electrons_off = check_NaN(scan_info.image.electrons_off);
+		let electrons_on = check_NaN(scan_info.image.electrons_on);
 		image_class.counts.electrons = {
 			on: electrons_on,
 			off: electrons_off,
 			total: electrons_off + electrons_on,
 		};
-		let frames_off = scan_info.image.frames_off;
-		let frames_on = scan_info.image.frames_on;
+		let frames_off = check_NaN(scan_info.image.frames_off);
+		let frames_on = check_NaN(scan_info.image.frames_on);
 		image_class.counts.frames = {
 			on: frames_on,
 			off: frames_off,
@@ -627,25 +634,25 @@ class ScanInfo {
 
 		// Laser Information
 		// Detachment wavelength
-		image_class.detachment_wavelength.standard.wavelength = scan_info.laser.detachment.wavelength.standard;
+		image_class.detachment_wavelength.standard.wavelength = check_NaN(scan_info.laser.detachment.wavelength.standard);
 		let detachment_mode = DetachmentMode.get_mode_from_name(scan_info.laser.detachment.mode);
 		image_class.detachment_wavelength.selected_mode = detachment_mode;
 		// Detachment measurement
-		image_class.detachment_measurement.raw_stats.average = scan_info.laser.detachment.measurement.average;
-		image_class.detachment_measurement.raw_stats.stdev = scan_info.laser.detachment.measurement.stdev;
-		image_class.detachment_measurement.reduced_stats.average = scan_info.laser.detachment.measurement.reduced_average;
-		image_class.detachment_measurement.reduced_stats.stdev = scan_info.laser.detachment.measurement.reduced_stdev;
+		image_class.detachment_measurement.raw_stats.average = check_NaN(scan_info.laser.detachment.measurement.average);
+		image_class.detachment_measurement.raw_stats.stdev = check_NaN(scan_info.laser.detachment.measurement.stdev);
+		image_class.detachment_measurement.reduced_stats.average = check_NaN(scan_info.laser.detachment.measurement.reduced_average);
+		image_class.detachment_measurement.reduced_stats.stdev = check_NaN(scan_info.laser.detachment.measurement.reduced_stdev);
 		// Excitation wavelength
-		image_class.excitation_wavelength.nIR.wavelength = scan_info.laser.excitation.wavelength.nir;
+		image_class.excitation_wavelength.nIR.wavelength = check_NaN(scan_info.laser.excitation.wavelength.nir);
 		let excitation_mode = ExcitationMode.get_mode_from_name(scan_info.laser.excitation.mode);
 		image_class.excitation_wavelength.selected_mode = excitation_mode;
 		// Excitation measurement
-		image_class.excitation_measurement.raw_stats.average = scan_info.laser.excitation.measurement.average;
-		image_class.excitation_measurement.raw_stats.stdev = scan_info.laser.excitation.measurement.stdev;
-		image_class.excitation_measurement.reduced_stats.average = scan_info.laser.excitation.measurement.reduced_average;
-		image_class.excitation_measurement.reduced_stats.stdev = scan_info.laser.excitation.measurement.reduced_stdev;
-		image_class.excitation_measurement.laser_wavelength = scan_info.laser.opo.wavelength;
-		image_class.excitation_measurement.laser_offset = scan_info.laser.opo.offset;
+		image_class.excitation_measurement.raw_stats.average = check_NaN(scan_info.laser.excitation.measurement.average);
+		image_class.excitation_measurement.raw_stats.stdev = check_NaN(scan_info.laser.excitation.measurement.stdev);
+		image_class.excitation_measurement.reduced_stats.average = check_NaN(scan_info.laser.excitation.measurement.reduced_average);
+		image_class.excitation_measurement.reduced_stats.stdev = check_NaN(scan_info.laser.excitation.measurement.reduced_stdev);
+		image_class.excitation_measurement.laser_wavelength = check_NaN(scan_info.laser.opo.wavelength);
+		image_class.excitation_measurement.laser_offset = check_NaN(scan_info.laser.opo.offset);
 
 		// VMI info
 		let mode = scan_info.vmi.setting;
