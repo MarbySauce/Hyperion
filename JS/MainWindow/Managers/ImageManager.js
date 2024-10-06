@@ -382,7 +382,9 @@ function ImageManager_series_check() {
 			// Start another scan
 			ImageManager.start_scan(ImageManager.last_image.is_ir);
 		} else {
-			// Reset series progress
+			// Image series collection has completed
+			// Reset series parameters
+			ImageManager.series.update(1); // Reset collection length to 1
 			ImageManager.series.progress = 0;
 		}
 	} else {
@@ -550,6 +552,7 @@ function ImageManager_resume_scan(resume_last) {
 				ImageManager.current_image.canceled = false; // Update `canceled` value to reflect image was resumed
 				ImageManager.last_image = EmptyImage;
 				ImageManager.status = IMState.RUNNING;
+				ImageManager.series.progress = 1; // Reset image series progress to 1
 				IMAlerts.event.scan.resume.alert();
 				IMAlerts.info_update.image.id.alert(ImageManager.current_image.id);
 				IMAlerts.info_update.image.file_name.alert(ImageManager.current_image.file_name);
