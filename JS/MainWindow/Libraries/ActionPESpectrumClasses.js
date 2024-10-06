@@ -388,11 +388,12 @@ class ActionColors {
 
 class ActionSpectrumCalculator {
 	constructor(all_spectra, depletion_peaks, growth_peaks) {
-		this.all_spectra = all_spectra;
+		this.all_spectra = all_spectra; // List filled with ActionSpectraRow elements
 		this.depletion_peaks = depletion_peaks;
 		this.growth_peaks = growth_peaks;
 
 		this.energies = []; // Simple array of numbers
+		this.used_spectra = []; // Filled with ActionSpectraRow elements
 		this.intensity_off = [];
 		this.image_ids = [];
 		this.depletion = []; // { label: "", values: [] } <- for each peak
@@ -424,6 +425,7 @@ class ActionSpectrumCalculator {
 	get_energies() {
 		this.energies = [];
 		this.image_ids = [];
+		this.used_spectra = [];
 		for (let row of this.all_spectra) {
 			if (!row.checkbox.checked) {
 				// Ignore this spectrum
@@ -431,6 +433,7 @@ class ActionSpectrumCalculator {
 			}
 			this.energies.push(row.ir_energy);
 			this.image_ids.push(row.id_str);
+			this.used_spectra.push(row);
 		}
 	}
 
@@ -445,11 +448,7 @@ class ActionSpectrumCalculator {
 			label = `${Ri}-${Rf}px`;
 			peak_intensity_off = [];
 			peak_depletion = { label: label, values: [] };
-			for (let row of this.all_spectra) {
-				if (!row.checkbox.checked) {
-					// Ignore this spectrum
-					continue;
-				}
+			for (let row of this.used_spectra) {
 				sum_off = this.sum(row.spectrum_display.intensity_off, Ri, Rf);
 				peak_intensity_off.push(sum_off);
 				sum_on = this.sum(row.spectrum_display.intensity_on, Ri, Rf);
@@ -474,12 +473,8 @@ class ActionSpectrumCalculator {
 			Rf = peak.Rf;
 			label = `${Ri}-${Rf}px`;
 			peak_growth = { label: label, values: [] };
-			for (let i = 0; i < this.all_spectra.length; i++) {
-				row = this.all_spectra[i];
-				if (!row.checkbox.checked) {
-					// Ignore this spectrum
-					continue;
-				}
+			for (let i = 0; i < this.used_spectra.length; i++) {
+				row = this.used_spectra[i];
 				sum_off = this.sum(row.spectrum_display.intensity_off, Ri, Rf);
 				sum_on = this.sum(row.spectrum_display.intensity_on, Ri, Rf);
 				dividend = this.intensity_off[i] || row.electrons.off || 1; // Default to 1 if value is not defined
@@ -491,42 +486,34 @@ class ActionSpectrumCalculator {
 
 	calculate() {
 		this.get_energies();
+		this.sort_arrays();
 		this.calculate_depletion();
 		this.calculate_growth();
-		this.sort_arrays();
 		this.normalize();
+	}
+
+	argsort(arr) {
+		const indices = [...Array(arr.length).keys()]; // Create an array of indices
+		indices.sort((a, b) => arr[a] - arr[b]); // Sort indices based on values in arr
+		return indices;
 	}
 
 	// Sort all values together based on energy
 	sort_arrays() {
-		// Combine arrays together
-		let list = [];
-		let element;
+		let sorted_indices = this.argsort(this.energies); // Get sorted list of indices, ordered by lowest->highest energy
+		// Sort all arrays using the sorted indices
+		let energies = [];
+		let image_ids = [];
+		let used_spectra = [];
 		for (let i = 0; i < this.energies.length; i++) {
-			element = { energy: this.energies[i], id_str: this.image_ids[i], depletion: [], growth: [] };
-			for (let peak of this.depletion) {
-				element.depletion.push(peak.values[i]);
-			}
-			for (let peak of this.growth) {
-				element.growth.push(peak.values[i]);
-			}
-			list.push(element);
+			let j = sorted_indices[i];
+			energies[i] = this.energies[j];
+			image_ids[i] = this.image_ids[j];
+			used_spectra[i] = this.used_spectra[j];
 		}
-		// Sort list by energy
-		list.sort(function (a, b) {
-			return a.energy < b.energy ? -1 : a.energy == b.energy ? 0 : 1;
-		});
-		// Unpack list
-		for (let i = 0; i < list.length; i++) {
-			this.energies[i] = list[i].energy;
-			this.image_ids[i] = list[i].id_str;
-			for (let j = 0; j < list[i].depletion.length; j++) {
-				this.depletion[j].values[i] = list[i].depletion[j];
-			}
-			for (let j = 0; j < list[i].growth.length; j++) {
-				this.growth[j].values[i] = list[i].growth[j];
-			}
-		}
+		this.energies = energies;
+		this.image_ids = image_ids;
+		this.used_spectra = used_spectra;
 	}
 
 	normalize() {
@@ -756,8 +743,8 @@ class ActionSpectrumCalculator {
 			body += " \n";
 			body += `i${this.image_ids[i]}`;
 			body += `, ${pad_left(this.energies[i].toFixed(3), 10)}`;
-			e_on = this.all_spectra[i].electrons.on;
-			e_off = this.all_spectra[i].electrons.off;
+			e_on = this.used_spectra[i].electrons.on;
+			e_off = this.used_spectra[i].electrons.off;
 			e_on_str = `${e_on > 1e4 ? e_on.toExponential(2) : e_on.toString()}`;
 			e_off_str = `${e_off > 1e4 ? e_off.toExponential(2) : e_off.toString()}`;
 			body += `, ${pad_left(e_on_str, 8)}`;
@@ -888,7 +875,7 @@ class ActionModeAnalyzer {
 		this.IRAMMessenger = new IRActionManagerMessenger();
 
 		this.displayed_spectrum;
-		this.all_spectra = [];
+		this.all_spectra = []; // Filled with ActionSpectraRow elements
 		this.depletion_peaks = [];
 		this.growth_peaks = [];
 

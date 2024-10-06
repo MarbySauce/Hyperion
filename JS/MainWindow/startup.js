@@ -159,10 +159,10 @@ async function rough_action_scan(starting_energy, final_energy) {
  * Return a wavelength close to OPO's wavelength
  */
 function mac_wavelength(channel) {
-	if (channel === settings.laser.detachment.wavemeter_channel) {
+	if (channel === settings.wavemeter.detachment_laser_channel) {
 		// Just send 650nm (with some noise) as the detachment laser wavelength
 		return 650 + norm_rand(0, 0.01);
-	} else if (channel === settings.laser.excitation.wavemeter_channel) {
+	} else if (channel === settings.wavemeter.excitation_laser_channel) {
 		// Send wavelength as the OPO's wavelength with some noise added
 		let wl = ELMMessenger.opo.information.wavelength || 745;
 		// Add some noise
