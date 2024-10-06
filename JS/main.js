@@ -565,7 +565,7 @@ ipcMain.on(IPCMessages.LOADED.MAINWINDOW, (event, arg) => {
 	resize_main_window(SettingsManager.settings.windows);
 });
 
-// New camera frame from invisible window, relay data to Main and Live View windows
+// New camera frame from Invisible window, relay data to Main and Live View windows
 ipcMain.on(IPCMessages.UPDATE.NEWFRAME, (event, info) => {
 	// Wrap in try/catch because it throws a bunch of errors if the window is closed
 	try {
@@ -577,12 +577,21 @@ ipcMain.on(IPCMessages.UPDATE.NEWFRAME, (event, info) => {
 	} catch {}
 });
 
+// Relay error message from Invisible window to Main window
+ipcMain.on(IPCMessages.UPDATE.CAMERAERROR, (event, error) => {
+	// Wrap in try/catch because it throws a bunch of errors if the window is closed
+	try {
+		Windows.main.webContents.send(IPCMessages.UPDATE.CAMERAERROR, error);
+	} catch {}
+});
+
 // Close Invisible window when camera is closed
 ipcMain.on(IPCMessages.UPDATE.CAMERACLOSED, () => {
 	if (Windows.invisible) Windows.invisible.close();
 	Windows.invisible = undefined;
 });
 
+// Update directory used for saving files
 ipcMain.on(IPCMessages.UPDATE.SAVEDIRECTORY, () => {
 	prompt_update_save_directory();
 });

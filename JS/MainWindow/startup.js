@@ -12,6 +12,7 @@ const { ActionModeAnalyzer } = require("../JS/MainWindow/Libraries/ActionPESpect
 
 let settings; // Global variable, to be filled in on startup
 
+const update_messenger = new UpdateMessenger(); // Messenger used for displaying update or error messages to the Message Display
 const IMMessenger = new ImageManagerMessenger();
 const DLMMessenger = new DetachmentLaserManagerMessenger();
 const ELMMessenger = new ExcitationLaserManagerMessenger();
@@ -50,6 +51,11 @@ ipc.on(IPCMessages.CONNECT.WAVEMETER, (event) => {
 
 ipc.on(IPCMessages.CONNECT.OPO, (event) => {
 	OPOMMessenger.request.connect();
+});
+
+// If error message about camera is recieved, send an alert to Message Display
+ipc.on(IPCMessages.UPDATE.CAMERAERROR, (event, error) => {
+	update_messenger.error(error);
 });
 
 async function startup() {
