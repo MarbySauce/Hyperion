@@ -34,12 +34,12 @@ function process_image(data) {
 		if (sum_off > 0) {
 			results_off = melexir.process(data.images.ir_off);
 		} else {
-			results_off = { radii: [], spectrum: [], residuals: [], best_fit: [] };
+			results_off = { radii: [0.5], spectrum: [[0], [0]], residuals: [[0], [0]], best_fit: [[0], [0]] };
 		}
 		if (sum_on > 0) {
 			results_on = melexir.process(data.images.ir_on);
 		} else {
-			results_on = { radii: [], spectrum: [], residuals: [], best_fit: [] };
+			results_on = { radii: [0.5], spectrum: [[0], [0]], residuals: [[0], [0]], best_fit: [[0], [0]] };
 		}
 		return { is_ir: true, results_off, results_on };
 	} else {
@@ -47,7 +47,7 @@ function process_image(data) {
 		let sum = data.image.map((row) => row.reduce((a, c) => a + c)).reduce((a, c) => a + c);
 
 		// If images are blank Melexir may crash -> don't process blank images
-		let results;
+		let results = { radii: [0.5], spectrum: [[0], [0]], residuals: [[0], [0]], best_fit: [[0], [0]] };
 		if (sum > 0) results = melexir.process(data.image);
 		return { is_ir: false, results };
 	}
@@ -109,24 +109,37 @@ function fake_process_image(data) {
 		let electrons_off = sum_off / array_size;
 		let electrons_on = sum_on / array_size;
 
-		let results_off = {
-			radii: [...array_fill(array_size, 0.5, 1)], // Fill array as [0.5, 1.5, 2.5...]
-			spectrum: [[...array_fill(array_size)], [...array_fill(array_size)]], // Fill with all 0's
-			best_fit: [[...array_fill(array_size)], [...array_fill(array_size)]],
-			residuals: [[...array_fill(array_size)], [...array_fill(array_size)]],
-		};
-		let results_on = {
-			radii: [...array_fill(array_size, 0.5, 1)], // Fill array as [0.5, 1.5, 2.5...]
-			spectrum: [[...array_fill(array_size)], [...array_fill(array_size)]], // Fill with all 0's
-			best_fit: [[...array_fill(array_size)], [...array_fill(array_size)]],
-			residuals: [[...array_fill(array_size)], [...array_fill(array_size)]],
-		};
-		// Fill in spectrum with fake data
-		for (let i = 0; i < array_size; i++) {
-			results_off.spectrum[0][i] = ir_off_spectrum(i, electrons_off);
-			results_off.spectrum[1][i] = ir_off_anisotropy(i, electrons_off, -0.5);
-			results_on.spectrum[0][i] = ir_on_spectrum(i, electrons_on, data?.wn, data?.center_wn);
-			results_on.spectrum[1][i] = ir_on_anisotropy(i, electrons_on, -0.5, 1.8, data?.wn, data?.center_wn);
+		let results_off, results_on;
+
+		if (sum_off > 0) {
+			results_off = {
+				radii: [...array_fill(array_size, 0.5, 1)], // Fill array as [0.5, 1.5, 2.5...]
+				spectrum: [[...array_fill(array_size)], [...array_fill(array_size)]], // Fill with all 0's
+				best_fit: [[...array_fill(array_size)], [...array_fill(array_size)]],
+				residuals: [[...array_fill(array_size)], [...array_fill(array_size)]],
+			};
+			// Fill in spectrum with fake data
+			for (let i = 0; i < array_size; i++) {
+				results_off.spectrum[0][i] = ir_off_spectrum(i, electrons_off);
+				results_off.spectrum[1][i] = ir_off_anisotropy(i, electrons_off, -0.5);
+			}
+		} else {
+			results_off = { radii: [0.5], spectrum: [[0], [0]], residuals: [[0], [0]], best_fit: [[0], [0]] };
+		}
+		if (sum_on > 0) {
+			results_on = {
+				radii: [...array_fill(array_size, 0.5, 1)], // Fill array as [0.5, 1.5, 2.5...]
+				spectrum: [[...array_fill(array_size)], [...array_fill(array_size)]], // Fill with all 0's
+				best_fit: [[...array_fill(array_size)], [...array_fill(array_size)]],
+				residuals: [[...array_fill(array_size)], [...array_fill(array_size)]],
+			};
+			// Fill in spectrum with fake data
+			for (let i = 0; i < array_size; i++) {
+				results_on.spectrum[0][i] = ir_on_spectrum(i, electrons_on, data?.wn, data?.center_wn);
+				results_on.spectrum[1][i] = ir_on_anisotropy(i, electrons_on, -0.5, 1.8, data?.wn, data?.center_wn);
+			}
+		} else {
+			results_on = { radii: [0.5], spectrum: [[0], [0]], residuals: [[0], [0]], best_fit: [[0], [0]] };
 		}
 		return { is_ir: true, results_off, results_on };
 	} else {
@@ -134,16 +147,21 @@ function fake_process_image(data) {
 		let sum = data.image.map((row) => row.reduce((a, c) => a + c)).reduce((a, c) => a + c);
 		let electrons = sum / array_size;
 
-		let results = {
-			radii: [...array_fill(array_size, 0.5, 1)], // Fill array as [0.5, 1.5, 2.5...]
-			spectrum: [[...array_fill(array_size)], [...array_fill(array_size)]], // Fill with all 0's
-			best_fit: [[...array_fill(array_size)], [...array_fill(array_size)]],
-			residuals: [[...array_fill(array_size)], [...array_fill(array_size)]],
-		};
-		// Fill in spectrum with fake data
-		for (let i = 0; i < array_size; i++) {
-			results.spectrum[0][i] = ir_off_spectrum(i, electrons);
-			results.spectrum[1][i] = ir_off_anisotropy(i, electrons, -0.5);
+		let results;
+		if (sum > 0) {
+			results = {
+				radii: [...array_fill(array_size, 0.5, 1)], // Fill array as [0.5, 1.5, 2.5...]
+				spectrum: [[...array_fill(array_size)], [...array_fill(array_size)]], // Fill with all 0's
+				best_fit: [[...array_fill(array_size)], [...array_fill(array_size)]],
+				residuals: [[...array_fill(array_size)], [...array_fill(array_size)]],
+			};
+			// Fill in spectrum with fake data
+			for (let i = 0; i < array_size; i++) {
+				results.spectrum[0][i] = ir_off_spectrum(i, electrons);
+				results.spectrum[1][i] = ir_off_anisotropy(i, electrons, -0.5);
+			}
+		} else {
+			results = { radii: [0.5], spectrum: [[0], [0]], residuals: [[0], [0]], best_fit: [[0], [0]] };
 		}
 		return { is_ir: false, results };
 	}

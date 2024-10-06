@@ -99,6 +99,10 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 	int spotNumber = 0;
 	while (spotNumber < numberOfSpots)
 	{
+		// If sum of peak weights is <= 0, don't add any spots to image
+		if (PeakWeightSum <= 0) {
+			break;
+		}
 		int radiusProbability = (rand() % (1000*PeakWeightSum-1)) / 1000;
 		int radiusIndex = -1;
 		int weightSum = 0;
