@@ -118,7 +118,7 @@ Right Side
 
 /* See sevi.css for class styling */
 
-/* IR-Sevi Mode - Second Page - Unit Conversion */
+/* IR-Sevi Mode - Second Page - Energy Conversion */
 
 #IRSeviUnitConversion {
 	align-items: center;
@@ -134,11 +134,6 @@ Right Side
 #IRSeviUnitTitle {
 	border-bottom: 2px solid white;
 	margin-left: 20px;
-	text-align: center;
-	width: 100%;
-}
-.unit-conversion-label {
-	border-bottom: 1px solid white;
 	text-align: center;
 	width: 100%;
 }

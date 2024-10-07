@@ -417,6 +417,8 @@
 	grid-auto-rows: 35px;
 }
 
+/* IR-Sevi Mode - Second Page - Energy Conversion */
+
 #IRSeviUnitConversion {
 	grid-area: UnitConversion;
 	grid-template-rows: 2fr 1fr 2fr 2fr 6fr;

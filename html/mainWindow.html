@@ -190,9 +190,23 @@
 					</header>
 					<div class="grid recent-scans-section" id="SeviRecentScansSection"></div>
 				</div>
-				<!-- SEVI Mode - Second Page - Electron Count History -->
-				<div class="background-lighter-blue" id="SeviElectronCountHistory">
-					<!--<h2 class="white-text">Put laser wavelength conversion boxes here?</h2>-->
+				<!-- SEVI Mode - Second Page - Unit Conversion -->
+				<div class="grid background-lighter-blue" id="SeviUnitConversion">
+					<h2 class="white-text" id="SeviUnitTitle">Detachment Energy Conversion</h2>
+					<h4 class="white-text unit-conversion-label" id="SeviUnitLabelStandard">Standard</h4>
+					<h4 class="white-text unit-conversion-label" id="SeviUnitLabelDoubled">Doubled</h4>
+					<h4 class="white-text unit-conversion-label" id="SeviUnitLabelRaman">Raman</h4>
+					<h4 class="white-text unit-conversion-label" id="SeviUnitLabelIRDFG">IRDFG</h4>
+					<h4 class="white-text" id="SeviUnitLabelWN">cm<sup>-1</sup>:</h4>
+					<input class="input-change hv-display" id="SeviUnitStandardWN" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitDoubledWN" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitRamanWN" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitIRDFGWN" type="number" min="0" placeholder="-" />
+					<h4 class="white-text" id="SeviUnitLabelNM">nm:</h4>
+					<input class="input-change hv-display" id="SeviUnitStandardNM" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitDoubledNM" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitRamanNM" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitIRDFGNM" type="number" min="0" placeholder="-" />
 				</div>
 			</div>
 		</div>
@@ -398,7 +412,7 @@
 					</header>
 					<div class="grid recent-scans-section" id="IRSeviRecentScansSection"></div>
 				</div>
-				<!-- IR-SEVI Mode - Second Page - Electron Count History -->
+				<!-- IR-SEVI Mode - Second Page - Unit Conversion -->
 				<div class="grid background-lighter-blue" id="IRSeviUnitConversion">
 					<h2 class="white-text" id="IRSeviUnitTitle">IR Energy Conversion</h2>
 					<h4 class="white-text unit-conversion-label" id="IRSeviUnitLabelnIR">nIR</h4>

@@ -979,6 +979,60 @@ function Sevi_Recent_Scans() {
 
 *****************************************************************************/
 
+function Sevi_Unit_Conversions() {
+	const { DetachmentMode, DetachmentWavelength } = require("./Libraries/WavelengthClasses.js");
+
+	const UnitInputs = [
+		document.getElementById("SeviUnitStandardWN"), // Standard cm^-1
+		document.getElementById("SeviUnitDoubledWN"), // Doubled cm^-1
+		document.getElementById("SeviUnitRamanWN"), // Raman cm^-1
+		document.getElementById("SeviUnitIRDFGWN"), // IRDFG cm^-1
+		document.getElementById("SeviUnitStandardNM"), // Standard nm
+		document.getElementById("SeviUnitDoubledNM"), // Doubled nm
+		document.getElementById("SeviUnitRamanNM"), // Raman nm
+		document.getElementById("SeviUnitIRDFGNM"), // IRDFG nm
+	];
+
+	const EnergyConverter = new DetachmentWavelength();
+
+	/****
+			HTML Element Listeners
+	****/
+
+	for (let i = 0; i < UnitInputs.length; i++) {
+		UnitInputs[i].oninput = () => {
+			get_energy_value(i, parseFloat(UnitInputs[i].value));
+		};
+	}
+
+	/****
+			Functions
+	****/
+
+	function get_energy_value(current_input, input_value) {
+		let modes = ["standard", "doubled", "raman", "irdfg"];
+		if (current_input < 4) {
+			EnergyConverter[modes[current_input]].wavenumber = input_value;
+		} else {
+			EnergyConverter[modes[current_input - 4]].wavelength = input_value;
+		}
+		unit_convert(current_input);
+	}
+
+	// Update all input boxes except the one that was updated by the user
+	function unit_convert(current_input) {
+		let modes = ["standard", "doubled", "raman", "irdfg"];
+		for (let i = 0; i < UnitInputs.length; i++) {
+			if (i === current_input) continue;
+			if (i < 4) {
+				UnitInputs[i].value = EnergyConverter[modes[i]].wavenumber.toFixed(3);
+			} else {
+				UnitInputs[i].value = EnergyConverter[modes[i - 4]].wavelength.toFixed(3);
+			}
+		}
+	}
+}
+
 /*****************************************************************************
 
 							PAGE LOADING
@@ -1070,6 +1124,11 @@ function Sevi_Load_Page(PageInfo) {
 		Sevi_Recent_Scans();
 	} catch (error) {
 		console.log("Cannot load SEVI tab Recent Scans module:", error);
+	}
+	try {
+		Sevi_Unit_Conversions();
+	} catch (error) {
+		console.log("Cannot load SEVI tab Unit Conversions module:", error);
 	}
 }
 

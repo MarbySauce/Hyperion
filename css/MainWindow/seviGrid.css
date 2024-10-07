@@ -271,7 +271,7 @@
 	grid-template-areas:
 		"SeviPageUp SeviPageUp"
 		"SpectrumDisplaySection SpectrumDisplaySection"
-		"RecentScans ElectronCountHistory";
+		"RecentScans UnitConversion";
 }
 
 #SeviPageUp {
@@ -337,4 +337,63 @@
 
 #SeviElectronCountHistory {
 	grid-area: ElectronCountHistory;
+}
+
+/* Sevi Mode - Second Page - Energy Conversion */
+
+#SeviUnitConversion {
+	grid-area: UnitConversion;
+	grid-template-rows: 2fr 1fr 2fr 2fr 6fr;
+	grid-template-columns: 0.5fr 1fr 1fr 1fr 1fr;
+	grid-template-areas:
+		"Title Title Title Title Title"
+		"blank0 Standard Doubled Raman IRDFG"
+		"WN StandardWN DoubledWN RamanWN IRDFGWN"
+		"NM StandardNM DoubledNM RamanNM IRDFGNM"
+		"b1 b1 b1 b1 b1";
+}
+#SeviUnitTitle {
+	grid-area: Title;
+}
+#SeviUnitLabelStandard {
+	grid-area: Standard;
+}
+#SeviUnitLabelDoubled {
+	grid-area: Doubled;
+}
+#SeviUnitLabelRaman {
+	grid-area: Raman;
+}
+#SeviUnitLabelIRDFG {
+	grid-area: IRDFG;
+}
+#SeviUnitLabelWN {
+	grid-area: WN;
+}
+#SeviUnitStandardWN {
+	grid-area: StandardWN;
+}
+#SeviUnitDoubledWN {
+	grid-area: DoubledWN;
+}
+#SeviUnitRamanWN {
+	grid-area: RamanWN;
+}
+#SeviUnitIRDFGWN {
+	grid-area: IRDFGWN;
+}
+#SeviUnitLabelNM {
+	grid-area: NM;
+}
+#SeviUnitStandardNM {
+	grid-area: StandardNM;
+}
+#SeviUnitDoubledNM {
+	grid-area: DoubledNM;
+}
+#SeviUnitRamanNM {
+	grid-area: RamanNM;
+}
+#SeviUnitIRDFGNM {
+	grid-area: IRDFGNM;
 }
