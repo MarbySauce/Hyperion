@@ -36,7 +36,7 @@ body {
 	font-size: large;
 }
 .large .centered-large-text {
-	font-size: xx-large;
+	font-size: x-large;
 }
 
 .background-lighter-blue {
@@ -110,6 +110,7 @@ body {
 }
 #CountInformation.large {
 	grid-template-rows: 40px 1fr 50px 200px 0fr;
+	padding: 10px;
 }
 
 #eCountTitle {
@@ -130,8 +131,7 @@ body {
 		"TotalLabel Total";
 }
 .large #AverageCounts {
-	grid-gap: 10px;
-	grid-template-columns: 1fr 4fr;
+	grid-template-columns: 1fr 6fr;
 }
 #IROffLabel {
 	grid-area: IROffLabel;
@@ -170,4 +170,5 @@ body {
 	border-radius: 10px;
 	border: 1.5px solid black;
 	padding: 10px;
+	justify-self: center;
 }
