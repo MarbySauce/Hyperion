@@ -287,7 +287,7 @@ const SettingsManager = {
 function SettingsManager_read() {
 	fs.readFile(SettingsManager.filename, (error, data) => {
 		if (error) {
-			console.error(`Could not find settings file at ${file_name}`);
+			console.error(`Could not find settings file at ${SettingsManager.filename}`);
 		} else {
 			let saved_settings = JSON.parse(data);
 
