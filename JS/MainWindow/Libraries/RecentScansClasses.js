@@ -19,13 +19,13 @@ class RecentScansRow {
 		vals_to_add.push(`i${image.id_str}`); // Image ID
 		// Converted detachment wavelength
 		let wavelength = image.detachment_wavelength.energy.wavelength;
-		if (wavelength > 0) wavelength = `${wavelength.toFixed(3)} nm`;
-		else wavelength = ""; // Don't show wavelength if not stored
+		if (wavelength > 0 && isFinite(wavelength)) wavelength = `${wavelength.toFixed(3)} nm`;
+		else wavelength = "-"; // Don't show wavelength if not stored
 		vals_to_add.push(wavelength);
 		// Converted detachment wavenumber
 		let wavenumber = image.detachment_wavelength.energy.wavenumber;
-		if (wavenumber > 0) wavenumber = `${wavenumber.toFixed(3)} cm-1`;
-		else wavenumber = ""; // Don't show wavenumber if not stored
+		if (wavenumber > 0 && isFinite(wavenumber)) wavenumber = `${wavenumber.toFixed(3)} cm-1`;
+		else wavenumber = "-"; // Don't show wavenumber if not stored
 		vals_to_add.push(wavenumber);
 		// Frame count
 		let frame_count = image.counts.frames.total;
