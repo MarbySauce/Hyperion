@@ -186,6 +186,7 @@ label {
 }
 
 .display-slider {
+	appearance: none;
 	-webkit-appearance: none;
 	background: hsla(225, 20%, 25%, 1);
 	height: 40%;
