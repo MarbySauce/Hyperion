@@ -1,5 +1,0 @@
-XXX - Get rid of electrons.total section 
-- Convert previous_scans usage to be handled by Images 
-- Get rid of (most? all?) of scans object 
-- Finish Images update first, then go back and add in Spectra update 
-XXX - update current_tabs to use tabs enum 
