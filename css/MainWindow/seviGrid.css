@@ -1,0 +1,399 @@
+/* 
+	This file is used to arrange each SEVI HTML element into a grid structure
+	to make sure it aligns well, especially when resizing the window. The
+	other SEVI element styles are specified in sevi.css
+
+	The grid structure here is specifically made to be similar to that of 
+	IR-SEVI mode. This means many areas are left blank on purpose. Any 
+	changes made to the grid structure here should also be made to 
+	irseviGrid.css to make sure things look similar.
+*/
+
+/* Sevi Mode - First Page */
+
+#SeviModeFirstPage {
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 1fr 2fr 3fr 1fr 3fr 30px;
+	grid-template-areas:
+		"TitleSection ImageDisplay"
+		"ScanControls ImageDisplay"
+		"FileNaming ImageDisplay"
+		"LaserSetup ImageDisplay"
+		"LaserSetup Counters"
+		"SeviPageDown SeviPageDown";
+}
+
+/* Sevi Mode - Left Side */
+
+#SeviTitleSection {
+	grid-area: TitleSection;
+}
+
+/* Sevi Mode - Left Side - Scan Controls */
+#SeviScanControls {
+	grid-area: ScanControls;
+	grid-template-rows: 1fr 1fr;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-areas:
+		"ScanStartSave ScanPauseResume ScanCancel"
+		"ScanAutosave ScanReset ScanSingleShot";
+}
+#SeviScanStartSave {
+	grid-area: ScanStartSave;
+}
+#SeviScanPauseResume {
+	grid-area: ScanPauseResume;
+}
+#SeviScanCancel {
+	grid-area: ScanCancel;
+}
+#SeviScanAutosave {
+	grid-area: ScanAutosave;
+}
+#SeviScanReset {
+	grid-area: ScanReset;
+}
+#SeviScanSingleShot {
+	grid-area: ScanSingleShot;
+}
+#SeviImageSeries {
+	grid-area: ScanStartSave;
+}
+#SeviImageSeriesRemaining {
+	grid-area: ScanStartSave;
+}
+
+/* Sevi Mode - Left Side - File Naming */
+#SeviFileNaming {
+	grid-area: FileNaming;
+	grid-template-rows: 1fr 2fr 2fr 1.3fr;
+	grid-template-columns: 8fr 1fr 1fr 1fr 1fr;
+	grid-template-areas:
+		"CurrentImageTitle blank1 ImageCounterTitle ImageCounterTitle ImageCounterTitle"
+		"CurrentImageFile blank2 ImageCounterDown ImageCounter ImageCounterUp"
+		"CurrentImageFileIR blank3 blank3 blank3 blank3"
+		"VMILabel VMILabel VMIMode VMIMode blank4";
+}
+#SeviCurrentImageTitle {
+	grid-area: CurrentImageTitle;
+}
+#SeviImageCounterTitle {
+	grid-area: ImageCounterTitle;
+}
+#SeviCurrentImageFile {
+	grid-area: CurrentImageFile;
+}
+#SeviImageCounterDown {
+	grid-area: ImageCounterDown;
+}
+#SeviImageCounter {
+	grid-area: ImageCounter;
+}
+#SeviImageCounterUp {
+	grid-area: ImageCounterUp;
+}
+#SeviVMILabel {
+	grid-area: VMILabel;
+}
+#SeviVMIMode {
+	grid-area: VMIMode;
+}
+
+/* Sevi Mode - Left Side - Laser Setup */
+#SeviLaserSetup {
+	grid-area: LaserSetup;
+	grid-template-rows: 0.5fr 1fr 0.5fr 2.5fr;
+	grid-template-areas:
+		"LaserSetupTitle"
+		"DetachmentLaserReadout"
+		"LaserMeasurement"
+		"blank";
+}
+#SeviLaserSetupTitle {
+	grid-area: LaserSetupTitle;
+}
+
+/* Sevi Mode - Left Side - Laser Setup - Detachment Laser Readout */
+#SeviDetachmentLaserReadout {
+	grid-area: DetachmentLaserReadout;
+	grid-template-columns: repeat(3, 3fr 1fr) 3fr 1.3fr;
+	grid-template-areas: "WavelengthMode DetachmentWavelengthLabel DetachmentWavelength NMLabel1 ConvertedWavelength NMLabel2 DetachmentWavenumber WNLabel1";
+}
+#SeviWavelengthMode {
+	grid-area: WavelengthMode;
+}
+#SeviDetachmentWavelengthLabel {
+	grid-area: DetachmentWavelengthLabel;
+}
+#SeviDetachmentWavelength {
+	grid-area: DetachmentWavelength;
+}
+#SeviNMLabel1 {
+	grid-area: NMLabel1;
+}
+#SeviConvertedWavelength {
+	grid-area: ConvertedWavelength;
+}
+#SeviNMLabel2 {
+	grid-area: NMLabel2;
+}
+#SeviDetachmentWavenumber {
+	grid-area: DetachmentWavenumber;
+}
+#SeviWNLabel1 {
+	grid-area: WNLabel1;
+}
+
+/* Sevi Mode - Left Side - Laser Setup - Laser Measurement Button */
+#SeviDetachmentLaserMeasurement {
+	grid-area: LaserMeasurement;
+	grid-template-columns: 3.8fr 2fr 0.2fr 2fr;
+	grid-template-areas: "blank1 CancelMeasurement blank2 MeasureDetachmentWavelength";
+}
+#SeviMeasureDetachmentWavelengthCancel {
+	grid-area: CancelMeasurement;
+}
+#SeviMeasureDetachmentWavelength {
+	grid-area: MeasureDetachmentWavelength;
+}
+
+/* Sevi Mode - Right Side */
+
+/* Sevi Mode - Right Side - Accumulated Image Display */
+#SeviImageDisplay {
+	grid-area: ImageDisplay;
+	grid-template-rows: 1fr 14fr 1fr;
+	grid-template-areas:
+		"Title"
+		"Display"
+		"SliderDiv";
+}
+#SeviImageDisplay h3 {
+	grid-area: Title;
+}
+#SeviDisplayWrapper {
+	grid-area: Display;
+}
+#SeviDisplaySliderDiv {
+	grid-area: SliderDiv;
+	grid-template-columns: 1fr 14fr 1fr;
+	grid-template-areas: "blank Slider Checkbox";
+}
+#SeviDisplaySlider {
+	grid-area: Slider;
+}
+#SeviDisplayCheckbox {
+	grid-area: Checkbox;
+}
+
+/* Sevi Mode - Right Side - Electron Counters */
+#SeviCounters {
+	grid-area: Counters;
+	grid-template-rows: 0.5fr 1fr 1fr 1fr 5px 1fr;
+	grid-template-columns: 1.2fr 1fr 1fr;
+	grid-template-areas:
+		"blank blank blank"
+		"TotalFramesLabel TotalFrames blank1"
+		"TotalECountLabel TotalECount blank1"
+		"AvgECountLabel AvgECount blank1"
+		"ECountersDivLine ECountersDivLine ECountersDivLine"
+		"AutomaticStopLabel AutomaticStop AutomaticStopUnit";
+}
+#SeviTotalFramesLabel {
+	grid-area: TotalFramesLabel;
+}
+#SeviTotalFrames {
+	grid-area: TotalFrames;
+}
+#SeviTotalECountLabel {
+	grid-area: TotalECountLabel;
+}
+#SeviTotalECount {
+	grid-area: TotalECount;
+}
+#SeviAvgECountLabel {
+	grid-area: AvgECountLabel;
+}
+#SeviAvgECount {
+	grid-area: AvgECount;
+}
+#SeviECountersDivLine {
+	grid-area: ECountersDivLine;
+}
+#SeviAutomaticStopLabel {
+	grid-area: AutomaticStopLabel;
+}
+#SeviAutomaticStop {
+	grid-area: AutomaticStop;
+}
+#SeviAutomaticStopUnit {
+	grid-area: AutomaticStopUnit;
+}
+/* Image Progress Bar */
+/* Progress bar will be in the same location as the automatic stop stuff */
+#SeviImageProgressBarBackground {
+	/* grid-column-start: AutomaticStopLabel;
+	grid-column-end: AutomaticStopUnit; */
+	grid-area: AutomaticStopLabel / AutomaticStopLabel / AutomaticStopLabel / AutomaticStopUnit;
+	grid-template-columns: 4fr 8fr 1fr;
+	grid-template-areas: "Label ProgressBar PercentLabel";
+}
+#SeviImageProgressLabel {
+	grid-area: Label;
+}
+#SeviImageProgressBarOuter {
+	grid-area: ProgressBar;
+}
+#SeviImageProgressPercentLabel {
+	grid-area: PercentLabel;
+}
+
+#SeviPageDown {
+	grid-area: SeviPageDown;
+}
+
+/* Pause "animation" */
+.paused #SeviPauseScreenSaveControls {
+	grid-area: SaveControls;
+}
+.paused #SeviPauseScreenDisplay {
+	grid-area: ImageDisplay;
+}
+.paused #SeviPauseScreenCounters {
+	grid-area: Counters;
+}
+
+/* Sevi Mode - Second Page */
+
+#SeviModeSecondPage {
+	grid-template-rows: 30px 7fr 8fr;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"SeviPageUp SeviPageUp"
+		"SpectrumDisplaySection SpectrumDisplaySection"
+		"RecentScans UnitConversion";
+}
+
+#SeviPageUp {
+	grid-area: SeviPageUp;
+}
+
+/* Sevi Mode - Second Page - PE Spectrum */
+#SeviSpectrumDisplaySection {
+	grid-area: SpectrumDisplaySection;
+	grid-template-rows: 8fr 1fr;
+	grid-template-columns: 6fr 1fr;
+	grid-template-areas:
+		"SpectrumDisplayInner SpectrumSelection"
+		"SpectrumControl SpectrumSelection";
+}
+#SeviSpectrumDisplayInner {
+	grid-area: SpectrumDisplayInner;
+}
+#SeviSpectrumControl {
+	grid-area: SpectrumControl;
+	grid-template-columns: 1fr 0.7fr 1.1fr 1.1fr 1.1fr 0.7fr 1fr;
+	grid-template-areas: "ResetZoom blank1 ChangeBasis ShowDifference ShowAnisotropy blank2 Calculate";
+}
+#SeviResetZoom {
+	grid-area: ResetZoom;
+}
+#SeviChangeBasis {
+	grid-area: ChangeBasis;
+}
+#SeviShowDifference {
+	grid-area: ShowDifference;
+}
+#SeviShowAnisotropy {
+	grid-area: ShowAnisotropy;
+}
+#SeviCalculateSpectrumButton {
+	grid-area: Calculate;
+}
+
+#SeviSpectrumSelection {
+	grid-area: SpectrumSelection;
+	grid-auto-rows: 35px;
+}
+
+.spectrum-selection-element {
+	grid-template-columns: 1fr 3fr;
+}
+
+/* Sevi Mode - Second Page - Recent Scans */
+#SeviRecentScans {
+	grid-area: RecentScans;
+	grid-template-rows: 1fr 8fr;
+}
+#SeviRecentScansHeader {
+	grid-template-columns: 0.7fr 1.3fr 1.5fr 0.8fr 1fr;
+}
+#SeviRecentScansSection {
+	grid-auto-rows: 35px;
+}
+.recent-scans-row {
+	grid-template-columns: 0.7fr 1.3fr 1.5fr 0.8fr 1fr;
+}
+
+#SeviElectronCountHistory {
+	grid-area: ElectronCountHistory;
+}
+
+/* Sevi Mode - Second Page - Energy Conversion */
+
+#SeviUnitConversion {
+	grid-area: UnitConversion;
+	grid-template-rows: 2fr 1fr 2fr 2fr 6fr;
+	grid-template-columns: 0.5fr 1fr 1fr 1fr 1fr;
+	grid-template-areas:
+		"Title Title Title Title Title"
+		"blank0 Standard Doubled Raman IRDFG"
+		"WN StandardWN DoubledWN RamanWN IRDFGWN"
+		"NM StandardNM DoubledNM RamanNM IRDFGNM"
+		"b1 b1 b1 b1 b1";
+}
+#SeviUnitTitle {
+	grid-area: Title;
+}
+#SeviUnitLabelStandard {
+	grid-area: Standard;
+}
+#SeviUnitLabelDoubled {
+	grid-area: Doubled;
+}
+#SeviUnitLabelRaman {
+	grid-area: Raman;
+}
+#SeviUnitLabelIRDFG {
+	grid-area: IRDFG;
+}
+#SeviUnitLabelWN {
+	grid-area: WN;
+}
+#SeviUnitStandardWN {
+	grid-area: StandardWN;
+}
+#SeviUnitDoubledWN {
+	grid-area: DoubledWN;
+}
+#SeviUnitRamanWN {
+	grid-area: RamanWN;
+}
+#SeviUnitIRDFGWN {
+	grid-area: IRDFGWN;
+}
+#SeviUnitLabelNM {
+	grid-area: NM;
+}
+#SeviUnitStandardNM {
+	grid-area: StandardNM;
+}
+#SeviUnitDoubledNM {
+	grid-area: DoubledNM;
+}
+#SeviUnitRamanNM {
+	grid-area: RamanNM;
+}
+#SeviUnitIRDFGNM {
+	grid-area: IRDFGNM;
+}

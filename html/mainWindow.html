@@ -3,228 +3,937 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>Hyperion</title>
-		<link href="../css/mainWindow.css" rel="stylesheet" />
+		<!--<link href="../css/mainWindow2.css" rel="stylesheet" />
+		<link href="../css/mainWindowGrid2.css" rel="stylesheet" />-->
+		<link href="../css/MainWindow/global.css" rel="stylesheet" />
+		<link href="../css/MainWindow/globalGrid.css" rel="stylesheet" />
+		<link href="../css/MainWindow/sevi.css" rel="stylesheet" />
+		<link href="../css/MainWindow/seviGrid.css" rel="stylesheet" />
+		<link href="../css/MainWindow/irsevi.css" rel="stylesheet" />
+		<link href="../css/MainWindow/irseviGrid.css" rel="stylesheet" />
+		<link href="../css/MainWindow/iraction.css" rel="stylesheet" />
+		<link href="../css/MainWindow/iractiongrid.css" rel="stylesheet" />
+		<link href="../css/MainWindow/settings.css" rel="stylesheet" />
+		<link href="../css/MainWindow/settingsGrid.css" rel="stylesheet" />
 	</head>
 	<body>
+		<!-- Message Bar -->
+		<div class="grid" id="MsgBar">
+			<p class="white-text left-align" id="MessageDisplay"></p>
+		</div>
+		<!-- Tab Bar -->
 		<div id="TabBar">
-			<button class="tab" id="NormalMode">Normal Mode</button>
-			<button class="tab" id="IRMode">IR Mode</button>
-			<button class="tab" id="DepletionMode">Depletion Mode</button>
-			<button class="tab" id="EMonitor">e<sup>-</sup> Monitor</button>
-			<button class="tab" id="PostProcess">Post Processing</button>
+			<button class="tab" id="SeviMode">SEVI</button>
+			<button class="tab" id="IRSeviMode">IR SEVI</button>
+			<button class="tab" id="IRActionMode">IR Action Mode</button>
+			<!-- Future tab buttons should be added here -->
 			<button class="tab" id="Settings">Settings</button>
 		</div>
-		<div class="normal-mode" id="NormalModeContent">
-			<div class="grid background-lighter-blue" id="TitleSection">
-				<h1 class="white-text">Hyperion</h1>
+		<div class="grid large-display-hidden large-display" id="LargeDisplaySection">
+			<div class="grid large-display-wrapper" id="LargeDisplayWrapper">
+				<div class="hover-box" id="LargeDisplayHoverBox"></div>
+				<canvas class="accumulated-image" id="LargeDisplay" width="2000" height="2000"></canvas>
 			</div>
-			<div class="grid background-lighter-blue" id="ScanControls">
-				<button class="ScanButton square-button white-text" id="StartSave">
-					<img class="ScanImage" id="StartButtonImg" src="../ImageSrc/Play.png" /><span id="StartButtonText">Start</span>
-				</button>
-				<button class="ScanButton square-button white-text" id="Pause" disabled>
-					<img class="ScanImage" id="PauseButtonImg" src="../ImageSrc/Pause.png" /><span id="PauseButtonText">Pause</span>
-				</button>
-				<button class="ScanButton square-button white-text" id="SingleShot">Single Shot</button>
-			</div>
-			<div class="grid background-lighter-blue" id="SaveControls">
-				<!-- First row: Titles -->
-				<h4 class="white-text" id="CurrentFileName"><u>Current File Name</u></h4>
-				<h4 class="white-text" id="Increment"><u>Increment</u></h4>
-				<!-- Second row: File Naming -->
-				<input class="white-text" id="CurrentFile" />
-				<button class="I0NButton" id="I0NCounterDown">-</button>
-				<input class="input-change" type="number" value="1" id="I0NCounter" readonly />
-				<button class="I0NButton" id="I0NCounterUp">+</button>
-				<!-- Third row: Current Wavelength -->
-				<select class="square-button white-text" name="WavelengthMode" id="WavelengthMode">
-					<option value="Standard">Standard</option>
-					<option value="Doubled">Doubled</option>
-					<option value="Raman">Raman</option>
-					<option value="IRDFG">IR-DFG</option>
-				</select>
-				<label class="white-text" for="CurrentWavelength" id="CWLabel">h<em class="serif">ν</em>:</label>
-				<input class="input-change" id="CurrentWavelength" type="number" min="0" placeholder="Enter" />
-				<label class="white-text" id="NMLabel">nm</label>
-				<input class="input-change" id="ConvertedWavelength" type="number" placeholder="-" readonly />
-				<label class="white-text" id="NMLabel2">nm</label>
-				<input class="input-read" id="CurrentWavenumber" type="number" placeholder="-" readonly />
-				<label class="white-text" id="WNLabel">cm<sup>-1</sup></label>
-				<!-- IR Mode Wavelength Input -->
-				<select class="square-button white-text" name="IRWavelengthMode" id="IRWavelengthMode">
-					<option value="nIR">Near IR</option>
-					<option value="iIR">Inter. IR</option>
-					<option value="mIR">Mid IR</option>
-					<option value="fIR">Far IR</option>
-				</select>
-				<label class="white-text" for="CurrentWavelengthNIR" id="CWLabelNIR">h<em class="serif">ν</em>:</label>
-				<input class="input-change" id="CurrentWavelengthNIR" type="number" min="0" placeholder="Enter" />
-				<label class="white-text" id="NMLabelIR">nm</label>
-				<input class="input-change" id="ConvertedWavelengthIR" type="number" placeholder="-" readonly />
-				<label class="white-text" id="NMLabel2IR">nm</label>
-				<input class="input-read" id="CurrentWavenumberIR" type="number" placeholder="-" readonly />
-				<label class="white-text" id="WNLabelIR">cm<sup>-1</sup></label>
-				<!-- Fourth row: Save Directory -->
-				<label class="SaveRow4 white-text" for="SaveDirectory" id="SDLabel">Save to:</label>
-				<input class="SaveRow4 white-text" id="SaveDirectory" readonly />
-				<button class="SaveRow4 square-button white-text" id="ChangeSaveDirectory">Change</button>
-			</div>
-			<div class="pause-screen" id="PauseScreenSaveControls"></div>
-			<div class="background-lighter-blue" id="RecentScans">
-				<header>
-					<h4 class="white-text">File Name</h4>
-					<h4 class="white-text">h<em class="serif">ν</em> (nm)</h4>
-					<h4 class="white-text">h<em class="serif">ν</em> (cm<sup>-1</sup>)</h4>
-					<h4 class="white-text">Frame Count</h4>
-					<h4 class="white-text">e<sup>-</sup> Count</h4>
-				</header>
-				<div id="RecentScansSection"></div>
-			</div>
-			<!-- Depletion Mode Intensity(R) Plot -->
-			<div class="background-lighter-blue" id="IntensityGraphDisplay">
-				<canvas id="IntensityGraph"></canvas>
-			</div>
-			<div class="grid background-lighter-blue" id="ImageDisplay">
-				<h3 class="white-text">Accumulated View</h3>
-				<select class="square-button white-text" name="IRImageDisplay" id="IRImageDisplay">
-					<option value="IROff">IR Off</option>
-					<option value="IROn">IR On</option>
-					<option value="Difference">Difference</option>
-				</select>
-				<canvas class="active-display accumulated-image" id="Display" width="1024" height="1024"></canvas>
-				<!-- IR Mode Displays -->
-				<canvas class="inactive-display accumulated-image" id="DisplayIROff" width="1024" height="1024"></canvas>
-				<canvas class="inactive-display accumulated-image" id="DisplayIROn" width="1024" height="1024"></canvas>
-				<canvas class="inactive-display accumulated-image" id="DisplayIRDifference" width="1024" height="1024"></canvas>
-				<label for="DisplaySlider1">Contrast</label>
-				<input class="DisplaySlider" id="DisplaySlider1" type="range" min="0.05" max="1" step="0.05" value="0.5" />
-			</div>
-			<div class="pause-screen" id="PauseScreenDisplay"></div>
-			<div class="grid background-lighter-blue" id="Counters">
-				<label class="white-text" id="TotalFramesLabel" for="TotalFrames">Total Frames:</label>
-				<input class="input-read" id="TotalFrames" type="number" value="0" readonly />
-				<label class="white-text" id="TotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
-				<input class="input-read" id="TotalECount" type="text" value="0" readonly />
-				<label class="white-text" id="AvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
-				<input class="input-read" id="AvgECount" type="number" value="0" readonly />
-				<button class="square-button white-text" id="ResetCounters">Reset Counters</button>
-				<!-- IR Mode Counters -->
-				<label class="white-text" id="TotalFramesLabelIROn" for="TotalFramesIROn">Total Frames (IR On):</label>
-				<input class="input-read" id="TotalFramesIROn" type="number" value="0" readonly />
-				<label class="white-text" id="TotalECountLabelIROn" for="TotalECountIROn">Total e<sup>-</sup> Count (IR On):</label>
-				<input class="input-read" id="TotalECountIROn" type="text" value="0" readonly />
-			</div>
-			<div class="pause-screen" id="PauseScreenCounters"></div>
+			<button class="square-button white-text large-display-close" id="LargeDisplayClose">X</button>
 		</div>
-		<div id="EMonitorContent">
-			<div class="grid background-lighter-blue" id="EMonitorButtons">
-				<button class="eChartButton square-button white-text" id="eChartStartStop">
-					<img class="eChartImage" id="eChartStartButtonImg" src="../ImageSrc/Play.png" />
-					<span id="eChartStartButtonText">Start</span>
-				</button>
-				<button class="eChartButton square-button white-text" id="eChartReset">Reset</button>
-			</div>
-			<div class="grid background-lighter-blue" id="EMonitorChart">
-				<div id="eChartYAxisButtons">
-					<button class="square-button white-text eChartAxis" id="eChartYAxisUp">+</button>
-					<input class="input-read eChartAxisLabel" id="eChartYAxis" readonly />
-					<button class="square-button white-text eChartAxis" id="eChartYAxisDown">-</button>
+		<!-- SEVI Mode Content -->
+		<div id="SeviModeContent">
+			<!-- SEVI Mode - First Page -->
+			<div class="first-page page grid" id="SeviModeFirstPage">
+				<!-- SEVI Mode - First Page - Title Section -->
+				<div class="grid background-lighter-blue title-section" id="SeviTitleSection">
+					<h1 class="white-text title">Hyperion</h1>
 				</div>
-				<canvas id="eChart"></canvas>
-				<div id="eChartXAxisButtons">
-					<button class="square-button white-text eChartAxis" id="eChartXAxisDown">-</button>
-					<input class="input-read eChartAxisLabel" id="eChartXAxis" readonly />
-					<button class="square-button white-text eChartAxis" id="eChartXAxisUp">+</button>
+				<!-- SEVI Mode - First Page - Scan Controls -->
+				<div class="grid background-lighter-blue scan-controls hide-image-series" id="SeviScanControls">
+					<button class="scan-control-button square-button white-text" id="SeviScanStartSave">
+						<span class="scan-button-text" id="SeviScanStartSaveText">Start</span>
+					</button>
+					<select class="white-text square-button drop-down image-series" id="SeviImageSeries">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+					</select>
+					<div class="square-button image-series-remaining" id="SeviImageSeriesRemaining">
+						<div class="white-text image-series-text" id="SeviImageSeriesRemainingText">(0)</div>
+					</div>
+					<button class="scan-control-button square-button white-text" id="SeviScanPauseResume">
+						<span class="scan-button-text" id="SeviScanPauseResumeText">Pause</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="SeviScanCancel">
+						<span class="scan-button-text" id="SeviScanCancelText">Cancel</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="SeviScanAutosave">
+						<span class="scan-button-text" id="SeviScanAutosaveText">Autosave</span>
+						<br />
+						<span class="scan-button-text" id="SeviScanAutosaveStatusText">On</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="SeviScanReset">
+						<span class="scan-button-text" id="SeviScanResetText">Reset</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="SeviScanSingleShot">
+						<span class="scan-button-text" id="SeviScanSingleShotText">Single Shot</span>
+					</button>
 				</div>
+				<!-- SEVI Mode - First Page - File Naming -->
+				<div class="grid background-lighter-blue" id="SeviFileNaming">
+					<h4 class="white-text save-control-title" id="SeviCurrentImageTitle">Current Image</h4>
+					<h4 class="white-text save-control-title" id="SeviImageCounterTitle">Image ID</h4>
+					<input class="white-text input-read file-name-display" id="SeviCurrentImageFile" readonly />
+					<button class="image-id-button" id="SeviImageCounterDown">-</button>
+					<input class="input-read" type="number" value="1" id="SeviImageCounter" readonly />
+					<button class="image-id-button" id="SeviImageCounterUp">+</button>
+					<label class="white-text text-box-label" id="SeviVMILabel">VMI Setting:</label>
+					<select class="white-text square-button drop-down" name="VMIMode" id="SeviVMIMode">
+						<option value="V1">V1</option>
+						<option value="V2">V2</option>
+						<option value="V3">V3</option>
+						<option value="V4">V4</option>
+					</select>
+				</div>
+				<!-- SEVI Mode - First Page - Laser Setup -->
+				<div class="grid background-lighter-blue save-control-section negative-bottom-margin" id="SeviLaserSetup">
+					<div class="grid background-lighter-blue" id="SeviLaserSetupTitle">
+						<h3 class="white-text" id="SeviLaserControlTitle">Laser Control</h3>
+					</div>
+					<!-- Detachment Laser Readout -->
+					<div class="grid background-lighter-blue laser-readout" id="SeviDetachmentLaserReadout">
+						<select class="white-text square-button drop-down" name="WavelengthMode" id="SeviWavelengthMode">
+							<option value="Standard">Standard</option>
+							<option value="Doubled">Doubled</option>
+							<option value="Raman">Raman</option>
+							<option value="IRDFG">IR-DFG</option>
+						</select>
+						<label class="white-text right-align" for="DetachmentWavelength" id="SeviDetachmentWavelengthLabel">h<em class="serif">ν</em>:</label>
+						<input class="input-change hv-display" id="SeviDetachmentWavelength" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="SeviNMLabel1">nm</label>
+						<input class="input-read hv-display" id="SeviConvertedWavelength" type="number" placeholder="-" readonly />
+						<label class="white-text" id="SeviNMLabel2">nm</label>
+						<input class="input-read hv-display" id="SeviDetachmentWavenumber" type="number" placeholder="-" readonly />
+						<label class="white-text" id="SeviWNLabel1">cm<sup>-1</sup></label>
+					</div>
+					<!-- Detachment Laser Measurement Button -->
+					<div class="grid background-lighter-blue" id="SeviDetachmentLaserMeasurement">
+						<button class="white-text square-button laser-measurement-button hidden" id="SeviMeasureDetachmentWavelengthCancel">Cancel</button>
+						<button class="white-text square-button laser-measurement-button" id="SeviMeasureDetachmentWavelength">Measure</button>
+					</div>
+				</div>
+				<!-- SEVI Mode - First Page - Image Display -->
+				<div class="grid background-lighter-blue" id="SeviImageDisplay">
+					<h3 class="white-text">Accumulated View</h3>
+					<div class="grid" id="SeviDisplayWrapper">
+						<canvas class="accumulated-image" id="SeviDisplay" width="2000" height="2000"></canvas>
+					</div>
+
+					<div class="grid background-lighter-blue" id="SeviDisplaySliderDiv">
+						<input class="display-slider" id="SeviDisplaySlider" type="range" min="0.05" max="1" step="0.05" value="0.5" />
+						<input type="checkbox" class="display-slider-checkbox" id="SeviDisplayCheckbox" />
+					</div>
+				</div>
+				<!-- SEVI Mode - First Page - Electron Counters -->
+				<div class="grid background-lighter-blue negative-bottom-margin hide-progress-bar" id="SeviCounters">
+					<label class="white-text text-box-label" id="SeviTotalFramesLabel" for="TotalFrames">Total Frames:</label>
+					<input class="input-read e-counter-box" id="SeviTotalFrames" type="number" value="0" readonly />
+					<label class="white-text text-box-label" id="SeviTotalECountLabel" for="TotalECount">Total e<sup>-</sup> Count:</label>
+					<input class="input-read e-counter-box" id="SeviTotalECount" type="text" value="0" readonly />
+					<label class="white-text text-box-label" id="SeviAvgECountLabel" for="AvgECount">Average e<sup>-</sup>/Shot:</label>
+					<input class="input-read e-counter-box" id="SeviAvgECount" type="number" value="0" readonly />
+					<div class="divider-line" id="SeviECountersDivLine"></div>
+					<label class="white-text text-box-label progress-bar-hide" id="SeviAutomaticStopLabel">Stop Scan After:</label>
+					<input class="input-change e-counter-box progress-bar-hide" id="SeviAutomaticStop" placeholder="-" />
+					<select class="white-text square-button drop-down progress-bar-hide" name="AutomaticStopUnit" id="SeviAutomaticStopUnit">
+						<option value="None">None</option>
+						<option value="Electrons">x1e5 Electrons</option>
+						<option value="Frames">x1000 Frames</option>
+					</select>
+					<div class="grid justify-align-center progress-bar-background progress-bar-show" id="SeviImageProgressBarBackground">
+						<label class="white-text progress-bar-label" id="SeviImageProgressLabel">Image Progress:</label>
+						<div class="progress-bar-outer" id="SeviImageProgressBarOuter">
+							<div class="white-text progress-bar" id="SeviImageProgressBar"></div>
+						</div>
+						<label class="white-text progress-bar-label" id="SeviImageProgressPercentLabel">0%</label>
+					</div>
+				</div>
+				<button class="page-down page-button" id="SeviPageDown"><i class="arrow arrow-down"></i></button>
+				<!-- Pause Screen Animation Elements -->
+				<div class="pause-screen" id="SeviPauseScreenDisplay"></div>
+				<!--<div class="pause-screen negative-bottom-margin" id="SeviPauseScreenSaveControls"></div>-->
+				<div class="pause-screen negative-bottom-margin" id="SeviPauseScreenCounters"></div>
 			</div>
-			<div class="grid background-lighter-blue" id="EMonitorCounters">
-				<h1 class="white-text">Electron Count Monitor</h1>
-				<label class="white-text eChartLabel" id="eChartCCLAvgLabel" for="eChartCCLAvg">Average Isolated Spot Count:</label>
-				<input class="input-read eChartInput" id="eChartCCLAvg" type="number" readonly />
-				<label class="white-text eChartLabel" id="eChartHybridAvgLabel" for="eChartHybridAvg">Average Overlapping Spot Count:</label>
-				<input class="input-read eChartInput" id="eChartHybridAvg" type="number" readonly />
-				<label class="white-text eChartLabel" id="eChartTotalAvgLabel" for="eChartTotalAvg">Average Total Spot Count:</label>
-				<input class="input-read eChartInput" id="eChartTotalAvg" type="number" readonly />
-				<label class="white-text eChartLabel" id="eChartCalcTimeLabel" for="eChartCalcTime">Average Time to Calculate Centroids:</label>
-				<input class="input-read eChartInput" id="eChartCalcTime" type="text" readonly />
+			<!-- SEVI Mode - Second Page -->
+			<div class="second-page page grid" id="SeviModeSecondPage">
+				<button class="page-up page-button" id="SeviPageUp"><i class="arrow arrow-up"></i></button>
+				<!-- SEVI Mode - Second Page - PE Spectrum Display -->
+				<div class="grid background-lighter-blue negative-top-margin spectrum-display-section" id="SeviSpectrumDisplaySection">
+					<div class="background-lighter-blue spectrum-display-inner" id="SeviSpectrumDisplayInner">
+						<canvas id="SeviPESpectrum"></canvas>
+					</div>
+					<div class="grid background-lighter-blue spectrum-display-control" id="SeviSpectrumControl">
+						<button class="square-button spectrum-control-button white-text" id="SeviResetZoom">Reset Zoom</button>
+						<button class="square-button spectrum-control-button white-text" id="SeviChangeBasis">Show eBE Plot</button>
+						<button class="square-button spectrum-control-button white-text" id="SeviShowDifference">Show Difference</button>
+						<button class="square-button spectrum-control-button white-text" id="SeviShowAnisotropy">Show Anisotropy</button>
+						<button class="square-button spectrum-control-button white-text" id="SeviCalculateSpectrumButton">Calculate</button>
+					</div>
+					<div class="grid background-lighter-blue pe-spectra" id="SeviSpectrumSelection"></div>
+				</div>
+				<!-- SEVI Mode - Second Page - Recent Scans -->
+				<div class="grid background-lighter-blue recent-scans" id="SeviRecentScans">
+					<header class="grid recent-scans-header" id="SeviRecentScansHeader">
+						<h4 class="white-text">Image</h4>
+						<h4 class="white-text">h<em class="serif">ν</em> (nm)</h4>
+						<h4 class="white-text">h<em class="serif">ν</em> (cm<sup>-1</sup>)</h4>
+						<h4 class="white-text">Frames</h4>
+						<h4 class="white-text">Electrons</h4>
+					</header>
+					<div class="grid recent-scans-section" id="SeviRecentScansSection"></div>
+				</div>
+				<!-- SEVI Mode - Second Page - Unit Conversion -->
+				<div class="grid background-lighter-blue" id="SeviUnitConversion">
+					<h2 class="white-text" id="SeviUnitTitle">Detachment Energy Conversion</h2>
+					<h4 class="white-text unit-conversion-label" id="SeviUnitLabelStandard">Standard</h4>
+					<h4 class="white-text unit-conversion-label" id="SeviUnitLabelDoubled">Doubled</h4>
+					<h4 class="white-text unit-conversion-label" id="SeviUnitLabelRaman">Raman</h4>
+					<h4 class="white-text unit-conversion-label" id="SeviUnitLabelIRDFG">IRDFG</h4>
+					<h4 class="white-text" id="SeviUnitLabelWN">cm<sup>-1</sup>:</h4>
+					<input class="input-change hv-display" id="SeviUnitStandardWN" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitDoubledWN" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitRamanWN" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitIRDFGWN" type="number" min="0" placeholder="-" />
+					<h4 class="white-text" id="SeviUnitLabelNM">nm:</h4>
+					<input class="input-change hv-display" id="SeviUnitStandardNM" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitDoubledNM" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitRamanNM" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="SeviUnitIRDFGNM" type="number" min="0" placeholder="-" />
+				</div>
 			</div>
 		</div>
-		<div id="PostProcessContent"></div>
-		<div id="SettingsContent">
-			<h1 class="SettingsTitle">Settings</h1>
-			<div class="SettingsSection" id="CameraSettingsContent">
-				<h3 class="SettingsSectionTitle">Camera Settings</h3>
-				<br />
-				<label for="AoIx">AoI Width:</label>
-				<input type="number" class="AoI SettingsNumberInput input-change" id="AoIx" />
-				<label for="AoIy">AoI Height:</label>
-				<input type="number" class="AoI SettingsNumberInput input-change" id="AoIy" />
-				<br /><br />
-				<label for="xOffset">Offset Left:</label>
-				<input type="number" class="AoI SettingsNumberInput input-change" id="xOffset" />
-				<label for="yOffset">Offset Top:</label>
-				<input type="number" class="AoI SettingsNumberInput input-change" id="yOffset" />
-				<br /><br />
-				<label for="ExposureTime">Exposure Time:</label>
-				<input type="number" class="Exposure SettingsNumberInput input-change" id="ExposureTime" />
-				<label class="UnitLabel" for="ExposureTime">ms</label>
-				<label for="Gain">Gain:</label>
-				<input type="number" class="SettingsNumberInput input-change" id="Gain" min="0" max="100" />
-				<label class="UnitLabel" for="Gain">%</label>
-				<label for="GainBoost">Use Gain Boost:</label>
-				<input type="checkbox" id="GainBoost" />
-				<br /><br />
-				<label>Trigger:</label>
-				<label for="InternalTrigger">Internal Trigger</label>
-				<input type="radio" class="Trigger" name="Trigger" id="InternalTrigger" value="InternalTrigger" />
-				<label for="RisingEdge">Rising Edge</label>
-				<input type="radio" class="Trigger" name="Trigger" id="RisingEdge" value="RisingEdge" />
-				<label for="FallingEdge">Falling Edge</label>
-				<input type="radio" class="Trigger" name="Trigger" id="FallingEdge" value="FallingEdge" />
-				<br /><br />
-				<label for="TriggerDelay">Trigger Delay:</label>
-				<input type="number" class="SettingsNumberInput input-change" id="TriggerDelay" />
-				<label class="UnitLabel" for="TriggerDelay">ms</label>
-				<!--
-					flash settings
-					Location of IR light
-				-->
+		<!-- IR-SEVI Mode Content -->
+		<div id="IRSeviModeContent">
+			<!-- IR-SEVI Mode - First Page -->
+			<div class="first-page page grid" id="IRSeviModeFirstPage">
+				<!-- IR-SEVI Mode - First Page - Title Section -->
+				<div class="grid background-lighter-blue title-section" id="IRSeviTitleSection">
+					<h1 class="white-text title">Hyperion</h1>
+				</div>
+				<!-- IR-SEVI Mode - First Page - Scan Controls -->
+				<div class="grid background-lighter-blue scan-controls" id="IRSeviScanControls">
+					<button class="scan-control-button square-button white-text" id="IRSeviScanStartSave">
+						<span class="scan-button-text" id="IRSeviScanStartSaveText">Start</span>
+					</button>
+					<select class="white-text square-button drop-down image-series" id="IRSeviImageSeries">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+					</select>
+					<div class="square-button image-series-remaining" id="IRSeviImageSeriesRemaining">
+						<div class="white-text image-series-text" id="IRSeviImageSeriesRemainingText">(0)</div>
+					</div>
+					<button class="scan-control-button square-button white-text" id="IRSeviScanPauseResume">
+						<span class="scan-button-text" id="IRSeviScanPauseResumeText">Pause</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRSeviScanCancel">
+						<span class="scan-button-text" id="IRSeviScanCancelText">Cancel</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRSeviScanAutosave">
+						<span class="scan-button-text" id="IRSeviScanAutosaveText">Autosave</span>
+						<br />
+						<span class="scan-button-text" id="IRSeviScanAutosaveStatusText">On</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRSeviScanReset">
+						<span class="scan-button-text" id="IRSeviScanResetText">Reset</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRSeviScanSingleShot">
+						<span class="scan-button-text" id="IRSeviScanSingleShotText">Single Shot</span>
+					</button>
+				</div>
+				<!-- IR-SEVI Mode - First Page - File Naming -->
+				<div class="grid background-lighter-blue" id="IRSeviFileNaming">
+					<h4 class="white-text save-control-title" id="IRSeviCurrentImageTitle">Current Image</h4>
+					<h4 class="white-text save-control-title" id="IRSeviImageCounterTitle">Image ID</h4>
+					<input class="white-text input-read file-name-display" id="IRSeviCurrentImageFile" readonly />
+					<button class="image-id-button" id="IRSeviImageCounterDown">-</button>
+					<input class="input-read" type="number" value="1" id="IRSeviImageCounter" readonly />
+					<button class="image-id-button" id="IRSeviImageCounterUp">+</button>
+					<input class="white-text input-read file-name-display" id="IRSeviCurrentImageFileIR" readonly />
+					<label class="white-text text-box-label" id="IRSeviVMILabel">VMI Setting:</label>
+					<select class="white-text square-button drop-down" name="IRSeviVMIMode" id="IRSeviVMIMode">
+						<option value="V1">V1</option>
+						<option value="V2">V2</option>
+						<option value="V3">V3</option>
+						<option value="V4">V4</option>
+					</select>
+				</div>
+				<!-- IR-SEVI Mode - First Page - Laser Setup -->
+				<div class="grid background-lighter-blue save-control-section negative-bottom-margin" id="IRSeviLaserSetup">
+					<div class="grid background-lighter-blue" id="IRSeviLaserSetupTitle">
+						<h3 class="white-text" id="IRSeviLaserControlTitle">Laser Control</h3>
+					</div>
+					<!-- Detachment Laser Readout -->
+					<div class="grid background-lighter-blue laser-readout" id="IRSeviDetachmentLaserReadout">
+						<select class="white-text square-button drop-down" name="IRSeviWavelengthMode" id="IRSeviWavelengthMode">
+							<option value="Standard">Standard</option>
+							<option value="Doubled">Doubled</option>
+							<option value="Raman">Raman</option>
+							<option value="IRDFG">IR-DFG</option>
+						</select>
+						<label class="white-text right-align" for="IRSeviDetachmentWavelength" id="IRSeviDetachmentWavelengthLabel"
+							>h<em class="serif">ν</em>:</label
+						>
+						<input class="input-change hv-display" id="IRSeviDetachmentWavelength" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="IRSeviNMLabel1">nm</label>
+						<input class="input-read hv-display" id="IRSeviConvertedWavelength" type="number" placeholder="-" readonly />
+						<label class="white-text" id="IRSeviNMLabel2">nm</label>
+						<input class="input-read hv-display" id="IRSeviDetachmentWavenumber" type="number" placeholder="-" readonly />
+						<label class="white-text" id="IRSeviWNLabel1">cm<sup>-1</sup></label>
+					</div>
+					<!-- Detachment Laser Measurement Button -->
+					<div class="grid background-lighter-blue" id="IRSeviDetachmentLaserMeasurement">
+						<button class="white-text square-button laser-measurement-button hidden" id="IRSeviMeasureDetachmentWavelengthCancel">Cancel</button>
+						<button class="white-text square-button laser-measurement-button" id="IRSeviMeasureDetachmentWavelength">Measure</button>
+					</div>
+					<!-- IR Laser Readout -->
+					<div class="grid background-lighter-blue laser-readout" id="IRSeviIRLaserReadout">
+						<select class="white-text square-button drop-down" name="IRSeviIRWavelengthMode" id="IRSeviIRWavelengthMode">
+							<option value="Standard">Near IR</option>
+							<option value="Doubled">Inter. IR</option>
+							<option value="Raman">Mid IR</option>
+							<option value="IRDFG">Far IR</option>
+						</select>
+						<label class="white-text right-align" for="IRSeviIRWavelength" id="IRSeviIRWavelengthLabel">h<em class="serif">ν</em>:</label>
+						<input class="input-change hv-display" id="IRSeviIRWavelength" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="IRSeviNMLabel3">nm</label>
+						<input class="input-read hv-display" id="IRSeviIRConvertedWavelength" type="number" placeholder="-" readonly />
+						<label class="white-text" id="IRSeviNMLabel4">nm</label>
+						<input class="input-read hv-display" id="IRSeviIRWavenumber" type="number" placeholder="-" readonly />
+						<label class="white-text" id="IRSeviWNLabel2">cm<sup>-1</sup></label>
+					</div>
+					<!-- IR Excitation Laser Measurement Button -->
+					<div class="grid background-lighter-blue" id="IRSeviExcitationLaserMeasurement">
+						<button class="white-text square-button laser-measurement-button hidden" id="IRSeviMeasureExcitationWavelengthCancel">Cancel</button>
+						<button class="white-text square-button laser-measurement-button" id="IRSeviMeasureExcitationWavelength">Measure</button>
+					</div>
+					<!-- IR Laser Control -->
+					<div class="grid background-lighter-blue laser-readout" id="IRSeviIRLaserControl">
+						<label class="white-text" id="IRSeviIRLaserControlLabel">Desired IR Energy:</label>
+						<input class="input-change hv-display" id="IRSeviDesiredEnergy" type="number" min="0" placeholder="-" />
+						<select class="white-text square-button drop-down" name="IRSeviDesiredEnergyUnit" id="IRSeviDesiredEnergyUnit">
+							<!-- $#x is the beginning for unicode characters, 207B is superscript "-", 00B9 is superscript "1" -->
+							<option value="cm-1">cm&#x207B;&#x00B9;</option>
+							<option value="nm">nm</option>
+							<option value="um">µm</option>
+						</select>
+						<button class="white-text square-button hidden" id="IRSeviMoveIRButtonCancel">Cancel</button>
+						<button class="white-text square-button" id="IRSeviMoveIRButton">Go</button>
+					</div>
+				</div>
+				<!-- IR-SEVI Mode - First Page - Image Display -->
+				<div class="grid background-lighter-blue" id="IRSeviImageDisplay">
+					<h3 class="white-text">Accumulated View</h3>
+					<select class="white-text square-button drop-down" name="IRSeviImageDisplaySelect" id="IRSeviImageDisplaySelect">
+						<option value="IROff">IR Off</option>
+						<option value="IROn">IR On</option>
+						<option value="DifferencePos">Difference (Pos.)</option>
+						<option value="DifferenceNeg">Difference (Neg.)</option>
+					</select>
+					<div class="grid" id="IRSeviDisplayWrapper">
+						<canvas class="accumulated-image" id="IRSeviDisplay" width="2000" height="2000"></canvas>
+					</div>
+
+					<div class="grid background-lighter-blue" id="IRSeviDisplaySliderDiv">
+						<input class="display-slider" id="IRSeviDisplaySlider" type="range" min="0.05" max="1" step="0.05" value="0.5" />
+						<input type="checkbox" class="display-slider-checkbox" id="IRSeviDisplayCheckbox" />
+					</div>
+				</div>
+				<!-- IR-SEVI Mode - First Page - Electron Counters -->
+				<div class="grid background-lighter-blue negative-bottom-margin hide-progress-bar" id="IRSeviCounters">
+					<h3 class="white-text" id="IRSeviIROffCountersTitle">IR Off</h3>
+					<h3 class="white-text" id="IRSeviIROnCountersTitle">IR On</h3>
+					<label class="white-text text-box-label" id="IRSeviTotalFramesLabel" for="IRSeviTotalFrames">Total Frames:</label>
+					<input class="input-read e-counter-box" id="IRSeviTotalFrames" type="number" value="0" readonly />
+					<input class="input-read e-counter-box" id="IRSeviTotalFramesIROn" type="number" value="0" readonly />
+					<label class="white-text text-box-label" id="IRSeviTotalECountLabel" for="IRSeviTotalECount">Total e<sup>-</sup> Count:</label>
+					<input class="input-read e-counter-box" id="IRSeviTotalECount" type="text" value="0" readonly />
+					<input class="input-read e-counter-box" id="IRSeviTotalECountIROn" type="text" value="0" readonly />
+					<label class="white-text text-box-label" id="IRSeviAvgECountLabel" for="IRSeviAvgECount">Average e<sup>-</sup>/Shot:</label>
+					<input class="input-read e-counter-box" id="IRSeviAvgECount" type="number" value="0" readonly />
+					<input class="input-read e-counter-box" id="IRSeviAvgECountIROn" type="number" value="0" readonly />
+					<div class="divider-line" id="IRSeviECountersDivLine"></div>
+					<label class="white-text text-box-label progress-bar-hide" id="IRSeviAutomaticStopLabel">Stop Scan After:</label>
+					<input class="input-change e-counter-box progress-bar-hide" id="IRSeviAutomaticStop" placeholder="-" />
+					<select class="white-text square-button drop-down progress-bar-hide" name="AutomaticStopUnit" id="IRSeviAutomaticStopUnit">
+						<option value="None">None</option>
+						<option value="Electrons">x1e5 Electrons</option>
+						<option value="Frames">x1000 Frames</option>
+					</select>
+					<div class="grid justify-align-center progress-bar-background progress-bar-show" id="IRSeviImageProgressBarBackground">
+						<label class="white-text progress-bar-label" id="IRSeviImageProgressLabel">Image Progress:</label>
+						<div class="progress-bar-outer" id="IRSeviImageProgressBarOuter">
+							<div class="white-text progress-bar" id="IRSeviImageProgressBar"></div>
+						</div>
+						<label class="white-text progress-bar-label" id="IRSeviImageProgressPercentLabel">0%</label>
+					</div>
+				</div>
+				<button class="page-down page-button" id="IRSeviPageDown"><i class="arrow arrow-down"></i></button>
+				<!-- Pause Screen Animation Elements -->
+				<div class="pause-screen" id="IRSeviPauseScreenDisplay"></div>
+				<!--<div class="pause-screen negative-bottom-margin" id="IRSeviPauseScreenSaveControls"></div>-->
+				<div class="pause-screen negative-bottom-margin" id="IRSeviPauseScreenCounters"></div>
 			</div>
-			<div class="SettingsSection" id="CentroidingSettingsContent">
-				<h3 class="SettingsSectionTitle">Centroid Settings</h3>
-				<br />
-				<label for="RawAccumulation">Accumulate Raw Spots</label>
-				<input type="radio" name="CentroidAccumulationRadio" id="RawAccumulation" value="Raw" />
-				<label for="CentroidAccumulation">Accumulate Centroids</label>
-				<input type="radio" name="CentroidAccumulationRadio" id="CentroidAccumulation" value="Centroid" />
-				<br /><br />
-				<label for="HybridMethod">Use Hybrid Method</label>
-				<input type="checkbox" id="HybridMethod" />
-				<br /><br />
-				<label for="CentroidBinSize">Additional Centroid Binning Size:</label>
-				<input class="SettingsNumberInput input-change" id="CentroidBinSize" type="number" min="0" max="4096" />
-				<label class="UnitLabel" for="CentroidBinSize"><sup>2</sup></label>
+			<!-- IR-SEVI Mode - Second Page -->
+			<div class="second-page page grid" id="IRSeviModeSecondPage">
+				<button class="page-up page-button" id="IRSeviPageUp"><i class="arrow arrow-up"></i></button>
+				<!-- IR-SEVI Mode - Second Page - PE Spectrum Display -->
+				<div class="grid background-lighter-blue negative-top-margin spectrum-display-section" id="IRSeviSpectrumDisplaySection">
+					<div class="background-lighter-blue spectrum-display-inner" id="IRSeviSpectrumDisplayInner">
+						<canvas id="IRSeviPESpectrum"></canvas>
+					</div>
+					<div class="grid background-lighter-blue spectrum-display-control" id="IRSeviSpectrumControl">
+						<button class="square-button spectrum-control-button white-text" id="IRSeviResetZoom">Reset Zoom</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviChangeBasis">Show eBE Plot</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviShowDifference">Show Difference</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviShowAnisotropy">Show Anisotropy</button>
+						<button class="square-button spectrum-control-button white-text" id="IRSeviCalculateSpectrumButton">Calculate</button>
+					</div>
+					<div class="grid background-lighter-blue pe-spectra" id="IRSeviSpectrumSelection"></div>
+				</div>
+				<!-- IR-SEVI Mode - Second Page - Recent Scans -->
+				<div class="grid background-lighter-blue recent-scans" id="IRSeviRecentScans">
+					<header class="grid recent-scans-header" id="IRSeviRecentScansHeader">
+						<h4 class="white-text">Image</h4>
+						<h4 class="white-text">h<em class="serif">ν</em> (nm)</h4>
+						<h4 class="white-text">h<em class="serif">ν</em> (cm<sup>-1</sup>)</h4>
+						<h4 class="white-text">Frames</h4>
+						<h4 class="white-text">Electrons</h4>
+					</header>
+					<div class="grid recent-scans-section" id="IRSeviRecentScansSection"></div>
+				</div>
+				<!-- IR-SEVI Mode - Second Page - Unit Conversion -->
+				<div class="grid background-lighter-blue" id="IRSeviUnitConversion">
+					<h2 class="white-text" id="IRSeviUnitTitle">IR Energy Conversion</h2>
+					<h4 class="white-text unit-conversion-label" id="IRSeviUnitLabelnIR">nIR</h4>
+					<h4 class="white-text unit-conversion-label" id="IRSeviUnitLabeliIR">iIR</h4>
+					<h4 class="white-text unit-conversion-label" id="IRSeviUnitLabelmIR">mIR</h4>
+					<h4 class="white-text unit-conversion-label" id="IRSeviUnitLabelfIR">fIR</h4>
+					<h4 class="white-text" id="IRSeviUnitLabelWN">cm<sup>-1</sup>:</h4>
+					<input class="input-change hv-display" id="IRSeviUnitnIRWN" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="IRSeviUnitiIRWN" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="IRSeviUnitmIRWN" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="IRSeviUnitfIRWN" type="number" min="0" placeholder="-" />
+					<h4 class="white-text" id="IRSeviUnitLabelNM">nm:</h4>
+					<input class="input-change hv-display" id="IRSeviUnitnIRNM" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="IRSeviUnitiIRNM" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="IRSeviUnitmIRNM" type="number" min="0" placeholder="-" />
+					<input class="input-change hv-display" id="IRSeviUnitfIRNM" type="number" min="0" placeholder="-" />
+				</div>
 			</div>
-			<div class="SettingsSection" id="DisplaySettingsContent">
-				<!--
-					Show red circles for centroids
-					?Show e- graph or previous files on main page
-					Startup page size and location
-				-->
+		</div>
+		<!-- IR Action Mode -->
+		<div id="IRActionModeContent">
+			<!-- IR Action Mode - First Page -->
+			<div class="first-page page grid" id="IRActionModeFirstPage">
+				<!-- IR Action Mode - First Page - Title Section -->
+				<div class="grid background-lighter-blue title-section" id="IRActionTitleSection">
+					<h1 class="white-text title">Hyperion</h1>
+				</div>
+				<!-- IR Action Mode - First Page - Controls -->
+				<div class="grid background-lighter-blue scan-controls" id="IRActionControls">
+					<button class="scan-control-button square-button white-text" id="IRActionScanStartSave">
+						<span class="scan-button-text" id="IRActionScanStartSaveText">Start</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionScanPauseResume" disabled>
+						<span class="scan-button-text" id="IRActionScanPauseResumeText">Pause</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionScanCancel" disabled>
+						<span class="scan-button-text" id="IRActionScanCancelText">Cancel</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionImageSave" disabled>
+						<span class="scan-button-text" id="IRActionImageSaveText">Save Image<br />& Continue</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionImageReset" disabled>
+						<span class="scan-button-text" id="IRActionImageResetText">Reset Image</span>
+					</button>
+					<button class="scan-control-button square-button white-text" id="IRActionRemeasureWavelength" disabled>
+						<span class="scan-button-text" id="IRActionRemeasureWavelengthText">Remeasure<br />IR Wavelength</span>
+					</button>
+				</div>
+				<!-- IR Action Mode - First Page - Scan Options -->
+				<div class="grid background-lighter-blue" id="IRActionScanOptions">
+					<div class="grid background-lighter-blue justify-align-center" id="IRActionScanOptionsTitleSection">
+						<h3 class="white-text" id="IRActionScanOptionsTitle">Action Scan Parameters</h3>
+					</div>
+					<!-- Energy Range Selection -->
+					<div class="grid background-lighter-blue justify-align-center" id="IRActionEnergySelection">
+						<label class="white-text text-box-label" id="IRActionEnergyLabel">Energy: </label>
+						<input class="input-change action-options-input" id="IRActionInitialEnergy" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="IRActionOptionsHyphen">-</label>
+						<input class="input-change action-options-input" id="IRActionFinalEnergy" type="number" min="0" placeholder="-" />
+						<label class="white-text" id="IRActionWNLabel1">cm<sup>-1</sup> @ </label>
+						<input class="input-change action-options-input" id="IRActionEnergyStep" type="number" placeholder="-" />
+						<label class="white-text" id="IRActionWNLabel2">cm<sup>-1</sup> steps</label>
+					</div>
+					<!-- Autostop Selection -->
+					<div class="grid background-lighter-blue justify-align-center" id="IRActionAutomaticStopSelection">
+						<label class="white-text text-box-label" id="IRActionAutomaticStopLabel">Stop Scan After:</label>
+						<input class="input-change action-options-input" id="IRActionAutomaticStop" type="number" min="0" placeholder="-" />
+						<select class="white-text square-button action-options-drop-down" name="AutomaticStopUnit" id="IRActionAutomaticStopUnit">
+							<option value="Electrons">x1e5 Electrons</option>
+							<option value="Frames">x1000 Frames</option>
+						</select>
+					</div>
+					<!-- Images / Energy Step -->
+					<div class="grid background-lighter-blue justify-align-center" id="IRActionImageAmountSelection">
+						<label class="white-text text-box-label" id="IRActionImageAmountLabel">Images / energy step:</label>
+						<select class="white-text square-button action-options-drop-down" name="IRActionImageAmount" id="IRActionImageAmount">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						</select>
+					</div>
+					<!-- VMI Selection & Reset/Update Buttons -->
+					<div class="grid background-lighter-blue" id="IRActionVMISelection">
+						<label class="white-text text-box-label" id="IRActionVMILabel">VMI Setting:</label>
+						<select class="white-text square-button action-options-drop-down" name="IRActionVMIMode" id="IRActionVMIMode">
+							<option value="V1">V1</option>
+							<option value="V2">V2</option>
+							<option value="V3">V3</option>
+							<option value="V4">V4</option>
+						</select>
+						<button class="white-text square-button scan-control-button hidden stay-hidden" id="IRActionResetOptions">Reset</button>
+						<button class="white-text square-button scan-control-button hidden stay-hidden" id="IRActionUpdateOptions">Update</button>
+					</div>
+				</div>
+				<!-- IR Action Mode - First Page - Scan Status -->
+				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionScanStatus">
+					<div class="grid action-status-row justify-align-center" id="IRActionScanStatusTitleSection">
+						<h3 class="white-text" id="IRActionScanStatusTitle">Action Scan Status</h3>
+					</div>
+					<div class="grid action-status-row justify-align-center" id="IRActionStatusCurrentImage">
+						<label class="white-text action-status-label status-label left-align" id="IRActionStatusCurrentImageLabel">Current Image:</label>
+						<label class="white-text action-status-label center-align" id="IRActionStatusCurrentImageValues"></label>
+						<div class="progress-bar-outer" id="IRActionProgressBarOuter">
+							<div class="white-text progress-bar" id="IRActionProgressBar"></div>
+						</div>
+					</div>
+					<div class="grid action-status-row justify-align-center" id="IRActionStatusCurrentEnergy">
+						<label class="white-text action-status-label status-label left-align" id="IRActionStatusCurrentEnergyLabel">Current Energy:</label>
+						<label class="white-text action-status-label right-align" id="IRActionStatusCurrentEnergyNIRLabel">nIR</label>
+						<input class="input-read action-status-hv" id="IRActionCurrentWavelength" type="number" min="0" placeholder="-" readonly />
+						<label class="white-text action-status-label" id="IRActionStatusNMLabel1">nm</label>
+						<!-- &#x2192; is the hex code for a right pointing arrow -->
+						<label class="white-text action-status-label center-align" id="IRActionStatusArrow1">&#x2192;</label>
+						<label class="white-text action-status-label right-align" id="IRActionStatusCurrentEnergyIRLabel"></label>
+						<input class="input-read action-status-hv" id="IRActionCurrentWavenumber" type="number" min="0" placeholder="-" readonly />
+						<label class="white-text action-status-label" id="IRActionStatusWNLabel1">cm<sup>-1</sup></label>
+					</div>
+					<div class="grid action-status-row justify-align-center" id="IRActionStatusNextEnergy">
+						<label class="white-text action-status-label status-label left-align" id="IRActionStatusNextEnergyLabel">Next Energy:</label>
+						<label class="white-text action-status-label right-align" id="IRActionStatusNextEnergyNIRLabel">nIR</label>
+						<input class="input-read action-status-hv" id="IRActionNextWavelength" type="number" min="0" placeholder="-" readonly />
+						<label class="white-text action-status-label" id="IRActionStatusNMLabel2">nm</label>
+						<!-- &#x2192; is the hex code for a right pointing arrow -->
+						<label class="white-text action-status-label center-align" id="IRActionStatusArrow2">&#x2192;</label>
+						<label class="white-text action-status-label right-align" id="IRActionStatusNextEnergyIRLabel"></label>
+						<input class="input-read action-status-hv" id="IRActionNextWavenumber" type="number" min="0" placeholder="-" readonly />
+						<label class="white-text action-status-label" id="IRActionStatusWNLabel2">cm<sup>-1</sup></label>
+					</div>
+					<div class="grid action-status-row justify-align-center" id="IRActionStatusScanDuration">
+						<label class="white-text action-status-label status-label left-align" id="IRActionStatusScanDurationLabel">Scan Duration:</label>
+						<label class="white-text action-status-label center-align" id="IRActionStatusScanDurationValues"></label>
+					</div>
+					<div class="grid action-status-row justify-align-center" id="IRActionStatusCurrentStep">
+						<label class="white-text action-status-label status-label left-align" id="IRActionStatusCurrentStepLabel">Current Step:</label>
+						<label class="white-text action-status-label center-align" id="IRActionStatusCurrentStepValues"></label>
+					</div>
+				</div>
+				<!-- IR Action Mode - First Page - Image Display -->
+				<div class="grid background-lighter-blue" id="IRActionImageDisplay">
+					<h3 class="white-text">Accumulated View</h3>
+					<select class="white-text square-button drop-down" name="IRActionImageDisplaySelect" id="IRActionImageDisplaySelect">
+						<option value="IROff">IR Off</option>
+						<option value="IROn">IR On</option>
+						<option value="DifferencePos">Difference (Pos.)</option>
+						<option value="DifferenceNeg">Difference (Neg.)</option>
+					</select>
+					<div class="grid" id="IRActionDisplayWrapper">
+						<canvas class="accumulated-image" id="IRActionDisplay" width="2000" height="2000"></canvas>
+					</div>
+
+					<div class="grid background-lighter-blue" id="IRActionDisplaySliderDiv">
+						<input class="display-slider" id="IRActionDisplaySlider" type="range" min="0.05" max="1" step="0.05" value="0.5" />
+						<input type="checkbox" class="display-slider-checkbox" id="IRActionDisplayCheckbox" />
+					</div>
+				</div>
+				<!-- IR Action Mode - First Page - Electron Counters & Image Progress Bar -->
+				<div class="grid background-lighter-blue negative-bottom-margin" id="IRActionElectronCounters">
+					<h3 class="white-text" id="IRActionIROffCountersTitle">IR Off</h3>
+					<h3 class="white-text" id="IRActionIROnCountersTitle">IR On</h3>
+					<label class="white-text text-box-label" id="IRActionTotalFramesLabel" for="IRActionTotalFrames">Total Frames:</label>
+					<input class="input-read e-counter-box" id="IRActionTotalFrames" type="number" value="0" readonly />
+					<input class="input-read e-counter-box" id="IRActionTotalFramesIROn" type="number" value="0" readonly />
+					<label class="white-text text-box-label" id="IRActionTotalECountLabel" for="IRActionTotalECount">Total e<sup>-</sup> Count:</label>
+					<input class="input-read e-counter-box" id="IRActionTotalECount" type="text" value="0" readonly />
+					<input class="input-read e-counter-box" id="IRActionTotalECountIROn" type="text" value="0" readonly />
+					<label class="white-text text-box-label" id="IRActionAvgECountLabel" for="IRActionAvgECount">Average e<sup>-</sup>/Shot:</label>
+					<input class="input-read e-counter-box" id="IRActionAvgECount" type="number" value="0" readonly />
+					<input class="input-read e-counter-box" id="IRActionAvgECountIROn" type="number" value="0" readonly />
+					<div class="divider-line" id="IRActionECountersDivLine"></div>
+					<div class="grid justify-align-center progress-bar-background" id="IRActionImageProgressBarBackground">
+						<label class="white-text progress-bar-label" id="IRActionImageProgressLabel">Image Progress:</label>
+						<div class="progress-bar-outer" id="IRActionImageProgressBarOuter">
+							<div class="white-text progress-bar" id="IRActionImageProgressBar"></div>
+						</div>
+						<label class="white-text progress-bar-label" id="IRActionImageProgressPercentLabel">0%</label>
+					</div>
+				</div>
+				<!-- Page Down Button -->
+				<button class="page-down page-button" id="IRActionPageDown"><i class="arrow arrow-down"></i></button>
 			</div>
-			<div class="SettingSection" id="PostProcessSettingsContent">
-				<!--
-					Location of MEVELER stuff
-				-->
-			</div>
-			<div class="SettingsSection" id="SavingSettingsContent"></div>
-			<div class="SettingsSection" id="SaveButtonSection">
-				<!-- Add text that says "Saved!" when save button clicked -->
-				<button class="square-button white-text" id="SaveSettingsButton">Save</button>
+			<div class="second-page page grid" id="IRActionModeSecondPage">
+				<button class="page-up page-button" id="IRActionPageUp"><i class="arrow arrow-up"></i></button>
+				<div class="grid background-lighter-blue negative-top-margin" id="IRActionSpectrumDisplaySection">
+					<div class="background-lighter-blue action-pe-spectrum-display-inner" id="IRActionPESpectrumDisplayInner">
+						<canvas id="IRActionPESpectrum"></canvas>
+					</div>
+					<div class="grid background-lighter-blue spectrum-display-control" id="IRActionPESpectrumControl">
+						<button class="square-button spectrum-control-button white-text" id="IRActionPESResetZoom">Reset Zoom</button>
+						<button class="square-button spectrum-control-button white-text" id="IRActionChangeBasis">Show eBE Plot</button>
+					</div>
+					<div class="resize-button" id="IRActionResizeLeft">
+						<div class="white-text resize-button-text"><</div>
+					</div>
+					<div class="resize-button" id="IRActionResizeCenter">
+						<div class="white-text resize-button-text">•</div>
+					</div>
+					<div class="resize-button" id="IRActionResizeRight">
+						<div class="white-text resize-button-text">></div>
+					</div>
+					<div class="background-lighter-blue action-action-spectrum-display-inner" id="IRActionActionSpectrumDisplayInner">
+						<canvas id="IRActionActionSpectrum"></canvas>
+					</div>
+					<div class="grid background-lighter-blue spectrum-display-control" id="IRActionActionSpectrumControl">
+						<button class="square-button spectrum-control-button white-text" id="IRActionActionResetZoom">Reset Zoom</button>
+						<button class="square-button spectrum-control-button white-text" id="IRActionHideLines">Hide Lines</button>
+						<button class="square-button spectrum-control-button white-text" id="IRActionNormalize">Normalize</button>
+					</div>
+				</div>
+				<div class="grid background-lighter-blue" id="IRActionPeakSelection">
+					<div class="peak-selection" id="IRActionDepletionSelection">
+						<h3 class="peak-title white-text">Depletion</h3>
+						<input type="number" class="input-change r-select initial-r" id="DepletionRi" placeholder="Ri (px)" />
+						<input type="number" class="input-change r-select final-r" id="DepletionRf" placeholder="Rf (px)" />
+						<button class="image-id-button add-peak" id="DepletionAdd">+</button>
+						<div class="grid all-peaks" id="DepletionAllPeaks"></div>
+						<button class="square-button white-text show-peaks" id="ShowDepletion">Show Depletion</button>
+					</div>
+					<div class="peak-selection" id="IRActionGrowthSelection">
+						<h3 class="peak-title white-text">Growth</h3>
+						<input type="number" class="input-change r-select initial-r" id="GrowthRi" placeholder="Ri (px)" />
+						<input type="number" class="input-change r-select final-r" id="GrowthRf" placeholder="Rf (px)" />
+						<button class="image-id-button add-peak" id="GrowthAdd">+</button>
+						<div class="grid all-peaks" id="GrowthAllPeaks"></div>
+						<button class="square-button white-text show-peaks" id="ShowGrowth">Show Growth</button>
+					</div>
+				</div>
+				<div class="grid background-lighter-blue" id="IRActionSpectrumSelectionSection">
+					<div class="grid background-lighter-blue" id="IRActionSpectrumSelectionHeader">
+						<h4 class="white-text">Use?</h4>
+						<h4 class="white-text">Show?</h4>
+						<h4 class="white-text">ID</h4>
+						<h4 class="white-text">nIR (nm)</h4>
+						<h4 class="white-text">St.Dev. (nm)</h4>
+						<h4 class="white-text">IR (cm<sup>-1</sup>)</h4>
+					</div>
+					<div class="grid background-lighter-blue" id="IRActionSpectrumSelection"></div>
+					<div class="grid background-lighter-blue justify-align-center" id="IRActionSpectrumSelectionFooter">
+						<input type="checkbox" id="IRActionAutoCheck" />
+						<label class="white-text">Save ID:</label>
+						<button class="image-id-button" id="IRActionSaveCounterDown">-</button>
+						<input class="input-read" type="number" value="1" id="IRActionSaveCounter" readonly />
+						<button class="image-id-button" id="IRActionSaveCounterUp">+</button>
+						<button class="square-button white-text" id="IRActionSaveActionSpectrum">Save</button>
+						<button class="square-button white-text" id="IRActionCalculate">Calculate</button>
+					</div>
+				</div>
 			</div>
 		</div>
 
-		<script src="../JS/mainDefinitions.js"></script>
-		<script src="../JS/mainFunctions.js"></script>
+		<!-- Future tabs should be added here (before settings section) -->
+		<!-- Settings Section -->
+		<div class="grid" id="SettingsContent">
+			<div id="SettingsTitleContainer">
+				<h1 id="SettingsTitle">Settings</h1>
+			</div>
+			<div class="background-lighter-blue" id="SettingsInner">
+				<br />
+				<!-- Camera Settings -->
+				<div class="settings-section" id="CameraSettingsContent">
+					<h3 class="settings-section-title">Camera Settings</h3>
+					<br />
+					<!-- Area of Interest -->
+					<h4 class="white-text">Centroiding Area of Interest</h4>
+					<br />
+					<label class="settings-input-label" for="AoIWidth">AoI Width:</label>
+					<input type="number" class="settings-number-input input-change" id="AoIWidth" />
+					<label class="settings-input-label" for="AoIHeight">AoI Height:</label>
+					<input type="number" class="settings-number-input input-change" id="AoIHeight" />
+					<label class="settings-input-label" for="xOffset">Offset Left:</label>
+					<input type="number" class="settings-number-input input-change" id="xOffset" />
+					<label class="settings-input-label" for="yOffset">Offset Top:</label>
+					<input type="number" class="settings-number-input input-change" id="yOffset" />
+					<br /><br />
+					<!-- LED Area -->
+					<h4 class="white-text">IR On/Off LED Area</h4>
+					<br />
+					<label class="settings-input-label" for="LEDXStart">LED x start:</label>
+					<input type="number" class="settings-number-input input-change" id="LEDXStart" />
+					<label class="settings-input-label" for="LEDXEnd">LED x end:</label>
+					<input type="number" class="settings-number-input input-change" id="LEDXEnd" />
+					<label class="settings-input-label" for="LEDYStart">LED y start:</label>
+					<input type="number" class="settings-number-input input-change" id="LEDYStart" />
+					<label class="settings-input-label" for="LEDYEnd">LED y end:</label>
+					<input type="number" class="settings-number-input input-change" id="LEDYEnd" />
+					<br /><br />
+					<!-- LED NOISE Area -->
+					<h4 class="white-text">Noise Area (for IR On/Off LED)</h4>
+					<br />
+					<label class="settings-input-label" for="NoiseXStart">Noise x start:</label>
+					<input type="number" class="settings-number-input input-change" id="NoiseXStart" />
+					<label class="settings-input-label" for="NoiseXEnd">Noise x end:</label>
+					<input type="number" class="settings-number-input input-change" id="NoiseXEnd" />
+					<label class="settings-input-label" for="NoiseYStart">Noise y start:</label>
+					<input type="number" class="settings-number-input input-change" id="NoiseYStart" />
+					<label class="settings-input-label" for="NoiseYEnd">Noise y end:</label>
+					<input type="number" class="settings-number-input input-change" id="NoiseYEnd" />
+					<br /><br />
+					<!-- Camera Parameters -->
+					<h4 class="white-text">Camera Parameters</h4>
+					<br />
+					<label class="settings-input-label" for="PixelClock">Pixel Clock:</label>
+					<input type="number" class="settings-number-input input-change" id="PixelClock" />
+					<label class="unit-label" for="PixelClock">MHz</label>
+					<label class="settings-input-label" for="ExposureTime">Exposure Time:</label>
+					<input type="number" class="settings-number-input input-change" id="ExposureTime" />
+					<label class="unit-label" for="ExposureTime">ms</label>
+					<label class="settings-input-label" for="Gain">Gain:</label>
+					<input type="number" class="settings-number-input input-change" id="Gain" min="0" max="100" />
+					<label class="unit-label" for="Gain">%</label>
+					<label class="settings-input-label" for="GainBoost">Use Gain Boost:</label>
+					<input type="checkbox" id="GainBoost" />
+					<br /><br />
+					<!-- Triggering Parameters -->
+					<h4 class="white-text">Triggering Parameters</h4>
+					<br />
+					<label class="settings-input-label">Trigger:</label>
+					<select class="white-text square-button drop-down settings-drop-down" name="Trigger" id="Trigger">
+						<option value="TriggerOff">Trigger Off</option>
+						<option value="Falling Edge">Falling Edge ¯¯\_</option>
+						<option value="Rising Edge">Rising Edge _/¯¯</option>
+						<option value="Software Trigger">Software Trigger</option>
+					</select>
+					<br /><br />
+				</div>
+				<br />
+				<!-- Centroiding Settings -->
+				<div class="settings-section" id="CentroidingSettingsContent">
+					<h3 class="settings-section-title">Centroid Settings</h3>
+					<br />
+					<label class="settings-input-label" for="HybridMethod">Use Hybrid Method</label>
+					<input type="checkbox" id="HybridMethod" />
+					<br /><br />
+					<label class="settings-input-label" for="CentroidBinSize">Centroid Binning Size:</label>
+					<select class="white-text square-button drop-down settings-drop-down" name="CentroidBinSize" id="CentroidBinSize">
+						<option value="Small">Small (768x768)</option>
+						<option value="Regular">Regular (1024x1024)</option>
+						<option value="Big">Big (1536x1536)</option>
+						<option value="Large">Large (2048x2048)</option>
+						<option value="Huge">Huge (3072x3072)</option>
+						<option value="Massive">Massive (4096x4096)</option>
+					</select>
+					<br /><br />
+				</div>
+				<br />
+				<!-- Settings related to saving files -->
+				<div class="settings-section" id="SavingSettingsContent">
+					<h3 class="settings-section-title">Saving Settings</h3>
+					<br />
+					<label class="settings-input-label" for="SettingsSaveDirectory">Current Save Directory:</label>
+					<input class="white-text input-read file-name-display" id="SettingsSaveDirectory" readonly />
+					<button class="square-button white-text" id="ChangeSaveDirectoryButton">Change</button>
+					<br /><br />
+					<label class="settings-input-label" for="AutosaveDelay">Autosave Delay:</label>
+					<input type="number" class="settings-number-input input-change" id="AutosaveDelay" min="0" />
+					<label class="unit-label" for="AutosaveDelay">seconds</label>
+					<br /><br />
+					<h4 class="white-text">MELEXIR Settings</h4>
+					<br />
+					<label class="settings-input-label" for="ProcessOnSave">Process with MELEXIR when image is saved:</label>
+					<input type="checkbox" id="ProcessOnSave" />
+					<br /><br />
+					<label class="settings-input-label" for="SaveSpectrum">Save photoelectron spectrum to file:</label>
+					<input type="checkbox" id="SaveSpectrum" />
+					<br /><br />
+					<label class="settings-input-label" for="SaveBestFit">Save best fit spectrum:</label>
+					<input type="checkbox" id="SaveBestFit" />
+					<label class="settings-input-label" for="SaveResiduals">Save residuals:</label>
+					<input type="checkbox" id="SaveResiduals" />
+					<br /><br />
+				</div>
+				<br />
+				<!-- Various Settings -->
+				<div class="settings-section" id="VariousSettingsContent">
+					<h3 class="settings-section-title">Various Settings</h3>
+					<br />
+					<label class="settings-input-label" for="MoveWavelengthEveryTime"
+						>Attempt to move IR wavelength between images at the same energy step:</label
+					>
+					<input type="checkbox" id="MoveWavelengthEveryTime" />
+					<br /><br />
+					<label class="settings-input-label" for="AutostopOnBoth">Autostop scan only when both images meet criteria (or first image to):</label>
+					<input type="checkbox" id="AutostopOnBoth" />
+					<br /><br />
+					<label class="settings-input-label" for="ShowImageSeriesMenu">Show image series menu on start button:</label>
+					<input type="checkbox" id="ShowImageSeriesMenu" />
+					<br /><br />
+					<label class="settings-input-label" for="TestingDontSave">(FOR TESTING PURPOSES) Don't save anything to file:</label>
+					<input type="checkbox" id="TestingDontSave" />
+					<br /><br />
+				</div>
+				<br />
+				<!-- Laser and Wavemeter Settings -->
+				<div class="settings-section" id="LaserSettingsContent">
+					<h3 class="settings-section-title">Laser and Wavemeter Settings</h3>
+					<br />
+					<!-- Detachment Laser -->
+					<h4 class="white-text">Detachment Laser Settings</h4>
+					<br />
+					<label class="settings-input-label" for="DetachmentYAGFundamental">Detachment Nd:YAG Fundamental Wavelength:</label>
+					<input type="number" class="settings-number-input input-change" id="DetachmentYAGFundamental" />
+					<label class="unit-label" for="DetachmentYAGFundamental">nm</label>
+					<br /><br />
+					<!-- Excitation Laser -->
+					<h4 class="white-text">Excitation Laser Settings</h4>
+					<br />
+					<label class="settings-input-label" for="ExcitationYAGFundamental">Excitation Nd:YAG Fundamental Wavelength:</label>
+					<input type="number" class="settings-number-input input-change" id="ExcitationYAGFundamental" />
+					<label class="unit-label" for="ExcitationYAGFundamental">nm</label>
+					<br /><br />
+					<label class="settings-input-label" for="LowerWavelengthBound">nIR Wavelength Bounds:</label>
+					<input type="number" class="settings-number-input input-change" id="LowerWavelengthBound" />
+					<label class="unit-label" for="LowerWavelengthBound"> - </label>
+					<input type="number" class="settings-number-input input-change" id="UpperWavelengthBound" />
+					<label class="unit-label" for="UpperWavelengthBound">nm</label>
+					<br /><br />
+					<label class="settings-input-label" for="FIRLowerWavelengthBound">(in fIR Mode) nIR Wavelength Bounds:</label>
+					<input type="number" class="settings-number-input input-change" id="FIRLowerWavelengthBound" />
+					<label class="unit-label" for="FIRLowerWavelengthBound"> - </label>
+					<input type="number" class="settings-number-input input-change" id="FIRUpperWavelengthBound" />
+					<label class="unit-label" for="FIRUpperWavelengthBound">nm</label>
+					<br /><br />
+					<label class="settings-input-label" for="InFIRMode">OPO/A in fIR Mode:</label>
+					<input type="checkbox" id="InFIRMode" />
+					<br /><br />
+					<label class="settings-input-label" for="GoToMoveAttempts">GoTo Wavelength Move Attempts:</label>
+					<input type="number" class="settings-number-input input-change" id="GoToMoveAttempts" />
+					<label class="settings-input-label" for="GoToAcceptanceRange">GoTo Acceptance Range:</label>
+					<input type="number" class="settings-number-input input-change" id="GoToAcceptanceRange" />
+					<label class="unit-label" for="GoToAcceptanceRange">cm<sup>-1</sup></label>
+					<br /><br />
+					<label class="settings-input-label" for="OPOHost">OPO/A Network Host Address:</label>
+					<input class="settings-number-input-very-long input-change" id="OPOHost" />
+					<label class="settings-input-label" for="OPOPort">Port:</label>
+					<input type="number" class="settings-number-input input-change" id="OPOPort" />
+					<br /><br />
+					<!-- Wavemeter -->
+					<h4 class="white-text">Wavemeter Settings</h4>
+					<br />
+					<label class="settings-input-label" for="CollectionLength">Wavelength Collection Length:</label>
+					<input type="number" class="settings-number-input input-change" id="CollectionLength" />
+					<label class="settings-input-label" for="MaxFailCount">Max Fail Count:</label>
+					<input type="number" class="settings-number-input input-change" id="MaxFailCount" />
+					<label class="settings-input-label" for="MaxBadMeasurement">Max Bad Measurements:</label>
+					<input type="number" class="settings-number-input input-change" id="MaxBadMeasurement" />
+					<br /><br />
+					<label class="settings-input-label" for="DetachmentChannel">Wavemeter Channels - Detachment Laser:</label>
+					<input type="number" class="settings-number-input input-change" id="DetachmentChannel" />
+					<label class="settings-input-label" for="ExcitationChannel">Excitation Laser:</label>
+					<input type="number" class="settings-number-input input-change" id="ExcitationChannel" />
+					<br /><br />
+				</div>
+				<br />
+				<!-- VMI Calibration Constants-->
+				<div class="settings-section" id="VMISettingsContent">
+					<h3 class="settings-section-title">VMI Calibration Constants</h3>
+					<br />
+					<h4 class="white-text">eKE = a * R<sup>2</sup> + b * R<sup>4</sup></h4>
+					<br />
+					<label class="settings-input-label" for="V1aConstant">V1 - a:</label>
+					<input type="number" class="settings-number-input-long input-change" id="V1aConstant" />
+					<label class="settings-input-label" for="V1aConstant"> b:</label>
+					<input type="number" class="settings-number-input-long input-change" id="V1bConstant" />
+					<br /><br />
+					<label class="settings-input-label" for="V2aConstant">V2 - a:</label>
+					<input type="number" class="settings-number-input-long input-change" id="V2aConstant" />
+					<label class="settings-input-label" for="V2aConstant"> b:</label>
+					<input type="number" class="settings-number-input-long input-change" id="V2bConstant" />
+					<br /><br />
+					<label class="settings-input-label" for="V3aConstant">V3 - a:</label>
+					<input type="number" class="settings-number-input-long input-change" id="V3aConstant" />
+					<label class="settings-input-label" for="V3aConstant"> b:</label>
+					<input type="number" class="settings-number-input-long input-change" id="V3bConstant" />
+					<br /><br />
+					<label class="settings-input-label" for="V4aConstant">V4 - a:</label>
+					<input type="number" class="settings-number-input-long input-change" id="V4aConstant" />
+					<label class="settings-input-label" for="V4aConstant"> b:</label>
+					<input type="number" class="settings-number-input-long input-change" id="V4bConstant" />
+					<br /><br />
+				</div>
+				<br />
+				<!-- Display Settings -->
+				<div class="settings-section" id="DisplaySettingsContent">
+					<!-- Window size and location-->
+					<h3 class="settings-section-title">Window Display Settings</h3>
+					<br />
+					<!-- Main Window -->
+					<h4 class="white-text">Main Window</h4>
+					<br />
+					<label class="settings-input-label" for="MainWindowWidth">Width:</label>
+					<input type="number" class="settings-number-input input-change" id="MainWindowWidth" />
+					<label class="settings-input-label" for="MainWindowHeight">Height:</label>
+					<input type="number" class="settings-number-input input-change" id="MainWindowHeight" />
+					<label class="settings-input-label" for="MainWindowX">(Upper left corner) x position:</label>
+					<input type="number" class="settings-number-input input-change" id="MainWindowX" />
+					<label class="settings-input-label" for="MainWindowY">y position:</label>
+					<input type="number" class="settings-number-input input-change" id="MainWindowY" />
+					<br /><br />
+					<!-- Live View Window -->
+					<h4 class="white-text">Live View Window</h4>
+					<br />
+					<label class="settings-input-label" for="LiveViewWindowWidth">Width:</label>
+					<input type="number" class="settings-number-input input-change" id="LiveViewWindowWidth" />
+					<label class="settings-input-label" for="LiveViewWindowHeight">Height:</label>
+					<input type="number" class="settings-number-input input-change" id="LiveViewWindowHeight" />
+					<label class="settings-input-label" for="LiveViewWindowX">(Upper left corner) x position:</label>
+					<input type="number" class="settings-number-input input-change" id="LiveViewWindowX" />
+					<label class="settings-input-label" for="LiveViewWindowY">y position:</label>
+					<input type="number" class="settings-number-input input-change" id="LiveViewWindowY" />
+					<br /><br />
+				</div>
+			</div>
+			<div class="settings-section" id="SaveButtonSection">
+				<!-- Add text that says "Saved!" when save button clicked -->
+				<button class="square-button white-text settings-button" id="ResetSettingsButton">Reset</button>
+				<button class="square-button white-text settings-button" id="UpdateSettingsButton">Update</button>
+				<button class="square-button white-text settings-button" id="SaveSettingsButton">Save</button>
+			</div>
+		</div>
+
+		<script src="../JS/MainWindow/startup.js"></script>
 	</body>
 </html>

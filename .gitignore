@@ -3,7 +3,10 @@
 /bin
 /build
 /Images
+/OldFiles
 node_modules
 CImg.h
 .DS_Store
 Settings.JSON
+Settings_old.JSON
+out/

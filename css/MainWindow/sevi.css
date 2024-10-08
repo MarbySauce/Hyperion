@@ -1,0 +1,205 @@
+#SeviModeContent {
+	display: none; /* Set to none so that it looks cleaner on startup */
+}
+
+/* First Page - Left Side */
+
+/* FileNaming */
+#SeviFileNaming {
+	padding: 20px 15px;
+	grid-gap: 5% 5px;
+	align-items: center;
+}
+
+#SeviImageCounter {
+	width: 100%;
+	height: 70%;
+	text-align: center;
+}
+#SeviVMILabel {
+	padding-right: 10px;
+}
+#SeviVMIMode {
+	height: 100%;
+	padding-left: 30%;
+}
+
+/* Save Controls - Detachment Wavelength */
+
+#SeviLaserSetup {
+	grid-gap: 5px;
+	padding: 20px;
+}
+#SeviLaserSetupTitle {
+	justify-items: center;
+}
+#SeviLaserControlTitle {
+	width: 80%;
+	text-align: center;
+	border-bottom: 1px solid white;
+	padding-bottom: 5px;
+}
+
+#SeviLaserMeasurement {
+	align-items: center;
+}
+
+/* 
+End left side 
+
+Right Side 
+*/
+
+/* Image Display */
+#SeviImageDisplay {
+	padding: 5px 5px;
+	grid-gap: 10px;
+}
+#SeviDisplayWrapper {
+	height: 50vh;
+	aspect-ratio: 1 / 1;
+	justify-self: center;
+	border-radius: 10px;
+}
+
+#SeviImageDisplay h3 {
+	/*padding-right: 10%;*/
+	text-align: center;
+	align-self: end;
+}
+#SeviDisplaySlider {
+	justify-self: center;
+}
+
+/* Electron & Frame Counters */
+#SeviCounters {
+	padding: 10px 30px;
+	grid-gap: 0 10px;
+	align-items: center;
+	justify-items: center;
+}
+#SeviCounters h3 {
+	text-align: center;
+	width: 100%;
+	border-bottom: 1px solid white;
+}
+#SeviAutomaticStop {
+	width: 80%;
+	height: 60%;
+	text-align: center;
+}
+#SeviAutomaticStopUnit {
+	width: 90%;
+	height: 70%;
+}
+
+/* Sevi Mode - Second Page */
+
+/* Sevi Mode - Second Page - PE Spectrum */
+.spectrum-display-section {
+	padding: 5px;
+	grid-gap: 1%;
+}
+.spectrum-display-inner {
+	padding: 15px 20px 0 10px;
+	background: hsla(225, 20%, 90%, 0.85);
+	align-items: center;
+	position: relative;
+	height: 36.5vh;
+	width: 76vw;
+}
+.spectrum-display-control {
+	padding: 0 1%;
+	grid-gap: 2%;
+	align-items: center;
+	justify-items: center;
+}
+.spectrum-control-button {
+	width: 100%;
+	height: 80%;
+	font-size: 1.2vw;
+}
+.pe-spectra {
+	max-height: 390px;
+	padding: 0 2%;
+	border: 2px solid rgb(62, 71, 95);
+}
+
+.spectrum-selection-element {
+	display: grid;
+	width: 100%;
+	height: 100%;
+	padding: 5px;
+	align-items: center;
+	border-bottom: 1px solid lightsteelblue;
+}
+.spectrum-selection-element input {
+	height: 55%;
+}
+.spectrum-selection-element label {
+	font-size: 1.5vw;
+}
+
+/* Sevi Mode - Second Page - Recent Scans */
+.recent-scans {
+	padding: 0 25px 5px 25px;
+}
+.recent-scans-header {
+	padding: 5px;
+	padding-bottom: 10px;
+	z-index: 5;
+	border-bottom: black;
+}
+.recent-scans h4 {
+	text-align: center;
+	align-self: end;
+	font-size: 1.3vw;
+}
+.recent-scans-section {
+	max-height: 390px;
+	padding: 5px;
+	padding-bottom: 0;
+	border: 2px solid rgb(62, 71, 95);
+}
+
+.recent-scans-row {
+	display: grid;
+}
+.recent-scans-image {
+	border-bottom: 1px solid lightsteelblue;
+}
+.recent-scans-subimage {
+	border-bottom: 1px dotted rgb(62, 71, 95);
+}
+.recent-scans-row p {
+	text-align: center;
+	font-size: 1.4vw;
+	padding-top: 7px;
+	height: 100%;
+	color: white;
+}
+
+/* Sevi Mode - Second Page - Energy Conversion */
+
+#SeviUnitConversion {
+	align-items: center;
+	justify-items: center;
+	grid-gap: 0 10px;
+	padding: 10px 30px 10px 10px;
+}
+#SeviUnitConversion .hv-display {
+	height: 80%;
+	font-size: medium;
+}
+
+#SeviUnitTitle {
+	border-bottom: 2px solid white;
+	margin-left: 20px;
+	text-align: center;
+	width: 100%;
+}
+.unit-conversion-label {
+	border-bottom: 1px solid white;
+	text-align: center;
+	width: 100%;
+}

@@ -1,108 +1,145 @@
 const { app, BrowserWindow, dialog, ipcMain, nativeTheme, Menu } = require("electron");
-const path = require("path");
 const fs = require("fs");
+const path = require("path");
+const { IPCMessages } = require("./Libraries/Messages.js");
+const { BinSize, TriggerDetection, Settings } = require("./Libraries/SettingsClasses.js");
 
-let mainWin;
-let LVWin;
-let invisibleWin;
+/*****************************************************************************
 
-let LVWinOpen = false;
+									STARTUP
 
-const settings = {
-	information: {
-		camera: {
-			xAoI: 0,
-			yAoI: 0,
-			xOffset: 0,
-			yOffset: 0,
-			exposureTime: 0,
-			gain: 0,
-			gainBoost: false,
-			trigger: "Rising Edge",
-			triggerDelay: 0,
-		},
-		centroid: {
-			accumulation: "Centroid",
-			hybridMethod: true,
-			binSize: 100,
-		},
-		display: {
-			sliderValue: 0.5,
-		},
-		eChart: {
-			xAxisMax: 30,
-			yAxisMax: 20,
-		},
-		saveDirectory: {
-			currentScan: "./Images",
-			currentScanShort: "./Images",
-			previousScans: "./PreviousScans",
-		},
-		windows: {
-			mainWindow: {
-				x: 1480,
-				y: -300,
-				width: 1200,
-				height: 1000,
-			},
-			LVWindow: {
-				x: 2950,
-				y: -300,
-				width: 1200,
-				height: 820,
-			},
-		},
+*****************************************************************************/
+
+app.on("ready", () => {
+	// Read settings from file
+	SettingsManager.read();
+
+	// Set dark mode
+	nativeTheme.themeSource = "dark";
+
+	// Create windows
+	create_main_window();
+	if (Windows.params.open_live_view_window) create_live_view_window();
+	if (Windows.params.open_invisible_window) create_invisible_window();
+});
+
+app.on("window-all-closed", () => {
+	app.quit();
+});
+
+/*****************************************************************************
+
+								WINDOWS CONTROL
+
+*****************************************************************************/
+
+const Windows = {
+	params: {
+		open_live_view_window: true,
+		open_invisible_window: true,
+		open_main_dev_tools: true,
+		open_live_view_dev_tools: false,
+		open_invisible_dev_tools: false,
 	},
-	functions: {
-		save: function () {
-			let settingsJSON = JSON.stringify(settings);
-			fs.writeFile("./Settings/Settings.JSON", settingsJSON, () => {
-				console.log("Settings Saved!");
-			});
-		},
-		read: function () {
-			let data = fs.readFileSync("./Settings/Settings.JSON");
-			let savedSettings = JSON.parse(data);
-			for (let category in savedSettings) {
-				for (let key in savedSettings[category]) {
-					settings.information[category][key] = savedSettings[category][key];
-				}
-			}
-		},
-	},
+	main: undefined, // Main Window
+	live_view: undefined, // Live View Window
+	invisible: undefined, // Invisible Window
 };
 
-function createMainWindow() {
+function create_main_window() {
 	let win = new BrowserWindow({
-		width: 1200,
-		height: 1000,
+		show: false,
 		minWidth: 600,
 		minHeight: 600,
-		x: settings.information.windows.mainWindow.x,
-		y: settings.information.windows.mainWindow.y,
 		webPreferences: {
 			nodeIntegration: true,
+			nodeIntegrationInWorker: true,
 			contextIsolation: false,
 			backgroundThrottling: false,
 		},
 	});
 
+	// Create custom menu for main window
 	let menu = Menu.buildFromTemplate([
+		...(process.platform === "darwin" ? [{ label: app.name }] : []),
 		{
-			label: "Menu",
+			label: "Windows",
+			sublabel: "Hello",
 			submenu: [
 				{
 					label: "Open Live View",
 					click() {
-						if (!LVWinOpen) {
-							LVWin = createLVWindow();
+						// Only open the live view window if it's not open already
+						if (live_view_window === undefined) {
+							create_live_view_window();
+							resize_live_view_window();
 						}
 					},
 				},
+			],
+		},
+		{
+			label: "Dev Tools",
+			submenu: [
 				{
-					label: "Close Camera",
+					label: "Open Main Window Dev Tools",
 					click() {
-						SendCloseCameraMsg();
+						if (Windows.main?.webContents) Windows.main.webContents.openDevTools();
+					},
+				},
+				{
+					label: "Open Live View Window Dev Tools",
+					click() {
+						if (Windows.live_view?.webContents) Windows.live_view.webContents.openDevTools();
+					},
+				},
+				{
+					label: "Open Invisible Window Dev Tools",
+					click() {
+						if (Windows.invisible?.webContents) Windows.invisible.webContents.openDevTools();
+					},
+				},
+			],
+		},
+		{
+			label: "External",
+			submenu: [
+				{
+					label: "Camera",
+					submenu: [
+						{
+							label: "Open Camera",
+							click() {
+								// Send message to invisible window to close camera
+								if (Windows.invisible) {
+									Windows.invisible.webContents.send(IPCMessages.CONNECT.CAMERA);
+								} else {
+									create_invisible_window();
+									Windows.invisible.webContents.send(IPCMessages.CONNECT.CAMERA);
+								}
+							},
+						},
+						{
+							label: "Close Camera",
+							click() {
+								// Send message to invisible window to close camera
+								if (Windows.invisible) Windows.invisible.webContents.send(IPCMessages.UPDATE.CLOSECAMERA);
+							},
+						},
+					],
+				},
+				{
+					label: "Open Wavemeter Application",
+					click() {
+						// Send message to main window to open wavemeter application
+						if (Windows.main) Windows.main.webContents.send(IPCMessages.CONNECT.WAVEMETER);
+					},
+				},
+				{
+					label: "Connect to OPO",
+					click() {
+						// Send message to main window to connect to OPO/A
+						if (Windows.main) Windows.main.webContents.send(IPCMessages.CONNECT.OPO);
 					},
 				},
 			],
@@ -111,40 +148,79 @@ function createMainWindow() {
 	Menu.setApplicationMenu(menu);
 
 	win.loadFile("HTML/mainWindow.html");
-	win.webContents.openDevTools();
 
-	return win;
+	if (Windows.params.open_main_dev_tools) {
+		win.webContents.openDevTools();
+	}
+
+	// Create window reference
+	Windows.main = win;
+
+	// Close app if Main window is gone
+	//win.webContents.on("render-process-gone", (event, details) => {
+	//	shut_down_app();
+	//});
+
+	// Close app if Main window is closed
+	win.on("closed", (event) => {
+		Windows.main = undefined;
+		shut_down_app();
+	});
 }
 
-function createLVWindow() {
+/**
+ * Resize Main Window to settings' specifications
+ */
+function resize_main_window(windows_settings) {
+	if (Windows.main) {
+		Windows.main.setPosition(windows_settings.main.x, windows_settings.main.y);
+		Windows.main.setSize(windows_settings.main.width, windows_settings.main.height);
+		Windows.main.show();
+	}
+}
+
+function create_live_view_window() {
+	// Create the window
 	win = new BrowserWindow({
-		width: 1200,
-		height: 820,
-		x: settings.information.windows.LVWindow.x,
-		y: settings.information.windows.LVWindow.y,
+		show: false,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
 			backgroundThrottling: false,
 		},
 	});
+	// Get rid of Live View menu bar
+	win.removeMenu();
 
 	win.loadFile("HTML/LVWindow.html");
-	win.webContents.openDevTools();
 
-	LVWinOpen = true;
+	if (Windows.params.open_live_view_dev_tools) {
+		win.webContents.openDevTools();
+	}
 
-	win.on("close", function (event) {
-		LVWinOpen = false;
+	// Create window reference
+	Windows.live_view = win;
+
+	// Delete window reference when window is closed
+	win.on("closed", (event) => {
+		Windows.live_view = undefined;
 	});
-
-	return win;
 }
 
-function createInvisibleWindow() {
+/**
+ * Resize Live View Window to settings' specifications
+ */
+function resize_live_view_window(windows_settings) {
+	if (Windows.live_view) {
+		Windows.live_view.setPosition(windows_settings.live_view.x, windows_settings.live_view.y);
+		Windows.live_view.setSize(windows_settings.live_view.width, windows_settings.live_view.height);
+		Windows.live_view.show();
+	}
+}
+
+function create_invisible_window() {
+	// Create the window
 	win = new BrowserWindow({
-		width: 400,
-		height: 400,
 		show: false,
 		webPreferences: {
 			nodeIntegration: true,
@@ -154,172 +230,368 @@ function createInvisibleWindow() {
 	});
 
 	win.loadFile("HTML/InvisibleWindow.html");
-	win.webContents.openDevTools();
 
-	return win;
+	if (Windows.params.open_invisible_dev_tools) {
+		win.webContents.openDevTools();
+	}
+
+	Windows.invisible = win;
+
+	win.on("closed", () => {
+		Windows.invisible = undefined;
+	});
 }
 
-app.whenReady().then(function () {
-	// Read settings from file
-	settings.functions.read();
+/** Close all windows */
+function close_windows() {
+	if (Windows.main) Windows.main.close();
+	if (Windows.live_view) Windows.live_view.close();
+	if (Windows.invisible) Windows.invisible.close();
+}
 
-	// Set dark mode
-	nativeTheme.themeSource = "dark";
+/** Shut down the app safely */
+function shut_down_app() {
+	// Save settings to file and close Main and Live View windows
+	//SettingsManager.save(() => {
+	//	// Close windows after files are saved
+	//	delete_empty_folder();
+	//	if (Windows.main) Windows.main.close();
+	//	if (Windows.live_view) Windows.live_view.close();
+	//	Windows.main = undefined;
+	//	Windows.live_view = undefined;
+	//});
+	delete_empty_folder();
+	if (Windows.main) Windows.main.close();
+	if (Windows.live_view) Windows.live_view.close();
+	Windows.main = undefined;
+	Windows.live_view = undefined;
+	// Send message to invisible window to close camera
+	if (Windows.invisible) Windows.invisible.webContents.send(IPCMessages.UPDATE.CLOSECAMERA);
+}
 
-	mainWin = createMainWindow();
-	invisibleWin = createInvisibleWindow();
-	LVWin = createLVWindow();
+/*****************************************************************************
 
-	app.on("activate", function () {
-		if (BrowserWindow.getAllWindows().length === 0) {
-			mainWin = createMainWindow();
-			invisibleWin = createInvisibleWindow();
-			LVWin = createLVWindow();
+								SETTINGS CONTROL
+
+*****************************************************************************/
+
+const SettingsManager = {
+	settings: new Settings(),
+	temp_settings: new Settings(),
+	filename: path.join(".", "Settings", "Settings.JSON"),
+	read: () => SettingsManager_read(),
+	save: (callback) => SettingsManager_save(callback),
+	get_full_directory: () => SettingsManager_get_full_directory(),
+};
+
+function SettingsManager_read() {
+	fs.readFile(SettingsManager.filename, (error, data) => {
+		if (error) {
+			console.error(`Could not find settings file at ${SettingsManager.filename}`);
+		} else {
+			let saved_settings = JSON.parse(data);
+
+			SettingsManager.settings.action = saved_settings["action"];
+			SettingsManager.settings.autosave = saved_settings["autosave"];
+			SettingsManager.settings.autostop = saved_settings["autostop"];
+			SettingsManager.settings.camera = saved_settings["camera"];
+			SettingsManager.settings.centroid = saved_settings["centroid"];
+			SettingsManager.settings.detachment_laser = saved_settings["detachment_laser"];
+			SettingsManager.settings.excitation_laser = saved_settings["excitation_laser"];
+			SettingsManager.settings.image_series = saved_settings["image_series"];
+			SettingsManager.settings.melexir = saved_settings["melexir"];
+			SettingsManager.settings.save_directory.base_directory = saved_settings["save_directory"]["base_directory"];
+			SettingsManager.settings.wavemeter = saved_settings["wavemeter"];
+			SettingsManager.settings.windows = saved_settings["windows"];
+			SettingsManager.settings.vmi = saved_settings["vmi"];
+			SettingsManager.settings.testing = saved_settings["testing"];
+
+			SettingsManager.settings.ISBLANK = false; // Settings have been updated
+
+			SettingsManager.temp_settings = SettingsManager.settings;
+
+			// Create folders to save images
+			create_folders();
 		}
 	});
+}
 
-	// If one monitor is too small, Electron doesn't size windows well
-	// Fixed by rechanging the size after creation
-	mainWin.setSize(settings.information.windows.mainWindow.width, settings.information.windows.mainWindow.height);
-	LVWin.setSize(settings.information.windows.LVWindow.width, settings.information.windows.LVWindow.height);
-
-	// Get rid of Live View menu bar
-	LVWin.removeMenu();
-
-	// Send settings information to main window when ready
-	mainWin.on("ready-to-show", () => {
-		mainWin.webContents.send("settings-information", settings.information);
-	})
-
-	// Close LV window when main window is closed
-	mainWin.on("close", function (event) {
-		/*event.preventDefault();
-	mainWin.hide();
-	LVWin.hide();
-	mainWin.webContents.send("closing-main-window", null);*/
-
-		//
-		// Could add in a timeout so that if a success is not received
-		// from the main window, the app still quits
-		//
-
-		SendCloseCameraMsg();
-		//app.quit();
+function SettingsManager_save(callback) {
+	const settings = {
+		action: SettingsManager.settings.action,
+		autosave: SettingsManager.settings.autosave,
+		autostop: SettingsManager.settings.autostop,
+		camera: SettingsManager.settings.camera,
+		centroid: SettingsManager.settings.centroid,
+		detachment_laser: SettingsManager.settings.detachment_laser,
+		excitation_laser: SettingsManager.settings.excitation_laser,
+		image_series: SettingsManager.settings.image_series,
+		melexir: SettingsManager.settings.melexir,
+		save_directory: {
+			base_directory: SettingsManager.settings.save_directory.base_directory,
+		},
+		wavemeter: SettingsManager.settings.wavemeter,
+		windows: SettingsManager.settings.windows,
+		vmi: SettingsManager.settings.vmi,
+		testing: SettingsManager.settings.testing,
+	};
+	let settings_JSON = JSON.stringify(settings, null, "\t");
+	fs.writeFile(SettingsManager.filename, settings_JSON, () => {
+		if (callback) {
+			callback();
+		}
 	});
+}
+
+function SettingsManager_get_full_directory() {
+	SettingsManager.settings.save_directory.full_directory = path.join(
+		SettingsManager.settings.save_directory.base_directory,
+		SettingsManager.settings.save_directory.year_directory,
+		SettingsManager.settings.save_directory.day_directory
+	);
+}
+
+/**
+ * Send settings to `window`
+ * @param {BrowserWindow} window - Either Windows.main, Windows.live_view, or Windows.invisible
+ */
+function send_settings(window) {
+	if (window) {
+		window.webContents.send(IPCMessages.INFORMATION.SETTINGS, SettingsManager.settings);
+	}
+}
+
+/**
+ * Send temporary settings to `window`
+ * @param {BrowserWindow} window - Either Windows.main, Windows.live_view, or Windows.invisible
+ */
+function send_temp_settings(window) {
+	if (window) {
+		window.webContents.send(IPCMessages.INFORMATION.SETTINGS, SettingsManager.temp_settings);
+	}
+}
+
+function check_for_new_window_size(new_settings, old_settings) {
+	if (new_settings.windows.main.x !== old_settings.windows.main.x) return true;
+	if (new_settings.windows.main.y !== old_settings.windows.main.y) return true;
+	if (new_settings.windows.main.width !== old_settings.windows.main.width) return true;
+	if (new_settings.windows.main.height !== old_settings.windows.main.height) return true;
+	if (new_settings.windows.live_view.x !== old_settings.windows.live_view.x) return true;
+	if (new_settings.windows.live_view.y !== old_settings.windows.live_view.y) return true;
+	if (new_settings.windows.live_view.width !== old_settings.windows.live_view.width) return true;
+	if (new_settings.windows.live_view.height !== old_settings.windows.live_view.height) return true;
+	return false;
+}
+
+/****
+		IPC Event Listeners
+****/
+
+ipcMain.on(IPCMessages.INFORMATION.RESET, (event) => {
+	if (check_for_new_window_size(SettingsManager.settings, SettingsManager.temp_settings)) {
+		resize_main_window(SettingsManager.settings.windows);
+		resize_live_view_window(SettingsManager.settings.windows);
+	}
+	SettingsManager.temp_settings = SettingsManager.settings;
+	send_settings(Windows.main);
+	send_settings(Windows.live_view);
+	send_settings(Windows.invisible);
 });
 
-ipcMain.on("closing-main-window-received", (event, arg) => {
-	//console.log(arg);
-	mainWin.destroy();
-	//app.quit();
+/**
+ * Recieve temporary update to settings
+ */
+ipcMain.on(IPCMessages.INFORMATION.TEMPSETTINGS, (event, temp_settings) => {
+	// Update windows and send settings around
+	if (check_for_new_window_size(temp_settings, SettingsManager.temp_settings)) {
+		resize_main_window(temp_settings.windows);
+		resize_live_view_window(temp_settings.windows);
+	}
+	SettingsManager.temp_settings = temp_settings;
+	send_temp_settings(Windows.main);
+	send_temp_settings(Windows.live_view);
+	send_temp_settings(Windows.invisible);
 });
 
-app.on("window-all-closed", function () {
-	app.quit();
+/**
+ * Recieve update to settings and save to file
+ */
+ipcMain.on(IPCMessages.INFORMATION.SETTINGS, (event, settings) => {
+	// Update windows and send settings around
+	if (check_for_new_window_size(settings, SettingsManager.settings)) {
+		resize_main_window(settings.windows);
+		resize_live_view_window(settings.windows);
+	}
+	SettingsManager.settings = settings;
+	send_settings(Windows.main);
+	send_settings(Windows.live_view);
+	send_settings(Windows.invisible);
+	SettingsManager.save();
 });
 
-//
-//		Messengers
-//
-ipcMain.on("UpdateSaveDirectory", function (event, arg) {
+/*****************************************************************************
+
+							SAVE DIRECTORY CONTROL
+
+*****************************************************************************/
+
+/** Current date, formatted as MMDDYY */
+function get_formatted_date() {
+	let today = new Date();
+	let day = ("0" + today.getDate()).slice(-2);
+	let month = ("0" + (today.getMonth() + 1)).slice(-2);
+	let full_year = today.getFullYear().toString();
+	let year = full_year.slice(-2);
+	return [full_year, month + day + year];
+}
+
+/** Create folders (day, year) to store images and scan information */
+function create_folders() {
+	// Check if there is a folder for today's year and date, and if not create it
+	let folder_names = get_formatted_date();
+	// Update save directory in settings
+	SettingsManager.settings.save_directory.year_directory = folder_names[0];
+	SettingsManager.settings.save_directory.day_directory = folder_names[1];
+	SettingsManager.get_full_directory();
+	// Try to make the year's folder first
+	let year_save_dir = path.join(SettingsManager.settings.save_directory.base_directory, SettingsManager.settings.save_directory.year_directory);
+	fs.mkdir(year_save_dir, (error) => {
+		// Error will be filled if the folder already exists, otherwise it'll make the folder
+		// In either case we don't care about the error message, so move on
+
+		// Try to make the day's folder
+		let day_save_dir = SettingsManager.settings.save_directory.full_directory;
+		fs.mkdir(day_save_dir, (error) => {});
+	});
+}
+
+/** Delete the data folder made on startup if no images were saved */
+function delete_empty_folder() {
+	// Check for today's folder
+	let directory = SettingsManager.settings.save_directory.full_directory;
+	fs.readdir(directory, (error, files) => {
+		if (!error && !files.length) {
+			// The folder is empty but does exists, so we need to delete it
+			fs.rmdir(directory, (error) => {
+				// Folder is deleted
+			});
+			// Could do this without reading the directory first, but I don't want to risk
+			// 	accidentally deleting data
+		}
+	});
+}
+
+function prompt_update_save_directory() {
 	dialog
 		.showOpenDialog({
-			title: "Choose Save Directory",
+			title: "Choose Base Save Directory (Not Year or Day Directories)",
 			buttonLabel: "Choose Folder",
 			defaultPath: app.getPath("documents"),
 			properties: ["openDirectory"],
 		})
-		.then(function (result) {
-			if (!result.canceled) {
-				// File explorer was not canceled
-				let actualReturnPath = result.filePaths[0];
-				let returnPath;
-
-				// Check if Home directory is included in path
-				// If so, remove (to clean up aesthetically)
-				// Do the same for the app's parent directory
-				let homePath = app.getPath("home");
-				let appPath = app.getAppPath();
-				if (actualReturnPath.includes(appPath)) {
-					returnPath = "." + actualReturnPath.substr(appPath.length);
-				} else if (actualReturnPath.includes(homePath)) {
-					returnPath = "~" + actualReturnPath.substr(homePath.length);
-				}
-
-				// Send message back with directory path
-				event.reply("NewSaveDirectory", [actualReturnPath, returnPath]);
-			}
-		})
+		.then(update_save_directory_setting)
 		.catch(function (err) {
 			console.log(err);
 		});
-});
-
-// Tell invisible window to start centroiding
-ipcMain.on("StartCentroiding", function (event, arg) {
-	invisibleWin.webContents.send("StartCentroiding", null);
-});
-
-// Tell invisible window to stop centroiding
-ipcMain.on("StopCentroiding", function (event, arg) {
-	invisibleWin.webContents.send("StopCentroiding", null);
-});
-
-ipcMain.on("ScanUpdate", function (event, update) {
-	LVWin.webContents.send("ScanUpdate", update);
-});
-
-// Relay centroid data to visible windows
-ipcMain.on("new-camera-frame", function (event, info) {
-	// info is an object containing image and calculated centers
-	let doNothing;
-
-	// Send data to main window if it's open
-	try {
-		mainWin.webContents.send("new-camera-frame", info);
-	} catch {
-		doNothing = true;
-	}
-
-	// Send data to live view window if it's open
-	try {
-		LVWin.webContents.send("new-camera-frame", info);
-	} catch {
-		doNothing = true;
-	}
-});
-
-// Turn hybrid method on and off
-ipcMain.on("HybridMethod", function (event, message) {
-	// Send message to invisible window
-	invisibleWin.webContents.send("HybridMethod", message);
-});
-
-// Update eChart axes on Live Video window
-ipcMain.on("UpdateAxes", function (event, axisSizes) {
-	// Send message to LV window
-	LVWin.webContents.send("UpdateAxes", axisSizes);
-});
-
-// Close camera connection
-function SendCloseCameraMsg() {
-	invisibleWin.webContents.send("CloseCamera", null);
 }
 
-// Close the app after the camera is successfully closed
-// Need to change this so it doesn't close the app if you only want to close the camera
-ipcMain.on("CameraClosed", function (event, msg) {
-	setTimeout(() => {
-		app.quit();
-	}, 2000 /* ms */);
+function update_save_directory_setting(save_result) {
+	if (!save_result.canceled) {
+		let save_path = save_result.filePaths[0];
+		SettingsManager.settings.save_directory.base_directory = save_path;
+		create_folders();
+		//SettingsManager.get_full_directory();
+		send_settings(Windows.main);
+		SettingsManager.save();
+	}
+}
+
+/*****************************************************************************
+
+								MELEXIR CONTROL
+
+*****************************************************************************/
+
+function create_mlxr_window() {
+	win = new BrowserWindow({
+		show: false,
+		webPreferences: {
+			nodeIntegration: true,
+			contextIsolation: false,
+		},
+	});
+
+	//win.webContents.openDevTools();
+	win.loadFile("HTML/mlxrWindow.html");
+	return win;
+}
+
+ipcMain.on("process-mlxr", (event, data) => {
+	let win = create_mlxr_window();
+	win.on("ready-to-show", () => {
+		win.webContents.send("run-mlxr", data);
+		ipcMain.once("mlxr-results", (event, results) => {
+			if (Windows.main) Windows.main.webContents.send("mlxr-results", results);
+			win.close();
+			win = undefined;
+		});
+	});
 });
 
-// Send the settings information to the main and live view windows
-function SendSettings() {
-	let settings2 = {
-		a: "Hi",
-		b: "There",
-	};
-	mainWin.webContents.send("settings-information", settings2);
-	LVWin.webContents.send("settings-information", settings2);
-}
+/*****************************************************************************
+
+								IPC MESSAGES
+
+*****************************************************************************/
+
+// Main window is ready, send the settings info
+ipcMain.on(IPCMessages.READY.MAINWINDOW, (event, arg) => {
+	send_settings(Windows.main);
+});
+
+// Live View window is ready, send the settings info
+ipcMain.on(IPCMessages.READY.LIVEVIEW, (event, arg) => {
+	send_settings(Windows.live_view);
+});
+
+// Invisible window is ready, send the settings info
+ipcMain.on(IPCMessages.READY.INVISIBLE, (event, arg) => {
+	send_settings(Windows.invisible);
+});
+
+// Main window has loaded and is ready to be displayed
+ipcMain.on(IPCMessages.LOADED.MAINWINDOW, (event, arg) => {
+	resize_live_view_window(SettingsManager.settings.windows);
+	resize_main_window(SettingsManager.settings.windows);
+});
+
+// New camera frame from Invisible window, relay data to Main and Live View windows
+ipcMain.on(IPCMessages.UPDATE.NEWFRAME, (event, info) => {
+	// Wrap in try/catch because it throws a bunch of errors if the window is closed
+	try {
+		Windows.main.webContents.send(IPCMessages.UPDATE.NEWFRAME, info);
+	} catch {}
+
+	try {
+		Windows.live_view.webContents.send(IPCMessages.UPDATE.NEWFRAME, info);
+	} catch {}
+});
+
+// Relay error message from Invisible window to Main window
+ipcMain.on(IPCMessages.UPDATE.CAMERAERROR, (event, error) => {
+	// Wrap in try/catch because it throws a bunch of errors if the window is closed
+	try {
+		Windows.main.webContents.send(IPCMessages.UPDATE.CAMERAERROR, error);
+	} catch {}
+});
+
+// Close Invisible window when camera is closed
+ipcMain.on(IPCMessages.UPDATE.CAMERACLOSED, () => {
+	if (Windows.invisible) Windows.invisible.close();
+	Windows.invisible = undefined;
+});
+
+// Update directory used for saving files
+ipcMain.on(IPCMessages.UPDATE.SAVEDIRECTORY, () => {
+	prompt_update_save_directory();
+});

@@ -1,16 +1,25 @@
 const ipc = require("electron").ipcRenderer;
-const Chart = require("chart.js");
+const { Chart, registerables } = require("chart.js");
+const { IPCMessages } = require("../JS/Libraries/Messages.js");
 
+if (registerables) Chart.register(...registerables);
 
-////
-let DOIT = true;
-////
-
+let settings;
 
 // Startup
 window.onload = function () {
-	Startup();
+	// Send message to main process that the window is ready
+	ipc.send(IPCMessages.READY.LIVEVIEW);
 };
+
+// Recieve setting information and go through startup procedure
+ipc.once(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
+	settings = settings_information;
+	Startup();
+	ipc.on(IPCMessages.INFORMATION.SETTINGS, (event, settings_information) => {
+		settings = settings_information;
+	});
+});
 
 function Startup() {
 	const LiveViewContext = document.getElementById("LiveVideoView").getContext("2d");
@@ -19,12 +28,33 @@ function Startup() {
 	LiveViewContext.fillRect(0, 0, 768, 768);
 }
 
+let enlarged = false;
+document.getElementById("EnlargeButton").onclick = () => {
+	const div = document.getElementById("CountInformation");
+	const button = document.getElementById("EnlargeButton");
+	if (enlarged) {
+		div.classList.remove("large");
+		button.innerText = "Enlarge";
+		enlarged = false;
+	} else {
+		div.classList.add("large");
+		button.innerText = "Reduce";
+		enlarged = true;
+	}
+};
+
 function UpdateAverageDisplays() {
-	const avgCountDisplay = document.getElementById("AvgECount");
+	const IROff = document.getElementById("IROffCount");
+	const IROn = document.getElementById("IROnCount");
+	const Total = document.getElementById("TotalCount");
 
 	if (averageCount.updateCounter === averageCount.updateFrequency) {
-		//avgCountDisplay.value = averageCount.getTotalAverage();
-		avgCountDisplay.value = averageCount.getTotalIRAverage();
+		let [off_count, on_count] = averageCount.getTotalIRAverage();
+		let total_count = (off_count + on_count) / 2;
+
+		IROff.value = off_count.toFixed(1);
+		IROn.value = on_count.toFixed(1);
+		Total.value = total_count.toFixed(1);
 
 		averageCount.updateCounter = 0;
 	} else {
@@ -32,21 +62,16 @@ function UpdateAverageDisplays() {
 	}
 }
 
-function UpdateScanDisplays() {
-	const TotalCount = document.getElementById("TotalECount");
-
-	TotalCount.value = scanInfo.getTotalCount();
-}
-
 // Receive message with centroid data
-ipc.on("new-camera-frame", function (event, centroidResults) {
-	// Will return with object containing:
-	//		imageBuffer			-	Uint8Buffer - Current image frame
-	// 		CCLCenters			-	Array		- Connect component labeling centroids
-	//		hybridCenters		-	Array		- Hybrid method centroids
-	//		computationTime		-	Float		- Time to calculate centroids (ms)
-	//		isLEDon				- 	Boolean		- Whether IR LED was on in image
-	//		normNoiseIntensity	-	Float		- Ratio of LED area to Noise area normalized intensities
+ipc.on(IPCMessages.UPDATE.NEWFRAME, function (event, centroid_results) {
+	// centroid_results is an object containing:
+	//		image_buffer			-	Uint8Buffer - Current image frame
+	// 		com_centers				-	Array		- Center of Mass centroids
+	//		hgcm_centers			-	Array		- HGCM method centroids
+	//		computation_time		-	Float		- Time to calculate centroids (ms)
+	//		is_led_on				- 	Boolean		- Whether IR LED was on in image
+	//		avg_led_intensity		-	Float		- Average intensity of pixels in LED region
+	//		avg_noise_intensity		-	Float		- Average intensity of pixels in noise region
 
 	// Temp variables for image and AoI size
 	let imageWidth = 1024;
@@ -55,77 +80,20 @@ ipc.on("new-camera-frame", function (event, centroidResults) {
 	let yOffset = 0;
 
 	const LiveViewContext = document.getElementById("LiveVideoView").getContext("2d");
-	const LVData = LiveViewContext.getImageData(0, 0, imageWidth, imageHeight);
+	let LVData = new ImageData(imageWidth, imageHeight);
 
 	// Put image on display
-	LVData.data.set(centroidResults.imageBuffer);
+	LVData.data.set(centroid_results.image_buffer);
 	LiveViewContext.putImageData(LVData, -xOffset, -yOffset);
 
 	// Add counts to chart
-	eChartData.updateData(centroidResults);
+	eChartData.updateData(centroid_results);
+	//eChartData.updateDataMini(centroid_results);
 	eChartData.updateChart(eChart);
 
 	// Update average counters
-	averageCount.update(centroidResults);
+	averageCount.update(centroid_results);
 	UpdateAverageDisplays();
-
-	// Update scan display if a scan is running
-	if (scanInfo.running) {
-		scanInfo.update(centroidResults);
-		UpdateScanDisplays();
-	}
-
-	if (DOIT) {
-		doit();
-	}
-});
-
-// Receive message about the scan
-ipc.on("ScanUpdate", function (event, update) {
-	// The update will either be
-	// 		"start" - a scan was started
-	// 		"pause" - scan was paused
-	// 		"resume" - scan was resumed
-	// 		"stop" - scan was stopped
-
-	const TotalCountLabel = document.getElementById("TotalECountLabel");
-	const TotalCount = document.getElementById("TotalECount");
-
-	switch (update) {
-		case "start":
-			scanInfo.running = true;
-
-			// Reset the counters
-			scanInfo.reset();
-			UpdateScanDisplays();
-
-			// Make the total count display visible
-			TotalCountLabel.style.visibility = "visible";
-			TotalCount.style.visibility = "visible";
-			break;
-
-		case "pause":
-			scanInfo.running = false;
-			break;
-
-		case "resume":
-			scanInfo.running = true;
-			break;
-
-		case "stop":
-			scanInfo.running = false;
-
-			// Make the total count display hidden
-			TotalCountLabel.style.visibility = "hidden";
-			TotalCount.style.visibility = "hidden";
-			break;
-	}
-});
-
-// Receive message to update eChart axes
-ipc.on("UpdateAxes", function (event, axisSizes) {
-	eChartData.updateAxes(axisSizes);
-	eChartData.updateChart(eChart);
 });
 
 const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
@@ -146,7 +114,7 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 		scales: {
 			y: {
 				beginAtZero: true,
-				suggestedMax: 10, // Defines starting max value of chart
+				//suggestedMax: 10, // Defines starting max value of chart
 				title: {
 					text: "Electron Count",
 					color: "black",
@@ -159,7 +127,7 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 					color: "black",
 					display: false,
 				},
-				display: false,
+				//display: false,
 			},
 		},
 		aspectRatio: 1.2,
@@ -172,28 +140,26 @@ const eChart = new Chart(document.getElementById("eChart").getContext("2d"), {
 });
 
 const eChartData = {
-	xAxisMax: 30,
+	xAxisMax: 60,
 	yAxisMax: 50,
 	labels: [],
-	cclData: [],
-	hybridData: [],
+	comData: [],
+	hgcmData: [],
 	frameCount: 0,
-	start: function () {
-		this.running = true;
-	},
-	stop: function () {
-		this.running = false;
-	},
+
+	comDataMini: [],
+	hgcmDataMini: [],
+
 	reset: function () {
 		this.labels = [];
-		this.cclData = [];
-		this.hybridData = [];
+		this.comData = [];
+		this.hgcmData = [];
 		this.frameCount = 0;
 	},
-	updateData: function (centroidResults) {
+	updateData: function (centroid_results) {
 		this.labels.push(this.frameCount);
-		this.cclData.push(centroidResults.CCLCenters.length);
-		this.hybridData.push(centroidResults.CCLCenters.length + centroidResults.hybridCenters.length);
+		this.comData.push(centroid_results.com_centers.length);
+		this.hgcmData.push(centroid_results.com_centers.length + centroid_results.hgcm_centers.length);
 		this.frameCount++;
 		this.cleaveData();
 	},
@@ -203,13 +169,36 @@ const eChartData = {
 		while (this.labels.length > this.xAxisMax) {
 			this.labels.shift();
 		}
-		while (this.cclData.length > this.xAxisMax) {
-			this.cclData.shift();
+		while (this.comData.length > this.xAxisMax) {
+			this.comData.shift();
 		}
-		while (this.hybridData.length > this.xAxisMax) {
-			this.hybridData.shift();
+		while (this.hgcmData.length > this.xAxisMax) {
+			this.hgcmData.shift();
 		}
 	},
+
+	updateDataMini: function (centroid_results) {
+		this.comDataMini.push(centroid_results.com_centers.length);
+		this.hgcmDataMini.push(centroid_results.hgcm_centers.length + centroid_results.com_centers.length);
+
+		if (this.comDataMini.length > 20) {
+			const com_sum = this.comDataMini.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+			let com_avg = com_sum / this.comDataMini.length;
+			const hgcm_sum = this.hgcmDataMini.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+			let hgcm_avg = hgcm_sum / this.hgcmDataMini.length;
+
+			this.labels.push(this.frameCount);
+			this.comData.push(com_avg);
+			this.hgcmData.push(hgcm_avg);
+
+			this.comDataMini = [];
+			this.hgcmDataMini = [];
+			this.cleaveData();
+		}
+
+		this.frameCount++;
+	},
+
 	updateAxes: function (axisSizes) {
 		if (axisSizes.length !== 2) {
 			return;
@@ -219,64 +208,68 @@ const eChartData = {
 	},
 	updateChart: function (echart) {
 		// Update chart vertical max value
-		echart.options.scales.y.max = this.yAxisMax;
+		//echart.options.scales.y.max = this.yAxisMax;
 		// Update chart data
 		echart.data.labels = this.labels;
-		echart.data.datasets[0].data = this.cclData;
-		echart.data.datasets[1].data = this.hybridData;
+		echart.data.datasets[0].data = this.comData;
+		echart.data.datasets[1].data = this.hgcmData;
 		echart.update("none");
 	},
 };
 
 const averageCount = {
-	prevCCLCounts: [],
-	prevHybridCounts: [],
+	AvgCountLength: 10,
+	prevCOMCounts: [],
+	prevHGCMCounts: [],
 	prevTotalCounts: [],
 	prevTotalOnCounts: [], // Keeping track of IR on/off counts
 	prevTotalOffCounts: [],
 	updateCounter: 0, // Used to keep track of how many frames have
 	// been processed since the last time avg display was updated
 	updateFrequency: 10, // Number of frames before updating display
-	update: function (centroidResults) {
-		let ccl = centroidResults.CCLCenters.length;
-		let hybrid = centroidResults.hybridCenters.length;
-		let total = ccl + hybrid;
+	update: function (centroid_results) {
+		let com = centroid_results.com_centers.length;
+		let hgcm = centroid_results.hgcm_centers.length;
+		let total = com + hgcm;
 		// Add to respective arrays
-		this.prevCCLCounts.push(ccl);
-		this.prevHybridCounts.push(hybrid);
+		this.prevCOMCounts.push(com);
+		this.prevHGCMCounts.push(hgcm);
 		this.prevTotalCounts.push(total);
-		if (centroidResults.isLEDon) {
+		if (centroid_results.is_led_on) {
 			this.prevTotalOnCounts.push(total);
 		} else {
 			this.prevTotalOffCounts.push(total);
 		}
 		// Make sure arrays are only 10 frames long
 		// by removing earliest frame
-		while (this.prevCCLCounts.length > 10) {
-			this.prevCCLCounts.shift();
+		while (this.prevCOMCounts.length > this.AvgCountLength) {
+			this.prevCOMCounts.shift();
 		}
-		while (this.prevHybridCounts.length > 10) {
-			this.prevHybridCounts.shift();
+		while (this.prevHGCMCounts.length > this.AvgCountLength) {
+			this.prevHGCMCounts.shift();
 		}
-		while (this.prevTotalCounts.length > 10) {
+		while (this.prevTotalCounts.length > this.AvgCountLength) {
 			this.prevTotalCounts.shift();
 		}
-		while (this.prevTotalOnCounts.length > 10) {
+		while (this.prevTotalOnCounts.length > this.AvgCountLength) {
 			this.prevTotalOnCounts.shift();
 		}
-		while (this.prevTotalOffCounts.length > 10) {
+		while (this.prevTotalOffCounts.length > this.AvgCountLength) {
 			this.prevTotalOffCounts.shift();
 		}
 	},
 	getAverage: function (arr) {
 		// Calculates the average value of the arrays
+		if (arr.length === 0) {
+			return 0;
+		}
 		const sum = arr.reduce((accumulator, currentValue) => {
 			return accumulator + currentValue;
 		});
 		return sum / arr.length;
 	},
-	getCCLAverage: function () {
-		return this.getAverage(this.prevCCLCounts).toFixed(2);
+	getCOMAverage: function () {
+		return this.getAverage(this.prevCOMCounts).toFixed(2);
 	},
 	getHybridAverage: function () {
 		return this.getAverage(this.prevHybridCounts).toFixed(2);
@@ -285,71 +278,7 @@ const averageCount = {
 		return this.getAverage(this.prevTotalCounts).toFixed(2);
 	},
 	getTotalIRAverage: function () {
-		return this.getAverage(this.prevTotalOffCounts).toFixed(2) + ", " + this.getAverage(this.prevTotalOnCounts).toFixed(2);
+		//return this.getAverage(this.prevTotalOffCounts).toFixed(2) + ", " + this.getAverage(this.prevTotalOnCounts).toFixed(2);
+		return [this.getAverage(this.prevTotalOffCounts), this.getAverage(this.prevTotalOnCounts)];
 	},
 };
-
-const scanInfo = {
-	running: false, // running does not change if scan is paused
-	method: "normal", // Can be "normal" or "ir" // Need to add this in
-	frameCount: 0,
-	cclCount: 0,
-	hybridCount: 0,
-	totalCount: 0,
-	startScan: function () {
-		this.running = true;
-	},
-	stopScan: function () {
-		this.running = false;
-	},
-	update: function (centroidResults) {
-		let ccl = centroidResults.CCLCenters.length;
-		let hybrid = centroidResults.hybridCenters.length;
-		let total = ccl + hybrid;
-		// Add to counts
-		this.cclCount += ccl;
-		this.hybridCount += hybrid;
-		this.totalCount += total;
-		this.frameCount++;
-	},
-	reset: function () {
-		this.frameCount = 0;
-		this.cclCount = 0;
-		this.hybridCount = 0;
-		this.totalCount = 0;
-	},
-	getFrames: function () {
-		// Returns frame count as "X k" (e.g. 11 k for 11,000 frames)
-		// unless frame count is below 1,000
-		let frameString;
-		if (this.frameCount >= 1000) {
-			frameString = Math.round(this.frameCount / 1000) + " k";
-		} else {
-			frameString = this.frameCount.toString();
-		}
-		return frameString;
-	},
-	getTotalCount: function () {
-		// Returns total electron count in scientific notation
-		// unless total count is below 10,000
-		let countString;
-		if (this.totalCount >= 10000) {
-			countString = this.totalCount.toExponential(3).toString();
-			// Get rid of '+' in exponent
-			countString = countString.substr(0, countString.length - 2) + countString.slice(-1);
-		} else {
-			countString = this.totalCount.toString();
-		}
-		return countString;
-	},
-};
-
-
-function doit() {
-	// Center at (526, 517) in (1024,1024)
-	// => (394, 388)
-	const LiveViewContext = document.getElementById("LiveVideoView").getContext("2d");
-
-	LiveViewContext.fillStyle = "red";
-	LiveViewContext.fillRect(392, 386, 5, 5);
-}

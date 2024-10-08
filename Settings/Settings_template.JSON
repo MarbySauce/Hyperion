@@ -1,0 +1,108 @@
+{
+	"action": {
+		"move_wavelength_every_time": false
+	},
+	"autosave": {
+		"on": false,
+		"delay": 0
+	},
+	"autostop": {
+		"both_images": false
+	},
+	"camera": {
+		"AoI_width": 0,
+		"AoI_height": 0,
+		"x_offset": 0,
+		"y_offset": 0,
+		"pixel_clock": 0,
+		"exposure_time": 0,
+		"gain": 0,
+		"gain_boost": false,
+		"trigger": 0,
+		"LED_area": {
+			"x_start": 0,
+			"x_end": 0,
+			"y_start": 0,
+			"y_end": 0
+		},
+		"Noise_area": {
+			"x_start": 0,
+			"x_end": 0,
+			"y_start": 0,
+			"y_end": 0
+		}
+	},
+	"centroid": {
+		"use_hybrid_method": false,
+		"bin_size": 1024
+	},
+	"detachment_laser": {
+		"yag_fundamental": 1064
+	},
+	"excitation_laser": {
+		"yag_fundamental": 1064,
+		"acceptance_range": 0.5,
+		"move_attempts": 1,
+		"lower_wavelength_bound": 710,
+		"upper_wavelength_bound": 880,
+		"fir_lower_wavelength_bound": 725,
+		"fir_upper_wavelength_bound": 765,
+		"in_fir_mode": false,
+		"host": "localhost",
+		"port": 1315
+	},
+	"image_series": {
+		"show_menu": false
+	},
+	"melexir": {
+		"process_on_save": false,
+		"save_spectrum": false,
+		"save_best_fit": false,
+		"save_residuals": false
+	},
+	"save_directory": {
+		"base_directory": "/Users/Marty_1/Documents/Programming/Hyperion/Images"
+	},
+	"wavemeter": {
+		"collection_length": 10,
+		"max_fail_count": 10,
+		"max_bad_measurements": 20,
+		"detachment_laser_channel": 2,
+		"excitation_laser_channel": 1
+	},
+	"windows": {
+		"main": {
+			"x": 0,
+			"y": 0,
+			"width": 1200,
+			"height": 1000
+		},
+		"live_view": {
+			"x": 0,
+			"y": 0,
+			"width": 1200,
+			"height": 820
+		}
+	},
+	"vmi": {
+		"V1": {
+			"a": 0,
+			"b": 0
+		},
+		"V2": {
+			"a": 0,
+			"b": 0
+		},
+		"V3": {
+			"a": 0,
+			"b": 0
+		},
+		"V4": {
+			"a": 0,
+			"b": 0
+		}
+	},
+	"testing": {
+		"do_not_save_to_file": false
+	}
+}

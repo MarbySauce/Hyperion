@@ -1,0 +1,516 @@
+/* 
+	This file is used to arrange each IR Action Mode HTML element into a grid structure
+	to make sure it aligns well, especially when resizing the window. The
+	other IR Action Mode element styles are specified in iraction.css
+*/
+
+/* IR Action Mode - First Page */
+
+/* IR Sevi rows total 10fr + 30px */
+
+#IRActionModeFirstPage {
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 1fr 2fr 3.5fr 0.5fr 3fr 30px;
+	grid-template-areas:
+		"IRActionTitleSection IRActionImageDisplay"
+		"IRActionControls IRActionImageDisplay"
+		"IRActionScanOptions IRActionImageDisplay"
+		"IRActionScanStatus IRActionImageDisplay"
+		"IRActionScanStatus IRActionCounters"
+		"IRActionPageDown IRActionPageDown";
+}
+
+#IRActionTitleSection {
+	grid-area: IRActionTitleSection;
+}
+
+/* IR Action Mode - First Page - Scan Controls */
+#IRActionControls {
+	grid-area: IRActionControls;
+	grid-template-rows: 1fr 1fr;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-areas:
+		"ScanStartSave ScanPauseResume ScanCancel"
+		"ImageSave ImageReset RemeasureWavelength";
+}
+#IRActionScanStartSave {
+	grid-area: ScanStartSave;
+}
+#IRActionScanPauseResume {
+	grid-area: ScanPauseResume;
+}
+#IRActionScanCancel {
+	grid-area: ScanCancel;
+}
+#IRActionImageSave {
+	grid-area: ImageSave;
+}
+#IRActionImageReset {
+	grid-area: ImageReset;
+}
+#IRActionRemeasureWavelength {
+	grid-area: RemeasureWavelength;
+}
+
+/* IR Action Mode - First Page - Scan Options */
+#IRActionScanOptions {
+	grid-area: IRActionScanOptions;
+	grid-template-rows: 0.8fr 1fr 1fr 1fr 1fr;
+	grid-template-areas:
+		"OptionsTitle"
+		"EnergySelection"
+		"AutostopSelection"
+		"ImageAmountSelection"
+		"VMISelection";
+}
+
+#IRActionScanOptionsTitleSection {
+	grid-area: OptionsTitle;
+}
+
+/* IR Action Mode - First Page - Scan Options - Energy Range Selection */
+#IRActionEnergySelection {
+	grid-area: EnergySelection;
+	grid-template-columns: 2.5fr 3fr 0.6fr 3fr 2.5fr 3fr 3.3fr;
+	grid-template-areas: "EnergyLabel InitialEnergy Hyphen FinalEnergy WNLabel1 EnergyStep WNLabel2";
+}
+#IRActionEnergyLabel {
+	grid-area: EnergyLabel;
+}
+#IRActionInitialEnergy {
+	grid-area: InitialEnergy;
+}
+#IRActionOptionsHyphen {
+	grid-area: Hyphen;
+}
+#IRActionFinalEnergy {
+	grid-area: FinalEnergy;
+}
+#IRActionWNLabel1 {
+	grid-area: WNLabel1;
+}
+#IRActionEnergyStep {
+	grid-area: EnergyStep;
+}
+#IRActionWNLabel2 {
+	grid-area: WNLabel2;
+}
+
+/* IR Action Mode - First Page - Scan Options - Automatic Stop Selection */
+#IRActionAutomaticStopSelection {
+	grid-area: AutostopSelection;
+	grid-template-columns: 0.7fr 1.2fr 0.5fr 1fr;
+	grid-template-areas: "blank AutomaticStopLabel AutomaticStop AutomaticStopUnit";
+}
+#IRActionAutomaticStopLabel {
+	grid-area: AutomaticStopLabel;
+}
+#IRActionAutomaticStop {
+	grid-area: AutomaticStop;
+}
+#IRActionAutomaticStopUnit {
+	grid-area: AutomaticStopUnit;
+}
+
+/* IR Action Mode - First Page - Scan Options - Image Amount Selection */
+#IRActionImageAmountSelection {
+	grid-area: ImageAmountSelection;
+	grid-template-columns: 0.4fr 1.5fr 0.5fr 1fr;
+	grid-template-areas: "blank1 ImageAmountLabel ImageAmount blank2";
+}
+#IRActionImageAmountLabel {
+	grid-area: ImageAmountLabel;
+}
+#IRActionImageAmount {
+	grid-area: ImageAmount;
+}
+
+/* IR Action Mode - First Page - Scan Options - VMI Selection */
+#IRActionVMISelection {
+	grid-area: VMISelection;
+	grid-template-columns: 1.3fr 1fr 1.3fr 1fr 0.2fr 1fr;
+	grid-template-areas: "VMILabel VMIMode blank1 Reset blank2 Update";
+}
+#IRActionVMILabel {
+	grid-area: VMILabel;
+}
+#IRActionVMIMode {
+	grid-area: VMIMode;
+}
+#IRActionResetOptions {
+	grid-area: Reset;
+}
+#IRActionUpdateOptions {
+	grid-area: Update;
+}
+
+/* IR Action Mode - First Page - Scan Status */
+#IRActionScanStatus {
+	grid-area: IRActionScanStatus;
+	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
+	grid-template-areas:
+		"Title"
+		"CurrentImage"
+		"CurrentEnergy"
+		"NextEnergy"
+		"ScanDuration"
+		"CurrentStep";
+}
+#IRActionStatusTitleSection {
+	grid-area: Title;
+}
+/* Current Image */
+#IRActionStatusCurrentImage {
+	grid-area: CurrentImage;
+	grid-template-columns: 2fr 4fr 1fr;
+	grid-template-areas: "Label Values blank";
+}
+#IRActionStatusCurrentImageLabel {
+	grid-area: Label;
+}
+#IRActionStatusCurrentImageValues {
+	grid-area: Values;
+}
+#IRActionProgressBarOuter {
+	grid-area: Values;
+}
+/* Current Energy */
+#IRActionStatusCurrentEnergy {
+	grid-area: CurrentEnergy;
+	grid-template-columns: 3.5fr 1fr 2fr 0.8fr 0.5fr 1fr 2fr 1.5fr;
+	grid-template-areas: "Label NIRLabel Wavelength NMLabel Arrow IRLabel Wavenumber WNLabel";
+}
+#IRActionStatusCurrentEnergyLabel {
+	grid-area: Label;
+}
+#IRActionStatusCurrentEnergyNIRLabel {
+	grid-area: NIRLabel;
+}
+#IRActionStatusCurrentWavelength {
+	grid-area: Wavelength;
+}
+#IRActionStatusNMLabel1 {
+	grid-area: NMLabel;
+}
+#IRActionStatusArrow1 {
+	grid-area: Arrow;
+}
+#IRActionStatusCurrentEnergyIRLabel {
+	grid-area: IRLabel;
+}
+#IRActionStatusCurrentWavenumber {
+	grid-area: Wavenumber;
+}
+#IRActionStatusWNLabel1 {
+	grid-area: WNLabel;
+}
+/* Next Energy */
+#IRActionStatusNextEnergy {
+	grid-area: NextEnergy;
+	grid-template-columns: 3.5fr 1fr 2fr 0.8fr 0.5fr 1fr 2fr 1.5fr;
+	grid-template-areas: "Label NIRLabel Wavelength NMLabel Arrow IRLabel Wavenumber WNLabel";
+}
+#IRActionStatusNextEnergyLabel {
+	grid-area: Label;
+}
+#IRActionStatusNextEnergyNIRLabel {
+	grid-area: NIRLabel;
+}
+#IRActionStatusNextWavelength {
+	grid-area: Wavelength;
+}
+#IRActionStatusNMLabel2 {
+	grid-area: NMLabel;
+}
+#IRActionStatusArrow2 {
+	grid-area: Arrow;
+}
+#IRActionStatusNextEnergyIRLabel {
+	grid-area: IRLabel;
+}
+#IRActionStatusNextWavenumber {
+	grid-area: Wavenumber;
+}
+#IRActionStatusWNLabel2 {
+	grid-area: WNLabel;
+}
+/* Scan Duration */
+#IRActionStatusScanDuration {
+	grid-area: ScanDuration;
+	grid-template-columns: 2fr 4fr 1fr;
+	grid-template-areas: "Label Values blank";
+}
+#IRActionStatusScanDurationLabel {
+	grid-area: Label;
+}
+#IRActionStatusScanDurationValues {
+	grid-area: Values;
+}
+/* Current Step */
+#IRActionStatusCurrentStep {
+	grid-area: CurrentStep;
+	grid-template-columns: 2fr 4fr 1fr;
+	grid-template-areas: "Label Values blank";
+}
+#IRActionStatusCurrentStepLabel {
+	grid-area: Label;
+}
+#IRActionStatusCurrentStepValues {
+	grid-area: Values;
+}
+
+/* IR Action Mode - First Page - Image Display */
+#IRActionImageDisplay {
+	grid-area: IRActionImageDisplay;
+	grid-template-rows: 1fr 14fr 1fr;
+	grid-template-columns: 5.2fr 1.8fr;
+	grid-template-areas:
+		"Title IRImageDisplay"
+		"Display Display"
+		"SliderDiv SliderDiv";
+}
+#IRActionImageDisplaySelect {
+	grid-area: IRImageDisplay;
+}
+#IRActionImageDisplay h3 {
+	grid-area: Title;
+}
+#IRActionDisplayWrapper {
+	grid-area: Display;
+}
+#IRActionDisplaySliderDiv {
+	grid-area: SliderDiv;
+	grid-template-columns: 1fr 14fr 1fr;
+	grid-template-areas: "blank Slider Checkbox";
+}
+#IRActionDisplaySlider {
+	grid-area: Slider;
+}
+#IRActionDisplayCheckbox {
+	grid-area: Checkbox;
+}
+
+/* IR Action Mode - First Page - Electron Counters */
+#IRActionElectronCounters {
+	grid-area: IRActionCounters;
+	grid-template-rows: 0.5fr 1fr 1fr 1fr 5px 1fr;
+	grid-template-columns: 1.2fr 1fr 1fr;
+	grid-template-areas:
+		"blank IROffTitle IROnTitle"
+		"TotalFramesLabel TotalFrames TotalFramesIROn"
+		"TotalECountLabel TotalECount TotalECountIROn"
+		"AvgECountLabel AvgECount AvgECountIROn"
+		"ECountersDivLine ECountersDivLine ECountersDivLine"
+		"ProgressBarBackground ProgressBarBackground ProgressBarBackground";
+}
+#IRActionIROffCountersTitle {
+	grid-area: IROffTitle;
+}
+#IRActionIROnCountersTitle {
+	grid-area: IROnTitle;
+}
+#IRActionTotalFramesLabel {
+	grid-area: TotalFramesLabel;
+}
+#IRActionTotalFrames {
+	grid-area: TotalFrames;
+}
+#IRActionTotalFramesIROn {
+	grid-area: TotalFramesIROn;
+}
+#IRActionTotalECountLabel {
+	grid-area: TotalECountLabel;
+}
+#IRActionTotalECount {
+	grid-area: TotalECount;
+}
+#IRActionTotalECountIROn {
+	grid-area: TotalECountIROn;
+}
+#IRActionAvgECountLabel {
+	grid-area: AvgECountLabel;
+}
+#IRActionAvgECount {
+	grid-area: AvgECount;
+}
+#IRActionAvgECountIROn {
+	grid-area: AvgECountIROn;
+}
+#IRActionECountersDivLine {
+	grid-area: ECountersDivLine;
+}
+/* Image Progress Bar */
+#IRActionImageProgressBarBackground {
+	grid-area: ProgressBarBackground;
+	grid-template-columns: 4fr 8fr 1fr;
+	grid-template-areas: "Label ProgressBar PercentLabel";
+}
+#IRActionImageProgressLabel {
+	grid-area: Label;
+}
+#IRActionImageProgressBarOuter {
+	grid-area: ProgressBar;
+}
+#IRActionImageProgressPercentLabel {
+	grid-area: PercentLabel;
+}
+
+#IRActionPageDown {
+	grid-area: IRActionPageDown;
+}
+
+/* IR Action Mode - Second Page */
+
+#IRActionModeSecondPage {
+	grid-template-rows: 30px 7fr 8fr;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"IRActionPageUp IRActionPageUp"
+		"SpectrumDisplaySection SpectrumDisplaySection"
+		"PeakSelection SpectrumSelection";
+}
+
+#IRActionPageUp {
+	grid-area: IRActionPageUp;
+}
+
+#IRActionSpectrumDisplaySection {
+	grid-area: SpectrumDisplaySection;
+	grid-template-columns: 40fr 1fr 1fr 1fr 40fr;
+	grid-template-rows: 8fr 1fr;
+	grid-template-areas:
+		"PES ResizeLeft ResizeCenter ResizeRight Action"
+		"PESButtons ResizeLeft ResizeCenter ResizeRight ActionButtons";
+}
+#IRActionSpectrumDisplaySection.resized-left {
+	grid-template-columns: 20fr 1fr 1fr 1fr 60fr;
+}
+#IRActionSpectrumDisplaySection.resized-right {
+	grid-template-columns: 60fr 1fr 1fr 1fr 20fr;
+}
+
+#IRActionPESpectrumDisplayInner {
+	grid-area: PES;
+}
+#IRActionPESpectrumControl {
+	grid-area: PESButtons;
+	grid-template-columns: 1fr 1.7fr 1.1fr;
+	grid-template-areas: "ResetZoom blank ChangeBasis";
+}
+.resized-left #IRActionPESpectrumControl {
+	grid-template-columns: 1fr 0.2fr 1.1fr;
+}
+.resized-right #IRActionPESpectrumControl {
+	grid-template-columns: 1fr 4.5fr 1.1fr;
+}
+#IRActionPESResetZoom {
+	grid-area: ResetZoom;
+}
+#IRActionChangeBasis {
+	grid-area: ChangeBasis;
+}
+
+#IRActionResizeLeft {
+	grid-area: ResizeLeft;
+}
+#IRActionResizeCenter {
+	grid-area: ResizeCenter;
+}
+#IRActionResizeRight {
+	grid-area: ResizeRight;
+}
+
+#IRActionActionSpectrumDisplayInner {
+	grid-area: Action;
+}
+#IRActionActionSpectrumControl {
+	grid-area: ActionButtons;
+	grid-template-columns: 1fr 0.3fr 1.1fr 0.3fr 1.1fr;
+	grid-template-areas: "ResetZoom blank1 HideLines blank2 Normalize";
+}
+.resized-left #IRActionActionSpectrumControl {
+	grid-template-columns: 1fr 1.7fr 1.1fr 1.7fr 1.1fr;
+}
+.resized-right #IRActionActionSpectrumControl {
+	grid-template-columns: 1fr 0fr 1.1fr 0fr 1.1fr;
+}
+#IRActionActionResetZoom {
+	grid-area: ResetZoom;
+}
+#IRActionHideLines {
+	grid-area: HideLines;
+}
+#IRActionNormalize {
+	grid-area: Normalize;
+}
+
+#IRActionPeakSelection {
+	grid-area: PeakSelection;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas: "DepletionSelection GrowthSelection";
+}
+
+#IRActionDepletionSelection {
+	grid-area: DepletionSelection;
+}
+#IRActionGrowthSelection {
+	grid-area: GrowthSelection;
+}
+
+.peak-selection {
+	display: grid;
+	grid-template-rows: 1fr 1fr 6fr 1fr;
+	grid-template-columns: 2fr 2fr 1fr;
+	grid-template-areas:
+		"Title Title Title"
+		"Ri Rf AddPeak"
+		"AllPeaks AllPeaks AllPeaks"
+		"blank ShowPeaks ShowPeaks";
+}
+.peak-title {
+	grid-area: Title;
+}
+.initial-r {
+	grid-area: Ri;
+}
+.final-r {
+	grid-area: Rf;
+}
+.add-peak {
+	grid-area: AddPeak;
+}
+.all-peaks {
+	grid-area: AllPeaks;
+	grid-auto-rows: 35px;
+}
+.action-spectrum-peak-row {
+	grid-template-columns: 2fr 2fr 1fr;
+}
+
+.show-peaks {
+	grid-area: ShowPeaks;
+}
+
+#IRActionSpectrumSelectionSection {
+	grid-area: SpectrumSelection;
+	grid-template-rows: 1fr 8fr 1fr;
+}
+
+#IRActionSpectrumSelectionHeader {
+	grid-template-columns: 1fr 1fr 1fr 2fr 2fr 2fr;
+}
+
+#IRActionSpectrumSelection {
+	grid-auto-rows: 35px;
+}
+
+.action-spectrum-selection-outer {
+	grid-template-columns: 1fr 8fr;
+}
+.action-spectrum-selection-inner {
+	grid-template-columns: 1fr 1.2fr 2fr 2fr 2fr;
+}
+
+#IRActionSpectrumSelectionFooter {
+	grid-template-columns: 0.6fr 2.2fr 1fr 1.2fr 1fr 3fr 3fr;
+}

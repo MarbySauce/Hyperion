@@ -1,0 +1,139 @@
+#IRSeviModeContent {
+	display: none; /* Set to none so that it looks cleaner on startup */
+}
+
+/* First Page - Left Side */
+
+/* File Naming */
+#IRSeviFileNaming {
+	padding: 20px 15px;
+	grid-gap: 5% 5px;
+	align-items: center;
+}
+
+#IRSeviImageCounter {
+	width: 100%;
+	height: 70%;
+	text-align: center;
+}
+#IRSeviVMILabel {
+	padding-right: 10px;
+}
+#IRSeviVMIMode {
+	height: 100%;
+	padding-left: 30%;
+}
+
+/* Save Controls - Detachment Wavelength */
+
+#IRSeviLaserSetup {
+	grid-gap: 5px;
+	padding: 20px;
+}
+#IRSeviLaserSetupTitle {
+	justify-items: center;
+}
+#IRSeviLaserControlTitle {
+	width: 80%;
+	text-align: center;
+	border-bottom: 1px solid white;
+	padding-bottom: 5px;
+}
+
+#IRLaserControl {
+	grid-gap: 5px 15px;
+}
+#IRDesiredIRRangeMessage {
+	text-align: center;
+}
+
+#IRSeviDetachmentLaserMeasurement {
+	align-items: center;
+}
+#IRSeviExcitationLaserMeasurement {
+	align-items: center;
+}
+
+/* 
+End left side 
+
+Right Side 
+*/
+
+/* Image Display */
+#IRSeviImageDisplay {
+	padding: 5px 5px;
+	grid-gap: 10px;
+}
+#IRSeviImageDisplaySelect {
+	height: 80%;
+}
+#IRSeviImageDisplay:focus-visible {
+	outline: none;
+}
+#IRSeviDisplayWrapper {
+	height: 50vh;
+	aspect-ratio: 1 / 1;
+	justify-self: center;
+	border-radius: 10px;
+}
+#IRSeviImageDisplay h3 {
+	padding-right: 10%;
+	text-align: right;
+	align-self: end;
+}
+#IRSeviDisplaySlider {
+	justify-self: center;
+}
+
+/* Electron & Frame Counters */
+#IRSeviCounters {
+	padding: 10px 30px;
+	grid-gap: 0 10px;
+	align-items: center;
+	justify-items: center;
+}
+#IRSeviCounters h3 {
+	text-align: center;
+	width: 100%;
+	border-bottom: 1px solid white;
+}
+#IRSeviAutomaticStop {
+	width: 80%;
+	height: 60%;
+	text-align: center;
+}
+#IRSeviAutomaticStopUnit {
+	width: 90%;
+	height: 70%;
+}
+
+/* IR-Sevi Mode - Second Page */
+
+/* IR-Sevi Mode - Second Page - PE Spectrum */
+
+/* See sevi.css for class styling */
+
+/* IR-Sevi Mode - Second Page - Recent Scans */
+
+/* See sevi.css for class styling */
+
+/* IR-Sevi Mode - Second Page - Energy Conversion */
+
+#IRSeviUnitConversion {
+	align-items: center;
+	justify-items: center;
+	grid-gap: 0 10px;
+	padding: 10px 30px 10px 10px;
+}
+#IRSeviUnitConversion .hv-display {
+	height: 80%;
+	font-size: medium;
+}
+
+#IRSeviUnitTitle {
+	border-bottom: 2px solid white;
+	margin-left: 20px;
+	text-align: center;
+	width: 100%;
+}

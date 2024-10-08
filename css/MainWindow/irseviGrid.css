@@ -1,0 +1,477 @@
+/* 
+	This file is used to arrange each IR-SEVI HTML element into a grid structure
+	to make sure it aligns well, especially when resizing the window. The
+	other IR-SEVI element styles are specified in irsevi.css
+
+	The grid structure here is specifically made to be similar to that of 
+	SEVI mode. Any changes made to the grid structure here should also 
+	be made to seviGrid.css to make sure things look similar.
+*/
+
+/* IR-Sevi Mode - First Page */
+
+#IRSeviModeFirstPage {
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 1fr 2fr 3fr 1fr 3fr 30px;
+	grid-template-areas:
+		"TitleSection ImageDisplay"
+		"ScanControls ImageDisplay"
+		"FileNaming ImageDisplay"
+		"LaserSetup ImageDisplay"
+		"LaserSetup Counters"
+		"IRSeviPageDown IRSeviPageDown";
+}
+
+/* IR-Sevi Mode - Left Side */
+
+#IRSeviTitleSection {
+	grid-area: TitleSection;
+}
+
+/* IR-Sevi Mode - Left Side - Scan Controls */
+#IRSeviScanControls {
+	grid-area: ScanControls;
+	grid-template-rows: 1fr 1fr;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-areas:
+		"ScanStartSave ScanPauseResume ScanCancel"
+		"ScanAutosave ScanReset ScanSingleShot";
+}
+#IRSeviScanStartSave {
+	grid-area: ScanStartSave;
+}
+#IRSeviScanPauseResume {
+	grid-area: ScanPauseResume;
+}
+#IRSeviScanCancel {
+	grid-area: ScanCancel;
+}
+#IRSeviScanAutosave {
+	grid-area: ScanAutosave;
+}
+#IRSeviScanReset {
+	grid-area: ScanReset;
+}
+#IRSeviScanSingleShot {
+	grid-area: ScanSingleShot;
+}
+#IRSeviImageSeries {
+	grid-area: ScanStartSave;
+}
+#IRSeviImageSeriesRemaining {
+	grid-area: ScanStartSave;
+}
+
+/* IR-Sevi Mode - Left Side - File Naming */
+#IRSeviFileNaming {
+	grid-area: FileNaming;
+	grid-template-rows: 1fr 2fr 2fr 1.3fr;
+	grid-template-columns: 8fr 1fr 1fr 1fr 1fr;
+	grid-template-areas:
+		"CurrentImageTitle blank1 ImageCounterTitle ImageCounterTitle ImageCounterTitle"
+		"CurrentImageFile blank2 ImageCounterDown ImageCounter ImageCounterUp"
+		"CurrentImageFileIR blank3 blank3 blank3 blank3"
+		"VMILabel VMILabel VMIMode VMIMode blank4";
+}
+#IRSeviCurrentImageTitle {
+	grid-area: CurrentImageTitle;
+}
+#IRSeviImageCounterTitle {
+	grid-area: ImageCounterTitle;
+}
+#IRSeviCurrentImageFile {
+	grid-area: CurrentImageFile;
+}
+#IRSeviCurrentImageFileIR {
+	grid-area: CurrentImageFileIR;
+}
+#IRSeviImageCounterDown {
+	grid-area: ImageCounterDown;
+}
+#IRSeviImageCounter {
+	grid-area: ImageCounter;
+}
+#IRSeviImageCounterUp {
+	grid-area: ImageCounterUp;
+}
+#IRSeviVMILabel {
+	grid-area: VMILabel;
+}
+#IRSeviVMIMode {
+	grid-area: VMIMode;
+}
+
+/* IR-Sevi Mode - Left Side - Laser Setup */
+#IRSeviLaserSetup {
+	grid-area: LaserSetup;
+	grid-template-rows: 0.5fr 1fr 0.5fr 1fr 0.5fr 1fr;
+	grid-template-areas:
+		"LaserSetupTitle"
+		"DetachmentLaserReadout"
+		"DetachmentMeasurement"
+		"IRLaserReadout"
+		"ExcitationMeasurement"
+		"IRLaserControl";
+}
+#IRSeviLaserSetupTitle {
+	grid-area: LaserSetupTitle;
+}
+
+/* IR-Sevi Mode - Left Side - Laser Setup - Detachment Laser Readout */
+#IRSeviDetachmentLaserReadout {
+	grid-area: DetachmentLaserReadout;
+	grid-template-columns: repeat(3, 3fr 1fr) 3fr 1.3fr;
+	grid-template-areas: "WavelengthMode DetachmentWavelengthLabel DetachmentWavelength NMLabel1 ConvertedWavelength NMLabel2 DetachmentWavenumber WNLabel1";
+}
+#IRSeviWavelengthMode {
+	grid-area: WavelengthMode;
+}
+#IRSeviDetachmentWavelengthLabel {
+	grid-area: DetachmentWavelengthLabel;
+}
+#IRSeviDetachmentWavelength {
+	grid-area: DetachmentWavelength;
+}
+#IRSeviNMLabel1 {
+	grid-area: NMLabel1;
+}
+#IRSeviConvertedWavelength {
+	grid-area: ConvertedWavelength;
+}
+#IRSeviNMLabel2 {
+	grid-area: NMLabel2;
+}
+#IRSeviDetachmentWavenumber {
+	grid-area: DetachmentWavenumber;
+}
+#IRSeviWNLabel1 {
+	grid-area: WNLabel1;
+}
+
+/* IR-Sevi Mode - Left Side - Laser Setup - Detachment Laser Measurement Button */
+#IRSeviDetachmentLaserMeasurement {
+	grid-area: DetachmentMeasurement;
+	grid-template-columns: 3.8fr 2fr 0.2fr 2fr;
+	grid-template-areas: "blank1 CancelMeasurement blank2 MeasureDetachmentWavelength";
+}
+#IRSeviMeasureDetachmentWavelengthCancel {
+	grid-area: CancelMeasurement;
+}
+#IRSeviMeasureDetachmentWavelength {
+	grid-area: MeasureDetachmentWavelength;
+}
+
+/* IR-Sevi Mode - Left Side - Laser Setup - Excitation Laser Readout */
+#IRSeviIRLaserReadout {
+	grid-area: IRLaserReadout;
+	grid-template-columns: repeat(3, 3fr 1fr) 3fr 1.3fr;
+	grid-template-areas: "IRWavelengthMode IRWavelengthLabel IRWavelength NMLabel3 IRConvertedWavelength NMLabel4 IRWavenumber WNLabel2";
+}
+#IRSeviIRWavelengthMode {
+	grid-area: IRWavelengthMode;
+}
+#IRSeviIRWavelengthLabel {
+	grid-area: IRWavelengthLabel;
+}
+#IRSeviIRWavelength {
+	grid-area: IRWavelength;
+}
+#IRSeviNMLabel3 {
+	grid-area: NMLabel3;
+}
+#IRSeviIRConvertedWavelength {
+	grid-area: IRConvertedWavelength;
+}
+#IRSeviNMLabel4 {
+	grid-area: NMLabel4;
+}
+#IRSeviIRWavenumber {
+	grid-area: IRWavenumber;
+}
+#IRSeviWNLabel2 {
+	grid-area: WNLabel2;
+}
+
+/* IR-Sevi Mode - Left Side - Laser Setup - Laser Measurement Button */
+#IRSeviExcitationLaserMeasurement {
+	grid-area: ExcitationMeasurement;
+	grid-template-columns: 3.8fr 2fr 0.2fr 2fr;
+	grid-template-areas: "blank1 CancelMeasurement blank2 MeasureExcitationWavelength";
+}
+#IRSeviMeasureExcitationWavelengthCancel {
+	grid-area: CancelMeasurement;
+}
+#IRSeviMeasureExcitationWavelength {
+	grid-area: MeasureExcitationWavelength;
+}
+
+/* IR-Sevi Mode - Left Side - Laser Setup - Move Excitation Laser */
+#IRSeviIRLaserControl {
+	grid-area: IRLaserControl;
+	grid-template-columns: 2.1fr 1.4fr 1fr 0.1fr 1.3fr 1.3fr;
+	grid-template-areas: "IRLaserControlLabel DesiredEnergy DesiredEnergyUnit blank MoveIRCancel MoveIRButton";
+}
+#IRSeviIRLaserControlLabel {
+	grid-area: IRLaserControlLabel;
+}
+#IRSeviDesiredEnergy {
+	grid-area: DesiredEnergy;
+}
+#IRSeviDesiredEnergyUnit {
+	grid-area: DesiredEnergyUnit;
+}
+#IRSeviMoveIRButtonCancel {
+	grid-area: MoveIRCancel;
+}
+#IRSeviMoveIRButton {
+	grid-area: MoveIRButton;
+}
+
+/* IR-Sevi Mode - Right Side */
+
+/* IR-Sevi Mode - Right Side - Accumulated Image Display */
+#IRSeviImageDisplay {
+	grid-area: ImageDisplay;
+	grid-template-rows: 1fr 14fr 1fr;
+	grid-template-columns: 5.2fr 1.8fr;
+	grid-template-areas:
+		"Title IRImageDisplay"
+		"Display Display"
+		"SliderDiv SliderDiv";
+}
+#IRSeviImageDisplaySelect {
+	grid-area: IRImageDisplay;
+}
+#IRSeviImageDisplay h3 {
+	grid-area: Title;
+}
+#IRSeviDisplayWrapper {
+	grid-area: Display;
+}
+#IRSeviDisplaySliderDiv {
+	grid-area: SliderDiv;
+	grid-template-columns: 1fr 14fr 1fr;
+	grid-template-areas: "blank Slider Checkbox";
+}
+#IRSeviDisplaySlider {
+	grid-area: Slider;
+}
+#IRSeviDisplayCheckbox {
+	grid-area: Checkbox;
+}
+
+/* IR-Sevi Mode - Right Side - Electron Counters */
+#IRSeviCounters {
+	grid-area: Counters;
+	grid-template-rows: 0.5fr 1fr 1fr 1fr 5px 1fr;
+	grid-template-columns: 1.2fr 1fr 1fr;
+	grid-template-areas:
+		"blank IROffTitle IROnTitle"
+		"TotalFramesLabel TotalFrames TotalFramesIROn"
+		"TotalECountLabel TotalECount TotalECountIROn"
+		"AvgECountLabel AvgECount AvgECountIROn"
+		"ECountersDivLine ECountersDivLine ECountersDivLine"
+		"AutomaticStopLabel AutomaticStop AutomaticStopUnit";
+}
+#IRSeviIROffCountersTitle {
+	grid-area: IROffTitle;
+}
+#IRSeviIROnCountersTitle {
+	grid-area: IROnTitle;
+}
+#IRSeviTotalFramesLabel {
+	grid-area: TotalFramesLabel;
+}
+#IRSeviTotalFrames {
+	grid-area: TotalFrames;
+}
+#IRSeviTotalFramesIROn {
+	grid-area: TotalFramesIROn;
+}
+#IRSeviTotalECountLabel {
+	grid-area: TotalECountLabel;
+}
+#IRSeviTotalECount {
+	grid-area: TotalECount;
+}
+#IRSeviTotalECountIROn {
+	grid-area: TotalECountIROn;
+}
+#IRSeviAvgECountLabel {
+	grid-area: AvgECountLabel;
+}
+#IRSeviAvgECount {
+	grid-area: AvgECount;
+}
+#IRSeviAvgECountIROn {
+	grid-area: AvgECountIROn;
+}
+#IRSeviECountersDivLine {
+	grid-area: ECountersDivLine;
+}
+#IRSeviAutomaticStopLabel {
+	grid-area: AutomaticStopLabel;
+}
+#IRSeviAutomaticStop {
+	grid-area: AutomaticStop;
+}
+#IRSeviAutomaticStopUnit {
+	grid-area: AutomaticStopUnit;
+}
+/* Image Progress Bar */
+/* Progress bar will be in the same location as the automatic stop stuff */
+#IRSeviImageProgressBarBackground {
+	/* grid-column-start: AutomaticStopLabel;
+	grid-column-end: AutomaticStopUnit; */
+	grid-area: AutomaticStopLabel / AutomaticStopLabel / AutomaticStopLabel / AutomaticStopUnit;
+	grid-template-columns: 4fr 8fr 1fr;
+	grid-template-areas: "Label ProgressBar PercentLabel";
+}
+#IRSeviImageProgressLabel {
+	grid-area: Label;
+}
+#IRSeviImageProgressBarOuter {
+	grid-area: ProgressBar;
+}
+#IRSeviImageProgressPercentLabel {
+	grid-area: PercentLabel;
+}
+
+#IRSeviPageDown {
+	grid-area: IRSeviPageDown;
+}
+
+/* Pause "animation" */
+.paused #IRSeviPauseScreenSaveControls {
+	grid-area: SaveControls;
+}
+.paused #IRSeviPauseScreenDisplay {
+	grid-area: ImageDisplay;
+}
+.paused #IRSeviPauseScreenCounters {
+	grid-area: Counters;
+}
+
+/* IR-Sevi Mode - Second Page */
+
+#IRSeviModeSecondPage {
+	grid-template-rows: 30px 7fr 8fr;
+	grid-template-columns: 1fr 1fr;
+	grid-template-areas:
+		"IRSeviPageUp IRSeviPageUp"
+		"SpectrumDisplaySection SpectrumDisplaySection"
+		"RecentScans UnitConversion";
+}
+
+#IRSeviPageUp {
+	grid-area: IRSeviPageUp;
+}
+
+/* IR-Sevi Mode - Second Page - PE Spectrum */
+#IRSeviSpectrumDisplaySection {
+	grid-area: SpectrumDisplaySection;
+	grid-template-rows: 8fr 1fr;
+	grid-template-columns: 6fr 1fr;
+	grid-template-areas:
+		"SpectrumDisplayInner SpectrumSelection"
+		"SpectrumControl SpectrumSelection";
+}
+#IRSeviSpectrumDisplayInner {
+	grid-area: SpectrumDisplayInner;
+}
+#IRSeviSpectrumControl {
+	grid-area: SpectrumControl;
+	grid-template-columns: 1fr 0.7fr 1.1fr 1.1fr 1.1fr 0.7fr 1fr;
+	grid-template-areas: "ResetZoom blank1 ChangeBasis ShowDifference ShowAnisotropy blank2 Calculate";
+}
+#IRSeviResetZoom {
+	grid-area: ResetZoom;
+}
+#IRSeviChangeBasis {
+	grid-area: ChangeBasis;
+}
+#IRSeviShowDifference {
+	grid-area: ShowDifference;
+}
+#IRSeviShowAnisotropy {
+	grid-area: ShowAnisotropy;
+}
+#IRSeviCalculateSpectrumButton {
+	grid-area: Calculate;
+}
+
+#IRSeviSpectrumSelection {
+	grid-area: SpectrumSelection;
+	grid-auto-rows: 35px;
+}
+
+/* IR-Sevi Mode - Second Page - Recent Scans */
+#IRSeviRecentScans {
+	grid-area: RecentScans;
+	grid-template-rows: 1fr 8fr;
+}
+#IRSeviRecentScansHeader {
+	grid-template-columns: 0.7fr 1.3fr 1.5fr 0.8fr 1fr;
+}
+#IRSeviRecentScansSection {
+	grid-auto-rows: 35px;
+}
+
+/* IR-Sevi Mode - Second Page - Energy Conversion */
+
+#IRSeviUnitConversion {
+	grid-area: UnitConversion;
+	grid-template-rows: 2fr 1fr 2fr 2fr 6fr;
+	grid-template-columns: 0.5fr 1fr 1fr 1fr 1fr;
+	grid-template-areas:
+		"Title Title Title Title Title"
+		"blank0 nIR iIR mIR fIR"
+		"WN nIRWN iIRWN mIRWN fIRWN"
+		"NM nIRNM iIRNM mIRNM fIRNM"
+		"b1 b1 b1 b1 b1";
+}
+#IRSeviUnitTitle {
+	grid-area: Title;
+}
+#IRSeviUnitLabelnIR {
+	grid-area: nIR;
+}
+#IRSeviUnitLabeliIR {
+	grid-area: iIR;
+}
+#IRSeviUnitLabelmIR {
+	grid-area: mIR;
+}
+#IRSeviUnitLabelfIR {
+	grid-area: fIR;
+}
+#IRSeviUnitLabelWN {
+	grid-area: WN;
+}
+#IRSeviUnitnIRWN {
+	grid-area: nIRWN;
+}
+#IRSeviUnitiIRWN {
+	grid-area: iIRWN;
+}
+#IRSeviUnitmIRWN {
+	grid-area: mIRWN;
+}
+#IRSeviUnitfIRWN {
+	grid-area: fIRWN;
+}
+#IRSeviUnitLabelNM {
+	grid-area: NM;
+}
+#IRSeviUnitnIRNM {
+	grid-area: nIRNM;
+}
+#IRSeviUnitiIRNM {
+	grid-area: iIRNM;
+}
+#IRSeviUnitmIRNM {
+	grid-area: mIRNM;
+}
+#IRSeviUnitfIRNM {
+	grid-area: fIRNM;
+}

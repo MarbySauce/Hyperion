@@ -4,18 +4,32 @@
   "main": "JS/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron .",
-    "install": "node-gyp rebuild"
+    "start": "electron-forge start",
+    "install": "node-gyp rebuild",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@electron-forge/cli": "^7.5.0",
+    "@electron-forge/maker-deb": "^7.5.0",
+    "@electron-forge/maker-rpm": "^7.5.0",
+    "@electron-forge/maker-squirrel": "^7.5.0",
+    "@electron-forge/maker-zip": "^7.5.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.5.0",
+    "@electron-forge/plugin-fuses": "^7.5.0",
+    "@electron/fuses": "^1.8.0",
     "bindings": "^1.5.0",
-    "electron": "^13.1.6",
-    "node-addon-api": "^4.2.0"
+    "electron": "^25.4.0",
+    "node-addon-api": "^7.0.0"
   },
   "dependencies": {
-    "chart.js": "^3.5.0"
+    "chart.js": "^4.3.3",
+    "chartjs-plugin-zoom": "^2.0.1",
+    "electron-squirrel-startup": "^1.0.1",
+    "node-gyp": "^9.4.0",
+    "npm-check": "^6.0.1"
   },
   "gypfile": true,
   "repository": {

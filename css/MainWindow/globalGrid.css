@@ -1,0 +1,88 @@
+/* 
+	This file is used to arrange each HTML element into a grid structure
+	to make sure it aligns well, especially when resizing the window. The
+	other element styles are specified in global.css
+*/
+
+body {
+	display: grid;
+	grid-template-rows: 1.75fr 39.25fr;
+	grid-template-columns: 1fr 15fr;
+	grid-template-areas:
+		"TabBar MsgBar"
+		"TabBar Content";
+}
+
+/* Message Bar */
+
+#MsgBar {
+	grid-area: MsgBar;
+}
+
+/* Tabs */
+
+#TabBar {
+	grid-area: TabBar;
+	display: grid;
+	grid-template-rows: 0.5fr repeat(9, 1fr);
+	grid-row-gap: 10px;
+	grid-template-areas:
+		"b0"
+		"SeviMode"
+		"IRSeviMode"
+		"IRActionMode"
+		"b1"
+		"b1"
+		"b1"
+		"b1"
+		"b1"
+		"Settings";
+}
+
+#SeviMode {
+	grid-area: SeviMode;
+}
+#IRSeviMode {
+	grid-area: IRSeviMode;
+}
+#IRActionMode {
+	grid-area: IRActionMode;
+}
+#Settings {
+	grid-area: Settings;
+}
+
+/* Tab Content */
+
+#SeviModeContent {
+	grid-area: Content;
+}
+#IRSeviModeContent {
+	grid-area: Content;
+}
+#IRActionModeContent {
+	grid-area: Content;
+}
+
+#SettingsContent {
+	grid-area: Content;
+}
+
+#LargeDisplaySection {
+	grid-area: Content;
+	grid-template-columns: 1fr 6fr 1fr;
+	grid-template-areas: "blank Display Close";
+}
+#LargeDisplayWrapper {
+	grid-area: Display;
+	grid-template-areas: "Display";
+}
+#LargeDisplay {
+	grid-area: Display;
+}
+#LargeDisplayHoverBox {
+	grid-area: Display;
+}
+#LargeDisplayClose {
+	grid-area: Close;
+}

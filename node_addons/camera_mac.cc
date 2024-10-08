@@ -2,6 +2,7 @@
 #include "centroid.h"
 #include <napi.h>
 
+
 // Global variables
 Camera camera; 							// Contains important info about the camera
 Centroid img; 							// Variables and functions for centroiding image
@@ -16,6 +17,13 @@ int repCount = 0; 						// Keep track of # of repetitions
 int simulationCount = 0;				// With above, used to check for skipped frames
 bool isIROn = false;					// Add in ability to make "IR On" images different
 bool useLED = true;						// Whether to add in intensity to simulate IR LED
+int baseNumberOfSpots = 55;				// Base number of electron spots to add to simulated image
+int numberOfSpotsVariation = 10;		// Variation of the number of electron spots
+std::vector<float> IROffRadii = {50, 90, 170, 300};
+std::vector<float> IROffWeights = {2, 4, 3, 1};
+std::vector<float> IROnRadii = {50, 90, 120, 170, 300};
+std::vector<float> IROnWeights = {2, 3, 2, 2, 1};
+
 
 // Constants
 float const pi = 3.14159265358979;
@@ -32,7 +40,7 @@ float const pi = 3.14159265358979;
 // C++ functions
 //
 
-float Gauss(int i, float center, float width)
+float gauss(int i, float center, float width)
 {
 	return sqrt(255) * exp(-pow(i - center, 2) / width);
 }
@@ -41,9 +49,10 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 	srand(randSeed); // Setting up random number generator
 
 	// Simulated values
-	int NumberOfSpots = (rand() % 10) + 15;
+	int numberOfSpots = (rand() % numberOfSpotsVariation) + baseNumberOfSpots;
 	//std::vector<float> Radii = {30, 50, 90, 120, 170};
-	std::vector<float> Radii = {50, 50, 90, 90, 90, 90, 170, 170, 170};
+	std::vector<float> Radii = IROffRadii;
+	std::vector<float> PeakWeights = IROffWeights;
 
 	// First clear the image (i.e. fill with 0's)
 	// 		(Unnecessary if adding noise)
@@ -74,34 +83,51 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 
 	if (isIROn) {
 		isIROn = false;
-		Radii = {50, 50, 90, 90, 90, 120, 120, 170};
+		Radii = IROnRadii; 
+		PeakWeights = IROnWeights;
 		//return;
 	} else {
 		isIROn = true;
 	}
 
+	int PeakWeightSum = 0;
+	for (int i = 0; i < PeakWeights.size(); i++) {
+		PeakWeightSum += PeakWeights[i];
+	}
+
 	// Add spots
 	int spotNumber = 0;
-	while (spotNumber < NumberOfSpots)
+	while (spotNumber < numberOfSpots)
 	{
-		float radius = Radii[rand() % Radii.size()];
+		// If sum of peak weights is <= 0, don't add any spots to image
+		if (PeakWeightSum <= 0) {
+			break;
+		}
+		int radiusProbability = (rand() % (1000*PeakWeightSum-1)) / 1000;
+		int radiusIndex = -1;
+		int weightSum = 0;
+		while (radiusProbability >= weightSum) {
+			radiusIndex++;
+			weightSum += PeakWeights[radiusIndex];
+		}
+		float radius = Radii[radiusIndex];
 		
 		// Using the physics def. of spherical coords
-		float phi = 2 * pi * ((rand() % 1000) / 1000.0);		 // (0,2pi)
-		float costheta = 2.0 * ((rand() % 1000) / 1000.0) - 1.0; // (-1,1)
+		float phi = 2 * pi * ((rand() % RAND_MAX) / (1.0 * RAND_MAX)); 			// (0, 2pi)
+		float costheta = 2.0 * ((rand() % RAND_MAX) / (1.0 * RAND_MAX)) - 1.0; 	// (-1, 1)
 		float theta = acos(costheta);
 		float centerX = imageCenterX + radius * sin(theta) * cos(phi); // Converting to Cartesian coords
 		float centerY = imageCenterY + radius * cos(theta);
 		float widthX = (rand() % 50 + 100) / 10.0; // Randomly chooses widths btw 10.0 and 15.0 pixels (closer to real spot sizes)
 		float widthY = (rand() % 50 + 100) / 10.0;
-		float percentIntensity = (rand() % 60 + 0) / 100.0; // Choosing intensity btw 50% and 110%
+		float percentIntensity = (rand() % 60 + 50) / 100.0; // Choosing intensity btw 50% and 110%
 
 		// Add the spot to the image
 		for (int Y = centerY - 8; Y < centerY + 9; Y++)
 		{
 			for (int X = centerX - 8; X < centerX + 9; X++)
 			{
-				int intensity = round(Gauss(Y, centerY, widthY) * Gauss(X, centerX, widthX) * percentIntensity);
+				int intensity = round(gauss(Y, centerY, widthY) * gauss(X, centerX, widthX) * percentIntensity);
 				int currentIntensity = (unsigned char)simImage[camera.width * Y + X];
 				currentIntensity += intensity;
 				if (currentIntensity > 255)
@@ -117,11 +143,98 @@ void simulateImage(std::vector<char> &simImage, unsigned int randSeed) {
 	}
 }
 
+//
+// Napi functions for just Mac
+//
+
+Napi::Number SetBaseNumberOfSpots(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	if (info[0].IsNumber()) {
+		baseNumberOfSpots = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
+	}
+
+	return Napi::Number::New(env, baseNumberOfSpots);
+}
+
+Napi::Number SetNumberOfSpotsVariation(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	if (info[0].IsNumber()) {
+		numberOfSpotsVariation = reinterpret_cast<int>(info[0].ToNumber().Int32Value());
+	}
+	
+	return Napi::Number::New(env, numberOfSpotsVariation);
+}
+
+Napi::Boolean SetIROffRadii(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	if (info[0].IsArray() && info[1].IsArray()) {
+		Napi::Array napiRadii = info[0].As<Napi::Array>();
+		Napi::Array napiWeights = info[1].As<Napi::Array>();
+		int napiRadiiLength = (int)napiRadii.Length();
+		int napiWeightsLength = (int)napiWeights.Length();
+		if (napiRadiiLength == napiWeightsLength) {
+			// Convert them into vectors
+			std::vector<float> radii, weights;
+			for (int i = 0; i < napiRadiiLength; i++) {
+				float radius = (float)napiRadii.Get(Napi::Number::New(env, i)).ToNumber().FloatValue();
+				float weight = (float)napiWeights.Get(Napi::Number::New(env, i)).ToNumber().FloatValue();
+				radii.push_back(radius);
+				weights.push_back(weight);
+			}
+			IROffRadii = radii;
+			IROffWeights = weights;
+			return Napi::Boolean::New(env, true);
+		}
+	}
+
+	return Napi::Boolean::New(env, false);
+}
+
+Napi::Boolean SetIROnRadii(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	if (info[0].IsArray() && info[1].IsArray()) {
+		Napi::Array napiRadii = info[0].As<Napi::Array>();
+		Napi::Array napiWeights = info[1].As<Napi::Array>();
+		int napiRadiiLength = (int)napiRadii.Length();
+		int napiWeightsLength = (int)napiWeights.Length();
+		if (napiRadiiLength == napiWeightsLength) {
+			// Convert them into vectors
+			std::vector<float> radii, weights;
+			for (int i = 0; i < napiRadiiLength; i++) {
+				float radius = (float)napiRadii.Get(Napi::Number::New(env, i)).ToNumber().FloatValue();
+				float weight = (float)napiWeights.Get(Napi::Number::New(env, i)).ToNumber().FloatValue();
+				radii.push_back(radius);
+				weights.push_back(weight);
+			}
+			IROnRadii = radii;
+			IROnWeights = weights;
+			return Napi::Boolean::New(env, true);
+		}
+	}
+
+	return Napi::Boolean::New(env, false);
+}
 
 
 //
 // Napi functions
 //
+
+// Whether to use the hybrid centroiding method
+// @param {Boolean}
+Napi::Boolean UseHybridMethod(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	if (info[0].IsBoolean()) {
+		img.UseHybridMethod = info[0].ToBoolean();
+	}
+
+	return Napi::Boolean::New(env, img.UseHybridMethod);
+}
 
 // Pretend to create a WinAPI window to receive windows messages 
 // Returns true
@@ -162,10 +275,11 @@ Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 	img.yUpperBound = camera.height;
 	
 	// Fill out with information
-	information["infoReceived"] = Napi::Boolean::New(env, true);
+	// NOTE TO MARTY: Might want to change these to be snake_case to be consistent with JS side
+	information["info_received"] = Napi::Boolean::New(env, true);
 	information["model"] = Napi::String::New(env, "Simulation");
-	information["ID"] = Napi::Number::New(env, 0);
-	information["colorMode"] = Napi::Number::New(env, 1);
+	information["id"] = Napi::Number::New(env, 0);
+	information["color_mode"] = Napi::Number::New(env, 1);
 	information["width"] = Napi::Number::New(env, camera.width);
 	information["height"] = Napi::Number::New(env, camera.height);
 	
@@ -176,13 +290,13 @@ Napi::Object GetInfo(const Napi::CallbackInfo& info) {
 // Initialize image for centroiding
 // Get pMem;
 // Returns true unless camera was not "initialized"
-Napi::Boolean ApplySettings(const Napi::CallbackInfo& info) {
+Napi::Boolean ApplyDefaultSettings(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env(); // Napi local environment
 
 	// Initialize image array for centroiding
 	img.Image.assign(camera.width, camera.height);
 	img.RegionImage.assign(camera.width, camera.height);
-	img.RegionVector.assign(1500, 1);
+	img.RegionVector.assign(1500, 3);
 	img.COMs.assign(1500, 4);
 
 	// Check to make sure camera was initialized first
@@ -325,6 +439,60 @@ void SetNoiseArea(const Napi::CallbackInfo& info) {
 	return;
 }
 
+// Set the camera trigger
+// Returns true
+Napi::Boolean SetTrigger(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
+// Set the camera pixel clock
+// Returns true
+Napi::Boolean SetPixelClock(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
+// Set the camera exposure
+// Returns true
+Napi::Boolean SetExposure(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
+// Set the camera gain
+// Returns true
+Napi::Boolean SetGain(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
+// Set the camera gain boost
+// Returns true
+Napi::Boolean SetGainBoost(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
+// Start camera image capture
+// Returns true
+Napi::Boolean StartCapture(const Napi::CallbackInfo& info) {
+	Napi::Env env = info.Env(); // Napi local environment
+
+	// Return true
+	return Napi::Boolean::New(env, true);
+}
+
 // Start trigger delay stopwatch
 // Returns true unless "window" was not generated
 Napi::Boolean EnableMessages(const Napi::CallbackInfo& info) {
@@ -349,13 +517,14 @@ void sendCentroids() {
 	// Package centroid information into an object to send to JS
 	Napi::Object centroidResults = Napi::Object::New(env);
 	// Contains:
-	// 		CCLCenters			-	Array		- Connect component labeling centroids
-	//		hybridCenters		-	Array		- Hybrid method centroids
-	//		computationTime		-	Float		- Time to calculate centroids (ms)
-	//		isLEDon				- 	Boolean		- Whether IR LED was on in image
-	//		normNoiseIntensity	-	Float		- Ratio of LED area to Noise area normalized intensities
-
-	// First add the connected-component-labeling (CCL) centroids
+	// 		com_centers				-	Array		- Center of mass centroids
+	//		hgcm_centers			-	Array		- HGCM method centroids
+	//		computation_time		-	Float		- Time to calculate centroids (ms)
+	//		is_led_on				- 	Boolean		- Whether IR LED was on in image
+	//		avg_led_intensity		-	Float		- Average intensity of pixels in LED region
+	//		avg_noise_intensity		-	Float		- Average intensity of pixels in noise region
+	
+	// First add the center of mass (CoM) centroids
 	Napi::Array centroidList = Napi::Array::New(env);
 	int centroidCounter = 0; // To keep track of how many center were found
 	for (int center = 0; center < img.Centroids[0].width(); center++) {
@@ -379,9 +548,9 @@ void sendCentroids() {
 			centroidCounter++;
 		}
 	}
-	centroidResults["CCLCenters"] = centroidList;
+	centroidResults["com_centers"] = centroidList;
 
-	// Next add the hybrid method centroids
+	// Next add the hybrid gradient CoM (HGCM) method centroids
 	centroidList = Napi::Array::New(env);
 	centroidCounter = 0; // To keep track of how many center were found
 	for (int center = 0; center < img.Centroids[1].width(); center++) {
@@ -405,13 +574,14 @@ void sendCentroids() {
 			centroidCounter++;
 		}
 	}
-	centroidResults["hybridCenters"] = centroidList;
+	centroidResults["hgcm_centers"] = centroidList;
 
 	// Add the other important values
-	centroidResults["computationTime"] = Napi::Number::New(env, img.computationTime);
-	centroidResults["isLEDon"] = Napi::Boolean::New(env, img.isLEDon);
-	centroidResults["normLEDIntensity"] = Napi::Number::New(env, img.LEDIntensity / img.LEDCount);
-	centroidResults["normNoiseIntensity"] = Napi::Number::New(env, img.NoiseIntensity / img.NoiseCount);
+	centroidResults["computation_time"] = Napi::Number::New(env, img.computationTime);
+	centroidResults["is_led_on"] = Napi::Boolean::New(env, img.isLEDon);
+	centroidResults["avg_led_intensity"] = Napi::Number::New(env, img.LEDIntensity / img.LEDCount);
+	centroidResults["avg_noise_intensity"] = Napi::Number::New(env, img.NoiseIntensity / img.NoiseCount);
+	centroidResults["image_buffer"] = Napi::Buffer<unsigned char>::Copy(env, camera.buffer.data(), camera.buffer.size());
 
 	// Send message to JavaScript with packaged results
 	eventEmitter.Call(
@@ -427,15 +597,13 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 	// Check if it's been more than 50ms since the last trigger event
 	triggerDelay.end();
 	repCount = floor(triggerDelay.time / 50);
-	//if (triggerDelay.time > 50 /* ms */ && triggerDelay.time < 60 /* ms */) {
 	while (simulationCount < repCount) {
 		if (repCount - simulationCount >= 3) {
 			simulationCount = repCount;
 		}
 		// (Upper time limit to test if any frames are missed)
 		// Simulate image
-		unsigned int randint = 1000 * triggerDelay.time; // RNG seed
-		//triggerDelay.start(); // Restart trigger timer
+		unsigned int randint = ((unsigned long long)triggerDelay.time) % UINT_MAX; // RNG seed
 		simulateImage(simulatedImage, randint);
 		// Get image pitch
 		int pPitch = camera.width;
@@ -444,12 +612,7 @@ void CheckMessages(const Napi::CallbackInfo& info) {
 		// Return calculated centers
 		sendCentroids();
 		simulationCount++;
-	} //else if (triggerDelay.time >= 55 /* ms */) {
-		// Act as if laser still fired (i.e. missed event)
-		//isIROn = !isIROn;
-		// Reset the timer
-	//	triggerDelay.start();
-	//}
+	}
 }
 
 // Pretend to close the camera
@@ -477,24 +640,37 @@ Napi::Value InitBuffer(const Napi::CallbackInfo& info) {
 		camera.buffer[4*i + 3] = 255;
 	}
 	// return buffer
-	return Napi::Buffer<unsigned char>::New(env, camera.buffer.data(), camera.buffer.size());
+	return Napi::Buffer<unsigned char>::Copy(env, camera.buffer.data(), camera.buffer.size());
 }
 
 // Set up module to export to JavaScript
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	// Fill exports object with addon functions
+	exports["useHybridMethod"] = Napi::Function::New(env, UseHybridMethod);
 	exports["createWinAPIWindow"] = Napi::Function::New(env, CreateWinAPIWindow);
 	exports["connect"] = Napi::Function::New(env, Connect);
 	exports["getInfo"] = Napi::Function::New(env, GetInfo);
+	exports["applyDefaultSettings"] = Napi::Function::New(env, ApplyDefaultSettings);
 	exports["setAoI"] = Napi::Function::New(env, SetAoI);
 	exports["setLEDArea"] = Napi::Function::New(env, SetLEDArea);
 	exports["setNoiseArea"] = Napi::Function::New(env, SetNoiseArea);
-	exports["applySettings"] = Napi::Function::New(env, ApplySettings);
+	exports["setTrigger"] = Napi::Function::New(env, SetTrigger);
+	exports["setPixelClock"] = Napi::Function::New(env, SetPixelClock);
+	exports["setExposure"] = Napi::Function::New(env, SetExposure);
+	exports["setGain"] = Napi::Function::New(env, SetGain);
+	exports["setGainBoost"] = Napi::Function::New(env, SetGainBoost);
+	exports["startCapture"] = Napi::Function::New(env, StartCapture);
 	exports["enableMessages"] = Napi::Function::New(env, EnableMessages);
 	exports["checkMessages"] = Napi::Function::New(env, CheckMessages);
 	exports["close"] = Napi::Function::New(env, Close);
 	exports["initEmitter"] = Napi::Function::New(env, InitEmitter);
 	exports["initBuffer"] = Napi::Function::New(env, InitBuffer);
+
+	// Only usable on Mac
+	exports["setBaseNumberOfSpots"] = Napi::Function::New(env, SetBaseNumberOfSpots);
+	exports["setNumberOfSpotsVariation"] = Napi::Function::New(env, SetNumberOfSpotsVariation);
+	exports["setIROffRadii"] = Napi::Function::New(env, SetIROffRadii);
+	exports["setIROnRadii"] = Napi::Function::New(env, SetIROnRadii);
 
 	return exports;
 }
