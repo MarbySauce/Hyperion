@@ -70,9 +70,9 @@ function create_main_window() {
 					label: "Open Live View",
 					click() {
 						// Only open the live view window if it's not open already
-						if (live_view_window === undefined) {
-							create_live_view_window();
-							resize_live_view_window();
+						if (Windows.live_view === undefined) {
+							create_live_view_window(SettingsManager.settings.windows);
+							resize_live_view_window(SettingsManager.settings.windows);
 						}
 					},
 				},
@@ -162,7 +162,7 @@ function create_main_window() {
 	//});
 
 	// Close app if Main window is closed
-	win.on("closed", (event) => {
+	win.once("closed", (event) => {
 		Windows.main = undefined;
 		shut_down_app();
 	});
@@ -202,7 +202,7 @@ function create_live_view_window() {
 	Windows.live_view = win;
 
 	// Delete window reference when window is closed
-	win.on("closed", (event) => {
+	win.once("closed", (event) => {
 		Windows.live_view = undefined;
 	});
 }
@@ -237,7 +237,7 @@ function create_invisible_window() {
 
 	Windows.invisible = win;
 
-	win.on("closed", () => {
+	win.once("closed", () => {
 		Windows.invisible = undefined;
 	});
 }
@@ -251,15 +251,7 @@ function close_windows() {
 
 /** Shut down the app safely */
 function shut_down_app() {
-	// Save settings to file and close Main and Live View windows
-	//SettingsManager.save(() => {
-	//	// Close windows after files are saved
-	//	delete_empty_folder();
-	//	if (Windows.main) Windows.main.close();
-	//	if (Windows.live_view) Windows.live_view.close();
-	//	Windows.main = undefined;
-	//	Windows.live_view = undefined;
-	//});
+	// Close Main and Live View windows
 	delete_empty_folder();
 	if (Windows.main) Windows.main.close();
 	if (Windows.live_view) Windows.live_view.close();
