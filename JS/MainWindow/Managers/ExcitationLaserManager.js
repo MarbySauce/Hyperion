@@ -142,7 +142,6 @@ function ExcitationLaserManager_process_settings(settings) {
 	}
 	// Also update settings for Excitation Wavemeter Manager and OPO/A
 	EWMMessenger.update.process_settings(settings);
-	OPOMMessenger.update.process_settings(settings);
 }
 
 /****

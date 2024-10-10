@@ -105,6 +105,7 @@ async function startup() {
 function process_settings() {
 	// Send settings to each manager
 	IMMessenger.update.process_settings(settings);
+	OPOMMessenger.update.process_settings(settings);
 	DLMMessenger.update.process_settings(settings);
 	ELMMessenger.update.process_settings(settings);
 	IRAMMessenger.update.process_settings(settings);

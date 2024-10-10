@@ -187,6 +187,7 @@ OPOManager.network.client.on("data", (data) => {
 // Receive error message (e.g. cannot connect to server)
 OPOManager.network.client.on("error", (error) => {
 	update_messenger.error("OPO Connection Error! - Error Logged to Console");
+	console.log(OPOManager.network.config);
 	console.log(`OPO Connection Error: ${error}`);
 	OPOManager.status.connected = false;
 });
@@ -286,7 +287,7 @@ function OPOManager_get_last_laser_offset() {
 }
 
 function OPOManager_process_settings(settings) {
-	if (settings?.opo) {
+	if (settings?.excitation_laser) {
 		OPOManager.network.config.host = settings.excitation_laser.host;
 		OPOManager.network.config.port = settings.excitation_laser.port;
 		OPOManager.params.lower_wavelength_bound = settings.excitation_laser.lower_wavelength_bound;
