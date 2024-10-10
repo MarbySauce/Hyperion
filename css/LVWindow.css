@@ -19,6 +19,19 @@ body {
 	overflow-y: hidden;
 }
 
+/* Get rid of input arrows */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+/* Get rid of scroll bars */
+*::-webkit-scrollbar {
+	display: none;
+}
+
+
 .grid {
 	display: grid;
 	overflow: scroll;
