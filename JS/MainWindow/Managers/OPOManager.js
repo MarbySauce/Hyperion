@@ -187,7 +187,6 @@ OPOManager.network.client.on("data", (data) => {
 // Receive error message (e.g. cannot connect to server)
 OPOManager.network.client.on("error", (error) => {
 	update_messenger.error("OPO Connection Error! - Error Logged to Console");
-	console.log(OPOManager.network.config);
 	console.log(`OPO Connection Error: ${error}`);
 	OPOManager.status.connected = false;
 });
